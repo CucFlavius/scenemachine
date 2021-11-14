@@ -1,0 +1,107 @@
+SceneMachine = SceneMachine or {}
+local Camera = SceneMachine.Camera;
+local World = SceneMachine.World;
+local Renderer = SceneMachine.Renderer;
+local CameraController = SceneMachine.CameraController;
+local Player = SceneMachine.Player;
+local Gizmos = SceneMachine.Gizmos;
+
+print ("Running SceneMachine")
+
+local TimeSinceLastUpdate = 0;
+local time = 0;
+
+------------------------
+--	 	  Start  	  --
+------------------------
+function SceneMachine.Start()
+	--MinimapStart();
+    Player.Initialize();
+    SceneMachine.Editor.Initialize();
+    CameraController.CreateMouseInputFrame();
+    SceneMachine.CreateStatsFrame();
+end
+
+local f = CreateFrame("Frame")
+
+local function onevent(self, event, arg1, ...)
+    if(event == "ADDON_LOADED" and arg1 == "scenemachine") then
+        f:UnregisterEvent("ADDON_LOADED");
+        f:UnregisterEvent("PLAYER_LOGIN");
+		SceneMachine.Start();
+    end
+end
+
+f:RegisterEvent("ADDON_LOADED")
+f:RegisterEvent("PLAYER_LOGIN")
+f:SetScript("OnEvent", onevent)
+
+------------------------
+-------- UPDATE --------
+------------------------
+local qty = 0;
+local currentAvgFPS = 0;
+local resetAvgFPS = 0;
+local fps = 0;
+function UpdateCumulativeMovingAverageFPS(newFPS)
+	-- delay by 5 seconds so we don't get wrong value at start
+	if (time > 5) then
+		qty = qty + 1;
+		currentAvgFPS = currentAvgFPS + (newFPS - currentAvgFPS)/qty;
+	end
+	-- reset the average calculation buffer every 5 seconds
+	if (time > resetAvgFPS) then
+		resetAvgFPS = time + 5;
+		qty = 0;
+		currentAvgFPS = 0;
+	end
+end
+
+local function SG_UpdateLoop ()
+    Renderer.active = true;
+	if (SceneMachine.StatsFrame ~= nil)
+	then
+		fps = GetFramerate();
+		if (fps < 15) then		-- if the fps dips below 15, deactivate renderer
+			Renderer.active = false
+		else
+			Renderer.active = true
+		end
+
+		UpdateCumulativeMovingAverageFPS(fps);
+		SceneMachine.StatsFrame.text:SetText(
+			"FrameBuffer : " .. SceneMachine.UsedFrames .. "/" .. SceneMachine.Renderer.FrameBufferSize .. ", Culled : " .. SceneMachine.CulledFrames .. "\n" ..
+			"FPS : " .. floor(fps) .. " Avg. " .. floor(currentAvgFPS) .. "\n" ..
+			"Time : " .. floor(time) .. "\n" ..
+			"Renderer : " .. tostring(Renderer.active)
+		);
+	end
+	
+	if SceneMachine.preRenderUpdateAction ~= nil then
+		SceneMachine.preRenderUpdateAction();
+	end
+    Player.Update();
+	Camera.Update();
+    CameraController.Update();
+    Gizmos.Update();
+	--World.UpdateWorld()
+	--Renderer.RenderChunks();
+    Renderer.RenderGizmos();
+end
+
+
+local function SG_OnUpdate(self, elapsed)
+	TimeSinceLastUpdate = TimeSinceLastUpdate + elapsed; 	
+	while (TimeSinceLastUpdate > SceneMachine.UPDATE_INTERVAL) do
+		SG_UpdateLoop()
+		time = time + SceneMachine.UPDATE_INTERVAL;
+		TimeSinceLastUpdate = TimeSinceLastUpdate - SceneMachine.UPDATE_INTERVAL;
+	end
+end
+
+local SG_UpdateFrame = CreateFrame("frame")
+SG_UpdateFrame:SetScript("OnUpdate", SG_OnUpdate)
+
+function SceneMachine.SetPreRenderUpdate(action)
+	SceneMachine.preRenderUpdateAction = action;
+end

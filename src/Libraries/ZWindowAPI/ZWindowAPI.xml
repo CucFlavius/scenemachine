@@ -1,0 +1,17 @@
+<!--
+Window API Files
+-->
+
+<Ui>
+	<Script file="ZWindowAPI.lua"/>
+	<Script file="Helpers.lua"/>
+	<Script file="Button.lua"/>
+	<Script file="Slider.lua"/>
+	<Script file="ScrollList.lua"/>
+	<Script file="Tab.lua"/>
+	<Script file="TextBox.lua"/>
+	<Script file="EditBox.lua"/>
+	<Script file="ImageBox.lua"/>
+	<Script file="Rectangle.lua"/>
+	<Script file="Window.lua"/>
+</Ui>

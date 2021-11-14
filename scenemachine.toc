@@ -1,0 +1,13 @@
+## Interface: 90001
+## Title: scenemachine
+## Notes:  WoW addon frontend for ModelScene API
+## Author: Zee (Songzee/Songzhu - Argent Dawn EU)
+## DefaultState: enabled
+## LoadOnDemand: 0
+## SavedVariables: scenemachinesettings
+## X-eMail: cucflavius@gmail.com
+## X-Website: none
+## X-License: MIT
+## Version: 1.0
+
+src\code.xml

@@ -1,0 +1,8 @@
+## Interface: 90001
+## Title: Lib: ZWindowAPI
+## Notes: A library for easier implementing of different windows and elements
+## Author: Zee (Songzee - Argent Dawn EU)
+## X-Category: Library
+## X-License: Public Domain
+
+WindowAPI.xml

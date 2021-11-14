@@ -1,0 +1,7 @@
+<!--
+Structures
+-->
+
+<Ui>
+	<Script file="Color.lua"/>
+</Ui>
