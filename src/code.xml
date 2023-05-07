@@ -1,10 +1,13 @@
 <!-- Engine -->
 
 <Ui>
+    <Script file="Data\creature.lua"/>
+
     <Include file="Structures\Structures.xml"/>
     <Include file="Libraries\ZWindowAPI\ZWindowAPI.xml"/>
 
     <Script file="debugger.lua"/>
+
 
     <Script file="camera.lua"/>
     <Script file="input.lua"/>

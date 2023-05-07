@@ -59,17 +59,26 @@ function Renderer.CreateRenderer(parent, x, y, w, h, point, relativePoint)
 	Renderer.GenerateFrameBuffer();
 	Renderer.CreateBackgroundFrame();
 	Renderer.active = false;
+end
 
-    --- add test actor
-    Renderer.actorTest = Renderer.projectionFrame:CreateActor("Test actor");
-    Renderer.actorTest:SetModelByFileID(3849312);
-    Renderer.actorTest:SetPosition(-6, 0, 0);
+function Renderer.AddActor(fileID, X, Y, Z)
+    if (X == nil) then X = 0 end
+    if (Y == nil) then Y = 0 end
+    if (Z == nil) then Z = 0 end
+
+    if (Renderer.projectionFrame == nil) then
+        print("Renderer: AddActor() - called before CreateRenderer()");
+        return;
+    end
+
+    local actor = Renderer.projectionFrame:CreateActor("Test actor");
+    actor:SetModelByFileID(fileID);
+    actor:SetPosition(X, Y, Z);
     --Renderer.actorTest:SetUseCenterForOrigin(true, true, true);
 
-    local diskTest = Renderer.projectionFrame:CreateActor("Test actor");
-    diskTest:SetModelByFileID(4072558);
-    diskTest:SetPosition(0, 0, -2.5);
-    
+    --local diskTest = Renderer.projectionFrame:CreateActor("Test actor");
+    --diskTest:SetModelByFileID(4072558);
+    --diskTest:SetPosition(0, 0, -2.5);
 end
 
 ---Render a 2D Quad

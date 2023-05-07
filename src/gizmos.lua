@@ -4,7 +4,7 @@ local Renderer = SceneMachine.Renderer;
 Gizmos.isUsed = false;
 Gizmos.isHighlighted = false;
 Gizmos.selectedAxis = 1;
-Gizmos.activeTransformGizmo = 2;
+Gizmos.activeTransformGizmo = 1;
 
 local function sqr(x)
     return x * x;

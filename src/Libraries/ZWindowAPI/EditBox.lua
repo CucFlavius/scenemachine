@@ -5,7 +5,7 @@
 --EditBox--
 local Win = ZWindowAPI;
 
-function Win.CreateEditBox(posX, posY, sizeX, sizeY, parent, windowPoint, parentPoint, text, textHeight, textFont)
+function Win.CreateEditBox(posX, posY, sizeX, sizeY, parent, windowPoint, parentPoint, text, textHeight)
 
 	-- defaults --
 	if posX == nil then posX = 0; end
@@ -17,7 +17,7 @@ function Win.CreateEditBox(posX, posY, sizeX, sizeY, parent, windowPoint, parent
 	if parentPoint == nil then parentPoint = "CENTER"; end
 	if text == nil then text = ""; end
 	if textHeight == nil then textHeight = 12; end
-	if textFont == nil then textFont = "Fonts\\FRIZQT__.TTF"; end
+	if textFont == nil then textFont = Win.defaultFont; end
 
 	-- text box frame --
 	local EditBox = CreateFrame("EditBox", "Zee.WindowAPI.EditBox", parent);
@@ -31,7 +31,7 @@ function Win.CreateEditBox(posX, posY, sizeX, sizeY, parent, windowPoint, parent
 	EditBox:SetAutoFocus(false);
 	EditBox:EnableMouse(true);
 	EditBox:SetMaxLetters(100);
-	EditBox:SetFont(textFont, textHeight, 'NORMAL');
+	--EditBox:SetFont(textFont, textHeight, 'NORMAL');
 	EditBox:SetScript('OnEscapePressed', function() EditBox:ClearFocus();  end);
 	EditBox:SetScript('OnEnterPressed', function() EditBox:ClearFocus();  end);
 	EditBox:EnableMouse();

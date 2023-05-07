@@ -24,7 +24,7 @@ function Win.CreateWindow(posX, posY, sizeX, sizeY, parent, windowPoint, parentP
 
 	-- properties --
 	local TitleBarHeight = 20;
-	local TitleBarFont = "Interface\\AddOns\\ZWowEngine\\TestGame\\GameData\\Segoe UI.TTF"; --"Fonts\\FRIZQT__.TTF";
+	local TitleBarFont = Win.defaultFont;
 	local TitleBarFontSize = 10;
 
 	-- defaults --
@@ -66,7 +66,7 @@ function Win.CreateWindow(posX, posY, sizeX, sizeY, parent, windowPoint, parentP
 	WindowFrame.TitleBar:SetScript("OnDragStop", function() WindowFrame:StopMovingOrSizing(); end);
 
 	-- Close Button --
-	WindowFrame.CloseButton = Win.CreateButton(-1, -1, TitleBarHeight - 1, TitleBarHeight - 1, WindowFrame.TitleBar, "TOPRIGHT", "TOPRIGHT", "x", nil, Win.BUTTON_DEFAULT)
+	WindowFrame.CloseButton = Win.CreateButton(-1, -1, TitleBarHeight - 1, TitleBarHeight - 1, WindowFrame.TitleBar, "TOPRIGHT", "TOPRIGHT", "x", nil, Win.BUTTON_DEFAULT, font)
 	WindowFrame.CloseButton:SetScript("OnClick", function (self, button, down) WindowFrame:Hide(); end)
 	return WindowFrame;
 

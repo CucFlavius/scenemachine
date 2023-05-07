@@ -20,8 +20,8 @@ function SceneMachine.CreateStatsFrame()
 	SceneMachine.StatsFrame:SetWidth(200);
 	SceneMachine.StatsFrame:SetHeight(200);
 	SceneMachine.StatsFrame:SetFrameStrata("LOW");
-	SceneMachine.StatsFrame.text = SceneMachine.StatsFrame:CreateFontString(nil,"LOW");
-	SceneMachine.StatsFrame.text:SetFont("Interface\\AddOns\\ZWowEngine\\TestGame\\GameData\\Segoe UI.TTF", 9, "NORMAL");
+	SceneMachine.StatsFrame.text = SceneMachine.StatsFrame:CreateFontString(nil, "BACKGROUND", "GameTooltipText");
+	SceneMachine.StatsFrame.text:SetFont(Win.defaultFont, 9, "NORMAL");
 
 	SceneMachine.StatsFrame.text:SetPoint("TOPRIGHT",-5,-5);
 	SceneMachine.StatsFrame.text:SetJustifyV("TOP");

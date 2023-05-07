@@ -5,7 +5,7 @@
 -- Hide unnecesary game UI for debugging --
 
 -- Chat Frame
-local z_wgs_debug_chat = DEFAULT_CHAT_FRAME
+--local z_wgs_debug_chat = DEFAULT_CHAT_FRAME
 --z_wgs_debug_chat:SetScript("OnShow", z_wgs_debug_chat.Hide)
 --z_wgs_debug_chat:Hide()
 
@@ -36,6 +36,11 @@ z_wgs_debug_pf:Hide()
 local z_wgs_debug_otf = ObjectiveTrackerFrame
 z_wgs_debug_otf:SetScript("OnShow", z_wgs_debug_otf.Hide)
 z_wgs_debug_otf:Hide()
+
+-- Exp Bar
+local z_wgs_debug_ebr = MainStatusTrackingBarContainer
+z_wgs_debug_ebr:SetScript("OnShow", z_wgs_debug_otf.Hide)
+z_wgs_debug_ebr:Hide()
 
 --local z_wgs_debug_mmc = Minimap
 --z_wgs_debug_mmc:SetScript("OnShow",

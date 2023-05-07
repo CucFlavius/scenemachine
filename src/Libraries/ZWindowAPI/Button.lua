@@ -11,7 +11,7 @@ Win.BUTTON_VS = "BUTTON_VS";
 function Win.CreateButton(posX, posY, sizeX, sizeY, parent, buttonPoint, parentPoint, text, icon, theme)
 
 	-- properties --
-	local ButtonFont = "Interface\\AddOns\\ZWowEngine\\TestGame\\GameData\\Segoe UI.TTF";
+	local ButtonFont = Win.defaultFont;
 	local ButtonFontSize = 12;
 
 	-- defaults --

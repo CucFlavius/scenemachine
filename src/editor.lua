@@ -2,6 +2,7 @@ SceneMachine.Editor = SceneMachine.Editor or {}
 local Editor = SceneMachine.Editor;
 local Win = ZWindowAPI;
 local FX = SceneMachine.FX;
+local Renderer = SceneMachine.Renderer;
 
 local width = 1280;
 local height = 720;
@@ -25,7 +26,7 @@ end
 
 function Editor.CreateGroup(name, groupHeight, groupParent)
     local groupBG = Win.CreateRectangle(6, -6, leftPanelWidth - 12, groupHeight, groupParent, "TOPLEFT", "TOPLEFT",  c1[1], c1[2], c1[3], 1);
-    local groupTitleText = Win.CreateTextBoxSimple(0, 0, leftPanelWidth - 30, 20, groupBG, "TOP", "TOP", name, 9, "Interface\\AddOns\\ZWowEngine\\TestGame\\GameData\\Segoe UI.TTF");
+    local groupTitleText = Win.CreateTextBoxSimple(0, 0, leftPanelWidth - 30, 20, groupBG, "TOP", "TOP", name, 9);
     local groupContent = Win.CreateRectangle(0, -20, leftPanelWidth - 12, groupHeight - 20, groupBG, "TOPLEFT", "TOPLEFT", 0.1445, 0.1445, 0.1445, 1);
 
     return groupContent;
@@ -43,14 +44,12 @@ function Editor.CreateToolbar()
 end
 
 function Editor.CreateRightPanel()
-    --local texturePath = "Interface\\AddOns\\ZWowEngine\\TestGame\\GameData\\Textures\\TerrainTiles";
     local rightPanel = Win.CreateRectangle(0, -toolbarHeight/2, rightPanelWidth, height - toolbarHeight, SceneMachine.mainWindow, "RIGHT", "RIGHT", c4[1], c4[2], c4[3], 1);
     
     local edge = 10;
     local tilesGroup = Editor.CreateGroup("Test group name", rightPanelWidth + edge , rightPanel);
     
     local imgSize = rightPanelWidth - (edge * 2);
-    --local textureBox = Win.CreateImageBox(0, - edge / 2, imgSize, imgSize, tilesGroup, "TOP", "TOP", texturePath);
 end
 
 function Editor.CreateLeftPanel()
@@ -58,7 +57,7 @@ function Editor.CreateLeftPanel()
     local leftPanel = Win.CreateRectangle(0, -toolbarHeight, leftPanelWidth, leftPanelHeight, SceneMachine.mainWindow, "TOPLEFT", "TOPLEFT", c4[1], c4[2], c4[3], 1);
     local fxGroup = Editor.CreateGroup("Test group name", 300, leftPanel);
 
-    Win.CreateTextBoxSimple(0, -10, leftPanelWidth - 30, 20, fxGroup, "TOP", "TOP", "Test title", 9, "Interface\\AddOns\\ZWowEngine\\TestGame\\GameData\\Segoe UI.TTF");
+    Win.CreateTextBoxSimple(0, -10, leftPanelWidth - 30, 20, fxGroup, "TOP", "TOP", "Test title", 9);
 
     local slider1 = Win.CreateSlider(fxGroup, "test", "teest", 0, 3000, 10);
     slider1:SetPoint("TOPLEFT", fxGroup, "TOPLEFT", 10, -40);
@@ -70,11 +69,12 @@ function Editor.CreateLeftPanel()
 end
 
 function Editor.CreateBottomPanel()
-    local bottomPanel = Win.CreateRectangle(leftPanelWidth, 0, width - (rightPanelWidth + leftPanelWidth), bottomPanelHeight, SceneMachine.mainWindow, "BOTTOMLEFT", "BOTTOMLEFT", c4[1], c4[2], c4[3], 1);
-    
+    local bottomPanel = Win.CreateRectangle(leftPanelWidth, 0, width - (rightPanelWidth + leftPanelWidth),
+     bottomPanelHeight, SceneMachine.mainWindow, "BOTTOMLEFT", "BOTTOMLEFT", c4[1], c4[2], c4[3], 1);
 end
 
 function Editor.Initialize()
+    Win.Initialize("Interface\\AddOns\\scenemachine\\src\\Libraries\\ZWindowAPI");
     Editor.CreateMainWindow();
     Editor.CreateToolbar();
     Editor.CreateRightPanel();
@@ -82,6 +82,6 @@ function Editor.Initialize()
     Editor.CreateBottomPanel();
 
     local groupBG = Win.CreateRectangle(leftPanelWidth, -(toolbarHeight + 6), width - (rightPanelWidth + leftPanelWidth), 20, SceneMachine.mainWindow, "TOPLEFT", "TOPLEFT",  c1[1], c1[2], c1[3], 1);
-    local groupTitleText = Win.CreateTextBoxSimple(0, 0, width - (rightPanelWidth + leftPanelWidth) - 18, 20, groupBG, "TOP", "TOP", "Scene", 9, "Interface\\AddOns\\ZWowEngine\\TestGame\\GameData\\Segoe UI.TTF");
+    local groupTitleText = Win.CreateTextBoxSimple(0, 0, width - (rightPanelWidth + leftPanelWidth) - 18, 20, groupBG, "TOP", "TOP", "Scene", 9);
     SceneMachine.Renderer.CreateRenderer(SceneMachine.mainWindow, leftPanelWidth, bottomPanelHeight, width - (rightPanelWidth + leftPanelWidth), height - (toolbarHeight + bottomPanelHeight + 6 + 20), "BOTTOMLEFT", "BOTTOMLEFT");
 end

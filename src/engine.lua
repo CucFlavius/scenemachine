@@ -20,6 +20,12 @@ function SceneMachine.Start()
     SceneMachine.Editor.Initialize();
     CameraController.CreateMouseInputFrame();
     SceneMachine.CreateStatsFrame();
+
+	-- tests ---
+	for idx in pairs(SceneMachine.Data.Creatures) do
+        local creatureFileID = SceneMachine.Data.Creatures[idx];
+        Renderer.AddActor(creatureFileID, -6, (idx * 1.5) - 3, 0);
+    end
 end
 
 local f = CreateFrame("Frame")
@@ -59,7 +65,7 @@ end
 
 local function SG_UpdateLoop ()
     Renderer.active = true;
-	if (SceneMachine.StatsFrame ~= nil)
+	if (SceneMachine.StatsFrame ~= nil and SceneMachine.StatsFrame.text ~= nil)
 	then
 		fps = GetFramerate();
 		if (fps < 15) then		-- if the fps dips below 15, deactivate renderer
