@@ -1,5 +1,7 @@
 SceneMachine.Renderer = SceneMachine.Renderer or {}
 SceneMachine.World = SceneMachine.World or {}
+SceneMachine.Gizmos = SceneMachine.Gizmos or {};
+local Gizmos = SceneMachine.Gizmos;
 local Renderer = SceneMachine.Renderer;
 local Camera = SceneMachine.Camera;
 local World = SceneMachine.World;
@@ -10,7 +12,9 @@ local sqrt = math.sqrt;
 local floor = math.floor;
 
 Renderer.FrameBufferSize = 400;
-Renderer.FrameBufferFrames = {}
+Renderer.FrameBufferFrames = {};
+Renderer.actors = {};
+
 function Renderer.GenerateFrameBuffer()
 
 	for t = 1, Renderer.FrameBufferSize, 1 do
@@ -74,8 +78,12 @@ function Renderer.AddActor(fileID, X, Y, Z)
     local actor = Renderer.projectionFrame:CreateActor("Test actor");
     actor:SetModelByFileID(fileID);
     actor:SetPosition(X, Y, Z);
-    --Renderer.actorTest:SetUseCenterForOrigin(true, true, true);
 
+    table.insert(Renderer.actors, actor);
+
+    Renderer.selectedActor = actor;
+    --Renderer.actorTest:SetUseCenterForOrigin(true, true, true);
+    Gizmos.refresh = true;
     --local diskTest = Renderer.projectionFrame:CreateActor("Test actor");
     --diskTest:SetModelByFileID(4072558);
     --diskTest:SetPosition(0, 0, -2.5);

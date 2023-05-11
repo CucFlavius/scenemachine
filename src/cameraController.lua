@@ -2,27 +2,14 @@ SceneMachine.CameraController = SceneMachine.CameraController or {}
 local CC = SceneMachine.CameraController;
 SceneMachine.Player = SceneMachine.Player or {}
 SceneMachine.Gizmos = SceneMachine.Gizmos or {}
+SceneMachine.Input = SceneMachine.Input or {}
 local Player = SceneMachine.Player;
 local Renderer = SceneMachine.Renderer;
 local Gizmos = SceneMachine.Gizmos;
-CC.LMBPressed = false;
-CC.LMBStartPos = {}
-CC.LMBPrevious = {}
-
-function CC.CreateMouseInputFrame()
-    CC.mouseInputFrame = CreateFrame("Frame", "CC.mouseInputFrame", Renderer.projectionFrame);
-	CC.mouseInputFrame:SetPoint("CENTER", Renderer.projectionFrame, "CENTER", 0, 0);
-	CC.mouseInputFrame:SetWidth(SceneMachine.WINDOW_WIDTH);
-	CC.mouseInputFrame:SetHeight(SceneMachine.WINDOW_HEIGHT);
-    --CC.mouseInputFrame:SetFrameStrata("MEDIUM");
-    --CC.mouseInputFrame.texture = CC.mouseInputFrame:CreateTexture("texture", "ARTWORK")
-    --CC.mouseInputFrame.texture:SetColorTexture(1,1,1,1  );
-
-	CC.mouseInputFrame:EnableMouse(true)
-	CC.mouseInputFrame:RegisterForDrag("LeftButton")
-	CC.mouseInputFrame:SetScript("OnDragStart", function(s) CC.OnLMBDown(); end)
-	CC.mouseInputFrame:SetScript("OnDragStop", function(s) CC.OnLMBUp(); end)
-end
+local Input = SceneMachine.Input;
+CC.RMBPressed = false;
+CC.RMBStartPos = {}
+CC.RMBPrevious = {}
 
 local cameraTurnSpeed = 0.2;
 function CC.Update()
@@ -30,12 +17,12 @@ function CC.Update()
     SceneMachine.Camera.Y = Player.Position.y;
     SceneMachine.Camera.Z = Player.Position.z;
     
-    if (CC.LMBPressed == true) then
+    if (CC.RMBPressed == true) then
 		local x, y = GetCursorPosition();
-		local xDiff = x - CC.LMBPrevious.x;
-		local yDiff = y - CC.LMBPrevious.y;
-		CC.LMBPrevious.x = x;
-		CC.LMBPrevious.y = y;
+		local xDiff = x - CC.RMBPrevious.x;
+		local yDiff = y - CC.RMBPrevious.y;
+		CC.RMBPrevious.x = x;
+		CC.RMBPrevious.y = y;
 
 		-- if camera is in flight mode then handle that --
 		SceneMachine.Camera.Yaw = SceneMachine.Camera.Yaw - rad(xDiff * cameraTurnSpeed);
@@ -47,24 +34,15 @@ function CC.Update()
     end
 end
 
-function CC.OnLMBDown()
+function CC.OnRMBDown()
 	local x, y = GetCursorPosition();
-    if (Gizmos.isHighlighted) then
-        Gizmos.OnLMBDown(x, y);
-        CC.LMBPressed = false;
-        return;
-    end
-	CC.LMBStartPos.x = x;
-	CC.LMBStartPos.y = y;
-	CC.LMBPressed = true;
-	CC.LMBPrevious.x = x;
-	CC.LMBPrevious.y = y;
+	CC.RMBStartPos.x = x;
+	CC.RMBStartPos.y = y;
+	CC.RMBPressed = true;
+	CC.RMBPrevious.x = x;
+	CC.RMBPrevious.y = y;
 end
 
-function CC.OnLMBUp()
-    if (Gizmos.isUsed) then
-        Gizmos.OnLMBUp();
-        return;
-    end
-	CC.LMBPressed = false;
+function CC.OnRMBUp()
+	CC.RMBPressed = false;
 end

@@ -18,7 +18,6 @@ function SceneMachine.Start()
 	--MinimapStart();
     Player.Initialize();
     SceneMachine.Editor.Initialize();
-    CameraController.CreateMouseInputFrame();
     SceneMachine.CreateStatsFrame();
 
 	-- tests ---

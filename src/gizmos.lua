@@ -3,8 +3,10 @@ local Gizmos = SceneMachine.Gizmos;
 local Renderer = SceneMachine.Renderer;
 Gizmos.isUsed = false;
 Gizmos.isHighlighted = false;
+Gizmos.refresh = false;
 Gizmos.selectedAxis = 1;
 Gizmos.activeTransformGizmo = 1;
+Gizmos.LMBPrevious = {};
 
 local function sqr(x)
     return x * x;
@@ -134,8 +136,14 @@ function Gizmos.Update()
         end
     end
 
-    if (Gizmos.isUsed) then
+    if (Gizmos.isUsed or Gizmos.refresh) then
 		local x, y = GetCursorPosition();
+
+        if (Gizmos.LMBPrevious.x == nil) then
+            Gizmos.LMBPrevious.x = x;
+            Gizmos.LMBPrevious.y = y;
+        end
+        
 		local xDiff = x - Gizmos.LMBPrevious.x;
 		local yDiff = y - Gizmos.LMBPrevious.y;
 		Gizmos.LMBPrevious.x = x;
@@ -144,7 +152,7 @@ function Gizmos.Update()
         local diff = ((xDiff + yDiff) / 2) / 100;
         
         if(Gizmos.activeTransformGizmo == 1) then
-            local x, y, z = Renderer.actorTest:GetPosition();
+            local x, y, z = Renderer.selectedActor:GetPosition();
             if (Gizmos.selectedAxis == 1) then
                 y = y + diff;
             elseif (Gizmos.selectedAxis == 2) then
@@ -152,7 +160,7 @@ function Gizmos.Update()
             else
                 x = x + diff;
             end
-            Renderer.actorTest:SetPosition(x, y, z);
+            Renderer.selectedActor:SetPosition(x, y, z);
             Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, {x, y, z});
             Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoX, {x, y, z});
             Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoY, {x, y, z});
@@ -160,14 +168,14 @@ function Gizmos.Update()
         elseif(Gizmos.activeTransformGizmo == 2) then
             local x;
             if (Gizmos.selectedAxis == 1) then
-                x = Renderer.actorTest:GetRoll() + diff;
-                Renderer.actorTest:SetRoll(x);
+                x = Renderer.selectedActor:GetRoll() + diff;
+                Renderer.selectedActor:SetRoll(x);
             elseif (Gizmos.selectedAxis == 2) then
-                x = Renderer.actorTest:GetPitch() + diff;
-                Renderer.actorTest:SetPitch(x);
+                x = Renderer.selectedActor:GetPitch() + diff;
+                Renderer.selectedActor:SetPitch(x);
             else
-                x = Renderer.actorTest:GetYaw() + diff;
-                Renderer.actorTest:SetYaw(x);
+                x = Renderer.selectedActor:GetYaw() + diff;
+                Renderer.selectedActor:SetYaw(x);
             end
             -- rotate the gizmos
         elseif(Gizmos.activeTransformGizmo == 3) then
@@ -176,13 +184,13 @@ function Gizmos.Update()
     end
 
     Gizmos.isHighlighted = selected;
+    Gizmos.refresh = false;
 end
 
 function Gizmos.OnLMBDown(x, y)
-    Gizmos.LMBPrevious = {};
 	Gizmos.LMBPrevious.x = x;
 	Gizmos.LMBPrevious.y = y;
-    --local x, y, z = Renderer.actorTest:GetPosition();
+    --local x, y, z = Renderer.selectedActor:GetPosition();
     --Gizmos.previousPosition = {x, y, z};
     Gizmos.isUsed = true;
 end

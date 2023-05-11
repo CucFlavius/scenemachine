@@ -78,7 +78,7 @@ function DegreeToRadian(angle)
 end
 
 function Player.Update()
-    if CC.LMBPressed == false then
+    if CC.RMBPressed == false then
 	    if Player.Action.TurnLeft then
             Player.Direction = Player.Direction + Player.turnSpeed;
             if Player.Direction > 360 then Player.Direction = Player.Direction - 360; end
