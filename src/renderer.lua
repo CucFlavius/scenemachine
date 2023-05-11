@@ -157,6 +157,10 @@ function Renderer.RenderGizmos()
         SceneMachine.CulledFrames = 1;
 
         -- Render gizmos --
+        if Renderer.selectedActor ~= nil then
+            RenderGizmo(SceneMachine.Gizmos.WireBox);
+        end
+
         if (SceneMachine.Gizmos.activeTransformGizmo == 1) then
             RenderGizmo(SceneMachine.Gizmos.MoveGizmo);
         elseif (SceneMachine.Gizmos.activeTransformGizmo == 2) then

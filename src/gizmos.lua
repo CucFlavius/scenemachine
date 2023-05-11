@@ -44,6 +44,7 @@ function Gizmos.Update()
 
     -- Select --
     selected = false;
+    
     if not Gizmos.isUsed then
         -- Position --
         if (Gizmos.activeTransformGizmo == 1) then
@@ -151,35 +152,39 @@ function Gizmos.Update()
 
         local diff = ((xDiff + yDiff) / 2) / 100;
         
-        if(Gizmos.activeTransformGizmo == 1) then
+        if (Renderer.selectedActor ~= nil) then
             local x, y, z = Renderer.selectedActor:GetPosition();
-            if (Gizmos.selectedAxis == 1) then
-                y = y + diff;
-            elseif (Gizmos.selectedAxis == 2) then
-                z = z + diff;
-            else
-                x = x + diff;
-            end
-            Renderer.selectedActor:SetPosition(x, y, z);
-            Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, {x, y, z});
-            Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoX, {x, y, z});
-            Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoY, {x, y, z});
-            Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoZ, {x, y, z});
-        elseif(Gizmos.activeTransformGizmo == 2) then
-            local x;
-            if (Gizmos.selectedAxis == 1) then
-                x = Renderer.selectedActor:GetRoll() + diff;
-                Renderer.selectedActor:SetRoll(x);
-            elseif (Gizmos.selectedAxis == 2) then
-                x = Renderer.selectedActor:GetPitch() + diff;
-                Renderer.selectedActor:SetPitch(x);
-            else
-                x = Renderer.selectedActor:GetYaw() + diff;
-                Renderer.selectedActor:SetYaw(x);
-            end
-            -- rotate the gizmos
-        elseif(Gizmos.activeTransformGizmo == 3) then
+            Gizmos.transformToActorAABB(SceneMachine.Gizmos.WireBox, Renderer.selectedActor, {x, y, z});
+            
+            if(Gizmos.activeTransformGizmo == 1) then
+                if (Gizmos.selectedAxis == 1) then
+                    y = y + diff;
+                elseif (Gizmos.selectedAxis == 2) then
+                    z = z + diff;
+                else
+                    x = x + diff;
+                end
+                Renderer.selectedActor:SetPosition(x, y, z);
+                Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, {x, y, z});
+                Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoX, {x, y, z});
+                Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoY, {x, y, z});
+                Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoZ, {x, y, z});
+            elseif(Gizmos.activeTransformGizmo == 2) then
+                local x;
+                if (Gizmos.selectedAxis == 1) then
+                    x = Renderer.selectedActor:GetRoll() + diff;
+                    Renderer.selectedActor:SetRoll(x);
+                elseif (Gizmos.selectedAxis == 2) then
+                    x = Renderer.selectedActor:GetPitch() + diff;
+                    Renderer.selectedActor:SetPitch(x);
+                else
+                    x = Renderer.selectedActor:GetYaw() + diff;
+                    Renderer.selectedActor:SetYaw(x);
+                end
+                -- rotate the gizmos
+            elseif(Gizmos.activeTransformGizmo == 3) then
 
+            end
         end
     end
 
@@ -207,6 +212,45 @@ function Gizmos.transformGizmo(gizmo, position)
             gizmo.transformedVertices[q][v][3] = gizmo.vertices[q][v][3] + position[3];
         end
     end
+end
+
+function Gizmos.transformToActorAABB(gizmo, actor, position)
+
+    xMin, yMin, zMin, xMax, yMax, zMax = actor:GetActiveBoundingBox();
+
+    local chX = (xMax - xMin) / 2;
+    local chY = (yMax - yMin) / 2;
+    local chZ = (zMax - zMin) / 2;
+
+    gizmo.transformedVertices =
+    {
+        {{-chX, -chY, -chZ}, {chX, -chY, -chZ}},
+        {{chX, -chY, -chZ}, {chX, -chY, chZ}},
+        {{chX, -chY, chZ}, {-chX, -chY, chZ}},
+        {{-chX, -chY, chZ}, {-chX, -chY, -chZ}},
+    
+        -- Top face
+        {{-chX, chY, -chZ}, {chX, chY, -chZ}},
+        {{chX, chY, -chZ}, {chX, chY, chZ}},
+        {{chX, chY, chZ}, {-chX, chY, chZ}},
+        {{-chX, chY, chZ}, {-chX, chY, -chZ}},
+    
+        -- Connecting edges
+        {{-chX, -chY, -chZ}, {-chX, chY, -chZ}},
+        {{chX, -chY, -chZ}, {chX, chY, -chZ}},
+        {{chX, -chY, chZ}, {chX, chY, chZ}},
+        {{-chX, -chY, chZ}, {-chX, chY, chZ}}
+    }
+
+    for q = 1, gizmo.lines, 1 do
+        for v = 1, 2, 1 do
+            gizmo.transformedVertices[q][v][1] = gizmo.transformedVertices[q][v][1] + position[1];
+            gizmo.transformedVertices[q][v][2] = gizmo.transformedVertices[q][v][2] + position[2];
+            gizmo.transformedVertices[q][v][3] = gizmo.transformedVertices[q][v][3] + position[3] + chZ;
+        end
+    end
+
+
 end
 
 Gizmos.MoveGizmo = 
@@ -239,7 +283,83 @@ Gizmos.MoveGizmo =
 	};
 }
 
-Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, {-6, 0, 0});
+local ch = 0.5;
+
+Gizmos.WireBox = 
+{
+    lines = 12;
+    thickness = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+    vertices = 
+    {
+        -- Bottom face
+        {{-ch, -ch, -ch}, {ch, -ch, -ch}},
+        {{ch, -ch, -ch}, {ch, -ch, ch}},
+        {{ch, -ch, ch}, {-ch, -ch, ch}},
+        {{-ch, -ch, ch}, {-ch, -ch, -ch}},
+
+        -- Top face
+        {{-ch, ch, -ch}, {ch, ch, -ch}},
+        {{ch, ch, -ch}, {ch, ch, ch}},
+        {{ch, ch, ch}, {-ch, ch, ch}},
+        {{-ch, ch, ch}, {-ch, ch, -ch}},
+
+        -- Connecting edges
+        {{-ch, -ch, -ch}, {-ch, ch, -ch}},
+        {{ch, -ch, -ch}, {ch, ch, -ch}},
+        {{ch, -ch, ch}, {ch, ch, ch}},
+        {{-ch, -ch, ch}, {-ch, ch, ch}}
+    };
+    transformedVertices =
+    {
+        -- Bottom face
+        {{-ch, -ch, -ch}, {ch, -ch, -ch}},
+        {{ch, -ch, -ch}, {ch, -ch, ch}},
+        {{ch, -ch, ch}, {-ch, -ch, ch}},
+        {{-ch, -ch, ch}, {-ch, -ch, -ch}},
+
+        -- Top face
+        {{-ch, ch, -ch}, {ch, ch, -ch}},
+        {{ch, ch, -ch}, {ch, ch, ch}},
+        {{ch, ch, ch}, {-ch, ch, ch}},
+        {{-ch, ch, ch}, {-ch, ch, -ch}},
+
+        -- Connecting edges
+        {{-ch, -ch, -ch}, {-ch, ch, -ch}},
+        {{ch, -ch, -ch}, {ch, ch, -ch}},
+        {{ch, -ch, ch}, {ch, ch, ch}},
+        {{-ch, -ch, ch}, {-ch, ch, ch}}
+    };
+    screenSpaceVertices = 
+    {
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+        {{0,0}, {0,0}},
+    };
+	faceColors = 
+	{
+		{1,1,1},
+		{1,1,1},
+		{1,1,1},
+        {1,1,1},
+		{1,1,1},
+		{1,1,1},
+        {1,1,1},
+		{1,1,1},
+		{1,1,1},
+        {1,1,1},
+		{1,1,1},
+		{1,1,1},
+	};
+}
 
 Gizmos.RotateGizmoX = {}
 Gizmos.RotateGizmoY = {}
