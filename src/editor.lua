@@ -48,7 +48,7 @@ function Editor.CreateRightPanel()
     local rightPanel = Win.CreateRectangle(0, -toolbarHeight/2, rightPanelWidth, height - toolbarHeight, SceneMachine.mainWindow, "RIGHT", "RIGHT", c4[1], c4[2], c4[3], 1);
     
     local edge = 10;
-    local tilesGroup = Editor.CreateGroup("Model List", height - toolbarHeight - edge , rightPanel);
+    local tilesGroup = Editor.CreateGroup("Asset Explorer", height - toolbarHeight - edge , rightPanel);
 
     Editor.AssetBrowser.Create(tilesGroup, rightPanelWidth - 12, height - toolbarHeight - edge -(toolbarHeight/2));
 end

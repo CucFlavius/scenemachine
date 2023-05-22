@@ -10,6 +10,7 @@ local thumbSpacing = 1.5;
 local thumbCountX = 3;
 local thumbCountY = 5;
 local toolbarHeight = 30;
+local tabbarHeight = 20;
 
 local c1 = { 0.1757, 0.1757, 0.1875 };
 local c2 = { 0.242, 0.242, 0.25 };
@@ -17,18 +18,50 @@ local c3 = { 0, 0.4765, 0.7968 };
 local c4 = { 0.1171, 0.1171, 0.1171 };
 
 function AssetBrowser.Create(parent, w, h)
-    AssetBrowser.toolbar = Win.CreateRectangle(0, -thumbSpacing, w, toolbarHeight, parent, "TOPLEFT", "TOPLEFT", c1[1], c1[2], c1[3], 1);
+
+    AssetBrowser.CreateTabBar(parent, w, h);
+
+    AssetBrowser.tabs = {};
+    AssetBrowser.tabs[1] = Win.CreateRectangle(0, -tabbarHeight, w, h -tabbarHeight, parent, "TOPLEFT", "TOPLEFT", 0, 0, 0, 0.41);
+    AssetBrowser.tabs[2] = Win.CreateRectangle(0, -tabbarHeight, w, h -tabbarHeight, parent, "TOPLEFT", "TOPLEFT", 0, 0, 0, 0.41);
+
+    AssetBrowser.OnChangeTab(1);
+
+    AssetBrowser.CreateModelListTab(AssetBrowser.tabs[1], w, h -tabbarHeight);
+    AssetBrowser.Refresh();
+end
+
+function AssetBrowser.CreateTabBar(parent, w, h)
+    AssetBrowser.tabBar = Win.CreateRectangle(0, -thumbSpacing, w, tabbarHeight, parent, "TOPLEFT", "TOPLEFT", c4[1], c4[2], c4[3], 1);
     
-    AssetBrowser.toolbar.upOneFolderButton = Win.CreateButton(1, 1, toolbarHeight - 2, toolbarHeight - 2, AssetBrowser.toolbar, "LEFT", "LEFT", "^", nil, "BUTTON_VS");
-    AssetBrowser.toolbar.upOneFolderButton:SetScript("OnClick", function (self, button, down) AssetBrowser.UpOneFolder(); end)
-    
-    -- Gave up on this because it requires resizing every element in the thumbnails too
-    --AssetBrowser.toolbar.increaseThumbColumns = Win.CreateButton(30, 0, toolbarHeight - 2, toolbarHeight - 2, AssetBrowser.toolbar, "LEFT", "LEFT", "+", nil, "BUTTON_VS");
-    --AssetBrowser.toolbar.increaseThumbColumns:SetScript("OnClick", function (self, button, down) AssetBrowser.OnIncreaseThumbnailColumns(); end)
+    AssetBrowser.tabBar.buttons = {};
+
+    AssetBrowser.tabBar.buttons[1] = Win.CreateButton(5, 0, 50, tabbarHeight - 1, AssetBrowser.tabBar, "LEFT", "LEFT", "Models", nil, "BUTTON_VS");
+    AssetBrowser.tabBar.buttons[1]:SetScript("OnClick", function (self, button, down) AssetBrowser.OnChangeTab(1); end)
+
+    AssetBrowser.tabBar.buttons[2] = Win.CreateButton(5 + 50, 0, 70, tabbarHeight - 1, AssetBrowser.tabBar, "LEFT", "LEFT", "Creatures", nil, "BUTTON_VS");
+    AssetBrowser.tabBar.buttons[2]:SetScript("OnClick", function (self, button, down) AssetBrowser.OnChangeTab(2); end)
+end
+
+function AssetBrowser.OnChangeTab(idx)
+    for i = 1, table.getn(AssetBrowser.tabBar.buttons), 1 do
+        if (idx == i) then
+            AssetBrowser.tabs[i]:Show();
+            AssetBrowser.tabBar.buttons[i].ntex:SetColorTexture(0.1757, 0.1757, 0.1875 ,1);
+        else
+            AssetBrowser.tabs[i]:Hide();
+            AssetBrowser.tabBar.buttons[i].ntex:SetColorTexture(0.1171, 0.1171, 0.1171 ,1);
+        end
+    end
+end
+
+function AssetBrowser.CreateModelListTab(parent, w, h)
+
+    AssetBrowser.CreateToolbar(parent, -thumbSpacing, w);
 
     AssetBrowser.thumbnailGroup = Win.CreateRectangle(
-        0, -toolbarHeight - (thumbSpacing * 2),
-        w, h -(toolbarHeight * 2) - thumbSpacing,
+        0, -(toolbarHeight + (thumbSpacing * 2)),
+        w, h -((toolbarHeight * 2) + (thumbSpacing)),
         parent, "TOPLEFT", "TOPLEFT", 0, 0, 0, 0.41);
 
     local data = SceneMachine.modelData[1];
@@ -40,6 +73,21 @@ function AssetBrowser.Create(parent, w, h)
 
     AssetBrowser.CreateThumbnails(AssetBrowser.thumbnailGroup);
     
+    AssetBrowser.CreatePagination(parent);
+end
+
+function AssetBrowser.CreateToolbar(parent, y, w)
+    AssetBrowser.toolbar = Win.CreateRectangle(0, y, w, toolbarHeight, parent, "TOPLEFT", "TOPLEFT", c1[1], c1[2], c1[3], 1);
+    
+    AssetBrowser.toolbar.upOneFolderButton = Win.CreateButton(1, 1, toolbarHeight - 2, toolbarHeight - 2, AssetBrowser.toolbar, "LEFT", "LEFT", "^", nil, "BUTTON_VS");
+    AssetBrowser.toolbar.upOneFolderButton:SetScript("OnClick", function (self, button, down) AssetBrowser.UpOneFolder(); end)
+    
+    -- Gave up on this because it requires resizing every element in the thumbnails too
+    --AssetBrowser.toolbar.increaseThumbColumns = Win.CreateButton(30, 0, toolbarHeight - 2, toolbarHeight - 2, AssetBrowser.toolbar, "LEFT", "LEFT", "+", nil, "BUTTON_VS");
+    --AssetBrowser.toolbar.increaseThumbColumns:SetScript("OnClick", function (self, button, down) AssetBrowser.OnIncreaseThumbnailColumns(); end)
+end
+
+function AssetBrowser.CreatePagination(parent)
     AssetBrowser.paginationText = Win.CreateTextBoxSimple(0, 0, 100, 30, parent, "BOTTOM", "BOTTOM", "PaginationText", 9);
     AssetBrowser.paginationText.text:SetJustifyH("CENTER");
 
@@ -48,8 +96,6 @@ function AssetBrowser.Create(parent, w, h)
 
     AssetBrowser.pageRightButton = Win.CreateButton(0, 0, toolbarHeight - 2, toolbarHeight - 2, parent, "BOTTOMRIGHT", "BOTTOMRIGHT", ">", nil, "BUTTON_VS");
     AssetBrowser.pageRightButton:SetScript("OnClick", function (self, button, down) AssetBrowser.OnNextPageClick(); end)
-
-    AssetBrowser.Refresh();
 end
 
 function AssetBrowser.OnIncreaseThumbnailColumns()
