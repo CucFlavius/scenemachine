@@ -88,7 +88,7 @@ function Renderer.AddActor(fileID, X, Y, Z)
     table.insert(Renderer.actors, actor);
 
     Renderer.selectedActor = actor;
-    --Renderer.actorTest:SetUseCenterForOrigin(true, true, true);
+    --Renderer.selectedActor:SetUseCenterForOrigin(true, true, true);
     Gizmos.refresh = true;
     --local diskTest = Renderer.projectionFrame:CreateActor("Test actor");
     --diskTest:SetModelByFileID(4072558);

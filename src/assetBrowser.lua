@@ -5,8 +5,8 @@ local Editor = SceneMachine.Editor;
 local Win = ZWindowAPI;
 local Renderer = SceneMachine.Renderer;
 
-local thumbSize = 80;
-local thumbSpacing = 2;
+local thumbSize = 95;
+local thumbSpacing = 1.5;
 local thumbCountX = 3;
 local thumbCountY = 5;
 local toolbarHeight = 30;
@@ -18,23 +18,76 @@ local c4 = { 0.1171, 0.1171, 0.1171 };
 
 function AssetBrowser.Create(parent, w, h)
     AssetBrowser.toolbar = Win.CreateRectangle(0, -thumbSpacing, w, toolbarHeight, parent, "TOPLEFT", "TOPLEFT", c1[1], c1[2], c1[3], 1);
-    AssetBrowser.toolbar.upOneFolderButton = Win.CreateButton(1, 1, 30, 30, AssetBrowser.toolbar, "LEFT", "LEFT", "Up", nil, "BUTTON_VS");
-    --AssetBrowser.toolbar.button2 = Win.CreateButton(30, 0, 30, 30, AssetBrowser.toolbar, "LEFT", "LEFT", "Btn", nil, "BUTTON_VS");
+    
+    AssetBrowser.toolbar.upOneFolderButton = Win.CreateButton(1, 1, toolbarHeight - 2, toolbarHeight - 2, AssetBrowser.toolbar, "LEFT", "LEFT", "^", nil, "BUTTON_VS");
     AssetBrowser.toolbar.upOneFolderButton:SetScript("OnClick", function (self, button, down) AssetBrowser.UpOneFolder(); end)
+    
+    -- Gave up on this because it requires resizing every element in the thumbnails too
+    --AssetBrowser.toolbar.increaseThumbColumns = Win.CreateButton(30, 0, toolbarHeight - 2, toolbarHeight - 2, AssetBrowser.toolbar, "LEFT", "LEFT", "+", nil, "BUTTON_VS");
+    --AssetBrowser.toolbar.increaseThumbColumns:SetScript("OnClick", function (self, button, down) AssetBrowser.OnIncreaseThumbnailColumns(); end)
 
     AssetBrowser.thumbnailGroup = Win.CreateRectangle(
         0, -toolbarHeight - (thumbSpacing * 2),
-        w, h -toolbarHeight - thumbSpacing,
+        w, h -(toolbarHeight * 2) - thumbSpacing,
         parent, "TOPLEFT", "TOPLEFT", 0, 0, 0, 0.41);
 
     local data = SceneMachine.modelData[1];
     AssetBrowser.currentDirectory = data;
+    AssetBrowser.currentPage = 1;
 
     AssetBrowser.breadcrumb = {};
     table.insert(AssetBrowser.breadcrumb, AssetBrowser.currentDirectory);
 
     AssetBrowser.CreateThumbnails(AssetBrowser.thumbnailGroup);
-    AssetBrowser.RefreshThumbnails();
+    
+    AssetBrowser.paginationText = Win.CreateTextBoxSimple(0, 0, 100, 30, parent, "BOTTOM", "BOTTOM", "PaginationText", 9);
+    AssetBrowser.paginationText.text:SetJustifyH("CENTER");
+
+    AssetBrowser.pageLeftButton = Win.CreateButton(0, 0, toolbarHeight - 2, toolbarHeight - 2, parent, "BOTTOMLEFT", "BOTTOMLEFT", "<", nil, "BUTTON_VS");
+    AssetBrowser.pageLeftButton:SetScript("OnClick", function (self, button, down) AssetBrowser.OnPreviousPageClic(); end)
+
+    AssetBrowser.pageRightButton = Win.CreateButton(0, 0, toolbarHeight - 2, toolbarHeight - 2, parent, "BOTTOMRIGHT", "BOTTOMRIGHT", ">", nil, "BUTTON_VS");
+    AssetBrowser.pageRightButton:SetScript("OnClick", function (self, button, down) AssetBrowser.OnNextPageClick(); end)
+
+    AssetBrowser.Refresh();
+end
+
+function AssetBrowser.OnIncreaseThumbnailColumns()
+    if (thumbCountX == 5) then return; end
+
+    thumbCountX = thumbCountX + 1;
+
+    if (thumbCountX == 3) then
+        thumbSize = 94;
+        thumbCountY = 5;
+    elseif (thumbCountX == 4) then
+        thumbSize = 69;
+    elseif (thumbCountX == 5) then
+        thumbSize = 54.8;
+        thumbCountY = 7;
+    end
+
+    local idx = 1;
+    for y=0, 7 - 1, 1 do
+        for x=0, 5 - 1, 1 do
+            local X = (x * (thumbSize + thumbSpacing));
+            local Y = -(y * (thumbSize + thumbSpacing + 20));
+            local W = thumbSize;
+            local H = (thumbSize + 20);
+
+            AssetBrowser.thumbnails[idx]:SetSize(W, H);
+            AssetBrowser.thumbnails[idx]:SetPoint("TOPLEFT", AssetBrowser.thumbnails[idx]:GetParent(), "TOPLEFT", X, Y);
+            AssetBrowser.thumbnails[idx]:Hide();
+            idx = idx + 1;
+        end
+    end
+
+    for i=1, table.getn(AssetBrowser.thumbnails), 1 do
+        
+        AssetBrowser.thumbnails[i]:Hide();
+    end
+
+    AssetBrowser.Refresh();
 end
 
 function AssetBrowser.UpOneFolder()
@@ -42,9 +95,10 @@ function AssetBrowser.UpOneFolder()
 
     if pos == 0 then return end
 
+    AssetBrowser.currentPage = 1;
     AssetBrowser.currentDirectory = AssetBrowser.breadcrumb[pos];
     table.remove(AssetBrowser.breadcrumb, pos + 1);
-    AssetBrowser.RefreshThumbnails();
+    AssetBrowser.Refresh();
 end
 
 function AssetBrowser.ComputeBreadcrumbString()
@@ -61,17 +115,42 @@ end
 function AssetBrowser.CreateThumbnails(parent)
     local idx = 1;
     AssetBrowser.thumbnails = {};
-    for y=0, thumbCountY - 1, 1 do
-        for x=0, thumbCountX - 1, 1 do
-            --local dirName = data["D"][idx]["N"];
+    for y=0, 5 - 1, 1 do
+        for x=0, 3 - 1, 1 do
             local X = (x * (thumbSize + thumbSpacing));
             local Y = -(y * (thumbSize + thumbSpacing + 20));
             local W = thumbSize;
             local H = (thumbSize + 20);
             AssetBrowser.thumbnails[idx] = AssetBrowser.CreateThumbnail(X, Y, W, H, parent, "");
+            AssetBrowser.thumbnails[idx]:Hide();
             idx = idx + 1;
         end
     end
+end
+
+function AssetBrowser.Refresh()
+    AssetBrowser.RefreshThumbnails();
+    AssetBrowser.RefreshBreadcrumb();
+    AssetBrowser.RefreshPagination();
+end
+
+function AssetBrowser.RefreshBreadcrumb()
+    print(AssetBrowser.ComputeBreadcrumbString());
+end
+
+function AssetBrowser.RefreshPagination()
+    local directoryCount = 0;
+    if AssetBrowser.currentDirectory["D"] ~= nil then
+        directoryCount = table.getn(AssetBrowser.currentDirectory["D"]);
+    end
+    
+    local fileCount = 0;
+    if AssetBrowser.currentDirectory["FN"] ~= nil then
+        fileCount = table.getn(AssetBrowser.currentDirectory["FN"]);
+    end
+
+    AssetBrowser.totalPages = math.ceil((directoryCount + fileCount) / (thumbCountX * thumbCountY));
+    AssetBrowser.paginationText.text:SetText(AssetBrowser.currentPage .. "/" .. AssetBrowser.totalPages);
 end
 
 function AssetBrowser.RefreshThumbnails()
@@ -87,19 +166,19 @@ function AssetBrowser.RefreshThumbnails()
 
     local thumbCount = thumbCountX * thumbCountY;
 
-    local idx = 0;
+    local idx = (AssetBrowser.currentPage - 1) * thumbCount + 1;
     local lastThumbIdx = 1;
     for i = 1, thumbCount, 1 do
-        if (idx < directoryCount) then
-            local dirName = AssetBrowser.currentDirectory["D"][i]["N"];
+        if (idx <= directoryCount) then
+            local dirName = AssetBrowser.currentDirectory["D"][idx]["N"];
             AssetBrowser.thumbnails[i].textBox.text:SetText(dirName);
             AssetBrowser.thumbnails[i].imageBox:Show();
             AssetBrowser.thumbnails[i].modelFrame:Hide();
             AssetBrowser.thumbnails[i]:Show();
             lastThumbIdx = i;
-        elseif (idx < fileCount) then
-            local fileName = AssetBrowser.currentDirectory["FN"][i];
-            local fileID = AssetBrowser.currentDirectory["FI"][i];
+        elseif (idx <= directoryCount + fileCount) then
+            local fileName = AssetBrowser.currentDirectory["FN"][idx];
+            local fileID = AssetBrowser.currentDirectory["FI"][idx];
             AssetBrowser.thumbnails[i].textBox.text:SetText(fileName);
             AssetBrowser.thumbnails[i]:Show();
             AssetBrowser.thumbnails[i].modelFrame:Show();
@@ -113,8 +192,6 @@ function AssetBrowser.RefreshThumbnails()
         end
         idx = idx + 1;
     end
-
-    print(AssetBrowser.ComputeBreadcrumbString());
 end
 
 function AssetBrowser.CreateThumbnail(x, y, w, h, parent, name)
@@ -135,16 +212,16 @@ function AssetBrowser.CreateThumbnail(x, y, w, h, parent, name)
 end
 
 function AssetBrowser.OnThumbnailClick(name)
-
     -- Directory scan
     if (AssetBrowser.currentDirectory["D"] ~= nil) then
         local directoryCount = table.getn(AssetBrowser.currentDirectory["D"]);
         for i = 1, directoryCount, 1 do
             local dirName = AssetBrowser.currentDirectory["D"][i]["N"];
             if dirName == name then
+                AssetBrowser.currentPage = 1;
                 AssetBrowser.currentDirectory = AssetBrowser.currentDirectory["D"][i];
                 table.insert(AssetBrowser.breadcrumb, AssetBrowser.currentDirectory);
-                AssetBrowser.RefreshThumbnails();
+                AssetBrowser.Refresh();
                 return;
             end
         end
@@ -164,4 +241,18 @@ function AssetBrowser.OnThumbnailClick(name)
     end
 
     -- Renderer.AddActor
+end
+
+function AssetBrowser.OnNextPageClick()
+    if (AssetBrowser.totalPages == AssetBrowser.currentPage) then return; end
+
+    AssetBrowser.currentPage = AssetBrowser.currentPage + 1;
+    AssetBrowser.Refresh();
+end
+
+function AssetBrowser.OnPreviousPageClic()
+    if (AssetBrowser.currentPage == 1) then return; end
+
+    AssetBrowser.currentPage = AssetBrowser.currentPage - 1;
+    AssetBrowser.Refresh();
 end
