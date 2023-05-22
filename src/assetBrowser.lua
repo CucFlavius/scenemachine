@@ -19,13 +19,10 @@ local c4 = { 0.1171, 0.1171, 0.1171 };
 
 function AssetBrowser.Create(parent, w, h)
 
-    AssetBrowser.CreateTabBar(parent, w, h);
-
+    local tabPanel = Win.CreateTabPanel(0, 0, w, h, parent, "TOPLEFT", "TOPLEFT", 8);
     AssetBrowser.tabs = {};
-    AssetBrowser.tabs[1] = Win.CreateRectangle(0, -tabbarHeight, w, h -tabbarHeight, parent, "TOPLEFT", "TOPLEFT", 0, 0, 0, 0.0);
-    AssetBrowser.tabs[2] = Win.CreateRectangle(0, -tabbarHeight, w, h -tabbarHeight, parent, "TOPLEFT", "TOPLEFT", 0, 0, 0, 0.0);
-
-    AssetBrowser.OnChangeTab(1);
+    AssetBrowser.tabs[1] = Win.AddTabPanelTab(tabPanel, w, h, "Models", 50, function() AssetBrowser.OnChangeTab(1); end);
+    AssetBrowser.tabs[2] = Win.AddTabPanelTab(tabPanel, w, h, "Creatures", 70, function() AssetBrowser.OnChangeTab(2); end);
 
     AssetBrowser.CreateModelListTab(AssetBrowser.tabs[1], w, h -tabbarHeight);
     AssetBrowser.Refresh();
@@ -38,28 +35,8 @@ function AssetBrowser.Create(parent, w, h)
     --AssetBrowser.OnThumbnailClick("Crystals");
 end
 
-function AssetBrowser.CreateTabBar(parent, w, h)
-    AssetBrowser.tabBar = Win.CreateRectangle(0, -thumbSpacing, w, tabbarHeight, parent, "TOPLEFT", "TOPLEFT", c4[1], c4[2], c4[3], 1);
-    
-    AssetBrowser.tabBar.buttons = {};
-
-    AssetBrowser.tabBar.buttons[1] = Win.CreateButton(5, -1, 50, tabbarHeight - 1, AssetBrowser.tabBar, "LEFT", "LEFT", "Models", nil, "BUTTON_VS");
-    AssetBrowser.tabBar.buttons[1]:SetScript("OnClick", function (self, button, down) AssetBrowser.OnChangeTab(1); end)
-
-    AssetBrowser.tabBar.buttons[2] = Win.CreateButton(5 + 50, -1, 70, tabbarHeight - 1, AssetBrowser.tabBar, "LEFT", "LEFT", "Creatures", nil, "BUTTON_VS");
-    AssetBrowser.tabBar.buttons[2]:SetScript("OnClick", function (self, button, down) AssetBrowser.OnChangeTab(2); end)
-end
-
 function AssetBrowser.OnChangeTab(idx)
-    for i = 1, table.getn(AssetBrowser.tabBar.buttons), 1 do
-        if (idx == i) then
-            AssetBrowser.tabs[i]:Show();
-            AssetBrowser.tabBar.buttons[i].ntex:SetColorTexture(0.1757, 0.1757, 0.1875 ,1);
-        else
-            AssetBrowser.tabs[i]:Hide();
-            AssetBrowser.tabBar.buttons[i].ntex:SetColorTexture(0.1171, 0.1171, 0.1171 ,1);
-        end
-    end
+
 end
 
 function AssetBrowser.CreateModelListTab(parent, w, h)

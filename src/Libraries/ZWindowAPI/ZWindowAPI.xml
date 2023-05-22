@@ -13,6 +13,8 @@ Window API Files
 	<Script file="EditBox.lua"/>
 	<Script file="ImageBox.lua"/>
 	<Script file="Rectangle.lua"/>
+	<Script file="TabPanel.lua"/>
+	<Script file="PopupWindow.lua"/>
 	<Script file="Window.lua"/>
 	<Script file="Initialize.lua"/>
 </Ui>
