@@ -2,13 +2,13 @@ local Win = ZWindowAPI;
 
 function Win.Initialize(rootPath)
     Win.rootPath = rootPath;
-    Win.resourcePath = rootPath .. "\\Resources";
+    Win.resourcePath = rootPath;
     
-    Win.fontResourcePath = Win.resourcePath .. "\\font\\";
+    Win.fontResourcePath = Win.resourcePath .. "\\font";
     Win.fontResources = {}
-    Win.fontResources["Segoe"] = Win.fontResourcePath .. "\\Segoe UI.TTF";
+    Win.fontResources["Segoe"] = Win.fontResourcePath .. "\\Segoe UI.ttf";
     
-    Win.textureResourcePath = Win.resourcePath .. "\\image\\";
+    Win.textureResourcePath = Win.resourcePath .. "\\image";
     Win.textureResources = {}
     Win.textureResources["SliderThumb"] = Win.textureResourcePath .. "\\SliderThumb";
 

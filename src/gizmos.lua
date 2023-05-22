@@ -218,10 +218,14 @@ function Gizmos.transformToActorAABB(gizmo, actor, position)
 
     xMin, yMin, zMin, xMax, yMax, zMax = actor:GetActiveBoundingBox();
 
+    if (xMax == nil) then return; end
+
     local chX = (xMax - xMin) / 2;
     local chY = (yMax - yMin) / 2;
     local chZ = (zMax - zMin) / 2;
 
+    -- TODO : recreating this every frame is a bad idea
+    -- Should have it only update this bit when the gizmo is set active on an actor
     gizmo.transformedVertices =
     {
         {{-chX, -chY, -chZ}, {chX, -chY, -chZ}},
@@ -284,11 +288,13 @@ Gizmos.MoveGizmo =
 }
 
 local ch = 0.5;
+local wireBoxThickness = 0.8;
 
 Gizmos.WireBox = 
 {
     lines = 12;
-    thickness = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+    thickness = { wireBoxThickness, wireBoxThickness, wireBoxThickness, wireBoxThickness, wireBoxThickness, wireBoxThickness,
+                wireBoxThickness, wireBoxThickness, wireBoxThickness, wireBoxThickness, wireBoxThickness, wireBoxThickness };
     vertices = 
     {
         -- Bottom face
@@ -448,6 +454,3 @@ function Gizmos.buildRotateGizmo()
 end
 
 Gizmos.buildRotateGizmo();
-Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoX, {-3, 0, 0.5});
-Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoY, {-3, 0, 0.5});
-Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoZ, {-3, 0, 0.5});

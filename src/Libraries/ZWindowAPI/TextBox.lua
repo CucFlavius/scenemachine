@@ -17,7 +17,7 @@ function Win.CreateTextBoxSimple(posX, posY, sizeX, sizeY, parent, windowPoint, 
 	if parentPoint == nil then parentPoint = "CENTER"; end
 	if text == nil then text = ""; end
 	if textHeight == nil then textHeight = 12; end
-	if textFont == nil then textFont = "Fonts\\FRIZQT__.TTF"; end
+	if textFont == nil then textFont = Win.defaultFont; end
 
 	-- text box frame --
 	local TextBox = CreateFrame("Frame", "Zee.WindowAPI.TextBox", parent);
@@ -44,7 +44,7 @@ function Win.CreateTextBox(posX, posY, sizeX, sizeY, parent, windowPoint, parent
 	if parentPoint == nil then parentPoint = "CENTER"; end
 	if text == nil then text = ""; end
 	if textHeight == nil then textHeight = 12; end
-	if textFont == nil then textFont = "Fonts\\FRIZQT__.TTF"; end
+	if textFont == nil then textFont = Win.defaultFont; end
 
 	-- text box frame --
 	local TextBox = CreateFrame("Frame", "Zee.WindowAPI.TextBox", parent);

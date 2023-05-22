@@ -36,6 +36,7 @@ end
 
 function Input.CreateMouseInputFrame()
     Input.mouseInputFrame = CreateFrame("Frame", "Input.mouseInputFrame", Renderer.projectionFrame);
+    --Input.mouseInputFrame:SetAllPoints(Renderer.projectionFrame);
 	Input.mouseInputFrame:SetPoint("CENTER", Renderer.projectionFrame, "CENTER", 0, 0);
 	Input.mouseInputFrame:SetWidth(SceneMachine.WINDOW_WIDTH);
 	Input.mouseInputFrame:SetHeight(SceneMachine.WINDOW_HEIGHT);

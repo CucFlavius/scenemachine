@@ -12,7 +12,7 @@ function Win.CreateTabs(posX, posY, sizeX, sizeY, parent, windowPoint, parentPoi
 	-- properties --
 	local TabButtonHeight = 20;
 	local TabButtonWidth = 80;
-	local TabButtonFont = "Fonts\\FRIZQT__.TTF";
+	local TabButtonFont = Win.defaultFont;
 	local TabButtonFontSize = 12;
 
 	-- defaults --

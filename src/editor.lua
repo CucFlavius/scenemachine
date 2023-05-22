@@ -1,4 +1,5 @@
 SceneMachine.Editor = SceneMachine.Editor or {}
+SceneMachine.Editor.AssetBrowser = SceneMachine.Editor.AssetBrowser or {}
 local Editor = SceneMachine.Editor;
 local Win = ZWindowAPI;
 local FX = SceneMachine.FX;
@@ -47,10 +48,11 @@ function Editor.CreateRightPanel()
     local rightPanel = Win.CreateRectangle(0, -toolbarHeight/2, rightPanelWidth, height - toolbarHeight, SceneMachine.mainWindow, "RIGHT", "RIGHT", c4[1], c4[2], c4[3], 1);
     
     local edge = 10;
-    local tilesGroup = Editor.CreateGroup("Test group name", rightPanelWidth + edge , rightPanel);
-    
-    local imgSize = rightPanelWidth - (edge * 2);
+    local tilesGroup = Editor.CreateGroup("Model List", height - toolbarHeight - edge , rightPanel);
+
+    Editor.AssetBrowser.Create(tilesGroup, rightPanelWidth - 12, height - toolbarHeight - edge -(toolbarHeight/2));
 end
+
 
 function Editor.CreateLeftPanel()
     local leftPanelHeight = height - toolbarHeight;
@@ -78,8 +80,8 @@ function Editor.Initialize()
     Editor.CreateMainWindow();
     Editor.CreateToolbar();
     Editor.CreateRightPanel();
-    Editor.CreateLeftPanel();
-    Editor.CreateBottomPanel();
+    --Editor.CreateLeftPanel();
+    --Editor.CreateBottomPanel();
 
     local groupBG = Win.CreateRectangle(leftPanelWidth, -(toolbarHeight + 6), width - (rightPanelWidth + leftPanelWidth), 20, SceneMachine.mainWindow, "TOPLEFT", "TOPLEFT",  c1[1], c1[2], c1[3], 1);
     local groupTitleText = Win.CreateTextBoxSimple(0, 0, width - (rightPanelWidth + leftPanelWidth) - 18, 20, groupBG, "TOP", "TOP", "Scene", 9);

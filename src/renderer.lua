@@ -6,6 +6,7 @@ local Renderer = SceneMachine.Renderer;
 local Camera = SceneMachine.Camera;
 local World = SceneMachine.World;
 local FX = SceneMachine.FX;
+local Input = SceneMachine.Input;
 
 --- WTF ---
 local sqrt = math.sqrt;
@@ -63,12 +64,17 @@ function Renderer.CreateRenderer(parent, x, y, w, h, point, relativePoint)
 	Renderer.GenerateFrameBuffer();
 	Renderer.CreateBackgroundFrame();
 	Renderer.active = false;
+
+    Input.mouseInputFrame:SetWidth(w);
+	Input.mouseInputFrame:SetHeight(h);
 end
 
 function Renderer.AddActor(fileID, X, Y, Z)
     if (X == nil) then X = 0 end
     if (Y == nil) then Y = 0 end
     if (Z == nil) then Z = 0 end
+
+    print("Renderer.AddActor(" .. fileID .. ", " .. X .. ", " .. Y .. ", " .. Z .. ")");
 
     if (Renderer.projectionFrame == nil) then
         print("Renderer: AddActor() - called before CreateRenderer()");
