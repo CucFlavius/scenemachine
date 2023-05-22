@@ -22,13 +22,20 @@ function AssetBrowser.Create(parent, w, h)
     AssetBrowser.CreateTabBar(parent, w, h);
 
     AssetBrowser.tabs = {};
-    AssetBrowser.tabs[1] = Win.CreateRectangle(0, -tabbarHeight, w, h -tabbarHeight, parent, "TOPLEFT", "TOPLEFT", 0, 0, 0, 0.41);
-    AssetBrowser.tabs[2] = Win.CreateRectangle(0, -tabbarHeight, w, h -tabbarHeight, parent, "TOPLEFT", "TOPLEFT", 0, 0, 0, 0.41);
+    AssetBrowser.tabs[1] = Win.CreateRectangle(0, -tabbarHeight, w, h -tabbarHeight, parent, "TOPLEFT", "TOPLEFT", 0, 0, 0, 0.0);
+    AssetBrowser.tabs[2] = Win.CreateRectangle(0, -tabbarHeight, w, h -tabbarHeight, parent, "TOPLEFT", "TOPLEFT", 0, 0, 0, 0.0);
 
     AssetBrowser.OnChangeTab(1);
 
     AssetBrowser.CreateModelListTab(AssetBrowser.tabs[1], w, h -tabbarHeight);
     AssetBrowser.Refresh();
+
+    -- DEBUG --
+    --AssetBrowser.OnThumbnailClick("World");
+    --AssetBrowser.OnThumbnailClick("Dungeon");
+    --AssetBrowser.OnThumbnailClick("Cave");
+    --AssetBrowser.OnThumbnailClick("Passivedoodads");
+    --AssetBrowser.OnThumbnailClick("Crystals");
 end
 
 function AssetBrowser.CreateTabBar(parent, w, h)
@@ -36,10 +43,10 @@ function AssetBrowser.CreateTabBar(parent, w, h)
     
     AssetBrowser.tabBar.buttons = {};
 
-    AssetBrowser.tabBar.buttons[1] = Win.CreateButton(5, 0, 50, tabbarHeight - 1, AssetBrowser.tabBar, "LEFT", "LEFT", "Models", nil, "BUTTON_VS");
+    AssetBrowser.tabBar.buttons[1] = Win.CreateButton(5, -1, 50, tabbarHeight - 1, AssetBrowser.tabBar, "LEFT", "LEFT", "Models", nil, "BUTTON_VS");
     AssetBrowser.tabBar.buttons[1]:SetScript("OnClick", function (self, button, down) AssetBrowser.OnChangeTab(1); end)
 
-    AssetBrowser.tabBar.buttons[2] = Win.CreateButton(5 + 50, 0, 70, tabbarHeight - 1, AssetBrowser.tabBar, "LEFT", "LEFT", "Creatures", nil, "BUTTON_VS");
+    AssetBrowser.tabBar.buttons[2] = Win.CreateButton(5 + 50, -1, 70, tabbarHeight - 1, AssetBrowser.tabBar, "LEFT", "LEFT", "Creatures", nil, "BUTTON_VS");
     AssetBrowser.tabBar.buttons[2]:SetScript("OnClick", function (self, button, down) AssetBrowser.OnChangeTab(2); end)
 end
 
@@ -79,8 +86,12 @@ end
 function AssetBrowser.CreateToolbar(parent, y, w)
     AssetBrowser.toolbar = Win.CreateRectangle(0, y, w, toolbarHeight, parent, "TOPLEFT", "TOPLEFT", c1[1], c1[2], c1[3], 1);
     
-    AssetBrowser.toolbar.upOneFolderButton = Win.CreateButton(1, 1, toolbarHeight - 2, toolbarHeight - 2, AssetBrowser.toolbar, "LEFT", "LEFT", "^", nil, "BUTTON_VS");
+    AssetBrowser.toolbar.upOneFolderButton = Win.CreateButton(1, 1, toolbarHeight - 2, toolbarHeight - 2, AssetBrowser.toolbar, "LEFT", "LEFT", nil,
+        "Interface\\Addons\\scenemachine\\static\\textures\\folderUpIcon.png", "BUTTON_VS");
     AssetBrowser.toolbar.upOneFolderButton:SetScript("OnClick", function (self, button, down) AssetBrowser.UpOneFolder(); end)
+    
+    AssetBrowser.toolbar.breadCrumb = Win.CreateTextBoxSimple(toolbarHeight, 0, w - toolbarHeight, toolbarHeight, AssetBrowser.toolbar,
+        "TOPLEFT", "TOPLEFT", "Breadcrumb", 9);
     
     -- Gave up on this because it requires resizing every element in the thumbnails too
     --AssetBrowser.toolbar.increaseThumbColumns = Win.CreateButton(30, 0, toolbarHeight - 2, toolbarHeight - 2, AssetBrowser.toolbar, "LEFT", "LEFT", "+", nil, "BUTTON_VS");
@@ -147,26 +158,15 @@ function AssetBrowser.UpOneFolder()
     AssetBrowser.Refresh();
 end
 
-function AssetBrowser.ComputeBreadcrumbString()
-    local str = "";
-    for i=1, table.getn(AssetBrowser.breadcrumb), 1 do
-        if AssetBrowser.breadcrumb[i] ~= nil then
-            str = str .. "/" .. AssetBrowser.breadcrumb[i]["N"];
-        end
-    end
-
-    return str;
-end
-
 function AssetBrowser.CreateThumbnails(parent)
     local idx = 1;
     AssetBrowser.thumbnails = {};
     for y=0, 5 - 1, 1 do
         for x=0, 3 - 1, 1 do
             local X = (x * (thumbSize + thumbSpacing));
-            local Y = -(y * (thumbSize + thumbSpacing + 20));
+            local Y = -(y * (thumbSize + thumbSpacing + 15));
             local W = thumbSize;
-            local H = (thumbSize + 20);
+            local H = (thumbSize + 15);
             AssetBrowser.thumbnails[idx] = AssetBrowser.CreateThumbnail(X, Y, W, H, parent, "");
             AssetBrowser.thumbnails[idx]:Hide();
             idx = idx + 1;
@@ -181,7 +181,14 @@ function AssetBrowser.Refresh()
 end
 
 function AssetBrowser.RefreshBreadcrumb()
-    print(AssetBrowser.ComputeBreadcrumbString());
+    local str = "";
+    for i=2, table.getn(AssetBrowser.breadcrumb), 1 do
+        if AssetBrowser.breadcrumb[i] ~= nil then
+            str = str .. ">" .. AssetBrowser.breadcrumb[i]["N"];
+        end
+    end
+
+    AssetBrowser.toolbar.breadCrumb.text:SetText(str);
 end
 
 function AssetBrowser.RefreshPagination()
@@ -230,8 +237,10 @@ function AssetBrowser.RefreshThumbnails()
             AssetBrowser.thumbnails[i].modelFrame:Show();
             AssetBrowser.thumbnails[i].imageBox:Hide();
             AssetBrowser.thumbnails[i].modelFrame:SetModel(fileID);
-            AssetBrowser.thumbnails[i].modelFrame:SetCamera(1);
-            --AssetBrowser.thumbnails[i].modelFrame:SetPosition(0,-10,0);
+            --AssetBrowser.thumbnails[i].modelFrame:ZeroCachedCenterXY();
+            --AssetBrowser.thumbnails[i].modelFrame:SetCameraPosition(0, 0, 0);
+            --AssetBrowser.thumbnails[i].modelFrame:SetCamera(1);
+            --AssetBrowser.thumbnails[i].modelFrame:SetPosition(0,0,0);
             --AssetBrowser.thumbnails[i].modelFrame:SetCameraDistance(2);
         else
             AssetBrowser.thumbnails[i]:Hide();
@@ -247,13 +256,13 @@ function AssetBrowser.CreateThumbnail(x, y, w, h, parent, name)
             AssetBrowser.OnThumbnailClick(self.textBox.text:GetText());
        end);
 
-    thumbnail.imageBox = Win.CreateImageBox(0, 0, w, w, thumbnail, "TOP", "TOP", "Interface\\Addons\\scenemachine\\static\\textures\\folderIcon.png");
+    thumbnail.imageBox = Win.CreateImageBox(0, -w / 4, w / 2, w / 2, thumbnail, "TOP", "TOP", "Interface\\Addons\\scenemachine\\static\\textures\\folderIcon.png");
     thumbnail.textBox = Win.CreateTextBoxSimple(5, 0, w, 20, thumbnail, "BOTTOMLEFT", "BOTTOMLEFT", name, 9);
 
-    thumbnail.modelFrame = CreateFrame("Model", "thumbnail_model_frame_" .. x .. y, thumbnail)
+    thumbnail.modelFrame = CreateFrame("PlayerModel", "thumbnail_model_frame_" .. x .. y, thumbnail)
     thumbnail.modelFrame:SetSize(w, w);
     thumbnail.modelFrame:SetPoint("TOP", thumbnail, "TOP", 0, 0);
-
+    thumbnail.modelFrame:SetCustomCamera(1);
     return thumbnail;
 end
 

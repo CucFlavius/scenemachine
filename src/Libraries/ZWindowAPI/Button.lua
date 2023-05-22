@@ -63,12 +63,8 @@ function Win.CreateButton(posX, posY, sizeX, sizeY, parent, buttonPoint, parentP
 		local iconSize = 10;
 		if sizeX >= sizeY then iconSize = sizeY; end
 		if sizeX <= sizeY then iconSize = sizeX; end
-		Button.icon = CreateFrame("Frame", "Zee.WindowAPI.Button Icon", parent);
-		Button.icon:SetPoint("CENTER", Button, "CENTER", 0, 0);
-		Button.icon:SetSize(iconSize, iconSize);
-		Button.icon.texture = Button.icon:CreateTexture("Zee.WindowAPI.Button Icon Texture", "BACKGROUND");
-		Button.icon.texture:SetTexture(icon)
-		Button.icon.texture:SetAllPoints(Button.icon);
+
+		Button.icon = Win.CreateImageBox(0, 0, iconSize, iconSize, Button, "CENTER", "CENTER", icon);
 	end
 
 	-- text --
