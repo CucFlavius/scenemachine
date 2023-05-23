@@ -77,6 +77,7 @@ function Editor.Initialize()
     Editor.CreateRightPanel();
     Editor.CreateLeftPanel();
     Editor.CreateBottomPanel();
+    Editor.ProjectManager.Create();
 
     local groupBG = Win.CreateRectangle(leftPanelWidth, -(toolbarHeight + 6), width - (rightPanelWidth + leftPanelWidth), 20, SceneMachine.mainWindow, "TOPLEFT", "TOPLEFT",  c1[1], c1[2], c1[3], 1);
     local groupTitleText = Win.CreateTextBoxSimple(0, 0, width - (rightPanelWidth + leftPanelWidth) - 18, 20, groupBG, "TOP", "TOP", "Scene", 9);

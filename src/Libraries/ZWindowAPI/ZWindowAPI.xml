@@ -15,6 +15,7 @@ Window API Files
 	<Script file="Rectangle.lua"/>
 	<Script file="TabPanel.lua"/>
 	<Script file="PopupWindow.lua"/>
+	<Script file="MessageBox.lua"/>
 	<Script file="Window.lua"/>
 	<Script file="Initialize.lua"/>
 </Ui>

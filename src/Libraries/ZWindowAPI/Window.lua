@@ -71,8 +71,8 @@ function Win.CreateWindow(posX, posY, sizeX, sizeY, parent, windowPoint, parentP
 	-- Close Button --
 	WindowFrame.CloseButton = Win.CreateButton(-1, -1, TitleBarHeight - 1, TitleBarHeight - 1, WindowFrame.TitleBar, "TOPRIGHT", "TOPRIGHT", "x", nil, Win.BUTTON_DEFAULT, font)
 	WindowFrame.CloseButton:SetScript("OnClick", function (self, button, down) WindowFrame:Hide(); end)
+	
 	return WindowFrame;
-
 end
 
 function Win.WindowCreateMenuBar(window, menu)

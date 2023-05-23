@@ -13,6 +13,9 @@ function SceneMachine.CreateWindow(name, width, height)
 	SceneMachine.WINDOW_HEIGHT = height;
 	SceneMachine.mainWindow:SetIgnoreParentScale(true);		-- This way the camera doesn't get offset when the wow window or UI changes size/aspect
 
+    local dropShadow = Win.CreateImageBox(0, 0, width * 1.2, height * 1.2, SceneMachine.mainWindow, "CENTER", "CENTER",
+	"Interface\\Addons\\scenemachine\\static\\textures\\dropShadowSquare.png");
+
 	local menu = {};
 	menu[1] = {
 		["Name"] = "File",
