@@ -12,6 +12,28 @@ function SceneMachine.CreateWindow(name, width, height)
 	SceneMachine.WINDOW_WIDTH = width;
 	SceneMachine.WINDOW_HEIGHT = height;
 	SceneMachine.mainWindow:SetIgnoreParentScale(true);		-- This way the camera doesn't get offset when the wow window or UI changes size/aspect
+
+	local menu = {};
+	menu[1] = {
+		["Name"] = "File",
+		["Options"] = {
+			[1] = { ["Name"] = "New Project", ["Action"] = function() print("NewProject()") end },
+			[2] = { ["Name"] = "Open Project", ["Action"] = function() print("OpenProject()") end },
+			[3] = { ["Name"] = "Save", ["Action"] = function() print("Save()") end },
+		},
+	};
+	menu[2] = {
+		["Name"] = "Tools",
+		["Options"] = {
+		},
+	};
+	menu[3] = {
+		["Name"] = "Help",
+		["Options"] = {
+			[1] = { ["Name"] = "About", ["Action"] = nil },
+		},
+	};
+	Win.WindowCreateMenuBar(SceneMachine.mainWindow, menu);
 end
 
 function SceneMachine.CreateStatsFrame()

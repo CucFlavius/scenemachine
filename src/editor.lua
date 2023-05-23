@@ -34,11 +34,6 @@ function Editor.CreateGroup(name, groupHeight, groupParent)
 end
 
 function Editor.CreateToolbar()
-    local menubar = Win.CreateRectangle(0, 0, width, 15, SceneMachine.mainWindow, "TOP", "TOP", c1[1], c1[2], c1[3], 1);
-    menubar.menu1btn = Win.CreateButton(0, 0, 50, 15, menubar, "LEFT", "LEFT", "File", nil, "BUTTON_VS");
-    menubar.menu2btn = Win.CreateButton(50, 0, 50, 15, menubar, "LEFT", "LEFT", "Tools", nil, "BUTTON_VS");
-    menubar.menu3btn = Win.CreateButton(100, 0, 50, 15, menubar, "LEFT", "LEFT", "Help", nil, "BUTTON_VS");
-
     local toolbar = Win.CreateRectangle(0, -15, width, 30, SceneMachine.mainWindow, "TOP", "TOP", c1[1], c1[2], c1[3], 1);
     toolbar.button1 = Win.CreateButton(0, 0, 30, 30, toolbar, "LEFT", "LEFT", "Btn", nil, "BUTTON_VS");
     toolbar.button2 = Win.CreateButton(30, 0, 30, 30, toolbar, "LEFT", "LEFT", "Btn", nil, "BUTTON_VS");

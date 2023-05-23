@@ -9,6 +9,9 @@ Win.RESIZABLE_Y = "RESIZABLE_Y";
 Win.RESIZABLE_XY = "RESIZABLE_XY";
 Win.RESIZABLE_NONE = "RESIZABLE_NONE";
 
+local c1 = { 0.1757, 0.1757, 0.1875 };
+local maxMenuOptions = 20;
+
 --- Create a new Window
 ---@param posX number Window X position (horizontal)
 ---@param posY number Window Y position (vertical)
@@ -70,4 +73,76 @@ function Win.CreateWindow(posX, posY, sizeX, sizeY, parent, windowPoint, parentP
 	WindowFrame.CloseButton:SetScript("OnClick", function (self, button, down) WindowFrame:Hide(); end)
 	return WindowFrame;
 
+end
+
+function Win.WindowCreateMenuBar(window, menu)
+	local menubar = Win.CreateRectangle(0, 0, window:GetWidth(), 15, window, "TOP", "TOP", c1[1], c1[2], c1[3], 1);
+	menubar.buttons = {};
+
+	for m=1, table.getn(menu), 1 do
+		menubar.buttons[m] = Win.CreateButton((m - 1) * 50, 0, 50, 15, menubar, "LEFT", "LEFT", menu[m]["Name"], nil, "BUTTON_VS");
+		menubar.buttons[m]:SetScript("OnClick", function (self, button, down)
+			Win.PopupWindowMenu(window, menubar, menu, m);
+		end);
+		menubar.buttons[m]:EnableMouse(true);
+		menubar.buttons[m]:HookScript("OnEnter", function (self)
+			if (window.menuIsOpen == true) then
+				Win.PopupWindowMenu(window, menubar, menu, m);
+			end
+		end);
+	end
+
+	menubar.popup = CreateFrame("Button", "Zee.WindowAPI.Button", parent)
+	menubar.popup:SetPoint("CENTER", window, "CENTER", 0, 0);
+	menubar.popup:SetWidth(window:GetWidth());
+	menubar.popup:SetHeight(window:GetHeight() - 30);
+	menubar.popup.ntex = menubar.popup:CreateTexture()
+	menubar.popup.ntex:SetColorTexture(0,0,0,0.1);
+	menubar.popup.ntex:SetAllPoints()	
+	menubar.popup:SetNormalTexture(menubar.popup.ntex)
+	menubar.popup:SetScript("OnClick", function (self, button, down)
+		window.menuIsOpen = false;
+		menubar.popup:Hide();
+	end)
+	menubar.popup:Hide();
+	menubar.popup:SetFrameStrata("HIGH");
+
+	menubar.popup.menu = Win.CreateRectangle(0, 0, 200, 1000, menubar.popup, "TOPLEFT", "TOPLEFT", c1[1], c1[2], c1[3], 1)
+	menubar.popup.menu.buttons = {}
+
+	for i = 1, maxMenuOptions, 1 do
+		menubar.popup.menu.buttons[i] = Win.CreateButton(0, -((i - 1) * 20), 200, 20, menubar.popup.menu, "TOPLEFT", "TOPLEFT", "text", nil, "BUTTON_VS");
+		menubar.popup.menu.buttons[i].text:SetJustifyH("LEFT");
+	end
+
+	menubar.popup.menu:Hide();
+	window.menuIsOpen = false;
+end
+
+function Win.PopupWindowMenu(window, menubar, menu, index)
+	window.menuIsOpen = true;
+
+	if (menu[index]["Options"] == nil) then return end
+	local optionCount = table.getn(menu[index]["Options"]);
+	if (optionCount == 0) then return end
+	menubar.popup:Show();
+	menubar.popup.menu:Show();
+	menubar.popup.menu:SetPoint("TOPLEFT", menubar.popup, "TOPLEFT", (index - 1) * 50, 0);
+	menubar.popup.menu:SetHeight(optionCount * 20);
+
+	for i = 1, maxMenuOptions, 1 do
+		if (i <= optionCount) then
+			menubar.popup.menu.buttons[i]:Show();
+			menubar.popup.menu.buttons[i].text:SetText("    " .. menu[index]["Options"][i]["Name"]);
+			menubar.popup.menu.buttons[i]:SetScript("OnClick", function (self, button, down)
+				menubar.popup:Hide();
+				window.menuIsOpen = false;
+				if (menu[index]["Options"][i]["Action"] ~= nil) then
+					menu[index]["Options"][i]["Action"]();
+				end
+			end)
+		else
+			menubar.popup.menu.buttons[i]:Hide();
+		end
+	end
 end
