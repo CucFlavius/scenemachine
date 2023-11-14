@@ -213,7 +213,9 @@ function AssetBrowser.RefreshThumbnails()
             AssetBrowser.thumbnails[i]:Show();
             AssetBrowser.thumbnails[i].modelFrame:Show();
             AssetBrowser.thumbnails[i].imageBox:Hide();
-            AssetBrowser.thumbnails[i].modelFrame:SetModel(fileID);
+            if (fileID ~= nil) then
+                AssetBrowser.thumbnails[i].modelFrame:SetModel(fileID);
+            end
             --AssetBrowser.thumbnails[i].modelFrame:ZeroCachedCenterXY();
             --AssetBrowser.thumbnails[i].modelFrame:SetCameraPosition(0, 0, 0);
             --AssetBrowser.thumbnails[i].modelFrame:SetCamera(1);

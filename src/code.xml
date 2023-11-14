@@ -16,7 +16,6 @@
     <Script file="playerController.lua"/>
     <Script file="gizmos.lua"/>
     <Script file="renderer.lua"/>
-    <Script file="ui.lua"/>
 	<Script file="settings.lua"/>
     <Script file="assetBrowser.lua"/>
     <Script file="projectManager.lua"/>
