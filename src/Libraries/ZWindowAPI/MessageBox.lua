@@ -25,6 +25,7 @@ local c4 = { 0.1171, 0.1171, 0.1171 };
 function Win.OpenMessageBox( window, title, message, hasYesButton, hasNoButton, onYesButton, onNoButton )
 	if (Win.messageBox == nil) then
 		Win.messageBox = Win.CreatePopupWindow(0, 0, 300, 150, window, "CENTER", "CENTER", title);
+		Win.messageBox:SetFrameStrata("HIGH");
 		local dropShadow = Win.CreateImageBox(0, 10, 300 * 1.20, 150 * 1.29, Win.messageBox, "CENTER", "CENTER",
 		"Interface\\Addons\\scenemachine\\static\\textures\\dropShadowSquare.png");
 		dropShadow:SetFrameStrata("MEDIUM");
