@@ -16,7 +16,7 @@ local time = 0;
 ------------------------
 function SceneMachine.Start()
 	--MinimapStart();
-    Player.Initialize();
+    CameraController.Initialize();
     SceneMachine.Editor.Initialize();
     SceneMachine.CreateStatsFrame();
 
@@ -87,7 +87,7 @@ local function SG_UpdateLoop ()
 	if SceneMachine.preRenderUpdateAction ~= nil then
 		SceneMachine.preRenderUpdateAction();
 	end
-    Player.Update();
+	
 	Camera.Update();
     CameraController.Update();
     Gizmos.Update();

@@ -13,7 +13,6 @@
     <Script file="camera.lua"/>
     <Script file="input.lua"/>
     <Script file="cameraController.lua"/>
-    <Script file="playerController.lua"/>
     <Script file="gizmos.lua"/>
     <Script file="renderer.lua"/>
 	<Script file="settings.lua"/>

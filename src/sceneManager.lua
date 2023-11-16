@@ -9,6 +9,7 @@ local Renderer = SceneMachine.Renderer;
 local Camera = SceneMachine.Camera;
 SceneMachine.Player = SceneMachine.Player or {}
 local Player = SceneMachine.Player;
+local CameraController = SceneMachine.CameraController;
 
 local tabButtonHeight = 20;
 local tabPool = {};
@@ -221,10 +222,10 @@ function SM.LoadScene(index)
     PM.currentProject.lastOpenScene = index;
 
     -- set the camera position and rotation to the last
-    Player.Position.x = scene.lastCameraPositionX or 0;
-    Player.Position.y = scene.lastCameraPositionY or 0;
-    Player.Position.z = scene.lastCameraPositionZ or 0;
-    Player.Direction = deg(scene.lastCameraYaw or 0);
+    CameraController.Position.x = scene.lastCameraPositionX or 0;
+    CameraController.Position.y = scene.lastCameraPositionY or 0;
+    CameraController.Position.z = scene.lastCameraPositionZ or 0;
+    CameraController.Direction = deg(scene.lastCameraYaw or 0);
     Camera.Yaw = scene.lastCameraYaw or 0;
     Camera.Pitch = scene.lastCameraPitch or 0;
     Camera.Roll = scene.lastCameraRoll or 0;

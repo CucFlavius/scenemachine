@@ -7,15 +7,113 @@ local Player = SceneMachine.Player;
 local Renderer = SceneMachine.Renderer;
 local Gizmos = SceneMachine.Gizmos;
 local Input = SceneMachine.Input;
-CC.RMBPressed = false;
+
+----------------------------------
+--			CC State	 		--
+----------------------------------
+CC.Action = {};						-- the collection of player action booleans
 CC.RMBStartPos = {}
 CC.RMBPrevious = {}
+CC.RMBPressed = false;
+CC.Action.TurnLeft = false;			-- true if turn right key is pressed
+CC.Action.TurnRight = false;		-- true if turn right key is pressed
+CC.Action.MoveForward = false;		-- true if move forward key pressed
+CC.Action.MoveBackward = false;		-- true if move backward key is pressed
+CC.Action.StrafeLeft = false;		-- true if strafe left key is pressed
+CC.Action.StrafeRight = false;		-- true if strafe right key is pressed
 
-local cameraTurnSpeed = 0.2;
+----------------------------------
+--			Variables	 		--
+----------------------------------
+CC.FoV = 70;						-- Field of View in degrees
+CC.Direction = 180;					-- The start angle at which the player is looking in degrees ( in degrees )
+CC.Pitch = 0;
+CC.Position = {};					-- the player position table
+CC.Position.x = 0; 				-- player x start position on map
+CC.Position.y = 0; 				-- player y start position on map
+CC.Position.z = 1;
+CC.keyboardTurnSpeed = 1;--0.4;					-- player turn speed
+CC.moveSpeed = 0.05;--0.01;				-- player movement speed
+CC.mouseTurnSpeed = 0.2;
+
+--------------------------------------
+--			Keyboard Input			--
+--------------------------------------
+function CC.Input(key, pressed)
+	if key == "A" then
+		CC.Action.TurnLeft = pressed;
+	end
+	if key == "D" then
+		CC.Action.TurnRight = pressed;
+	end
+	if key == "W" then
+		CC.Action.MoveForward = pressed;
+	end
+	if key == "S" then
+		CC.Action.MoveBackward = pressed;
+	end
+	if key == "Q" then
+		CC.Action.StrafeLeft = pressed;
+	end
+	if key == "E" then
+		CC.Action.StrafeRight = pressed;
+	end
+end
+
+function CC.Initialize()
+    SceneMachine.Input.AddKeyBind("W", function() CC.Action.MoveForward = true end, function() CC.Action.MoveForward = false end);
+    SceneMachine.Input.AddKeyBind("S", function() CC.Action.MoveBackward = true end, function() CC.Action.MoveBackward = false end);
+    SceneMachine.Input.AddKeyBind("A", function() CC.Action.TurnLeft = true end, function() CC.Action.TurnLeft = false end);
+    SceneMachine.Input.AddKeyBind("D", function() CC.Action.TurnRight = true end, function() CC.Action.TurnRight = false end);
+    SceneMachine.Input.AddKeyBind("Q", function() CC.Action.StrafeLeft = true end, function() CC.Action.StrafeLeft = false end);
+    SceneMachine.Input.AddKeyBind("E", function() CC.Action.StrafeRight = true end, function() CC.Action.StrafeRight = false end);
+    SceneMachine.Input.Initialize();
+
+	-- calculate speeds based on update interval --
+	CC.keyboardTurnSpeed = CC.keyboardTurnSpeed * (SceneMachine.UPDATE_INTERVAL * 100);
+	CC.moveSpeed = CC.moveSpeed * (SceneMachine.UPDATE_INTERVAL * 100);
+end
+
 function CC.Update()
-    SceneMachine.Camera.X = Player.Position.x;
-    SceneMachine.Camera.Y = Player.Position.y;
-    SceneMachine.Camera.Z = Player.Position.z;
+    if CC.RMBPressed == false then
+	    if CC.Action.TurnLeft then
+            CC.Direction = CC.Direction + CC.keyboardTurnSpeed;
+            if CC.Direction > 360 then CC.Direction = CC.Direction - 360; end
+            if CC.Direction < 0 then CC.Direction = CC.Direction + 360; end
+        end
+        
+        if CC.Action.TurnRight then
+            CC.Direction = CC.Direction - CC.keyboardTurnSpeed;
+            if CC.Direction > 360 then CC.Direction = CC.Direction - 360; end
+            if CC.Direction < 0 then CC.Direction = CC.Direction + 360; end	
+        end
+    end
+
+	if CC.Action.MoveForward then
+		local xf, yf, zf = SceneMachine.Renderer.projectionFrame:GetCameraForward();
+		CC.Position.x = CC.Position.x + (xf * CC.moveSpeed)
+		CC.Position.y = CC.Position.y + (yf * CC.moveSpeed)
+		CC.Position.z = CC.Position.z + (zf  * CC.moveSpeed)
+	end
+
+	if CC.Action.MoveBackward then
+		local xf, yf, zf = SceneMachine.Renderer.projectionFrame:GetCameraForward();
+		CC.Position.x = CC.Position.x - (xf * CC.moveSpeed)
+		CC.Position.y = CC.Position.y - (yf * CC.moveSpeed)
+		CC.Position.z = CC.Position.z - (zf  * CC.moveSpeed)
+	end
+	if CC.Action.StrafeLeft then
+		CC.Position.x = CC.Position.x + (CC.moveSpeed * math.cos(DegreeToRadian(CC.Direction + 90)));
+		CC.Position.y = CC.Position.y + (CC.moveSpeed * math.sin(DegreeToRadian(CC.Direction + 90)));
+	end
+	if CC.Action.StrafeRight then
+		CC.Position.x = CC.Position.x + (CC.moveSpeed * math.cos(DegreeToRadian(CC.Direction - 90)));
+		CC.Position.y = CC.Position.y + (CC.moveSpeed * math.sin(DegreeToRadian(CC.Direction - 90)));
+	end
+
+    SceneMachine.Camera.X = CC.Position.x;
+    SceneMachine.Camera.Y = CC.Position.y;
+    SceneMachine.Camera.Z = CC.Position.z;
     
     if (CC.RMBPressed == true) then
 		local x, y = GetCursorPosition();
@@ -25,12 +123,12 @@ function CC.Update()
 		CC.RMBPrevious.y = y;
 
 		-- if camera is in flight mode then handle that --
-		SceneMachine.Camera.Yaw = SceneMachine.Camera.Yaw - rad(xDiff * cameraTurnSpeed);
-		SceneMachine.Camera.Pitch = SceneMachine.Camera.Pitch - rad(yDiff * cameraTurnSpeed);
-        Player.Direction = Player.Direction - xDiff * cameraTurnSpeed;
-        Player.Pitch = Player.Pitch - yDiff * cameraTurnSpeed;
+		SceneMachine.Camera.Yaw = SceneMachine.Camera.Yaw - rad(xDiff * CC.mouseTurnSpeed);
+		SceneMachine.Camera.Pitch = SceneMachine.Camera.Pitch - rad(yDiff * CC.mouseTurnSpeed);
+        CC.Direction = CC.Direction - xDiff * CC.mouseTurnSpeed;
+        CC.Pitch = CC.Pitch - yDiff * CC.mouseTurnSpeed;
 	else
-        SceneMachine.Camera.Yaw = rad(Player.Direction);
+        SceneMachine.Camera.Yaw = rad(CC.Direction);
     end
 end
 
@@ -45,4 +143,8 @@ end
 
 function CC.OnRMBUp()
 	CC.RMBPressed = false;
+end
+
+function DegreeToRadian(angle)
+    return (math.pi * angle / 180.0);
 end
