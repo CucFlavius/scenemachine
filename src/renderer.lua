@@ -78,7 +78,7 @@ function Renderer.AddActor(fileID, X, Y, Z)
     if (Y == nil) then Y = 0 end
     if (Z == nil) then Z = 0 end
 
-    print("Renderer.AddActor(" .. fileID .. ", " .. X .. ", " .. Y .. ", " .. Z .. ")");
+    --print("Renderer.AddActor(" .. fileID .. ", " .. X .. ", " .. Y .. ", " .. Z .. ")");
 
     if (Renderer.projectionFrame == nil) then
         print("Renderer: AddActor() - called before CreateRenderer()");

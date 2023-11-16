@@ -10,6 +10,8 @@ local Camera = SceneMachine.Camera;
 SceneMachine.Player = SceneMachine.Player or {}
 local Player = SceneMachine.Player;
 local CameraController = SceneMachine.CameraController;
+Editor.SceneHierarchy = Editor.SceneHierarchy or {};
+local SH = Editor.SceneHierarchy;
 
 local tabButtonHeight = 20;
 local tabPool = {};
@@ -235,8 +237,10 @@ function SM.LoadScene(index)
     -- refresh the scene tabs
     SM.RefreshSceneTabs();
 
-    -- (TEMP) select first object (TEMP)
-    SM.selectedObject = scene.objects[1];
+    -- refresh hierarchy
+    SH.RefreshHierarchy();
+
+    SM.selectedObject = nil;
 end
 
 function SM.UnloadScene()
@@ -244,15 +248,18 @@ function SM.UnloadScene()
     Renderer.Clear();
 end
 
-function SM.CreateObject(_fileID, _x, _y, _z)
+function SM.CreateObject(_fileID, _name, _x, _y, _z)
     local object = {
         fileID = _fileID,
+        name = _name,
         position = { x = _x, y = _y, z = _z },
     }
     local scene = PM.currentProject.scenes[SM.loadedSceneIndex];
     scene.objects[#scene.objects + 1] = object;
 
     Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z);
+
+    SH.RefreshHierarchy();
 end
 
 function SM.DeleteScene(index)

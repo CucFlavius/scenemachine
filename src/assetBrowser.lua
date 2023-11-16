@@ -11,7 +11,6 @@ local thumbSize = 95;
 local thumbSpacing = 1.5;
 local thumbCountX = 3;
 local thumbCountY = 5;
-local toolbarHeight = 30;
 local tabbarHeight = 20;
 
 local c1 = { 0.1757, 0.1757, 0.1875 };
@@ -46,8 +45,8 @@ function AssetBrowser.CreateModelListTab(parent, w, h)
     AssetBrowser.CreateToolbar(parent, -thumbSpacing, w);
 
     AssetBrowser.thumbnailGroup = Win.CreateRectangle(
-        0, -(toolbarHeight + (thumbSpacing * 2)),
-        w, h -((toolbarHeight * 2) + (thumbSpacing)),
+        0, -((Editor.toolbarHeight - 15) + (thumbSpacing * 2)),
+        w, h -(((Editor.toolbarHeight - 15) * 2) + (thumbSpacing)),
         parent, "TOPLEFT", "TOPLEFT", 0, 0, 0, 0.41);
 
     local data = SceneMachine.modelData[1];
@@ -63,13 +62,13 @@ function AssetBrowser.CreateModelListTab(parent, w, h)
 end
 
 function AssetBrowser.CreateToolbar(parent, y, w)
-    AssetBrowser.toolbar = Win.CreateRectangle(0, y, w, toolbarHeight, parent, "TOPLEFT", "TOPLEFT", c1[1], c1[2], c1[3], 1);
+    AssetBrowser.toolbar = Win.CreateRectangle(0, y, w, (Editor.toolbarHeight - 15), parent, "TOPLEFT", "TOPLEFT", c1[1], c1[2], c1[3], 1);
     
-    AssetBrowser.toolbar.upOneFolderButton = Win.CreateButton(1, 1, toolbarHeight - 2, toolbarHeight - 2, AssetBrowser.toolbar, "LEFT", "LEFT", nil,
+    AssetBrowser.toolbar.upOneFolderButton = Win.CreateButton(1, 1, (Editor.toolbarHeight - 15) - 2, (Editor.toolbarHeight - 15) - 2, AssetBrowser.toolbar, "LEFT", "LEFT", nil,
         "Interface\\Addons\\scenemachine\\static\\textures\\folderUpIcon.png", "BUTTON_VS");
     AssetBrowser.toolbar.upOneFolderButton:SetScript("OnClick", function (self, button, down) AssetBrowser.UpOneFolder(); end)
     
-    AssetBrowser.toolbar.breadCrumb = Win.CreateTextBoxSimple(toolbarHeight, 0, w - toolbarHeight, toolbarHeight, AssetBrowser.toolbar,
+    AssetBrowser.toolbar.breadCrumb = Win.CreateTextBoxSimple((Editor.toolbarHeight - 15), 0, w - (Editor.toolbarHeight - 15), (Editor.toolbarHeight - 15), AssetBrowser.toolbar,
         "TOPLEFT", "TOPLEFT", "Breadcrumb", 9);
     
     -- Gave up on this because it requires resizing every element in the thumbnails too
@@ -81,10 +80,10 @@ function AssetBrowser.CreatePagination(parent)
     AssetBrowser.paginationText = Win.CreateTextBoxSimple(0, 0, 100, 30, parent, "BOTTOM", "BOTTOM", "PaginationText", 9);
     AssetBrowser.paginationText.text:SetJustifyH("CENTER");
 
-    AssetBrowser.pageLeftButton = Win.CreateButton(0, 0, toolbarHeight - 2, toolbarHeight - 2, parent, "BOTTOMLEFT", "BOTTOMLEFT", "<", nil, "BUTTON_VS");
+    AssetBrowser.pageLeftButton = Win.CreateButton(0, 0, (Editor.toolbarHeight - 15) - 2, (Editor.toolbarHeight - 15) - 2, parent, "BOTTOMLEFT", "BOTTOMLEFT", "<", nil, "BUTTON_VS");
     AssetBrowser.pageLeftButton:SetScript("OnClick", function (self, button, down) AssetBrowser.OnPreviousPageClic(); end)
 
-    AssetBrowser.pageRightButton = Win.CreateButton(0, 0, toolbarHeight - 2, toolbarHeight - 2, parent, "BOTTOMRIGHT", "BOTTOMRIGHT", ">", nil, "BUTTON_VS");
+    AssetBrowser.pageRightButton = Win.CreateButton(0, 0, (Editor.toolbarHeight - 15) - 2, (Editor.toolbarHeight - 15) - 2, parent, "BOTTOMRIGHT", "BOTTOMRIGHT", ">", nil, "BUTTON_VS");
     AssetBrowser.pageRightButton:SetScript("OnClick", function (self, button, down) AssetBrowser.OnNextPageClick(); end)
 end
 
@@ -271,7 +270,7 @@ function AssetBrowser.OnThumbnailClick(name)
             if fileName == name then
                 local fileID = AssetBrowser.currentDirectory["FI"][i];
                 --Renderer.AddActor(fileID, 0, 0, 0);
-                SM.CreateObject(fileID, 0, 0, 0)
+                SM.CreateObject(fileID, fileName, 0, 0, 0)
                 return;
             end
         end

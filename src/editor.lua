@@ -4,10 +4,12 @@ local Editor = SceneMachine.Editor;
 local Win = ZWindowAPI;
 local FX = SceneMachine.FX;
 local Renderer = SceneMachine.Renderer;
+Editor.SceneHierarchy = Editor.SceneHierarchy or {};
+local SH = Editor.SceneHierarchy;
 
-local width = 1280;
-local height = 720;
-local toolbarHeight = 15 + 30;
+Editor.width = 1280;
+Editor.height = 720;
+Editor.toolbarHeight = 15 + 30;
 local rightPanelWidth = 300;
 local leftPanelWidth = 300;
 local bottomPanelHeight = 200;
@@ -27,31 +29,21 @@ function Editor.Initialize()
     Editor.ProjectManager.CreateWindow();
 
     local sceneX = leftPanelWidth;
-    local sceneY = -(toolbarHeight + 6);
-    local sceneW = width - (rightPanelWidth + leftPanelWidth);
-    local sceneH = height - (toolbarHeight + bottomPanelHeight + 6 + 20);
+    local sceneY = -(Editor.toolbarHeight + 6);
+    local sceneW = Editor.width - (rightPanelWidth + leftPanelWidth);
+    local sceneH = Editor.height - (Editor.toolbarHeight + bottomPanelHeight + 6 + 20);
     Editor.SceneManager.Create(sceneX, sceneY, sceneW, sceneH, SceneMachine.mainWindow);
-
-    --[[
-    local groupBG = Win.CreateRectangle(leftPanelWidth, -(toolbarHeight + 6), width - (rightPanelWidth + leftPanelWidth), 20, SceneMachine.mainWindow, "TOPLEFT", "TOPLEFT",  c1[1], c1[2], c1[3], 1);
-    --local groupTitleText = Win.CreateTextBoxSimple(0, 0, width - (rightPanelWidth + leftPanelWidth) - 18, 20, groupBG, "TOP", "TOP", "Scene", 9);
-    SceneMachine.Renderer.CreateRenderer(SceneMachine.mainWindow, leftPanelWidth, bottomPanelHeight, width - (rightPanelWidth + leftPanelWidth), height - (toolbarHeight + bottomPanelHeight + 6 + 20), "BOTTOMLEFT", "BOTTOMLEFT");
-    --]]
 
     -- load saved variables (this is safe to do because Editor.Initialize() is done on ADDON_LOADED)
     Editor.ProjectManager.LoadSavedData();
 end
 
 function Editor.CreateMainWindow()
-	SceneMachine.mainWindow = Win.CreateWindow(0, 0, width, height, nil, nil, nil, true, "Editor");
-	--SceneMachine.mainWindow.texture:SetColorTexture(0.9,0.9,1,1);
+	SceneMachine.mainWindow = Win.CreateWindow(0, 0, Editor.width, Editor.height, nil, nil, nil, true, "Editor");
 	SceneMachine.mainWindow:SetFrameStrata("BACKGROUND");
-	SceneMachine.WINDOW_WIDTH = width;
-	SceneMachine.WINDOW_HEIGHT = height;
+	SceneMachine.WINDOW_WIDTH = Editor.width;
+	SceneMachine.WINDOW_HEIGHT = Editor.height;
 	SceneMachine.mainWindow:SetIgnoreParentScale(true);		-- This way the camera doesn't get offset when the wow window or UI changes size/aspect
-
-    local dropShadow = Win.CreateImageBox(0, 0, width * 1.2, height * 1.2, SceneMachine.mainWindow, "CENTER", "CENTER",
-	"Interface\\Addons\\scenemachine\\static\\textures\\dropShadowSquare.png");
 
 	local menu = {};
 	menu[1] = {
@@ -82,40 +74,28 @@ function Editor.CreateMainWindow()
 end
 
 function Editor.CreateToolbar()
-    local toolbar = Win.CreateRectangle(0, -15, width, 30, SceneMachine.mainWindow, "TOP", "TOP", c1[1], c1[2], c1[3], 1);
+    local toolbar = Win.CreateRectangle(0, -15, Editor.width, 30, SceneMachine.mainWindow, "TOP", "TOP", c1[1], c1[2], c1[3], 1);
     toolbar.button1 = Win.CreateButton(0, 0, 30, 30, toolbar, "LEFT", "LEFT", "Project Manager", nil, "BUTTON_VS");
     toolbar.button1:SetScript("OnClick", function(self) Editor.ProjectManager.OpenWindow() end);
     toolbar.button2 = Win.CreateButton(30, 0, 30, 30, toolbar, "LEFT", "LEFT", "Btn", nil, "BUTTON_VS");
 end
 
 function Editor.CreateRightPanel()
-    local rightPanel = Win.CreateRectangle(0, -toolbarHeight/2, rightPanelWidth, height - toolbarHeight, SceneMachine.mainWindow, "RIGHT", "RIGHT", c4[1], c4[2], c4[3], 1);
+    local rightPanel = Win.CreateRectangle(0, -Editor.toolbarHeight/2, rightPanelWidth, Editor.height - Editor.toolbarHeight, SceneMachine.mainWindow, "RIGHT", "RIGHT", c4[1], c4[2], c4[3], 1);
     
     local edge = 10;
-    local tilesGroup = Editor.CreateGroup("Asset Explorer", height - toolbarHeight - edge , rightPanel);
+    local tilesGroup = Editor.CreateGroup("Asset Explorer", Editor.height - Editor.toolbarHeight - edge , rightPanel);
 
-    Editor.AssetBrowser.Create(tilesGroup, rightPanelWidth - 12, height - toolbarHeight - edge -(toolbarHeight/2));
+    Editor.AssetBrowser.Create(tilesGroup, rightPanelWidth - 12, Editor.height - Editor.toolbarHeight - edge -(Editor.toolbarHeight / 2));
 end
 
 function Editor.CreateLeftPanel()
-    local leftPanelHeight = height - toolbarHeight;
-    local leftPanel = Win.CreateRectangle(0, -toolbarHeight, leftPanelWidth, leftPanelHeight, SceneMachine.mainWindow, "TOPLEFT", "TOPLEFT", c4[1], c4[2], c4[3], 1);
-    local fxGroup = Editor.CreateGroup("Test group name", 300, leftPanel);
-
-    Win.CreateTextBoxSimple(0, -10, leftPanelWidth - 30, 20, fxGroup, "TOP", "TOP", "Test title", 9);
-
-    local slider1 = Win.CreateSlider(fxGroup, "test", "teest", 0, 3000, 10);
-    slider1:SetPoint("TOPLEFT", fxGroup, "TOPLEFT", 10, -40);
-    slider1:SetValue(0);
-    slider1:HookScript("OnValueChanged", function(self,value)
-        --FX.Fog.minZ = value;
-        --FX.Fog.RecalculatePlanes();
-      end);
+    SH.CreatePanel(leftPanelWidth, 350, c4);
 end
 
 function Editor.CreateBottomPanel()
-    local bottomPanel = Win.CreateRectangle(leftPanelWidth, 0, width - (rightPanelWidth + leftPanelWidth),
-     bottomPanelHeight, SceneMachine.mainWindow, "BOTTOMLEFT", "BOTTOMLEFT", c4[1], c4[2], c4[3], 1);
+    local bottomPanel = Win.CreateRectangle(leftPanelWidth, 0, Editor.width - (rightPanelWidth + leftPanelWidth),
+        bottomPanelHeight, SceneMachine.mainWindow, "BOTTOMLEFT", "BOTTOMLEFT", c4[1], c4[2], c4[3], 1);
 end
 
 function Editor.CreateGroup(name, groupHeight, groupParent)

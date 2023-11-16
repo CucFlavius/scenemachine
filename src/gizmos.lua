@@ -156,6 +156,10 @@ function Gizmos.Update()
 		Gizmos.LMBPrevious.y = y;
 
         local diff = ((xDiff + yDiff) / 2) / 100;
+
+        if (Gizmos.refresh == true) then
+            diff = 0;
+        end
         
         if (SM.selectedObject ~= nil) then
             local position = SM.selectedObject:GetPosition();
