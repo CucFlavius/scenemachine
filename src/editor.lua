@@ -142,7 +142,13 @@ function SceneMachine.CreateStatsFrame()
 end
 
 function Editor.Save()
-    Editor.ProjectManager.SaveData();
+    scenemachine_projects = Editor.ProjectManager.projects;
+
+    -- ask for restart / or restart --
+    Win.OpenMessageBox(SceneMachine.mainWindow, 
+    "Save", "Saving requires a UI reload, continue?",
+    true, true, function() ReloadUI(); end, function() end);
+    Win.messageBox:SetFrameStrata("DIALOG");
 end
 
 function Editor.ShowProjectManager()

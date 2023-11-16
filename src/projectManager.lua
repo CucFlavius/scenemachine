@@ -48,7 +48,7 @@ function PM.CreateWindow()
     PM.deleteProjectButton = Win.CreateButton((60 * 3) + (buttonSpacing * 3) + 10, 10, 60, 40, PM.projectListFrame, "BOTTOMLEFT", "BOTTOMLEFT", "Remove Project", nil, Win.BUTTON_VS);
     PM.deleteProjectButton:SetScript("OnClick", function(self) PM.ButtonDeleteProject() end);
     PM.saveDataButton = Win.CreateButton((60 * 4) + (buttonSpacing * 4) + 10, 10, 60, 40, PM.projectListFrame, "BOTTOMLEFT", "BOTTOMLEFT", "Save Data", nil, Win.BUTTON_VS);
-    PM.saveDataButton:SetScript("OnClick", function(self) PM.SaveData() end);
+    PM.saveDataButton:SetScript("OnClick", function(self) Editor.Save() end);
 
     -- project edit frame --
     PM.projectEditFrame = Win.CreateRectangle(0, 0, managerWindowWidth, managerWindowHeight, PM.window, "TOPLEFT", "TOPLEFT", 0, 0, 0, 0);
@@ -239,16 +239,6 @@ function PM.DeleteProject(ID)
     PM.projects[ID] = nil;
 
     PM.RefreshProjectWindow();
-end
-
-function PM.SaveData()
-    scenemachine_projects = PM.projects;
-
-    -- ask for restart / or restart --
-    Win.OpenMessageBox(PM.window, 
-    "Save", "Saving requires a UI reload, continue?",
-    true, true, function() ReloadUI(); end, function() end);
-    Win.messageBox:SetFrameStrata("DIALOG");
 end
 
 function PM.GetProjectCount()

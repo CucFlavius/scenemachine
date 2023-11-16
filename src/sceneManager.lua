@@ -47,7 +47,9 @@ function SM.RefreshSceneTabs()
                     if (button == "LeftButton") then
                         SM.SceneTabButtonOnClick(i);
                     elseif (button == "RightButton") then
-                        SM.SceneTabButtonOnRightClick(i);
+                        local point, relativeTo, relativePoint, xOfs, yOfs = tabPool[i]:GetPoint(1);
+                        SM.SceneTabButtonOnClick(i);
+                        SM.SceneTabButtonOnRightClick(i, xOfs, -5);
                     end
                 end);
             else
@@ -72,26 +74,7 @@ function SM.RefreshSceneTabs()
     SM.addSceneEditBox:Hide();
     SM.addSceneButtonTab:SetPoint("TOPLEFT", SM.groupBG, "TOPLEFT", x, 0);
     SM.addSceneButtonTab:SetScript("OnClick", function(self) 
-        SM.addSceneEditBox:Show();
-        SM.addSceneEditBox:SetText("Scene " .. (#PM.currentProject.scenes));
-        SM.addSceneButtonTab:Hide();
-        SM.addSceneEditBox:SetPoint("TOPLEFT", SM.groupBG, "TOPLEFT", x, 0);
-        SM.addSceneEditBox:SetFocus();
-        SM.addSceneEditBox:SetScript('OnEscapePressed', function(self1) 
-            self1:ClearFocus();
-            self1:Hide();
-            SM.addSceneButtonTab:Show();
-        end);
-        SM.addSceneEditBox:SetScript('OnEnterPressed', function(self1)
-            self1:ClearFocus();
-            local text = self1:GetText();
-            if (text ~= nil and text ~= "") then
-                PM.currentProject.scenes[#PM.currentProject.scenes + 1] = SM.CreateScene(text);
-                SM.RefreshSceneTabs();
-            end
-            self1:Hide();
-            SM.addSceneButtonTab:Show();
-        end);
+        SM.Button_RenameScene(-1, x);
     end);
 end
 
@@ -104,8 +87,74 @@ function SM.SceneTabButtonOnClick(index)
     SM.RefreshSceneTabs();
 end
 
-function SM.SceneTabButtonOnRightClick(index)
+function SM.SceneTabButtonOnRightClick(index, x, y)
     -- open rmb menu with option to delete, edit, rename the scene
+    local gpoint, grelativeTo, grelativePoint, gxOfs, gyOfs = SM.groupBG:GetPoint(1);
+
+	local menuOptions = {
+        [1] = { ["Name"] = "Rename", ["Action"] = function() SM.Button_RenameScene(index, x) end },
+        [2] = { ["Name"] = "Edit", ["Action"] = function()  SM.Button_EditScene(index) end },
+        [3] = { ["Name"] = "Delete", ["Action"] = function() SM.Button_DeleteScene(index) end },
+	};
+
+    Win.PopupWindowMenu(x + gxOfs, y + gyOfs, SceneMachine.mainWindow, menuOptions);
+end
+
+function SM.Button_RenameScene(index, x)
+    SM.addSceneEditBox:Show();
+    SM.addSceneEditBox:SetText("Scene " .. (#PM.currentProject.scenes));
+    SM.addSceneButtonTab:Hide();
+    SM.addSceneEditBox:SetPoint("TOPLEFT", SM.groupBG, "TOPLEFT", x, 0);
+    SM.addSceneEditBox:SetFocus();
+
+    local previousName = "";
+    if (index ~= -1) then
+        -- copy current text to edit box
+        previousName = tabPool[index].text:GetText();
+        SM.addSceneEditBox:SetText(previousName);
+        SM.addSceneEditBox:SetPoint("TOPLEFT", SM.groupBG, "TOPLEFT", x + 10, 0);
+        -- clearing current visible name
+        tabPool[index].text:SetText("");
+    end
+
+    SM.addSceneEditBox:SetScript('OnEscapePressed', function(self1) 
+        self1:ClearFocus();
+        self1:Hide();
+        SM.addSceneButtonTab:Show();
+        if (index ~= -1) then
+            -- restore previous visible name
+            tabPool[index].text:SetText(previousName);
+        end
+    end);
+    SM.addSceneEditBox:SetScript('OnEnterPressed', function(self1)
+        self1:ClearFocus();
+        local text = self1:GetText();
+        if (text ~= nil and text ~= "") then
+            if (index == -1) then
+                -- create a new scene
+                PM.currentProject.scenes[#PM.currentProject.scenes + 1] = SM.CreateScene(text);
+            else
+                -- rename existing scene
+                PM.currentProject.scenes[index].name = text;
+            end
+            SM.RefreshSceneTabs();
+        end
+        self1:Hide();
+        SM.addSceneButtonTab:Show();
+    end);
+end
+
+function SM.Button_EditScene(index)
+    -- not sure what this will do, most likely open some scene properties window
+end
+
+function SM.Button_DeleteScene(index)
+    Win.OpenMessageBox(SceneMachine.mainWindow, 
+    "Delete Scene", "Are you sure you wish to continue?",
+    true, true, function() 
+        SM.DeleteScene(index);
+    end, function() end);
+    Win.messageBox:SetFrameStrata("DIALOG");
 end
 
 function SM.CreateScene(sceneName)
@@ -127,6 +176,30 @@ function SM.LoadScene(index)
 
     -- load --
 
+end
+
+function SM.DeleteScene(index)
+    -- switch to a different scene because the currently loaded is being deleted
+    -- load first that isn't this one
+    for i in pairs(PM.currentProject.scenes) do
+        local scene = PM.currentProject.scenes[i];
+        if (i ~= index) then
+            SM.LoadScene(i);
+            break;
+        end
+    end
+
+    -- delete it
+    table.remove(PM.currentProject.scenes, index);
+
+    -- if this was the only scene then create a new default one
+    if (#PM.currentProject.scenes == 1) then
+        SM.CreateDefaultScene();
+        SM.LoadScene(1);
+    end
+
+    -- refresh ui
+    SM.RefreshSceneTabs();
 end
 
 function SM.CreateNewSceneTab(x, y, w, h, parent)

@@ -40,6 +40,9 @@ function Win.OpenMessageBox( window, title, message, hasYesButton, hasNoButton, 
 
 		Win.messageBox.yesButton = Win.CreateButton(-75, 10, 50, 25, Win.messageBox, "BOTTOMRIGHT", "BOTTOMRIGHT", "YES", nil, "BUTTON_VS");
 		Win.messageBox.noButton = Win.CreateButton(-20, 10, 50, 25, Win.messageBox, "BOTTOMRIGHT", "BOTTOMRIGHT", "NO", nil, "BUTTON_VS");
+	else
+		Win.messageBox.TitleBar.text:SetText(title);
+		Win.messageBox.textBox.text:SetText(message);
 	end
 
 	Win.messageBox:Show();
