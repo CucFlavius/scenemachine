@@ -78,7 +78,7 @@ function Renderer.AddActor(fileID, X, Y, Z)
     if (Y == nil) then Y = 0 end
     if (Z == nil) then Z = 0 end
 
-    --print("Renderer.AddActor(" .. fileID .. ", " .. X .. ", " .. Y .. ", " .. Z .. ")");
+    print("Renderer.AddActor(" .. fileID .. ", " .. X .. ", " .. Y .. ", " .. Z .. ")");
 
     if (Renderer.projectionFrame == nil) then
         print("Renderer: AddActor() - called before CreateRenderer()");
@@ -88,17 +88,21 @@ function Renderer.AddActor(fileID, X, Y, Z)
     local actor = nil;
     for i in pairs(Renderer.actors) do
         local acr = Renderer.actors[i];
-        if (acr.unloaded == true) then
+        --if (acr.loaded == false) then
+        if (acr:IsVisible() == false) then
             actor = acr;
+            break;
         end
     end
 
     if (actor == nil) then
         -- no available actors found, creating new
-        actor = Renderer.projectionFrame:CreateActor("Test actor");
+        actor = Renderer.projectionFrame:CreateActor("actor"..#Renderer.actors);
+        --actor.loaded = true;
         table.insert(Renderer.actors, actor);
     end
 
+    actor:Show();
     actor:SetModelByFileID(fileID);
     actor:SetPosition(X, Y, Z);
 
@@ -110,8 +114,8 @@ end
 function Renderer.Clear()
     for i in pairs(Renderer.actors) do
         local actor = Renderer.actors[i];
-        actor:ClearModel();
-        actor.unloaded = true;
+        actor:Hide();
+        --actor.loaded = false;
     end
 end
 

@@ -158,6 +158,8 @@ function Gizmos.Update()
         local diff = ((xDiff + yDiff) / 2) / 100;
         
         if (SM.selectedObject ~= nil) then
+            local position = SM.selectedObject:GetPosition();
+            local x, y, z = position.x, position.y, position.z;
             Gizmos.transformToActorAABB(SceneMachine.Gizmos.WireBox, SM.selectedObject, { SM.selectedObject.position.x, SM.selectedObject.position.y, SM.selectedObject.position.z });
             
             if(Gizmos.activeTransformGizmo == 1) then
@@ -168,6 +170,7 @@ function Gizmos.Update()
                 else
                     x = x + diff;
                 end
+
                 SM.selectedObject:SetPosition(x, y, z);
                 Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, {x, y, z});
                 Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoX, {x, y, z});

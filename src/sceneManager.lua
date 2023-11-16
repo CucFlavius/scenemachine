@@ -151,6 +151,8 @@ end
 
 function SM.Button_EditScene(index)
     -- not sure what this will do, most likely open some scene properties window
+    local scene = PM.currentProject.scenes[index];
+    print(#scene.objects .. " " .. #Renderer.actors .. " " .. Renderer.projectionFrame:GetNumActors());
 end
 
 function SM.Button_DeleteScene(index)
@@ -195,7 +197,23 @@ function SM.LoadScene(index)
     if (#scene.objects > 0) then
         for i in pairs(scene.objects) do
             local object = scene.objects[i];
-            Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z);
+
+            object.actor = Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z);
+
+            object.GetActiveBoundingBox = function(self)
+                return self.actor:GetActiveBoundingBox();
+            end
+
+            object.SetPosition = function(self, x, y, z)
+                object.position.x = x;
+                object.position.y = y;
+                object.position.z = z;
+                self.actor:SetPosition(x, y, z);
+            end
+
+            object.GetPosition = function(self)
+                return object.position;
+            end
         end
     end
 
@@ -211,14 +229,17 @@ function SM.LoadScene(index)
     Camera.Pitch = scene.lastCameraPitch or 0;
     Camera.Roll = scene.lastCameraRoll or 0;
 
-    print(Camera.Yaw);
     --scene.lastCameraPosition = Renderer.projectionFrame:GetCameraPosition();
 
     -- refresh the scene tabs
     SM.RefreshSceneTabs();
+
+    -- (TEMP) select first object (TEMP)
+    SM.selectedObject = scene.objects[1];
 end
 
 function SM.UnloadScene()
+    SM.selectedObject = nil;
     Renderer.Clear();
 end
 
