@@ -19,6 +19,7 @@
 	<Script file="settings.lua"/>
     <Script file="assetBrowser.lua"/>
     <Script file="projectManager.lua"/>
+    <Script file="sceneManager.lua"/>
     <Script file="editor.lua"/>
 	<Script file="engine.lua"/>
 </Ui>

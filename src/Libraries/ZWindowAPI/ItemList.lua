@@ -12,7 +12,7 @@ function Win.ItemList(itemSizeX, itemSizeY, parent, onSelect)
 		SetItem = function(self, index, text)
 			if (self.pool[index] == nil) then
 				self.pool[index] = Win.ItemList_CreateNewItem(0, -(index - 1) * (itemSizeY + 1.0001), itemSizeX, itemSizeY, parent);
-				self.pool[index].projectNameText:SetText(text);
+				self.pool[index].text:SetText(text);
 				self.pool[index]:SetScript("OnClick", function(self2) 
 				    -- deselect all other --
 					for idx in pairs(self.pool) do
@@ -30,7 +30,7 @@ function Win.ItemList(itemSizeX, itemSizeY, parent, onSelect)
 				end);
 			else
 				self.pool[index]:Show();
-				self.pool[index].projectNameText:SetText(text);
+				self.pool[index].text:SetText(text);
 			end
 		end,
 		GetSelected = function(self)
@@ -77,10 +77,10 @@ function Win.ItemList_CreateNewItem(x, y, w, h, parent)
 	item:SetPushedTexture(item.ptex)
 
 	-- project name text --
-	item.projectNameText = item:CreateFontString("Zee.WindowAPI.Button Text");
-	item.projectNameText:SetFont(ButtonFont, ButtonFontSize, "NORMAL");
-	item.projectNameText:SetPoint("LEFT", item, "LEFT", 10, 0);
-	item.projectNameText:SetText(name);
+	item.text = item:CreateFontString("Zee.WindowAPI.Button Text");
+	item.text:SetFont(ButtonFont, ButtonFontSize, "NORMAL");
+	item.text:SetPoint("LEFT", item, "LEFT", 10, 0);
+	item.text:SetText(name);
 
 	return item;
 end

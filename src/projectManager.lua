@@ -3,6 +3,9 @@ local Win = ZWindowAPI;
 local Editor = SceneMachine.Editor;
 Editor.ProjectManager = Editor.ProjectManager or {};
 local PM = Editor.ProjectManager;
+Editor.SceneManager = Editor.SceneManager or {};
+local SM = Editor.SceneManager;
+
 local c1 = { 0.1757, 0.1757, 0.1875 };
 local c2 = { 0.242, 0.242, 0.25 };
 local c3 = { 0, 0.4765, 0.7968 };
@@ -81,7 +84,6 @@ function PM.CreateProject(name)
     PM.projects[ID].ID = ID;
     PM.projects[ID].name = name;
     PM.projects[ID].scenes = {};
-
     return PM.projects[ID];
 end
 
@@ -109,9 +111,9 @@ function PM.LoadProject(ID)
 
     SceneMachine.mainWindow.TitleBar.text:SetText("Editor " .. PM.currentProject.name);
 
-    -- TODO : Unload current project scenes
-
-    -- TODO : Load first scene, and update scene tabs with available scenes
+    -- Load first scene, and update scene tabs with available scenes
+    SM.LoadScene(1);
+    SM.RefreshSceneTabs();
 end
 
 function PM.LoadLastProject()

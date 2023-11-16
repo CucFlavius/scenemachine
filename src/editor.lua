@@ -26,9 +26,17 @@ function Editor.Initialize()
     Editor.CreateBottomPanel();
     Editor.ProjectManager.CreateWindow();
 
+    local sceneX = leftPanelWidth;
+    local sceneY = -(toolbarHeight + 6);
+    local sceneW = width - (rightPanelWidth + leftPanelWidth);
+    local sceneH = height - (toolbarHeight + bottomPanelHeight + 6 + 20);
+    Editor.SceneManager.Create(sceneX, sceneY, sceneW, sceneH, SceneMachine.mainWindow);
+
+    --[[
     local groupBG = Win.CreateRectangle(leftPanelWidth, -(toolbarHeight + 6), width - (rightPanelWidth + leftPanelWidth), 20, SceneMachine.mainWindow, "TOPLEFT", "TOPLEFT",  c1[1], c1[2], c1[3], 1);
-    local groupTitleText = Win.CreateTextBoxSimple(0, 0, width - (rightPanelWidth + leftPanelWidth) - 18, 20, groupBG, "TOP", "TOP", "Scene", 9);
+    --local groupTitleText = Win.CreateTextBoxSimple(0, 0, width - (rightPanelWidth + leftPanelWidth) - 18, 20, groupBG, "TOP", "TOP", "Scene", 9);
     SceneMachine.Renderer.CreateRenderer(SceneMachine.mainWindow, leftPanelWidth, bottomPanelHeight, width - (rightPanelWidth + leftPanelWidth), height - (toolbarHeight + bottomPanelHeight + 6 + 20), "BOTTOMLEFT", "BOTTOMLEFT");
+    --]]
 
     -- load saved variables (this is safe to do because Editor.Initialize() is done on ADDON_LOADED)
     Editor.ProjectManager.LoadSavedData();
@@ -75,7 +83,8 @@ end
 
 function Editor.CreateToolbar()
     local toolbar = Win.CreateRectangle(0, -15, width, 30, SceneMachine.mainWindow, "TOP", "TOP", c1[1], c1[2], c1[3], 1);
-    toolbar.button1 = Win.CreateButton(0, 0, 30, 30, toolbar, "LEFT", "LEFT", "Btn", nil, "BUTTON_VS");
+    toolbar.button1 = Win.CreateButton(0, 0, 30, 30, toolbar, "LEFT", "LEFT", "Project Manager", nil, "BUTTON_VS");
+    toolbar.button1:SetScript("OnClick", function(self) Editor.ProjectManager.OpenWindow() end);
     toolbar.button2 = Win.CreateButton(30, 0, 30, 30, toolbar, "LEFT", "LEFT", "Btn", nil, "BUTTON_VS");
 end
 

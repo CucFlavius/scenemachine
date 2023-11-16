@@ -50,7 +50,7 @@ function Renderer.CreateBackgroundFrame()
 	Renderer.backgroundFrame:SetFrameLevel(0);
 end
 
-function Renderer.CreateRenderer(parent, x, y, w, h, point, relativePoint)
+function Renderer.CreateRenderer(x, y, w, h, parent, point, relativePoint)
 	Renderer.w = w;
 	Renderer.h = h;
 	Renderer.projectionFrame = CreateFrame("ModelScene", "Renderer.projectionFrame", parent);
