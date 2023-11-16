@@ -21,10 +21,12 @@ function SceneMachine.Start()
     SceneMachine.CreateStatsFrame();
 
 	-- tests ---
+	--[[
 	for idx in pairs(SceneMachine.Data.Creatures) do
         local creatureFileID = SceneMachine.Data.Creatures[idx];
         Renderer.AddActor(creatureFileID, -6, (idx * 1.5) - 3, 0);
     end
+	--]]
 end
 
 local f = CreateFrame("Frame")

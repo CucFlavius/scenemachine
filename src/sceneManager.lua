@@ -5,11 +5,16 @@ Editor.ProjectManager = Editor.ProjectManager or {};
 local PM = Editor.ProjectManager;
 Editor.SceneManager = Editor.SceneManager or {};
 local SM = Editor.SceneManager;
+local Renderer = SceneMachine.Renderer;
+local Camera = SceneMachine.Camera;
+SceneMachine.Player = SceneMachine.Player or {}
+local Player = SceneMachine.Player;
 
 local tabButtonHeight = 20;
 local tabPool = {};
 
 SM.loadedSceneIndex = 1;
+SM.selectedObject = nil;
 
 function SM.Create(x, y, w, h, parent)
     SM.groupBG = Win.CreateRectangle(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 0);
@@ -83,7 +88,7 @@ function SM.CreateDefaultScene()
 end
 
 function SM.SceneTabButtonOnClick(index)
-    SM.loadedSceneIndex = index;
+    SM.LoadScene(index);
     SM.RefreshSceneTabs();
 end
 
@@ -164,18 +169,68 @@ function SM.CreateScene(sceneName)
 
     return {
         name = sceneName,
+        objects = {},
     }
 end
 
 function SM.LoadScene(index)
+    SM.loadedSceneIndex = index;
+
     if (#PM.currentProject.scenes == 0) then
         -- current project has no scenes, create a default one
         PM.currentProject.scenes[1] = SM.CreateDefaultScene();
         SM.RefreshSceneTabs();
     end
 
-    -- load --
+    -- unload current --
+    SM.UnloadScene();
 
+    -- load new --
+    local scene = PM.currentProject.scenes[index];
+    
+    if (scene.objects == nil) then
+        scene.objects = {}
+    end
+
+    if (#scene.objects > 0) then
+        for i in pairs(scene.objects) do
+            local object = scene.objects[i];
+            Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z);
+        end
+    end
+
+    -- remember this scene was opened last
+    PM.currentProject.lastOpenScene = index;
+
+    -- set the camera position and rotation to the last
+    Player.Position.x = scene.lastCameraPositionX or 0;
+    Player.Position.y = scene.lastCameraPositionY or 0;
+    Player.Position.z = scene.lastCameraPositionZ or 0;
+    Player.Direction = deg(scene.lastCameraYaw or 0);
+    Camera.Yaw = scene.lastCameraYaw or 0;
+    Camera.Pitch = scene.lastCameraPitch or 0;
+    Camera.Roll = scene.lastCameraRoll or 0;
+
+    print(Camera.Yaw);
+    --scene.lastCameraPosition = Renderer.projectionFrame:GetCameraPosition();
+
+    -- refresh the scene tabs
+    SM.RefreshSceneTabs();
+end
+
+function SM.UnloadScene()
+    Renderer.Clear();
+end
+
+function SM.CreateObject(_fileID, _x, _y, _z)
+    local object = {
+        fileID = _fileID,
+        position = { x = _x, y = _y, z = _z },
+    }
+    local scene = PM.currentProject.scenes[SM.loadedSceneIndex];
+    scene.objects[#scene.objects + 1] = object;
+
+    Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z);
 end
 
 function SM.DeleteScene(index)

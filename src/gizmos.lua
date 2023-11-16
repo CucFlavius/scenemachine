@@ -1,6 +1,11 @@
+SceneMachine.Editor = SceneMachine.Editor or {};
 SceneMachine.Gizmos = SceneMachine.Gizmos or {};
 local Gizmos = SceneMachine.Gizmos;
 local Renderer = SceneMachine.Renderer;
+local Editor = SceneMachine.Editor;
+Editor.SceneManager = Editor.SceneManager or {};
+local SM = Editor.SceneManager;
+
 Gizmos.isUsed = false;
 Gizmos.isHighlighted = false;
 Gizmos.refresh = false;
@@ -152,9 +157,8 @@ function Gizmos.Update()
 
         local diff = ((xDiff + yDiff) / 2) / 100;
         
-        if (Renderer.selectedActor ~= nil) then
-            local x, y, z = Renderer.selectedActor:GetPosition();
-            Gizmos.transformToActorAABB(SceneMachine.Gizmos.WireBox, Renderer.selectedActor, {x, y, z});
+        if (SM.selectedObject ~= nil) then
+            Gizmos.transformToActorAABB(SceneMachine.Gizmos.WireBox, SM.selectedObject, { SM.selectedObject.position.x, SM.selectedObject.position.y, SM.selectedObject.position.z });
             
             if(Gizmos.activeTransformGizmo == 1) then
                 if (Gizmos.selectedAxis == 1) then
@@ -164,7 +168,7 @@ function Gizmos.Update()
                 else
                     x = x + diff;
                 end
-                Renderer.selectedActor:SetPosition(x, y, z);
+                SM.selectedObject:SetPosition(x, y, z);
                 Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, {x, y, z});
                 Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoX, {x, y, z});
                 Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoY, {x, y, z});
@@ -172,14 +176,14 @@ function Gizmos.Update()
             elseif(Gizmos.activeTransformGizmo == 2) then
                 local x;
                 if (Gizmos.selectedAxis == 1) then
-                    x = Renderer.selectedActor:GetRoll() + diff;
-                    Renderer.selectedActor:SetRoll(x);
+                    x = SM.selectedObject:GetRoll() + diff;
+                    SM.selectedObject:SetRoll(x);
                 elseif (Gizmos.selectedAxis == 2) then
-                    x = Renderer.selectedActor:GetPitch() + diff;
-                    Renderer.selectedActor:SetPitch(x);
+                    x = SM.selectedObject:GetPitch() + diff;
+                    SM.selectedObject:SetPitch(x);
                 else
-                    x = Renderer.selectedActor:GetYaw() + diff;
-                    Renderer.selectedActor:SetYaw(x);
+                    x = SM.selectedObject:GetYaw() + diff;
+                    SM.selectedObject:SetYaw(x);
                 end
                 -- rotate the gizmos
             elseif(Gizmos.activeTransformGizmo == 3) then
@@ -214,9 +218,9 @@ function Gizmos.transformGizmo(gizmo, position)
     end
 end
 
-function Gizmos.transformToActorAABB(gizmo, actor, position)
+function Gizmos.transformToActorAABB(gizmo, object, position)
 
-    xMin, yMin, zMin, xMax, yMax, zMax = actor:GetActiveBoundingBox();
+    xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
 
     if (xMax == nil) then return; end
 

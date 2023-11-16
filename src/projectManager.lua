@@ -111,8 +111,14 @@ function PM.LoadProject(ID)
 
     SceneMachine.mainWindow.TitleBar.text:SetText("Editor " .. PM.currentProject.name);
 
-    -- Load first scene, and update scene tabs with available scenes
-    SM.LoadScene(1);
+    -- Load last scene
+    if (PM.currentProject.lastOpenScene ~= nil) then
+        SM.LoadScene(PM.currentProject.lastOpenScene);
+    else
+        SM.LoadScene(1);
+    end
+
+    -- update scene tabs with available scenes
     SM.RefreshSceneTabs();
 end
 

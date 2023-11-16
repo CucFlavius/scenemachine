@@ -1,6 +1,10 @@
+SceneMachine.Editor = SceneMachine.Editor or {};
 SceneMachine.Renderer = SceneMachine.Renderer or {}
 SceneMachine.World = SceneMachine.World or {}
 SceneMachine.Gizmos = SceneMachine.Gizmos or {};
+local Editor = SceneMachine.Editor;
+Editor.SceneManager = Editor.SceneManager or {};
+local SM = Editor.SceneManager;
 local Gizmos = SceneMachine.Gizmos;
 local Renderer = SceneMachine.Renderer;
 local Camera = SceneMachine.Camera;
@@ -74,25 +78,41 @@ function Renderer.AddActor(fileID, X, Y, Z)
     if (Y == nil) then Y = 0 end
     if (Z == nil) then Z = 0 end
 
-    print("Renderer.AddActor(" .. fileID .. ", " .. X .. ", " .. Y .. ", " .. Z .. ")");
+    --print("Renderer.AddActor(" .. fileID .. ", " .. X .. ", " .. Y .. ", " .. Z .. ")");
 
     if (Renderer.projectionFrame == nil) then
         print("Renderer: AddActor() - called before CreateRenderer()");
         return;
     end
 
-    local actor = Renderer.projectionFrame:CreateActor("Test actor");
+    local actor = nil;
+    for i in pairs(Renderer.actors) do
+        local acr = Renderer.actors[i];
+        if (acr.unloaded == true) then
+            actor = acr;
+        end
+    end
+
+    if (actor == nil) then
+        -- no available actors found, creating new
+        actor = Renderer.projectionFrame:CreateActor("Test actor");
+        table.insert(Renderer.actors, actor);
+    end
+
     actor:SetModelByFileID(fileID);
     actor:SetPosition(X, Y, Z);
 
-    table.insert(Renderer.actors, actor);
-
-    Renderer.selectedActor = actor;
-    --Renderer.selectedActor:SetUseCenterForOrigin(true, true, true);
     Gizmos.refresh = true;
-    --local diskTest = Renderer.projectionFrame:CreateActor("Test actor");
-    --diskTest:SetModelByFileID(4072558);
-    --diskTest:SetPosition(0, 0, -2.5);
+
+    return actor;
+end
+
+function Renderer.Clear()
+    for i in pairs(Renderer.actors) do
+        local actor = Renderer.actors[i];
+        actor:ClearModel();
+        actor.unloaded = true;
+    end
 end
 
 ---Render a 2D Quad
@@ -163,7 +183,7 @@ function Renderer.RenderGizmos()
         SceneMachine.CulledFrames = 1;
 
         -- Render gizmos --
-        if Renderer.selectedActor ~= nil then
+        if SM.selectedObject ~= nil then
             RenderGizmo(SceneMachine.Gizmos.WireBox);
         end
 

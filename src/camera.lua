@@ -1,9 +1,15 @@
 SceneMachine = SceneMachine or {}
 SceneMachine.Camera = {}
 SceneMachine.Renderer = SceneMachine.Renderer or {}
+SceneMachine.Editor = SceneMachine.Editor or {};
+local Editor = SceneMachine.Editor;
 local Renderer = SceneMachine.Renderer;
-
 local Camera = SceneMachine.Camera;
+Editor.SceneManager = Editor.SceneManager or {};
+local SM = Editor.SceneManager;
+local Renderer = SceneMachine.Renderer;
+Editor.ProjectManager = Editor.ProjectManager or {};
+local PM = Editor.ProjectManager;
 
 Camera.X = 0;
 Camera.Y = 0;
@@ -30,4 +36,15 @@ function Camera.Update()
 	Camera.planePositionX = Camera.X + (Camera.planeNormalX * Camera.ProjectionPlaneOffset);
 	Camera.planePositionY = Camera.Y + (Camera.planeNormalY * Camera.ProjectionPlaneOffset);
 	Camera.planePositionZ = Camera.Z + (Camera.planeNormalZ * Camera.ProjectionPlaneOffset);
+
+    -- remember current camera settings --
+    if (SM.loadedSceneIndex ~= -1) then
+        local scene = PM.currentProject.scenes[SM.loadedSceneIndex];
+        scene.lastCameraPositionX = Camera.X;
+        scene.lastCameraPositionY = Camera.Y;
+        scene.lastCameraPositionZ = Camera.Z;
+        scene.lastCameraYaw = Camera.Yaw;
+        scene.lastCameraPitch = Camera.Pitch;
+        scene.lastCameraRoll = Camera.Roll;
+    end
 end

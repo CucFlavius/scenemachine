@@ -4,6 +4,8 @@ local AssetBrowser = SceneMachine.Editor.AssetBrowser;
 local Editor = SceneMachine.Editor;
 local Win = ZWindowAPI;
 local Renderer = SceneMachine.Renderer;
+Editor.SceneManager = Editor.SceneManager or {};
+local SM = Editor.SceneManager;
 
 local thumbSize = 95;
 local thumbSpacing = 1.5;
@@ -268,7 +270,8 @@ function AssetBrowser.OnThumbnailClick(name)
             local fileName = AssetBrowser.currentDirectory["FN"][i];
             if fileName == name then
                 local fileID = AssetBrowser.currentDirectory["FI"][i];
-                Renderer.AddActor(fileID, 0, 0, 0);
+                --Renderer.AddActor(fileID, 0, 0, 0);
+                SM.CreateObject(fileID, 0, 0, 0)
                 return;
             end
         end
