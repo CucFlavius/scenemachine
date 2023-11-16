@@ -23,7 +23,7 @@ function Win.CreateEditBox(posX, posY, sizeX, sizeY, parent, windowPoint, parent
 	local EditBox = CreateFrame("EditBox", "Zee.WindowAPI.EditBox", parent);
 	EditBox:SetPoint(windowPoint, parent, parentPoint, posX, posY);
 	EditBox:SetSize(sizeX, sizeY);
-	--EditBox:SetFont(textFont, textHeight, "OUTLINE");
+	EditBox:SetFont(textFont, textHeight, "OUTLINE");
 	EditBox:SetText(text);
 	EditBox.texture = EditBox:CreateTexture("Zee.WindowAPI.EditBox texture", "BACKGROUND");
 	EditBox.texture:SetColorTexture(0.1,0.1,0.1,1);
