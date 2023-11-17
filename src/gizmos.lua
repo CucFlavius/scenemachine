@@ -110,15 +110,15 @@ function Gizmos.CreateMoveGizmo()
         scale = 10;
         vertices = 
         {
-            {{0,0,0}, {0,1,0}}, -- X
-            {{0,0,0}, {0,0,1}}, -- Y
-            {{0,0,0}, {1,0,0}}, -- Z
+            {{0,0,0}, {1,0,0}}, -- X
+            {{0,0,0}, {0,1,0}}, -- Y
+            {{0,0,0}, {0,0,1}}, -- Z
         };
         transformedVertices =
         {
-            {{0,0,0}, {0,1,0}}, -- X
-            {{0,0,0}, {0,0,1}}, -- Y
-            {{0,0,0}, {1,0,0}}, -- Z
+            {{0,0,0}, {1,0,0}}, -- X
+            {{0,0,0}, {0,1,0}}, -- Y
+            {{0,0,0}, {0,0,1}}, -- Z
         };
         screenSpaceVertices = 
         {
@@ -139,31 +139,32 @@ function Gizmos.CreateMoveGizmo()
     -- Create cone vertices --
     -- calculateCirclePoints(centerX, centerY, centerZ, radius, numPoints, axis)
     local radius = 0.02;
-    local pointsY = calculateCirclePoints(0, 0.9, 0, radius, coneDetail, "y");
+
+    local pointsX = calculateCirclePoints(0.9, 0, 0, radius, coneDetail, "x");
     local i = 1;
     for c = 4, 4 + coneDetail, 1 do
-        Gizmos.MoveGizmo.vertices[c] = {{0,1,0},pointsY[i]};
-        Gizmos.MoveGizmo.transformedVertices[c] = {{0,0,0}, {0,1,0}}; -- X
+        Gizmos.MoveGizmo.vertices[c] = {{1,0,0},pointsX[i]};
+        Gizmos.MoveGizmo.transformedVertices[c] = {{0,0,0}, {1,0,0}};
         Gizmos.MoveGizmo.screenSpaceVertices[c] = {{0,0}, {0,0}};
         Gizmos.MoveGizmo.faceColors[c] = {1,0,0,1};
         i = i + 1;
-
     end
-    local pointsZ = calculateCirclePoints(0, 0, 0.9, radius, coneDetail, "z");
+
+    local pointsY = calculateCirclePoints(0, 0.9, 0, radius, coneDetail, "y");
     i = 1;
     for c = 4 + coneDetail, 4 + (coneDetail * 2), 1 do
-        Gizmos.MoveGizmo.vertices[c] = {{0,0,1},pointsZ[i]};
-        Gizmos.MoveGizmo.transformedVertices[c] = {{0,0,0}, {0,0,1}}; -- Y
+        Gizmos.MoveGizmo.vertices[c] = {{0,1,0},pointsY[i]};
+        Gizmos.MoveGizmo.transformedVertices[c] = {{0,0,0}, {0,1,0}};
         Gizmos.MoveGizmo.screenSpaceVertices[c] = {{0,0}, {0,0}};
         Gizmos.MoveGizmo.faceColors[c] = {0,1,0,1};
         i = i + 1;
-        
     end
-    local pointsX = calculateCirclePoints(0.9, 0, 0, radius, coneDetail, "x");
+
+    local pointsZ = calculateCirclePoints(0, 0, 0.9, radius, coneDetail, "z");
     i = 1;
     for c = 4 + (coneDetail * 2), 4 + (coneDetail * 3), 1 do
-        Gizmos.MoveGizmo.vertices[c] = {{1,0,0},pointsX[i]};
-        Gizmos.MoveGizmo.transformedVertices[c] = {{0,0,0}, {1,0,0}}; -- Z
+        Gizmos.MoveGizmo.vertices[c] = {{0,0,1},pointsZ[i]};
+        Gizmos.MoveGizmo.transformedVertices[c] = {{0,0,0}, {0,0,1}};
         Gizmos.MoveGizmo.screenSpaceVertices[c] = {{0,0}, {0,0}};
         Gizmos.MoveGizmo.faceColors[c] = {0,0,1,1};
         i = i + 1;
@@ -335,11 +336,11 @@ function Gizmos.Update()
             
             if (Gizmos.activeTransformGizmo == 1) then
                 if (Gizmos.selectedAxis == 1) then
-                    y = y + diff;
-                elseif (Gizmos.selectedAxis == 2) then
-                    z = z + diff;
-                elseif (Gizmos.selectedAxis == 3) then
                     x = x + diff;
+                elseif (Gizmos.selectedAxis == 2) then
+                    y = y + diff;
+                elseif (Gizmos.selectedAxis == 3) then
+                    z = z + diff;
                 end
 
                 SM.selectedObject:SetPosition(x, y, z);
