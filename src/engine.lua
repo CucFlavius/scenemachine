@@ -1,4 +1,3 @@
-SceneMachine = SceneMachine or {}
 local Camera = SceneMachine.Camera;
 local World = SceneMachine.World;
 local Renderer = SceneMachine.Renderer;

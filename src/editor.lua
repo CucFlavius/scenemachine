@@ -1,12 +1,8 @@
-SceneMachine.Editor = SceneMachine.Editor or {}
-SceneMachine.Editor.AssetBrowser = SceneMachine.Editor.AssetBrowser or {}
 local Editor = SceneMachine.Editor;
 local Win = ZWindowAPI;
 local FX = SceneMachine.FX;
 local Renderer = SceneMachine.Renderer;
-Editor.SceneHierarchy = Editor.SceneHierarchy or {};
 local SH = Editor.SceneHierarchy;
-Editor.MousePick = Editor.MousePick or {};
 local MousePick = Editor.MousePick;
 
 Editor.width = 1280;
@@ -30,7 +26,7 @@ function Editor.Initialize()
     Editor.CreateBottomPanel();
     Editor.ProjectManager.CreateWindow();
     MousePick.Initialize();
-    
+
     local sceneX = leftPanelWidth;
     local sceneY = -(Editor.toolbarHeight + 6);
     local sceneW = Editor.width - (rightPanelWidth + leftPanelWidth);

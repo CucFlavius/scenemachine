@@ -1,4 +1,3 @@
-SceneMachine = SceneMachine or {}
 SceneMachine.BORDER_OFFSET = -1 / 512
 SceneMachine.BORDER_SCALE = 512 / 510
 SceneMachine.TRIANGLE_TEX_WHITE = [[Interface\AddOns\ZEngine\Textures\Triangle]]

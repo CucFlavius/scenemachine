@@ -1,9 +1,4 @@
-SceneMachine.Editor = SceneMachine.Editor or {};
-SceneMachine.Renderer = SceneMachine.Renderer or {}
-SceneMachine.World = SceneMachine.World or {}
-SceneMachine.Gizmos = SceneMachine.Gizmos or {};
 local Editor = SceneMachine.Editor;
-Editor.SceneManager = Editor.SceneManager or {};
 local SM = Editor.SceneManager;
 local Gizmos = SceneMachine.Gizmos;
 local Renderer = SceneMachine.Renderer;

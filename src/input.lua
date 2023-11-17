@@ -1,17 +1,11 @@
-SceneMachine.Input = SceneMachine.Input or {}
-SceneMachine.CameraController = SceneMachine.CameraController or {}
-SceneMachine.Gizmos = SceneMachine.Gizmos or {};
 local Editor = SceneMachine.Editor;
-Editor.SceneManager = Editor.SceneManager or {};
 local SM = Editor.SceneManager;
-Editor.ProjectManager = Editor.ProjectManager or {};
 local PM = Editor.ProjectManager;
 local Input = SceneMachine.Input;
 local CC = SceneMachine.CameraController;
 local Renderer = SceneMachine.Renderer;
 local Gizmos = SceneMachine.Gizmos;
 local Camera = SceneMachine.Camera;
-Editor.MousePick = Editor.MousePick or {};
 local MousePick = Editor.MousePick;
 
 Input.Keys = {}

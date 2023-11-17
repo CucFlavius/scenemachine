@@ -1,5 +1,4 @@
 local Editor = SceneMachine.Editor;
-Editor.MousePick = Editor.MousePick or {};
 local MousePick = Editor.MousePick;
 local Gizmos = SceneMachine.Gizmos;
 local SM = Editor.SceneManager;

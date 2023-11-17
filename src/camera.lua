@@ -1,14 +1,8 @@
-SceneMachine = SceneMachine or {}
-SceneMachine.Camera = {}
-SceneMachine.Renderer = SceneMachine.Renderer or {}
-SceneMachine.Editor = SceneMachine.Editor or {};
 local Editor = SceneMachine.Editor;
 local Renderer = SceneMachine.Renderer;
 local Camera = SceneMachine.Camera;
-Editor.SceneManager = Editor.SceneManager or {};
 local SM = Editor.SceneManager;
 local Renderer = SceneMachine.Renderer;
-Editor.ProjectManager = Editor.ProjectManager or {};
 local PM = Editor.ProjectManager;
 
 Camera.X = 0;

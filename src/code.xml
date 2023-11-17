@@ -8,7 +8,7 @@
     <Include file="Libraries\ZWindowAPI\ZWindowAPI.xml"/>
 
     <Script file="debugger.lua"/>
-
+    <Script file="header.lua"/>
 
     <Script file="camera.lua"/>
     <Script file="input.lua"/>

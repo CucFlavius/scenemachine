@@ -1,16 +1,11 @@
-SceneMachine.Editor = SceneMachine.Editor or {};
 local Win = ZWindowAPI;
 local Editor = SceneMachine.Editor;
-Editor.ProjectManager = Editor.ProjectManager or {};
 local PM = Editor.ProjectManager;
-Editor.SceneManager = Editor.SceneManager or {};
 local SM = Editor.SceneManager;
 local Renderer = SceneMachine.Renderer;
 local Camera = SceneMachine.Camera;
-SceneMachine.Player = SceneMachine.Player or {}
 local Player = SceneMachine.Player;
 local CameraController = SceneMachine.CameraController;
-Editor.SceneHierarchy = Editor.SceneHierarchy or {};
 local SH = Editor.SceneHierarchy;
 
 local tabButtonHeight = 20;

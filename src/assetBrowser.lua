@@ -1,10 +1,7 @@
-SceneMachine.Editor = SceneMachine.Editor or {}
-SceneMachine.Editor.AssetBrowser = SceneMachine.Editor.AssetBrowser or {}
 local AssetBrowser = SceneMachine.Editor.AssetBrowser;
 local Editor = SceneMachine.Editor;
 local Win = ZWindowAPI;
 local Renderer = SceneMachine.Renderer;
-Editor.SceneManager = Editor.SceneManager or {};
 local SM = Editor.SceneManager;
 
 local thumbSize = 95;

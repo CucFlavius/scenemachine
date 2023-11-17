@@ -1,8 +1,4 @@
-SceneMachine.CameraController = SceneMachine.CameraController or {}
 local CC = SceneMachine.CameraController;
-SceneMachine.Player = SceneMachine.Player or {}
-SceneMachine.Gizmos = SceneMachine.Gizmos or {}
-SceneMachine.Input = SceneMachine.Input or {}
 local Player = SceneMachine.Player;
 local Renderer = SceneMachine.Renderer;
 local Gizmos = SceneMachine.Gizmos;

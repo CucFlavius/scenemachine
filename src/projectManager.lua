@@ -1,9 +1,6 @@
-SceneMachine.Editor = SceneMachine.Editor or {};
 local Win = ZWindowAPI;
 local Editor = SceneMachine.Editor;
-Editor.ProjectManager = Editor.ProjectManager or {};
 local PM = Editor.ProjectManager;
-Editor.SceneManager = Editor.SceneManager or {};
 local SM = Editor.SceneManager;
 
 local c1 = { 0.1757, 0.1757, 0.1875 };

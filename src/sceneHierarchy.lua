@@ -1,13 +1,8 @@
-SceneMachine.Editor = SceneMachine.Editor or {};
 local Win = ZWindowAPI;
 local Editor = SceneMachine.Editor;
-Editor.ProjectManager = Editor.ProjectManager or {};
 local PM = Editor.ProjectManager;
-Editor.SceneManager = Editor.SceneManager or {};
 local SM = Editor.SceneManager;
-Editor.SceneHierarchy = Editor.SceneHierarchy or {};
 local SH = Editor.SceneHierarchy;
-SceneMachine.Gizmos = SceneMachine.Gizmos or {};
 local Gizmos = SceneMachine.Gizmos;
 
 function SH.CreatePanel(w, h, c4)
