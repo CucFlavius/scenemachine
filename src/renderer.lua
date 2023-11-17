@@ -45,12 +45,6 @@ function Renderer.GenerateFrameBuffer()
         Renderer.FrameBufferFrames[t]:SetScript('OnLeave', function() print("Exit " .. t) end);
 		Renderer.FrameBufferFrames[t]:Hide();
 	end
-
-    -- Lines --
-    for t = 1, Renderer.FrameBufferSize, 1 do
-        Renderer.FrameBufferLines[t] = Renderer.lineProjectionFrame:CreateLine(nil, nil, nil);
-        --Renderer.FrameBufferLines[t]:SetColorTexture(0, 0, 0);
-    end
 end
 
 function Renderer.CreateBackgroundFrame()
@@ -65,18 +59,6 @@ function Renderer.CreateBackgroundFrame()
 	Renderer.backgroundFrame:SetFrameLevel(0);
 end
 
-function Renderer.CreateLineProjectionFrame()
-	Renderer.lineProjectionFrame = CreateFrame("Frame", "Renderer.lineProjectionFrame", Renderer.projectionFrame)
-	Renderer.lineProjectionFrame:SetFrameStrata("BACKGROUND");
-	Renderer.lineProjectionFrame:SetWidth(Renderer.w);
-	Renderer.lineProjectionFrame:SetHeight(Renderer.h);
-	Renderer.lineProjectionFrame:SetPoint("TOPRIGHT", Renderer.projectionFrame, "TOPRIGHT", 0, 0);
-	Renderer.lineProjectionFrame.texture = Renderer.lineProjectionFrame:CreateTexture("Renderer.lineProjectionFrame.texture", "ARTWORK")
-	Renderer.lineProjectionFrame.texture:SetColorTexture(0,0,0,0);
-	Renderer.lineProjectionFrame.texture:SetAllPoints(Renderer.lineProjectionFrame);
-	Renderer.lineProjectionFrame:SetFrameLevel(101);
-end
-
 function Renderer.CreateRenderer(x, y, w, h, parent, point, relativePoint)
 	Renderer.w = w;
 	Renderer.h = h;
@@ -89,7 +71,6 @@ function Renderer.CreateRenderer(x, y, w, h, parent, point, relativePoint)
 	Renderer.projectionFrame:SetCameraOrientationByYawPitchRoll(0, 0, 0);
 
 	Renderer.CreateBackgroundFrame();
-    Renderer.CreateLineProjectionFrame();
 	Renderer.GenerateFrameBuffer();
 	Renderer.active = false;
 
@@ -175,7 +156,7 @@ end
 local culledPoints = 0;
 local distA = { 0, 0, 0 };
 local distB = { 0, 0, 0 };
-local function NearPlaneFaceCullingLine(vert, planePositionX, planePositionY, planePositionZ, planeNormalX, planeNormalY, planeNormalZ)
+local function NearPlaneFaceCullingLine(vert, planePositionX, planePositionY, planePositionZ, planeNormalX, planeNormalY, planeNormalZ, maxP)
     distA[1] = vert[1][1] - planePositionX;	distA[2] = vert[1][2] - planePositionY;	distA[3] = vert[1][3] - planePositionZ;
     distB[1] = vert[2][1] - planePositionX;	distB[2] = vert[2][2] - planePositionY;	distB[3] = vert[2][3] - planePositionZ;
 	
@@ -191,7 +172,7 @@ local function NearPlaneFaceCullingLine(vert, planePositionX, planePositionY, pl
         culledPoints = culledPoints + 1;
     end
 
-    if (culledPoints <= 1) then
+    if (culledPoints <= maxP) then
         return false
     else
         return true
@@ -208,8 +189,6 @@ function Renderer.RenderGizmos()
         yOfs = Renderer.projectionFrame:GetBottom();
         SceneMachine.usedFramesLastFrame = SceneMachine.UsedFrames;
         SceneMachine.UsedFrames = 1;
-        SceneMachine.usedLinesLastFrame = SceneMachine.UsedLines;
-        SceneMachine.UsedLines = 1;
         SceneMachine.CulledFrames = 1;
 
         -- Render gizmos --
@@ -220,7 +199,8 @@ function Renderer.RenderGizmos()
         end
         
         if (SceneMachine.Gizmos.activeTransformGizmo == 1) then
-            RenderGizmo(SceneMachine.Gizmos.MoveGizmo);
+            --RenderGizmo(SceneMachine.Gizmos.MoveGizmo);
+            RenderGizmoLines(SceneMachine.Gizmos.MoveGizmo);
         elseif (SceneMachine.Gizmos.activeTransformGizmo == 2) then
             RenderGizmo(SceneMachine.Gizmos.RotateGizmoX);
             RenderGizmo(SceneMachine.Gizmos.RotateGizmoY);
@@ -236,7 +216,6 @@ local bX, bY, bZ = 0, 0, 0;
 local color = Color.New();
 
 SceneMachine.UsedFrames = 1;
-SceneMachine.UsedLines = 1;
 SceneMachine.CulledFrames = 1;
 SceneMachine.lineThickness = 2;
 local vertices = {};
@@ -248,12 +227,12 @@ function RenderGizmo(gizmo)
 	vertices = gizmo.transformedVertices;
 	faceColors = gizmo.faceColors;
 
-	for t = 1, gizmo.lines, 1 do
+	for t = 1, gizmo.lineCount, 1 do
 		vert = vertices[t];
 		faceColor = faceColors[t];
 
 		-- Near plane face culling --
-		cull = NearPlaneFaceCullingLine(vert, Camera.planePositionX, Camera.planePositionY, Camera.planePositionZ, Camera.planeNormalX, Camera.planeNormalY, Camera.planeNormalZ);
+		cull = NearPlaneFaceCullingLine(vert, Camera.planePositionX, Camera.planePositionY, Camera.planePositionZ, Camera.planeNormalX, Camera.planeNormalY, Camera.planeNormalZ, 1);
 		if (not cull) then
 			-- Project to screen space --
 			aX, aY = Renderer.projectionFrame:Project3DPointTo2D(vert[1][1],vert[1][2],vert[1][3]);
@@ -265,8 +244,6 @@ function RenderGizmo(gizmo)
             
 			-- Face color --
 			color:Set(faceColor[1], faceColor[2], faceColor[3]);
-
-            SceneMachine.lineThickness = gizmo.thickness[t];
 
 			-- Render --
 			if (aX ~= nil and aY ~= nil and bX ~= nil and bY ~= nil) then
@@ -295,46 +272,46 @@ function RenderGizmoLines(gizmo)
 	vertices = gizmo.transformedVertices;
 	faceColors = gizmo.faceColors;
 
-	for t = 1, gizmo.lines, 1 do
+	for t = 1, gizmo.lineCount, 1 do
 		vert = vertices[t];
 		faceColor = faceColors[t];
 
+        local line = gizmo.lines[t];
+
 		-- Near plane face culling --
-		cull = NearPlaneFaceCullingLine(vert, Camera.planePositionX, Camera.planePositionY, Camera.planePositionZ, Camera.planeNormalX, Camera.planeNormalY, Camera.planeNormalZ);
+		cull = NearPlaneFaceCullingLine(vert, Camera.planePositionX, Camera.planePositionY, Camera.planePositionZ, Camera.planeNormalX, Camera.planeNormalY, Camera.planeNormalZ, 0);
 
 		if (not cull) then
 			-- Project to screen space --
 			aX, aY, aZ = Renderer.projectionFrame:Project3DPointTo2D(vert[1][1],vert[1][2],vert[1][3]);
 			bX, bY, bZ = Renderer.projectionFrame:Project3DPointTo2D(vert[2][1],vert[2][2],vert[2][3]);
-            
+    
+            --- these are needed for calculating mouse over
+            gizmo.screenSpaceVertices[t][1][1] = aX;
+            gizmo.screenSpaceVertices[t][1][2] = aY;
+            gizmo.screenSpaceVertices[t][2][1] = bX;
+            gizmo.screenSpaceVertices[t][2][2] = bY;
+
 			-- Render --
 			if (aX ~= nil and aY ~= nil and bX ~= nil and bY ~= nil) then
-                local line = Renderer.FrameBufferLines[SceneMachine.UsedLines];
                 line:Show();
-                line:SetThickness(gizmo.thickness[t]);
-                line:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\dashedLine.png", "REPEAT", "REPEAT", "NEAREST");
-                line:SetVertexColor(1, 1, 1, 1);
+                line:SetVertexColor(faceColor[1], faceColor[2], faceColor[3], faceColor[4] or 1);
                 --local dist = manhattanDistance(aX, aY, bX, bY);
                 local dist = manhattanDistance3D(vert[1][1],vert[1][2],vert[1][3],vert[2][1],vert[2][2],vert[2][3]);
                 line:SetTexCoord(0, dist , 0, 1);
                 line:SetStartPoint("BOTTOMLEFT", aX, aY) -- start topleft
                 line:SetEndPoint("BOTTOMLEFT", bX, bY)   -- end bottomright
-                gizmo.lineRefs[t] = line;
-                gizmo.lineDepths[t] = aZ + bZ;
-                SceneMachine.UsedLines = SceneMachine.UsedLines + 1;
 
+                if (gizmo.lineRefs ~= nil) then
+                    gizmo.lineRefs[t] = line;
+                    gizmo.lineDepths[t] = aZ + bZ;
+                end
             end
 		else
 			-- Cull --
-			Renderer.FrameBufferLines[SceneMachine.UsedLines]:Hide();
+			line:Hide();
 		end
 
-	end
-
-	if (SceneMachine.usedLinesLastFrame > SceneMachine.UsedLines) then
-		for h = SceneMachine.UsedLines, SceneMachine.usedLinesLastFrame + 1, 1 do
-			Renderer.FrameBufferLines[h]:Hide();
-		end
 	end
 end
 

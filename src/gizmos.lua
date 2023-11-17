@@ -3,6 +3,7 @@ local Renderer = SceneMachine.Renderer;
 local Editor = SceneMachine.Editor;
 local SM = Editor.SceneManager;
 local OP = Editor.ObjectProperties;
+local Camera = SceneMachine.Camera;
 
 Gizmos.isUsed = false;
 Gizmos.isHighlighted = false;
@@ -10,6 +11,7 @@ Gizmos.refresh = false;
 Gizmos.selectedAxis = 1;
 Gizmos.activeTransformGizmo = 1;
 Gizmos.LMBPrevious = {};
+Gizmos.frames = {};
 
 local function sqr(x)
     return x * x;
@@ -33,17 +35,67 @@ local function distToSegment(p, v, w)
     return math.sqrt(distToSegmentSquared(p, v, w));
 end
 
+local function manhattanDistance3D(aX, aY, aZ, bX, bY, bZ)
+    return math.abs(aX - bX) + math.abs(aY - bY) + math.abs(aZ - bZ)
+end
+
+function Gizmos.Create()
+    Gizmos.CreateSelectionGizmo();
+    Gizmos.CreateMoveGizmo();
+end
+
+function Gizmos.CreateLineProjectionFrame()
+	local lineProjectionFrame = CreateFrame("Frame", "lineProjectionFrame", Renderer.projectionFrame)
+	lineProjectionFrame:SetFrameStrata("BACKGROUND");
+	lineProjectionFrame:SetWidth(Renderer.w);
+	lineProjectionFrame:SetHeight(Renderer.h);
+	lineProjectionFrame:SetPoint("TOPRIGHT", Renderer.projectionFrame, "TOPRIGHT", 0, 0);
+	lineProjectionFrame.texture = lineProjectionFrame:CreateTexture("Renderer.lineProjectionFrame.texture", "ARTWORK")
+	lineProjectionFrame.texture:SetColorTexture(0,0,0,0);
+	lineProjectionFrame.texture:SetAllPoints(Renderer.lineProjectionFrame);
+	lineProjectionFrame:SetFrameLevel(101);
+    return lineProjectionFrame;
+end
+
+function Gizmos.CreateSelectionGizmo()
+    -- Frame --
+    local lineProjectionFrame = Gizmos.CreateLineProjectionFrame();
+    Gizmos.frames["SelectionGizmoFrame"] = lineProjectionFrame;
+
+    -- Lines --
+    Gizmos.WireBox.lines = {};
+    for t = 1, Gizmos.WireBox.lineCount, 1 do
+        Gizmos.WireBox.lines[t] = lineProjectionFrame:CreateLine(nil, nil, nil);
+        Gizmos.WireBox.lines[t]:SetThickness(1.5);
+        Gizmos.WireBox.lines[t]:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\dashedLine.png", "REPEAT", "REPEAT", "NEAREST");
+    end
+end
+
+function Gizmos.CreateMoveGizmo()
+    -- Frame --
+    local lineProjectionFrame = Gizmos.CreateLineProjectionFrame();
+    Gizmos.frames["MoveGizmoFrame"] = lineProjectionFrame;
+
+    -- Lines --
+    Gizmos.MoveGizmo.lines = {};
+    for t = 1, Gizmos.MoveGizmo.lineCount, 1 do
+        Gizmos.MoveGizmo.lines[t] = lineProjectionFrame:CreateLine(nil, nil, nil);
+        Gizmos.MoveGizmo.lines[t]:SetThickness(2.5);
+        Gizmos.MoveGizmo.lines[t]:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\line.png", "REPEAT", "REPEAT", "NEAREST");
+    end
+end
+
 local xOfs;
 local yOfs;
-local curX, curY;
 local selected = false;
 function Gizmos.Update()
-    xOfs = Renderer.projectionFrame:GetLeft();
-    yOfs = Renderer.projectionFrame:GetBottom();
+    local mouseX, mouseY = GetCursorPosition();
+    -- calculate mouse relative to frame
+    local xOfs = Renderer.projectionFrame:GetLeft();
+    local yOfs = Renderer.projectionFrame:GetBottom();
 
-    curX, curY = GetCursorPosition();
-    curX = curX - xOfs;
-    curY = curY - yOfs;
+    local curX = mouseX - xOfs;
+    local curY = mouseY - yOfs;
 
     -- Select --
     selected = false;
@@ -51,7 +103,7 @@ function Gizmos.Update()
     if not Gizmos.isUsed then
         -- Position --
         if (Gizmos.activeTransformGizmo == 1) then
-            for t = 1, Gizmos.MoveGizmo.lines, 1 do
+            for t = 1, Gizmos.MoveGizmo.lineCount, 1 do
                 local aX = Gizmos.MoveGizmo.screenSpaceVertices[t][1][1];
                 local aY = Gizmos.MoveGizmo.screenSpaceVertices[t][1][2];
                 local bX = Gizmos.MoveGizmo.screenSpaceVertices[t][2][1];
@@ -59,11 +111,11 @@ function Gizmos.Update()
 
                 local dist = distToSegment({curX, curY}, {aX, aY}, {bX, bY});
                 if (dist < 10) then
-                    Gizmos.MoveGizmo.thickness[t] = 6;
+                    Gizmos.MoveGizmo.faceColors[t][4] = 1.0;
                     selected = true;
                     Gizmos.selectedAxis = t;
                 else
-                    Gizmos.MoveGizmo.thickness[t] = 2;
+                    Gizmos.MoveGizmo.faceColors[t][4] = 0.3;
                 end
             end
 
@@ -71,7 +123,7 @@ function Gizmos.Update()
         elseif (Gizmos.activeTransformGizmo == 2) then
 
             -- X --
-            for t = 1, Gizmos.RotateGizmoX.lines, 1 do
+            for t = 1, Gizmos.RotateGizmoX.lineCount, 1 do
                 local aX = Gizmos.RotateGizmoX.screenSpaceVertices[t][1][1];
                 local aY = Gizmos.RotateGizmoX.screenSpaceVertices[t][1][2];
                 local bX = Gizmos.RotateGizmoX.screenSpaceVertices[t][2][1];
@@ -84,7 +136,7 @@ function Gizmos.Update()
                 end
             end
 
-            for t = 1, Gizmos.RotateGizmoX.lines, 1 do
+            for t = 1, Gizmos.RotateGizmoX.lineCount, 1 do
                 if selected then
                     Gizmos.RotateGizmoX.thickness[t] = 6;
                 else
@@ -93,7 +145,7 @@ function Gizmos.Update()
             end
 
             -- Y --
-            for t = 1, Gizmos.RotateGizmoY.lines, 1 do
+            for t = 1, Gizmos.RotateGizmoY.lineCount, 1 do
                 local aX = Gizmos.RotateGizmoY.screenSpaceVertices[t][1][1];
                 local aY = Gizmos.RotateGizmoY.screenSpaceVertices[t][1][2];
                 local bX = Gizmos.RotateGizmoY.screenSpaceVertices[t][2][1];
@@ -106,7 +158,7 @@ function Gizmos.Update()
                 end
             end
 
-            for t = 1, Gizmos.RotateGizmoY.lines, 1 do
+            for t = 1, Gizmos.RotateGizmoY.lineCount, 1 do
                 if selected then
                     Gizmos.RotateGizmoY.thickness[t] = 6;
                 else
@@ -115,7 +167,7 @@ function Gizmos.Update()
             end
 
             -- Z --
-            for t = 1, Gizmos.RotateGizmoZ.lines, 1 do
+            for t = 1, Gizmos.RotateGizmoZ.lineCount, 1 do
                 local aX = Gizmos.RotateGizmoZ.screenSpaceVertices[t][1][1];
                 local aY = Gizmos.RotateGizmoZ.screenSpaceVertices[t][1][2];
                 local bX = Gizmos.RotateGizmoZ.screenSpaceVertices[t][2][1];
@@ -128,7 +180,7 @@ function Gizmos.Update()
                 end
             end
 
-            for t = 1, Gizmos.RotateGizmoZ.lines, 1 do
+            for t = 1, Gizmos.RotateGizmoZ.lineCount, 1 do
                 if selected then
                     Gizmos.RotateGizmoZ.thickness[t] = 6;
                 else
@@ -162,6 +214,16 @@ function Gizmos.Update()
         end
 
         if (SM.selectedObject ~= nil) then
+            Gizmos.frames["SelectionGizmoFrame"]:Show();
+            if(Gizmos.activeTransformGizmo == 1) then
+                Gizmos.frames["MoveGizmoFrame"]:Show();
+            end
+        else
+            Gizmos.frames["SelectionGizmoFrame"]:Hide();
+            Gizmos.frames["MoveGizmoFrame"]:Hide();
+        end
+
+        if (SM.selectedObject ~= nil) then
             local position = SM.selectedObject:GetPosition();
             local x, y, z = position.x, position.y, position.z;
             
@@ -177,10 +239,9 @@ function Gizmos.Update()
                 end
 
                 SM.selectedObject:SetPosition(x, y, z);
+                -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
+                SceneMachine.Gizmos.MoveGizmo.scale = manhattanDistance3D(x, y, z, Camera.X, Camera.Y, Camera.Z) / 10;
                 Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, {x, y, z});
-                Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoX, {x, y, z});
-                Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoY, {x, y, z});
-                Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoZ, {x, y, z});
             elseif(Gizmos.activeTransformGizmo == 2) then
                 local value;
                 local rotation = SM.selectedObject:GetRotation();
@@ -194,6 +255,9 @@ function Gizmos.Update()
                     value = rotation.z + diff;
                     SM.selectedObject:SetRotation(rotation.x, rotation.y, value);
                 end
+                Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoX, {x, y, z});
+                Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoY, {x, y, z});
+                Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoZ, {x, y, z});
                 -- rotate the gizmos
             elseif(Gizmos.activeTransformGizmo == 3) then
 
@@ -220,11 +284,11 @@ function Gizmos.OnLMBUp()
 end
 
 function Gizmos.transformGizmo(gizmo, position)
-    for q = 1, gizmo.lines, 1 do
+    for q = 1, gizmo.lineCount, 1 do
         for v = 1, 2, 1 do
-            gizmo.transformedVertices[q][v][1] = gizmo.vertices[q][v][1] + position[1];
-            gizmo.transformedVertices[q][v][2] = gizmo.vertices[q][v][2] + position[2];
-            gizmo.transformedVertices[q][v][3] = gizmo.vertices[q][v][3] + position[3];
+            gizmo.transformedVertices[q][v][1] = (gizmo.vertices[q][v][1] * gizmo.scale) + position[1];
+            gizmo.transformedVertices[q][v][2] = (gizmo.vertices[q][v][2] * gizmo.scale) + position[2];
+            gizmo.transformedVertices[q][v][3] = (gizmo.vertices[q][v][3] * gizmo.scale) + position[3];
         end
     end
 end
@@ -261,7 +325,7 @@ function Gizmos.transformToActorAABB(gizmo, object, position)
         {{-chX, -chY, chZ}, {-chX, chY, chZ}}
     }
 
-    for q = 1, gizmo.lines, 1 do
+    for q = 1, gizmo.lineCount, 1 do
         for v = 1, 2, 1 do
             gizmo.transformedVertices[q][v][1] = gizmo.transformedVertices[q][v][1] + position[1];
             gizmo.transformedVertices[q][v][2] = gizmo.transformedVertices[q][v][2] + position[2];
@@ -272,8 +336,8 @@ end
 
 Gizmos.MoveGizmo = 
 {
-	lines = 3;
-    thickness = {2, 2, 2};
+	lineCount = 3;
+    scale = 1;
 	vertices = 
 	{
 		{{0,0,0}, {0,1,0}}, -- X
@@ -294,20 +358,20 @@ Gizmos.MoveGizmo =
     };
 	faceColors = 
 	{
-		{1,0,0},
-		{0,1,0},
-		{0,0,1},
+		{1,0,0,1},
+		{0,1,0,1},
+		{0,0,1,1},
 	};
+    lineRefs = {};
+    lineDepths = {};
 }
 
 local ch = 0.5;
-local wireBoxThickness = 1.5;
 
 Gizmos.WireBox = 
 {
-    lines = 12;
-    thickness = { wireBoxThickness, wireBoxThickness, wireBoxThickness, wireBoxThickness, wireBoxThickness, wireBoxThickness,
-                wireBoxThickness, wireBoxThickness, wireBoxThickness, wireBoxThickness, wireBoxThickness, wireBoxThickness };
+    lineCount = 12;
+    scale = 1;
     vertices = 
     {
         -- Bottom face
@@ -397,8 +461,9 @@ function Gizmos.buildRotateGizmo()
         rad = math.rad(i * 360 / segments);
         points[i] = {0, math.sin(rad) * radius, math.cos(rad) * radius};
     end
-    Gizmos.RotateGizmoX.lines = (pointCount - 1);
+    Gizmos.RotateGizmoX.lineCount = (pointCount - 1);
     Gizmos.RotateGizmoX.vertices = {};
+    Gizmos.RotateGizmoX.scale = 1;
     Gizmos.RotateGizmoX.transformedVertices = {};
     Gizmos.RotateGizmoX.screenSpaceVertices = {};
     Gizmos.RotateGizmoX.faceColors = {};
@@ -422,8 +487,9 @@ function Gizmos.buildRotateGizmo()
         rad = math.rad(i * 360 / segments);
         points[i] = {math.sin(rad) * radius, 0, math.cos(rad) * radius};
     end
-    Gizmos.RotateGizmoY.lines = (pointCount - 1);
+    Gizmos.RotateGizmoY.lineCount = (pointCount - 1);
     Gizmos.RotateGizmoY.vertices = {};
+    Gizmos.RotateGizmoY.scale = 1;
     Gizmos.RotateGizmoY.transformedVertices = {};
     Gizmos.RotateGizmoY.screenSpaceVertices = {};
     Gizmos.RotateGizmoY.faceColors = {};
@@ -447,8 +513,9 @@ function Gizmos.buildRotateGizmo()
         rad = math.rad(i * 360 / segments);
         points[i] = {math.sin(rad) * radius, math.cos(rad) * radius, 0};
     end
-    Gizmos.RotateGizmoZ.lines = (pointCount - 1);
+    Gizmos.RotateGizmoZ.lineCount = (pointCount - 1);
     Gizmos.RotateGizmoZ.vertices = {};
+    Gizmos.RotateGizmoZ.scale = 1;
     Gizmos.RotateGizmoZ.transformedVertices = {};
     Gizmos.RotateGizmoZ.screenSpaceVertices = {};
     Gizmos.RotateGizmoZ.faceColors = {};

@@ -18,6 +18,7 @@ function SceneMachine.Start()
     SceneMachine.Editor.Initialize();
     CameraController.Initialize();
     SceneMachine.CreateStatsFrame();
+	Gizmos.Create();
 
 	-- tests ---
 	--[[
