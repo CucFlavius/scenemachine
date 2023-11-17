@@ -35,21 +35,22 @@ function Win.CreateScrollList(posX, posY, sizeX, sizeY, parent, windowPoint, par
 		end)
 
 	-- ScrollList scrollbar 
-	ParentFrame.Scrollbar = CreateFrame("Slider", nil, ParentFrame.ScrollFrame, "UIPanelScrollBarTemplate") 
-	ParentFrame.Scrollbar:SetPoint("TOPLEFT", ParentFrame, "TOPRIGHT", -18, -16) 
-	ParentFrame.Scrollbar:SetPoint("BOTTOMLEFT", ParentFrame, "BOTTOMRIGHT", 20, 16) 
-	ParentFrame.Scrollbar:SetMinMaxValues(-1, 200) 
-	ParentFrame.Scrollbar:SetValueStep(1) 
-	ParentFrame.Scrollbar.scrollStep = 1
-	ParentFrame.Scrollbar:SetValue(0) 
-	ParentFrame.Scrollbar:SetWidth(16) 
+	ParentFrame.Scrollbar = CreateFrame("Slider", nil, ParentFrame.ScrollFrame, "MinimalScrollbar");
+	ParentFrame.Scrollbar:SetPoint("TOPLEFT", ParentFrame, "TOPRIGHT", -18, -16);
+	ParentFrame.Scrollbar:SetPoint("BOTTOMLEFT", ParentFrame, "BOTTOMRIGHT", 20, 16);
+	ParentFrame.Scrollbar:SetMinMaxValues(-1, 200);
+	ParentFrame.Scrollbar:SetValueStep(1);
+	ParentFrame.Scrollbar.scrollStep = 1;
+	ParentFrame.Scrollbar:SetValue(0);
+	ParentFrame.Scrollbar:SetWidth(16);
+	--ParentFrame.Scrollbar:SetHideIfUnscrollable(true);
 	ParentFrame.Scrollbar:SetScript("OnValueChanged", 
-	function (self, value) 
-	self:GetParent():SetVerticalScroll(value) 
-	end) 
-	local scrollbg1 = ParentFrame.Scrollbar:CreateTexture(nil, "BACKGROUND") 
-	scrollbg1:SetAllPoints(ParentFrame.Scrollbar) 
-	scrollbg1:SetTexture(0, 0, 0, 0.4) 
+		function (self, value) 
+			self:GetParent():SetVerticalScroll(value) 
+	end);
+	local scrollbg1 = ParentFrame.Scrollbar:CreateTexture(nil, "BACKGROUND");
+	scrollbg1:SetAllPoints(ParentFrame.Scrollbar);
+	scrollbg1:SetTexture(0, 0, 0, 0.4);
 
 	-- ScrollList content frame 
 	ParentFrame.ContentFrame = CreateFrame("Frame", "Loot Scroll Frame", ParentFrame.ScrollFrame) 

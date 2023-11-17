@@ -204,7 +204,7 @@ function SM.LoadScene(index)
             object.actor = Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z);
 
             object.GetActiveBoundingBox = function(self)
-                return self.actor:GetActiveBoundingBox();
+                return object.actor:GetActiveBoundingBox();
             end
 
             object.SetPosition = function(self, x, y, z)

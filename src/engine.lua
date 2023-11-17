@@ -16,8 +16,8 @@ local time = 0;
 ------------------------
 function SceneMachine.Start()
 	--MinimapStart();
-    CameraController.Initialize();
     SceneMachine.Editor.Initialize();
+    CameraController.Initialize();
     SceneMachine.CreateStatsFrame();
 
 	-- tests ---

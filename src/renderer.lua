@@ -69,8 +69,8 @@ function Renderer.CreateRenderer(x, y, w, h, parent, point, relativePoint)
 	Renderer.CreateBackgroundFrame();
 	Renderer.active = false;
 
-    Input.mouseInputFrame:SetWidth(w);
-	Input.mouseInputFrame:SetHeight(h);
+    --Input.mouseInputFrame:SetWidth(w);
+	--Input.mouseInputFrame:SetHeight(h);
 end
 
 function Renderer.AddActor(fileID, X, Y, Z)
@@ -256,7 +256,7 @@ function RenderGizmo(gizmo)
 	end
 
 	if (SceneMachine.usedFramesLastFrame > SceneMachine.UsedFrames) then
-		for h = SceneMachine.UsedFrames + 1, SceneMachine.usedFramesLastFrame + 1, 1 do
+		for h = SceneMachine.UsedFrames, SceneMachine.usedFramesLastFrame + 1, 1 do
 			Renderer.FrameBufferFrames[h]:Hide();
 		end
 	end

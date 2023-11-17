@@ -160,10 +160,11 @@ function Gizmos.Update()
         if (Gizmos.refresh == true) then
             diff = 0;
         end
-        
+
         if (SM.selectedObject ~= nil) then
             local position = SM.selectedObject:GetPosition();
             local x, y, z = position.x, position.y, position.z;
+            
             Gizmos.transformToActorAABB(SceneMachine.Gizmos.WireBox, SM.selectedObject, { SM.selectedObject.position.x, SM.selectedObject.position.y, SM.selectedObject.position.z });
             
             if(Gizmos.activeTransformGizmo == 1) then
@@ -264,8 +265,6 @@ function Gizmos.transformToActorAABB(gizmo, object, position)
             gizmo.transformedVertices[q][v][3] = gizmo.transformedVertices[q][v][3] + position[3] + chZ;
         end
     end
-
-
 end
 
 Gizmos.MoveGizmo = 
