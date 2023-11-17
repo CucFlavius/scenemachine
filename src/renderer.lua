@@ -193,13 +193,11 @@ function Renderer.RenderGizmos()
 
         -- Render gizmos --
         if SM.selectedObject ~= nil then
-            --RenderGizmo(SceneMachine.Gizmos.WireBox);
             RenderGizmoLines(SceneMachine.Gizmos.WireBox);
             MakeBackfaceBoxLinesLessVisible(SceneMachine.Gizmos.WireBox);
         end
         
         if (SceneMachine.Gizmos.activeTransformGizmo == 1) then
-            --RenderGizmo(SceneMachine.Gizmos.MoveGizmo);
             RenderGizmoLines(SceneMachine.Gizmos.MoveGizmo);
         elseif (SceneMachine.Gizmos.activeTransformGizmo == 2) then
             RenderGizmo(SceneMachine.Gizmos.RotateGizmoX);
@@ -296,13 +294,15 @@ function RenderGizmoLines(gizmo)
 			if (aX ~= nil and aY ~= nil and bX ~= nil and bY ~= nil) then
                 line:Show();
                 line:SetVertexColor(faceColor[1], faceColor[2], faceColor[3], faceColor[4] or 1);
-                --local dist = manhattanDistance(aX, aY, bX, bY);
-                local dist = manhattanDistance3D(vert[1][1],vert[1][2],vert[1][3],vert[2][1],vert[2][2],vert[2][3]);
-                line:SetTexCoord(0, dist , 0, 1);
                 line:SetStartPoint("BOTTOMLEFT", aX, aY) -- start topleft
                 line:SetEndPoint("BOTTOMLEFT", bX, bY)   -- end bottomright
 
                 if (gizmo.lineRefs ~= nil) then
+                    --local dist = manhattanDistance(aX, aY, bX, bY);
+                    local dist = manhattanDistance3D(vert[1][1],vert[1][2],vert[1][3],vert[2][1],vert[2][2],vert[2][3]);
+                    dist = max(dist, 1);
+                    dist = min(dist, 100);
+                    line:SetTexCoord(0, dist , 0, 1);
                     gizmo.lineRefs[t] = line;
                     gizmo.lineDepths[t] = aZ + bZ;
                 end

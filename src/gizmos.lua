@@ -71,7 +71,104 @@ function Gizmos.CreateSelectionGizmo()
     end
 end
 
+local function calculateCirclePoints(centerX, centerY, centerZ, radius, numPoints, axis)
+    local points = {}
+
+    for i = 1, numPoints do
+        local theta = (i - 1) * (2 * math.pi) / numPoints
+        local x, y, z;
+
+        if axis == "x" then
+            x = centerX;
+            y = centerY + radius * math.cos(theta);
+            z = centerZ + radius * math.sin(theta);
+        elseif axis == "y" then
+            x = centerX + radius * math.cos(theta);
+            y = centerY;
+            z = centerZ + radius * math.sin(theta);
+        elseif axis == "z" then
+            x = centerX + radius * math.cos(theta);
+            y = centerY + radius * math.sin(theta);
+            z = centerZ;
+        else
+            error("Invalid axis. Choose 'x', 'y', or 'z'.");
+        end
+
+        table.insert(points, {x, y, z});
+    end
+
+    return points
+end
+
 function Gizmos.CreateMoveGizmo()
+    local coneDetail = 10;
+    local emptySSVertex = {{0,0}, {0,0}};
+    local emptyVertex = {{0,0,0}, {0,0,0}};
+    Gizmos.MoveGizmo = 
+    {
+        lineCount = 3 + (coneDetail * 3);
+        scale = 10;
+        vertices = 
+        {
+            {{0,0,0}, {0,1,0}}, -- X
+            {{0,0,0}, {0,0,1}}, -- Y
+            {{0,0,0}, {1,0,0}}, -- Z
+        };
+        transformedVertices =
+        {
+            {{0,0,0}, {0,1,0}}, -- X
+            {{0,0,0}, {0,0,1}}, -- Y
+            {{0,0,0}, {1,0,0}}, -- Z
+        };
+        screenSpaceVertices = 
+        {
+            {{0,0}, {0,0}},
+            {{0,0}, {0,0}},
+            {{0,0}, {0,0}},
+        };
+        faceColors = 
+        {
+            {1,0,0,1},
+            {0,1,0,1},
+            {0,0,1,1},
+        };
+        lineRefs = {};
+        lineDepths = {};
+    }
+
+    -- Create cone vertices --
+    -- calculateCirclePoints(centerX, centerY, centerZ, radius, numPoints, axis)
+    local radius = 0.02;
+    local pointsY = calculateCirclePoints(0, 0.9, 0, radius, coneDetail, "y");
+    local i = 1;
+    for c = 4, 4 + coneDetail, 1 do
+        Gizmos.MoveGizmo.vertices[c] = {{0,1,0},pointsY[i]};
+        Gizmos.MoveGizmo.transformedVertices[c] = {{0,0,0}, {0,1,0}}; -- X
+        Gizmos.MoveGizmo.screenSpaceVertices[c] = {{0,0}, {0,0}};
+        Gizmos.MoveGizmo.faceColors[c] = {1,0,0,1};
+        i = i + 1;
+
+    end
+    local pointsZ = calculateCirclePoints(0, 0, 0.9, radius, coneDetail, "z");
+    i = 1;
+    for c = 4 + coneDetail, 4 + (coneDetail * 2), 1 do
+        Gizmos.MoveGizmo.vertices[c] = {{0,0,1},pointsZ[i]};
+        Gizmos.MoveGizmo.transformedVertices[c] = {{0,0,0}, {0,0,1}}; -- Y
+        Gizmos.MoveGizmo.screenSpaceVertices[c] = {{0,0}, {0,0}};
+        Gizmos.MoveGizmo.faceColors[c] = {0,1,0,1};
+        i = i + 1;
+        
+    end
+    local pointsX = calculateCirclePoints(0.9, 0, 0, radius, coneDetail, "x");
+    i = 1;
+    for c = 4 + (coneDetail * 2), 4 + (coneDetail * 3), 1 do
+        Gizmos.MoveGizmo.vertices[c] = {{1,0,0},pointsX[i]};
+        Gizmos.MoveGizmo.transformedVertices[c] = {{0,0,0}, {1,0,0}}; -- Z
+        Gizmos.MoveGizmo.screenSpaceVertices[c] = {{0,0}, {0,0}};
+        Gizmos.MoveGizmo.faceColors[c] = {0,0,1,1};
+        i = i + 1;
+    end
+
     -- Frame --
     local lineProjectionFrame = Gizmos.CreateLineProjectionFrame();
     Gizmos.frames["MoveGizmoFrame"] = lineProjectionFrame;
@@ -103,19 +200,26 @@ function Gizmos.Update()
     if not Gizmos.isUsed then
         -- Position --
         if (Gizmos.activeTransformGizmo == 1) then
-            for t = 1, Gizmos.MoveGizmo.lineCount, 1 do
+            for t = 1, 3, 1 do
                 local aX = Gizmos.MoveGizmo.screenSpaceVertices[t][1][1];
                 local aY = Gizmos.MoveGizmo.screenSpaceVertices[t][1][2];
                 local bX = Gizmos.MoveGizmo.screenSpaceVertices[t][2][1];
                 local bY = Gizmos.MoveGizmo.screenSpaceVertices[t][2][2];
 
                 local dist = distToSegment({curX, curY}, {aX, aY}, {bX, bY});
+                local coneDetail = (Gizmos.MoveGizmo.lineCount - 3) / 3;
                 if (dist < 10) then
                     Gizmos.MoveGizmo.faceColors[t][4] = 1.0;
+                    for c = 4 + (coneDetail * (t-1)), 4 + (coneDetail * (t)), 1 do
+                        Gizmos.MoveGizmo.faceColors[c][4] = 1.0;
+                    end
                     selected = true;
                     Gizmos.selectedAxis = t;
                 else
                     Gizmos.MoveGizmo.faceColors[t][4] = 0.3;
+                    for c = 4 + (coneDetail * (t-1)), 4 + (coneDetail * (t)), 1 do
+                        Gizmos.MoveGizmo.faceColors[c][4] = 0.3;
+                    end
                 end
             end
 
@@ -195,17 +299,17 @@ function Gizmos.Update()
     end
 
     if (Gizmos.isUsed or Gizmos.refresh) then
-		local x, y = GetCursorPosition();
+		local curX, curY = GetCursorPosition();
 
         if (Gizmos.LMBPrevious.x == nil) then
-            Gizmos.LMBPrevious.x = x;
-            Gizmos.LMBPrevious.y = y;
+            Gizmos.LMBPrevious.x = curX;
+            Gizmos.LMBPrevious.y = curY;
         end
         
-		local xDiff = x - Gizmos.LMBPrevious.x;
-		local yDiff = y - Gizmos.LMBPrevious.y;
-		Gizmos.LMBPrevious.x = x;
-		Gizmos.LMBPrevious.y = y;
+		local xDiff = curX - Gizmos.LMBPrevious.x;
+		local yDiff = curY - Gizmos.LMBPrevious.y;
+		Gizmos.LMBPrevious.x = curX;
+		Gizmos.LMBPrevious.y = curY;
 
         local diff = ((xDiff + yDiff) / 2) / 100;
 
@@ -229,7 +333,7 @@ function Gizmos.Update()
             
             Gizmos.transformToActorAABB(SceneMachine.Gizmos.WireBox, SM.selectedObject, { SM.selectedObject.position.x, SM.selectedObject.position.y, SM.selectedObject.position.z });
             
-            if(Gizmos.activeTransformGizmo == 1) then
+            if (Gizmos.activeTransformGizmo == 1) then
                 if (Gizmos.selectedAxis == 1) then
                     y = y + diff;
                 elseif (Gizmos.selectedAxis == 2) then
@@ -239,10 +343,11 @@ function Gizmos.Update()
                 end
 
                 SM.selectedObject:SetPosition(x, y, z);
+                -- TODO: This needs to be done outside of Gizmos.isUsed
                 -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
-                SceneMachine.Gizmos.MoveGizmo.scale = manhattanDistance3D(x, y, z, Camera.X, Camera.Y, Camera.Z) / 10;
+                --SceneMachine.Gizmos.MoveGizmo.scale = manhattanDistance3D(x, y, z, Camera.X, Camera.Y, Camera.Z) / 10;
                 Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, {x, y, z});
-            elseif(Gizmos.activeTransformGizmo == 2) then
+            elseif (Gizmos.activeTransformGizmo == 2) then
                 local value;
                 local rotation = SM.selectedObject:GetRotation();
                 if (Gizmos.selectedAxis == 1) then
@@ -259,7 +364,7 @@ function Gizmos.Update()
                 Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoY, {x, y, z});
                 Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoZ, {x, y, z});
                 -- rotate the gizmos
-            elseif(Gizmos.activeTransformGizmo == 3) then
+            elseif (Gizmos.activeTransformGizmo == 3) then
 
             end
 
@@ -333,38 +438,6 @@ function Gizmos.transformToActorAABB(gizmo, object, position)
         end
     end
 end
-
-Gizmos.MoveGizmo = 
-{
-	lineCount = 3;
-    scale = 1;
-	vertices = 
-	{
-		{{0,0,0}, {0,1,0}}, -- X
-        {{0,0,0}, {0,0,1}}, -- Y
-		{{0,0,0}, {1,0,0}}, -- Z
-	};
-    transformedVertices =
-    {
-		{{0,0,0}, {0,1,0}}, -- X
-        {{0,0,0}, {0,0,1}}, -- Y
-		{{0,0,0}, {1,0,0}}, -- Z
-    };
-    screenSpaceVertices = 
-    {
-        {{0,0}, {0,0}},
-        {{0,0}, {0,0}},
-        {{0,0}, {0,0}},
-    };
-	faceColors = 
-	{
-		{1,0,0,1},
-		{0,1,0,1},
-		{0,0,1,1},
-	};
-    lineRefs = {};
-    lineDepths = {};
-}
 
 local ch = 0.5;
 

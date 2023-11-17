@@ -222,6 +222,15 @@ function SM.LoadScene(index)
             end
 
             object.GetPosition = function(self)
+                if (object.position.x == nil) then
+                    object.position.x = 0;
+                end
+                if (object.position.y == nil) then
+                    object.position.y = 0;
+                end
+                if (object.position.z == nil) then
+                    object.position.z = 0;
+                end
                 return object.position;
             end
 
@@ -302,6 +311,15 @@ function SM.CreateObject(_fileID, _name, _x, _y, _z)
     end
 
     object.GetPosition = function(self)
+        if (object.position.x == nil) then
+            object.position.x = 0;
+        end
+        if (object.position.y == nil) then
+            object.position.y = 0;
+        end
+        if (object.position.z == nil) then
+            object.position.z = 0;
+        end
         return object.position;
     end
 
