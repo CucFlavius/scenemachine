@@ -13,10 +13,20 @@ local floor = math.floor;
 
 Renderer.FrameBufferSize = 400;
 Renderer.FrameBufferFrames = {};
+Renderer.FrameBufferLines = {};
 Renderer.actors = {};
+
+local function manhattanDistance(aX, aY, bX, bY)
+    return math.abs(aX - bX) + math.abs(aY - bY)
+end
+
+local function manhattanDistance3D(aX, aY, aZ, bX, bY, bZ)
+    return math.abs(aX - bX) + math.abs(aY - bY) + math.abs(aZ - bZ)
+end
 
 function Renderer.GenerateFrameBuffer()
 
+    -- Frames --
 	for t = 1, Renderer.FrameBufferSize, 1 do
 		Renderer.FrameBufferFrames[t] = CreateFrame("Frame", "Renderer.FramebufferFrame_" .. t, Renderer.projectionFrame)
 		Renderer.FrameBufferFrames[t]:SetFrameStrata("BACKGROUND");
@@ -35,6 +45,12 @@ function Renderer.GenerateFrameBuffer()
         Renderer.FrameBufferFrames[t]:SetScript('OnLeave', function() print("Exit " .. t) end);
 		Renderer.FrameBufferFrames[t]:Hide();
 	end
+
+    -- Lines --
+    for t = 1, Renderer.FrameBufferSize, 1 do
+        Renderer.FrameBufferLines[t] = Renderer.lineProjectionFrame:CreateLine(nil, nil, nil);
+        --Renderer.FrameBufferLines[t]:SetColorTexture(0, 0, 0);
+    end
 end
 
 function Renderer.CreateBackgroundFrame()
@@ -49,6 +65,18 @@ function Renderer.CreateBackgroundFrame()
 	Renderer.backgroundFrame:SetFrameLevel(0);
 end
 
+function Renderer.CreateLineProjectionFrame()
+	Renderer.lineProjectionFrame = CreateFrame("Frame", "Renderer.lineProjectionFrame", Renderer.projectionFrame)
+	Renderer.lineProjectionFrame:SetFrameStrata("BACKGROUND");
+	Renderer.lineProjectionFrame:SetWidth(Renderer.w);
+	Renderer.lineProjectionFrame:SetHeight(Renderer.h);
+	Renderer.lineProjectionFrame:SetPoint("TOPRIGHT", Renderer.projectionFrame, "TOPRIGHT", 0, 0);
+	Renderer.lineProjectionFrame.texture = Renderer.lineProjectionFrame:CreateTexture("Renderer.lineProjectionFrame.texture", "ARTWORK")
+	Renderer.lineProjectionFrame.texture:SetColorTexture(0,0,0,0);
+	Renderer.lineProjectionFrame.texture:SetAllPoints(Renderer.lineProjectionFrame);
+	Renderer.lineProjectionFrame:SetFrameLevel(101);
+end
+
 function Renderer.CreateRenderer(x, y, w, h, parent, point, relativePoint)
 	Renderer.w = w;
 	Renderer.h = h;
@@ -60,8 +88,9 @@ function Renderer.CreateRenderer(x, y, w, h, parent, point, relativePoint)
 	Renderer.projectionFrame:SetCameraPosition(4,0,0);
 	Renderer.projectionFrame:SetCameraOrientationByYawPitchRoll(0, 0, 0);
 
-	Renderer.GenerateFrameBuffer();
 	Renderer.CreateBackgroundFrame();
+    Renderer.CreateLineProjectionFrame();
+	Renderer.GenerateFrameBuffer();
 	Renderer.active = false;
 
     --Input.mouseInputFrame:SetWidth(w);
@@ -179,11 +208,15 @@ function Renderer.RenderGizmos()
         yOfs = Renderer.projectionFrame:GetBottom();
         SceneMachine.usedFramesLastFrame = SceneMachine.UsedFrames;
         SceneMachine.UsedFrames = 1;
+        SceneMachine.usedLinesLastFrame = SceneMachine.UsedLines;
+        SceneMachine.UsedLines = 1;
         SceneMachine.CulledFrames = 1;
 
         -- Render gizmos --
         if SM.selectedObject ~= nil then
-            RenderGizmo(SceneMachine.Gizmos.WireBox);
+            --RenderGizmo(SceneMachine.Gizmos.WireBox);
+            RenderGizmoLines(SceneMachine.Gizmos.WireBox);
+            MakeBackfaceBoxLinesLessVisible(SceneMachine.Gizmos.WireBox);
         end
         
         if (SceneMachine.Gizmos.activeTransformGizmo == 1) then
@@ -203,6 +236,7 @@ local bX, bY, bZ = 0, 0, 0;
 local color = Color.New();
 
 SceneMachine.UsedFrames = 1;
+SceneMachine.UsedLines = 1;
 SceneMachine.CulledFrames = 1;
 SceneMachine.lineThickness = 2;
 local vertices = {};
@@ -255,4 +289,76 @@ function RenderGizmo(gizmo)
 			Renderer.FrameBufferFrames[h]:Hide();
 		end
 	end
+end
+
+function RenderGizmoLines(gizmo)
+	vertices = gizmo.transformedVertices;
+	faceColors = gizmo.faceColors;
+
+	for t = 1, gizmo.lines, 1 do
+		vert = vertices[t];
+		faceColor = faceColors[t];
+
+		-- Near plane face culling --
+		cull = NearPlaneFaceCullingLine(vert, Camera.planePositionX, Camera.planePositionY, Camera.planePositionZ, Camera.planeNormalX, Camera.planeNormalY, Camera.planeNormalZ);
+
+		if (not cull) then
+			-- Project to screen space --
+			aX, aY, aZ = Renderer.projectionFrame:Project3DPointTo2D(vert[1][1],vert[1][2],vert[1][3]);
+			bX, bY, bZ = Renderer.projectionFrame:Project3DPointTo2D(vert[2][1],vert[2][2],vert[2][3]);
+            
+			-- Render --
+			if (aX ~= nil and aY ~= nil and bX ~= nil and bY ~= nil) then
+                local line = Renderer.FrameBufferLines[SceneMachine.UsedLines];
+                line:Show();
+                line:SetThickness(gizmo.thickness[t]);
+                line:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\dashedLine.png", "REPEAT", "REPEAT", "NEAREST");
+                line:SetVertexColor(1, 1, 1, 1);
+                --local dist = manhattanDistance(aX, aY, bX, bY);
+                local dist = manhattanDistance3D(vert[1][1],vert[1][2],vert[1][3],vert[2][1],vert[2][2],vert[2][3]);
+                line:SetTexCoord(0, dist , 0, 1);
+                line:SetStartPoint("BOTTOMLEFT", aX, aY) -- start topleft
+                line:SetEndPoint("BOTTOMLEFT", bX, bY)   -- end bottomright
+                gizmo.lineRefs[t] = line;
+                gizmo.lineDepths[t] = aZ + bZ;
+                SceneMachine.UsedLines = SceneMachine.UsedLines + 1;
+
+            end
+		else
+			-- Cull --
+			Renderer.FrameBufferLines[SceneMachine.UsedLines]:Hide();
+		end
+
+	end
+
+	if (SceneMachine.usedLinesLastFrame > SceneMachine.UsedLines) then
+		for h = SceneMachine.UsedLines, SceneMachine.usedLinesLastFrame + 1, 1 do
+			Renderer.FrameBufferLines[h]:Hide();
+		end
+	end
+end
+
+function MakeBackfaceBoxLinesLessVisible(gizmo)
+    -- Create an array of indices
+    local indices = {}
+    for i = 1, #gizmo.lineDepths do
+        indices[i] = i
+    end
+
+    -- Sort the indices based on the values in the 'numbers' table
+    table.sort(indices, function(a, b)
+        return gizmo.lineDepths[a] < gizmo.lineDepths[b]
+    end)
+
+    -- Create sorted tables
+    local sortedLineDepths = {}
+    local sortedLines = {}
+    for _, index in ipairs(indices) do
+        table.insert(sortedLineDepths, gizmo.lineDepths[index])
+        table.insert(sortedLines, gizmo.lineRefs[index])
+    end
+
+    for i = 1, 3 do
+        sortedLines[i]:SetVertexColor(1, 1, 1, 0.3);
+    end
 end

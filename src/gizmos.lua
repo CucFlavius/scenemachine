@@ -135,6 +135,8 @@ function Gizmos.Update()
                     Gizmos.RotateGizmoZ.thickness[t] = 2;
                 end
             end
+
+        -- Scale --
         elseif(Gizmos.activeTransformGizmo == 3) then
             
         end
@@ -299,7 +301,7 @@ Gizmos.MoveGizmo =
 }
 
 local ch = 0.5;
-local wireBoxThickness = 0.8;
+local wireBoxThickness = 1.5;
 
 Gizmos.WireBox = 
 {
@@ -376,6 +378,8 @@ Gizmos.WireBox =
 		{1,1,1},
 		{1,1,1},
 	};
+    lineRefs = {};
+    lineDepths = {};
 }
 
 Gizmos.RotateGizmoX = {}
