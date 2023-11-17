@@ -185,7 +185,7 @@ function Renderer.RenderGizmos()
         if SM.selectedObject ~= nil then
             RenderGizmo(SceneMachine.Gizmos.WireBox);
         end
-
+        
         if (SceneMachine.Gizmos.activeTransformGizmo == 1) then
             RenderGizmo(SceneMachine.Gizmos.MoveGizmo);
         elseif (SceneMachine.Gizmos.activeTransformGizmo == 2) then

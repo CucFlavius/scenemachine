@@ -5,6 +5,7 @@ local SM = Editor.SceneManager;
 local SH = Editor.SceneHierarchy;
 local Renderer = SceneMachine.Renderer;
 local PM = Editor.ProjectManager;
+local OP = Editor.ObjectProperties;
 
 function MousePick.Initialize()
     local ch = 0.5;
@@ -91,11 +92,13 @@ function MousePick.Pick()
         if (isInside) then
             SM.selectedObject = object;
             SH.RefreshHierarchy();
+            OP.Refresh();
             return;
         end
 
         SM.selectedObject = nil;
         SH.RefreshHierarchy();
+        OP.Refresh();
     end
 end
 

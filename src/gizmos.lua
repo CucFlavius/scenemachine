@@ -2,6 +2,7 @@ local Gizmos = SceneMachine.Gizmos;
 local Renderer = SceneMachine.Renderer;
 local Editor = SceneMachine.Editor;
 local SM = Editor.SceneManager;
+local OP = Editor.ObjectProperties;
 
 Gizmos.isUsed = false;
 Gizmos.isHighlighted = false;
@@ -169,7 +170,7 @@ function Gizmos.Update()
                     y = y + diff;
                 elseif (Gizmos.selectedAxis == 2) then
                     z = z + diff;
-                else
+                elseif (Gizmos.selectedAxis == 3) then
                     x = x + diff;
                 end
 
@@ -179,21 +180,24 @@ function Gizmos.Update()
                 Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoY, {x, y, z});
                 Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoZ, {x, y, z});
             elseif(Gizmos.activeTransformGizmo == 2) then
-                local x;
+                local value;
+                local rotation = SM.selectedObject:GetRotation();
                 if (Gizmos.selectedAxis == 1) then
-                    x = SM.selectedObject:GetRoll() + diff;
-                    SM.selectedObject:SetRoll(x);
+                    value = rotation.x + diff;
+                    SM.selectedObject:SetRotation(value, rotation.y, rotation.z);
                 elseif (Gizmos.selectedAxis == 2) then
-                    x = SM.selectedObject:GetPitch() + diff;
-                    SM.selectedObject:SetPitch(x);
+                    value = rotation.y + diff;
+                    SM.selectedObject:SetRotation(rotation.x, value, rotation.z);
                 else
-                    x = SM.selectedObject:GetYaw() + diff;
-                    SM.selectedObject:SetYaw(x);
+                    value = rotation.z + diff;
+                    SM.selectedObject:SetRotation(rotation.x, rotation.y, value);
                 end
                 -- rotate the gizmos
             elseif(Gizmos.activeTransformGizmo == 3) then
 
             end
+
+            OP.Refresh();
         end
     end
 

@@ -196,6 +196,18 @@ function SM.LoadScene(index)
         for i in pairs(scene.objects) do
             local object = scene.objects[i];
 
+            if (object.position == nil) then
+                object.position = { x=0, y=0, z=0 };
+            end
+
+            if (object.rotation == nil) then
+                object.rotation = { x=0, y=0, z=0 };
+            end
+
+            if (object.scale == nil) then
+                object.scale = 1;
+            end
+
             object.actor = Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z);
 
             object.GetActiveBoundingBox = function(self)
@@ -211,6 +223,28 @@ function SM.LoadScene(index)
 
             object.GetPosition = function(self)
                 return object.position;
+            end
+
+            object.SetRotation = function(self, x, y, z)
+                object.rotation.x = x;
+                object.rotation.y = y;
+                object.rotation.z = z;
+                self.actor:SetRoll(x);
+                self.actor:SetPitch(y);
+                self.actor:SetYaw(z);
+            end
+
+            object.GetRotation = function(self)
+                return object.rotation;
+            end
+
+            object.SetScale = function(self, value)
+                object.scale = value;
+                self.actor:SetScale(value);
+            end
+
+            object.GetScale = function(self)
+                return object.scale;
             end
         end
     end
@@ -248,11 +282,50 @@ function SM.CreateObject(_fileID, _name, _x, _y, _z)
         fileID = _fileID,
         name = _name,
         position = { x = _x, y = _y, z = _z },
+        rotation = { x = 0, y = 0, z = 0 },
+        scale = 1,
     }
     local scene = PM.currentProject.scenes[SM.loadedSceneIndex];
     scene.objects[#scene.objects + 1] = object;
 
-    Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z);
+    object.actor = Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z);
+
+    object.GetActiveBoundingBox = function(self)
+        return object.actor:GetActiveBoundingBox();
+    end
+
+    object.SetPosition = function(self, x, y, z)
+        object.position.x = x;
+        object.position.y = y;
+        object.position.z = z;
+        self.actor:SetPosition(x, y, z);
+    end
+
+    object.GetPosition = function(self)
+        return object.position;
+    end
+
+    object.SetRotation = function(self, x, y, z)
+        object.rotation.x = x;
+        object.rotation.y = y;
+        object.rotation.z = z;
+        self.actor:SetRoll(x);
+        self.actor:SetPitch(y);
+        self.actor:SetYaw(z);
+    end
+
+    object.GetRotation = function(self)
+        return object.rotation;
+    end
+
+    object.SetScale = function(self, value)
+        object.scale = value;
+        self.actor:SetScale(value);
+    end
+
+    object.GetScale = function(self)
+        return object.scale;
+    end
 
     SH.RefreshHierarchy();
 end

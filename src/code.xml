@@ -1,6 +1,8 @@
 <!-- Engine -->
 
 <Ui>
+    <Script file="header.lua"/>
+
     <Script file="Data\creature.lua"/>
     <Script file="Data\data.lua"/>
 
@@ -8,7 +10,6 @@
     <Include file="Libraries\ZWindowAPI\ZWindowAPI.xml"/>
 
     <Script file="debugger.lua"/>
-    <Script file="header.lua"/>
 
     <Script file="camera.lua"/>
     <Script file="input.lua"/>
@@ -21,6 +22,7 @@
     <Script file="sceneManager.lua"/>
     <Script file="sceneHierarchy.lua"/>
     <Script file="mousePick.lua"/>
+    <Script file="objectProperties.lua"/>
     <Script file="editor.lua"/>
 	<Script file="engine.lua"/>
 </Ui>

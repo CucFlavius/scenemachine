@@ -5,12 +5,11 @@ local SM = Editor.SceneManager;
 local SH = Editor.SceneHierarchy;
 local Gizmos = SceneMachine.Gizmos;
 
-function SH.CreatePanel(w, h, c4)
-    local leftPanelHeight = Editor.height - Editor.toolbarHeight;
-    local leftPanel = Win.CreateRectangle(0, -Editor.toolbarHeight, w, h, SceneMachine.mainWindow, "TOPLEFT", "TOPLEFT", c4[1], c4[2], c4[3], 1);
+function SH.CreatePanel(x, y, w, h, c4)
+    local leftPanel = Win.CreateRectangle(x, y, w, h, SceneMachine.mainWindow, "TOPLEFT", "TOPLEFT", c4[1], c4[2], c4[3], 1);
     local group = Editor.CreateGroup("Hierarchy", h, leftPanel);
 
-    SH.scrollList = Win.CreateScrollList(5, -5, w - 20, h - 30, group, "TOPLEFT", "TOPLEFT");
+    SH.scrollList = Win.CreateScrollList(1, -1, w - 2, h - 22, group, "TOPLEFT", "TOPLEFT");
     SH.list = SH.ItemList(w - 45, 20, SH.scrollList.ContentFrame);
 
     SH.RefreshHierarchy();
@@ -28,23 +27,6 @@ function SH.ItemList(itemSizeX, itemSizeY, parent)
                 self.pool[index]:SetScript("OnClick", function(self2)
                     SH.SelectObject(index);
                 end);
-                --[[
-				self.pool[index]:SetScript("OnClick", function(self2) 
-				    -- deselect all other --
-					for idx in pairs(self.pool) do
-						self.pool[idx].ntex:SetColorTexture(0.1757, 0.1757, 0.1875 ,1);
-					end
-
-					-- select current --
-					self.pool[index].ntex:SetColorTexture(0, 0.4765, 0.7968,1);
-				
-					-- set index --
-					self.selectedIndex = index;
-
-					-- trigger action --
-					onSelect(index);
-				end);
-                --]]
 			else
 				self.pool[index]:Show();
 				self.pool[index].text:SetText(text);

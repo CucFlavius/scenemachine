@@ -1,15 +1,18 @@
 --- Creating all namespaces and classes here so that they are always defined first
-SceneMachine = SceneMachine or {}
+SceneMachine = {};
 
-SceneMachine.Camera = SceneMachine.Camera or {}
-SceneMachine.CameraController = SceneMachine.CameraController or {}
-SceneMachine.Renderer = SceneMachine.Renderer or {}
-SceneMachine.Gizmos = SceneMachine.Gizmos or {}
-SceneMachine.Input = SceneMachine.Input or {}
+SceneMachine.Data = {};
 
-SceneMachine.Editor = SceneMachine.Editor or {}
-SceneMachine.Editor.AssetBrowser = SceneMachine.Editor.AssetBrowser or {}
-SceneMachine.Editor.ProjectManager = SceneMachine.Editor.ProjectManager or {};
-SceneMachine.Editor.SceneHierarchy = SceneMachine.Editor.SceneHierarchy or {};
-SceneMachine.Editor.SceneManager = SceneMachine.Editor.SceneManager or {};
-SceneMachine.Editor.MousePick = SceneMachine.Editor.MousePick or {};
+SceneMachine.Camera = {};
+SceneMachine.CameraController = {};
+SceneMachine.Renderer = {};
+SceneMachine.Gizmos = {};
+SceneMachine.Input = {};
+
+SceneMachine.Editor = {};
+SceneMachine.Editor.AssetBrowser = {};
+SceneMachine.Editor.ProjectManager = {};
+SceneMachine.Editor.SceneHierarchy = {};
+SceneMachine.Editor.SceneManager = {};
+SceneMachine.Editor.ObjectProperties = {};
+SceneMachine.Editor.MousePick = {};

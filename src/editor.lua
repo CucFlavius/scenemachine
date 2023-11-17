@@ -4,6 +4,7 @@ local FX = SceneMachine.FX;
 local Renderer = SceneMachine.Renderer;
 local SH = Editor.SceneHierarchy;
 local MousePick = Editor.MousePick;
+local OP = Editor.ObjectProperties;
 
 Editor.width = 1280;
 Editor.height = 720;
@@ -89,7 +90,8 @@ function Editor.CreateRightPanel()
 end
 
 function Editor.CreateLeftPanel()
-    SH.CreatePanel(leftPanelWidth, 350, c4);
+    SH.CreatePanel(0, -Editor.toolbarHeight, leftPanelWidth - 12, 350, c4);
+    OP.CreatePanel(0, -(Editor.toolbarHeight + 350 + 5), leftPanelWidth - 12, 310, c4);
 end
 
 function Editor.CreateBottomPanel()
