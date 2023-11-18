@@ -17,19 +17,35 @@ function OP.CreateTransformProperties(x, y, w, h, parent)
     OP.Transform = {};
     local transformRect = Win.CreateRectangle(x, y, w, h, parent, "TOPLEFT", "TOPLEFT", 0, 0, 0, 0);
 
-    local editBoxTitleW = 100;
+    local editBoxTitleW = 85;
     Win.CreateTextBoxSimple(10, 0, editBoxTitleW, 20, transformRect, "TOPLEFT", "TOPLEFT", "Position", 9);
-    OP.Transform.posX = OP.CreateTransformField(110, 0, transformRect, "x", OP.SetPosX, 0);
-    OP.Transform.posY = OP.CreateTransformField(110 + 55 + 2, 0, transformRect, "y", OP.SetPosY, 0);
-    OP.Transform.posZ = OP.CreateTransformField(110 + (55 * 2) + (2 * 2), 0, transformRect, "z", OP.SetPosZ, 0);
+    OP.Transform.posX = OP.CreateTransformField(editBoxTitleW + 10, 0, transformRect, "x", OP.SetPosX, 0);
+    OP.Transform.posY = OP.CreateTransformField(editBoxTitleW + 10 + 55 + 2, 0, transformRect, "y", OP.SetPosY, 0);
+    OP.Transform.posZ = OP.CreateTransformField(editBoxTitleW + 10 + (55 * 2) + (2 * 2), 0, transformRect, "z", OP.SetPosZ, 0);
+    local resetPosButton = Win.CreateButton(editBoxTitleW + 10 + (55 * 3) + (2 * 2), 0, 20, 20, transformRect, "TOPLEFT", "TOPLEFT", "R", nil, "BUTTON_VS");
+    resetPosButton:SetScript("OnClick", function(self)
+        if (SM.selectedObject ~= nil) then
+            SM.selectedObject:SetPosition(0, 0, 0);
+            Gizmos.refresh = true;
+            OP.Refresh();
+        end
+    end);
 
     Win.CreateTextBoxSimple(10, -22, editBoxTitleW, 20, transformRect, "TOPLEFT", "TOPLEFT", "Rotation", 9);
-    OP.Transform.rotX = OP.CreateTransformField(110, -22, transformRect, "x", OP.SetRotX, 0);
-    OP.Transform.rotY = OP.CreateTransformField(110 + 55 + 2, -22, transformRect, "y", OP.SetRotY, 0);
-    OP.Transform.rotZ = OP.CreateTransformField(110 + (55 * 2) + (2 * 2), -22, transformRect, "z", OP.SetRotZ, 0);
+    OP.Transform.rotX = OP.CreateTransformField(editBoxTitleW + 10, -22, transformRect, "x", OP.SetRotX, 0);
+    OP.Transform.rotY = OP.CreateTransformField(editBoxTitleW + 10 + 55 + 2, -22, transformRect, "y", OP.SetRotY, 0);
+    OP.Transform.rotZ = OP.CreateTransformField(editBoxTitleW + 10 + (55 * 2) + (2 * 2), -22, transformRect, "z", OP.SetRotZ, 0);
+    local resetRotButton = Win.CreateButton(editBoxTitleW + 10 + (55 * 3) + (2 * 2), -22, 20, 20, transformRect, "TOPLEFT", "TOPLEFT", "R", nil, "BUTTON_VS");
+    resetRotButton:SetScript("OnClick", function(self)
+        if (SM.selectedObject ~= nil) then
+            SM.selectedObject:SetRotation(0, 0, 0);
+            Gizmos.refresh = true;
+            OP.Refresh();
+        end
+    end);
 
     Win.CreateTextBoxSimple(10, -44, editBoxTitleW, 20, transformRect, "TOPLEFT", "TOPLEFT", "Scale", 9);
-    OP.Transform.scale = Win.CreateEditBox(110 + 8, -44, 160, 20, transformRect, "TOPLEFT", "TOPLEFT", "0");
+    OP.Transform.scale = Win.CreateEditBox(editBoxTitleW + 10 + 8, -44, 159, 20, transformRect, "TOPLEFT", "TOPLEFT", "0");
     OP.Transform.scale:SetScript('OnEscapePressed', function(self1) 
         -- restore value
         self1:SetText(tostring(self1.value));
@@ -52,6 +68,14 @@ function OP.CreateTransformProperties(x, y, w, h, parent)
         end
         self1.value = tonumber(valText);
         OP.SetScale(self1);
+    end);
+    local resetScaleButton = Win.CreateButton(editBoxTitleW + 10 + (55 * 3) + (2 * 2), -44, 20, 20, transformRect, "TOPLEFT", "TOPLEFT", "R", nil, "BUTTON_VS");
+    resetScaleButton:SetScript("OnClick", function(self)
+        if (SM.selectedObject ~= nil) then
+            SM.selectedObject:SetScale(1);
+            Gizmos.refresh = true;
+            OP.Refresh();
+        end
     end);
 end
 
