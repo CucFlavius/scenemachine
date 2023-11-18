@@ -86,20 +86,10 @@ function Gizmos.Update()
                 local bY = Gizmos.MoveGizmo.screenSpaceVertices[t][2][2];
 
                 local dist = distToSegment({curX, curY}, {aX, aY}, {bX, bY});
-                local coneDetail = (Gizmos.MoveGizmo.lineCount - 3) / 3;
                 if (dist < 10) then
-                    Gizmos.MoveGizmo.faceColors[t][4] = 1.0;
-                    for c = 4 + (coneDetail * (t-1)), 4 + (coneDetail * (t)), 1 do
-                        Gizmos.MoveGizmo.faceColors[c][4] = 1.0;
-                    end
                     selected = true;
                     Gizmos.selectedAxis = t;
                     Gizmos.highlightedAxis = t;
-                else
-                    Gizmos.MoveGizmo.faceColors[t][4] = 0.3;
-                    for c = 4 + (coneDetail * (t-1)), 4 + (coneDetail * (t)), 1 do
-                        Gizmos.MoveGizmo.faceColors[c][4] = 0.3;
-                    end
                 end
             end
 

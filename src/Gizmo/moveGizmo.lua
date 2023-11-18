@@ -69,6 +69,18 @@ function Gizmos.CreateMoveGizmo()
     local lineProjectionFrame = Gizmos.CreateLineProjectionFrame();
     Gizmos.frames["MoveGizmoFrame"] = lineProjectionFrame;
 
+    -- Lines --
+    for t = 1, Gizmos.MoveGizmo.lineCount + 1, 1 do
+        Gizmos.MoveGizmo.lines[t] = lineProjectionFrame:CreateLine(nil, nil, nil);
+        Gizmos.MoveGizmo.lines[t]:SetThickness(2.5);
+        Gizmos.MoveGizmo.lines[t]:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\line.png", "REPEAT", "REPEAT", "NEAREST");
+    end
+
+    -- setting the axis on the main 3 lines
+    for t = 1, 3, 1 do
+        Gizmos.MoveGizmo.lines[t].axis = t;
+    end
+
     -- Create cone vertices --
     -- calculateCirclePoints(centerX, centerY, centerZ, radius, numPoints, axis)
     local radius = 0.02;
@@ -80,6 +92,7 @@ function Gizmos.CreateMoveGizmo()
         Gizmos.MoveGizmo.transformedVertices[c] = {{0,0,0}, {1,0,0}};
         Gizmos.MoveGizmo.screenSpaceVertices[c] = {{0,0}, {0,0}};
         Gizmos.MoveGizmo.faceColors[c] = {1,0,0,1};
+        Gizmos.MoveGizmo.lines[c].axis = 1;
         i = i + 1;
     end
 
@@ -90,6 +103,7 @@ function Gizmos.CreateMoveGizmo()
         Gizmos.MoveGizmo.transformedVertices[c] = {{0,0,0}, {0,1,0}};
         Gizmos.MoveGizmo.screenSpaceVertices[c] = {{0,0}, {0,0}};
         Gizmos.MoveGizmo.faceColors[c] = {0,1,0,1};
+        Gizmos.MoveGizmo.lines[c].axis = 2;
         i = i + 1;
     end
 
@@ -100,13 +114,7 @@ function Gizmos.CreateMoveGizmo()
         Gizmos.MoveGizmo.transformedVertices[c] = {{0,0,0}, {0,0,1}};
         Gizmos.MoveGizmo.screenSpaceVertices[c] = {{0,0}, {0,0}};
         Gizmos.MoveGizmo.faceColors[c] = {0,0,1,1};
+        Gizmos.MoveGizmo.lines[c].axis = 3;
         i = i + 1;
-    end
-
-    -- Lines --
-    for t = 1, Gizmos.MoveGizmo.lineCount, 1 do
-        Gizmos.MoveGizmo.lines[t] = lineProjectionFrame:CreateLine(nil, nil, nil);
-        Gizmos.MoveGizmo.lines[t]:SetThickness(2.5);
-        Gizmos.MoveGizmo.lines[t]:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\line.png", "REPEAT", "REPEAT", "NEAREST");
     end
 end

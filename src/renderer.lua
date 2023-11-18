@@ -168,6 +168,7 @@ function Renderer.RenderGizmos()
         
         if (SceneMachine.Gizmos.activeTransformGizmo == 1) then
             RenderGizmoLines(SceneMachine.Gizmos.MoveGizmo);
+            ShadeMovementGizmo(SceneMachine.Gizmos.MoveGizmo);
         elseif (SceneMachine.Gizmos.activeTransformGizmo == 2) then
             RenderGizmoLines(SceneMachine.Gizmos.RotateGizmo);
             ShadeRotationGizmo(SceneMachine.Gizmos.RotateGizmo);
@@ -251,6 +252,24 @@ function ShadeSelectionGizmo(gizmo)
     for i = 1, 3 do
         if (sortedLines[i] ~= nil) then
             sortedLines[i]:SetVertexColor(1, 1, 1, 0.3);
+        end
+    end
+end
+
+function ShadeMovementGizmo(gizmo)
+    local coneDetail = (gizmo.lineCount - 3) / 3;
+    for t = 1, 3, 1 do
+        print(gizmo.lines[t]);
+        if (gizmo.lines[t].axis == Gizmos.highlightedAxis) then
+            gizmo.faceColors[t][4] = 1.0;
+            for c = 4 + (coneDetail * (t-1)), 4 + (coneDetail * (t)), 1 do
+                gizmo.faceColors[c][4] = 1.0;
+            end
+        else
+            gizmo.faceColors[t][4] = 0.3;
+            for c = 4 + (coneDetail * (t-1)), 4 + (coneDetail * (t)), 1 do
+                gizmo.faceColors[c][4] = 0.3;
+            end
         end
     end
 end
