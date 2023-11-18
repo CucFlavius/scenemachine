@@ -15,6 +15,9 @@ Renderer.FrameBufferSize = 400;
 Renderer.FrameBufferFrames = {};
 Renderer.FrameBufferLines = {};
 Renderer.actors = {};
+SceneMachine.UsedFrames = 1;
+SceneMachine.CulledFrames = 1;
+SceneMachine.lineThickness = 2;
 
 local function manhattanDistance(aX, aY, bX, bY)
     return math.abs(aX - bX) + math.abs(aY - bY)
@@ -125,42 +128,14 @@ function Renderer.Clear()
     end
 end
 
---Set a screen space frame properties such as vertex position and color
----@param frame table Wow frame to use for this quad
----@param color table Color
----@param aX number Vertex A, X coordinate
----@param aY number Vertex A, Y coordinate
----@param bX number Vertex B, X coordinate
----@param bY number Vertex B, Y coordinate
-function SceneMachine.RenderLine(frame, color, aX, aY, bX, bY, flip)
-    local ht = SceneMachine.lineThickness / 2;
-	-- VerteX Colors --
-	frame.texture:SetVertexColor(color.r, color.g, color.b)
-
-	-- Vertex Positions --
-    if flip then
-        frame.texture:SetVertexOffset(1, aX, aY + ht);
-        frame.texture:SetVertexOffset(2, bX, bY + ht);
-        frame.texture:SetVertexOffset(3, aX, aY - ht);
-        frame.texture:SetVertexOffset(4, bX, bY - ht);
-    else
-        frame.texture:SetVertexOffset(1, aX + ht, aY);
-        frame.texture:SetVertexOffset(2, bX + ht, bY);
-        frame.texture:SetVertexOffset(3, aX - ht, aY);
-        frame.texture:SetVertexOffset(4, bX - ht, bY);
-    end
-
-	frame:Show();
-end
-
-local culledPoints = 0;
-local distA = { 0, 0, 0 };
-local distB = { 0, 0, 0 };
 local function NearPlaneFaceCullingLine(vert, planePositionX, planePositionY, planePositionZ, planeNormalX, planeNormalY, planeNormalZ, maxP)
+    local distA = {};
+    local distB = {};
+
     distA[1] = vert[1][1] - planePositionX;	distA[2] = vert[1][2] - planePositionY;	distA[3] = vert[1][3] - planePositionZ;
     distB[1] = vert[2][1] - planePositionX;	distB[2] = vert[2][2] - planePositionY;	distB[3] = vert[2][3] - planePositionZ;
 	
-    culledPoints = 0;
+    local culledPoints = 0;
 
     if ((distA[1] * planeNormalX) + (distA[2] * planeNormalY) + (distA[3] * planeNormalZ)) < 0
     then
@@ -179,14 +154,8 @@ local function NearPlaneFaceCullingLine(vert, planePositionX, planePositionY, pl
     end
 end
 
-local xOfs = 0;
-local yOfs = 0;
-
 function Renderer.RenderGizmos()
     if (Renderer.active == true) then
-        -- Calculate window offsets --
-        xOfs = Renderer.projectionFrame:GetLeft();
-        yOfs = Renderer.projectionFrame:GetBottom();
         SceneMachine.usedFramesLastFrame = SceneMachine.UsedFrames;
         SceneMachine.UsedFrames = 1;
         SceneMachine.CulledFrames = 1;
@@ -208,80 +177,23 @@ function Renderer.RenderGizmos()
     end
 end
 
-local aX, aY, aZ = 0, 0, 0;
-local bX, bY, bZ = 0, 0, 0;
-local color = Color.New();
-
-SceneMachine.UsedFrames = 1;
-SceneMachine.CulledFrames = 1;
-SceneMachine.lineThickness = 2;
-local vertices = {};
-local vert = {};
-local faceColors = {};
-local faceColor = {};
-local cull = false;
-function RenderGizmo(gizmo)
-	vertices = gizmo.transformedVertices;
-	faceColors = gizmo.faceColors;
-
-	for t = 1, gizmo.lineCount, 1 do
-		vert = vertices[t];
-		faceColor = faceColors[t];
-
-		-- Near plane face culling --
-		cull = NearPlaneFaceCullingLine(vert, Camera.planePositionX, Camera.planePositionY, Camera.planePositionZ, Camera.planeNormalX, Camera.planeNormalY, Camera.planeNormalZ, 1);
-		if (not cull) then
-			-- Project to screen space --
-			aX, aY = Renderer.projectionFrame:Project3DPointTo2D(vert[1][1],vert[1][2],vert[1][3]);
-			bX, bY = Renderer.projectionFrame:Project3DPointTo2D(vert[2][1],vert[2][2],vert[2][3]);
-            gizmo.screenSpaceVertices[t][1][1] = aX;
-            gizmo.screenSpaceVertices[t][1][2] = aY;
-            gizmo.screenSpaceVertices[t][2][1] = bX;
-            gizmo.screenSpaceVertices[t][2][2] = bY;
-            
-			-- Face color --
-			color:Set(faceColor[1], faceColor[2], faceColor[3]);
-
-			-- Render --
-			if (aX ~= nil and aY ~= nil and bX ~= nil and bY ~= nil) then
-                -- rendering 2 quads across (+) to ensure thickness no matter the angle
-				SceneMachine.RenderLine(Renderer.FrameBufferFrames[SceneMachine.UsedFrames], color, aX + xOfs, aY + yOfs, bX + xOfs, bY + yOfs);
-                SceneMachine.UsedFrames = SceneMachine.UsedFrames + 1;
-                SceneMachine.RenderLine(Renderer.FrameBufferFrames[SceneMachine.UsedFrames], color, aX + xOfs, aY + yOfs, bX + xOfs, bY + yOfs, true);
-                SceneMachine.UsedFrames = SceneMachine.UsedFrames + 1;
-            end
-		else
-			-- Cull --
-			Renderer.FrameBufferFrames[SceneMachine.UsedFrames]:Hide();
-			SceneMachine.CulledFrames = SceneMachine.CulledFrames + 2;
-		end
-
-	end
-
-	if (SceneMachine.usedFramesLastFrame > SceneMachine.UsedFrames) then
-		for h = SceneMachine.UsedFrames, SceneMachine.usedFramesLastFrame + 1, 1 do
-			Renderer.FrameBufferFrames[h]:Hide();
-		end
-	end
-end
-
 function RenderGizmoLines(gizmo)
-	vertices = gizmo.transformedVertices;
-	faceColors = gizmo.faceColors;
+	local vertices = gizmo.transformedVertices;
+	local faceColors = gizmo.faceColors;
 
 	for t = 1, gizmo.lineCount, 1 do
-		vert = vertices[t];
-		faceColor = faceColors[t];
+		local vert = vertices[t];
+		local faceColor = faceColors[t];
 
         local line = gizmo.lines[t];
 
 		-- Near plane face culling --
-		cull = NearPlaneFaceCullingLine(vert, Camera.planePositionX, Camera.planePositionY, Camera.planePositionZ, Camera.planeNormalX, Camera.planeNormalY, Camera.planeNormalZ, 0);
+		local cull = NearPlaneFaceCullingLine(vert, Camera.planePositionX, Camera.planePositionY, Camera.planePositionZ, Camera.planeNormalX, Camera.planeNormalY, Camera.planeNormalZ, 0);
 
 		if (not cull) then
 			-- Project to screen space --
-			aX, aY, aZ = Renderer.projectionFrame:Project3DPointTo2D(vert[1][1],vert[1][2],vert[1][3]);
-			bX, bY, bZ = Renderer.projectionFrame:Project3DPointTo2D(vert[2][1],vert[2][2],vert[2][3]);
+			local aX, aY, aZ = Renderer.projectionFrame:Project3DPointTo2D(vert[1][1],vert[1][2],vert[1][3]);
+			local bX, bY, bZ = Renderer.projectionFrame:Project3DPointTo2D(vert[2][1],vert[2][2],vert[2][3]);
     
             --- these are needed for calculating mouse over
             gizmo.screenSpaceVertices[t][1][1] = aX;
@@ -343,19 +255,14 @@ function ShadeSelectionGizmo(gizmo)
     end
 end
 
-local function lerp(a,b,t)
-    return a * (1-t) + b * t
-end
-
-local function normalize(value, min, max)
-    return (value - min) / (max - min)
-end
-
-local function clamp(value, min, max)
-    return math.min(math.max(value, min), max);
-end
-
 function ShadeRotationGizmo(gizmo)
+    local function normalize(value, min, max)
+        return (value - min) / (max - min)
+    end
+    
+    local function clamp(value, min, max)
+        return math.min(math.max(value, min), max);
+    end
 
     local minD = 10000000;
     local maxD = -10000000;
