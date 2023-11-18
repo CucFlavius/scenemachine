@@ -16,6 +16,8 @@ Gizmos.frames = {};
 Gizmos.vectorX = {1,0,0};
 Gizmos.vectorY = {0,1,0};
 Gizmos.vectorZ = {0,0,1};
+Gizmos.savedRotation = {0, 0, 0};
+Gizmos.increment = 0;
 
 local function sqr(x)
     return x * x;
@@ -227,6 +229,48 @@ function Gizmos.UpdateGizmoTransform()
     end
 end
 
+function vectorToQuaternion(rotation)
+    local rx, ry, rz = rotation[1], rotation[2], rotation[3]
+
+    local sx, sy, sz, cx, cy, cz = math.sin(rx/2), math.sin(ry/2), math.sin(rz/2), math.cos(rx/2), math.cos(ry/2), math.cos(rz/2)
+
+    local quaternion = {
+        cx * cy * cz + sx * sy * sz,
+        sx * cy * cz - cx * sy * sz,
+        cx * sy * cz + sx * cy * sz,
+        cx * cy * sz - sx * sy * cz
+    }
+
+    return quaternion
+end
+
+-- Function to convert a quaternion to a rotation vector
+function quaternionToVector(quaternion)
+    local qw, qx, qy, qz = quaternion[1], quaternion[2], quaternion[3], quaternion[4]
+
+    local rx = math.atan2(2 * (qw * qx + qy * qz), 1 - 2 * (qx^2 + qy^2))
+    local ry = math.asin(2 * (qw * qy - qz * qx))
+    local rz = math.atan2(2 * (qw * qz + qx * qy), 1 - 2 * (qy^2 + qz^2))
+
+    return {rx, ry, rz}
+end
+
+-- Function to multiply two rotation vectors
+function multiplyRotations(rotation1, rotation2)
+    local quaternion1 = vectorToQuaternion(rotation1)
+    local quaternion2 = vectorToQuaternion(rotation2)
+
+    -- Quaternion multiplication
+    local resultQuaternion = {
+        quaternion1[1]*quaternion2[1] - quaternion1[2]*quaternion2[2] - quaternion1[3]*quaternion2[3] - quaternion1[4]*quaternion2[4],
+        quaternion1[1]*quaternion2[2] + quaternion1[2]*quaternion2[1] + quaternion1[3]*quaternion2[4] - quaternion1[4]*quaternion2[3],
+        quaternion1[1]*quaternion2[3] - quaternion1[2]*quaternion2[4] + quaternion1[3]*quaternion2[1] + quaternion1[4]*quaternion2[2],
+        quaternion1[1]*quaternion2[4] + quaternion1[2]*quaternion2[3] - quaternion1[3]*quaternion2[2] + quaternion1[4]*quaternion2[1]
+    }
+
+    return quaternionToVector(resultQuaternion)
+end
+
 function Gizmos.MotionToTransform()
     if (Gizmos.isUsed) then
         -- when using the gizmo (clicked), keep it highlighted even if the mouse moves away
@@ -291,18 +335,22 @@ function Gizmos.MotionToTransform()
                     SM.selectedObject:SetPosition(px, py, pz);
                 end
             elseif (Gizmos.activeTransformGizmo == 2) then
+                Gizmos.increment = Gizmos.increment + diff;
                 if (Gizmos.selectedAxis == 1) then
-                    rx = rx + (Gizmos.vectorX[1] * diff);
-                    ry = ry + (Gizmos.vectorX[2] * diff);
-                    rz = rz + (Gizmos.vectorX[3] * diff);
+                    local rot = multiplyRotations(Gizmos.savedRotation, {Gizmos.increment, 0, 0});
+                    rx = rot[1];
+                    ry = rot[2];
+                    rz = rot[3];
                 elseif (Gizmos.selectedAxis == 2) then
-                    rx = rx + (Gizmos.vectorY[1] * diff);
-                    ry = ry + (Gizmos.vectorY[2] * diff);
-                    rz = rz + (Gizmos.vectorY[3] * diff);
+                    local rot = multiplyRotations(Gizmos.savedRotation, {0, Gizmos.increment, 0});
+                    rx = rot[1];
+                    ry = rot[2];
+                    rz = rot[3];
                 elseif (Gizmos.selectedAxis == 3) then
-                    rx = rx + (Gizmos.vectorZ[1] * diff);
-                    ry = ry + (Gizmos.vectorZ[2] * diff);
-                    rz = rz + (Gizmos.vectorZ[3] * diff);
+                    local rot = multiplyRotations(Gizmos.savedRotation, {0, 0, Gizmos.increment});
+                    rx = rot[1];
+                    ry = rot[2];
+                    rz = rot[3];
                 end
 
                 if (Gizmos.refresh ~= true) then
@@ -321,22 +369,36 @@ function Gizmos.MotionToTransform()
 
 end
 
+local function normalize(vector)
+    local magnitude = math.sqrt(vector[1]^2 + vector[2]^2 + vector[3]^2)
+    
+    if magnitude ~= 0 then
+      return {vector[1] / magnitude, vector[2] / magnitude, vector[3] / magnitude}
+    else
+      -- Handle the case where the vector is a zero vector (magnitude is zero)
+      return {0, 0, 0}
+    end
+  end
+
 function Gizmos.OnLMBDown(x, y)
 	Gizmos.LMBPrevious.x = x;
 	Gizmos.LMBPrevious.y = y;
     Gizmos.isUsed = true;
+    Gizmos.increment = 0;
 
     -- store rotation vector
     if (SM.selectedObject ~= nil) then
         local rotation = SM.selectedObject:GetRotation();
         local rx, ry, rz = rotation.x, rotation.y, rotation.z;
-        Gizmos.vectorX = rotateVector(rx, ry, rz, 1, 0, 0);
-        Gizmos.vectorY = rotateVector(rx, ry, rz, 0, 1, 0);
-        Gizmos.vectorZ = rotateVector(rx, ry, rz, 0, 0, 1);
+        Gizmos.vectorX = normalize(rotateVector(rx, ry, rz, 1, 0, 0));
+        Gizmos.vectorY = normalize(rotateVector(rx, ry, rz, 0, 1, 0));
+        Gizmos.vectorZ = normalize(rotateVector(rx, ry, rz, 0, 0, 1));
+        Gizmos.savedRotation = {rx, ry, rz};
     else
         Gizmos.vectorX = {1,0,0};
         Gizmos.vectorY = {0,1,0};
         Gizmos.vectorZ = {0,0,1};
+        Gizmos.savedRotation = {0, 0, 0};
     end
 end
 

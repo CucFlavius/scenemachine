@@ -59,6 +59,35 @@ function Input.Update()
     local frameYMin = Renderer.projectionFrame:GetBottom();
     local frameXMax = Renderer.projectionFrame:GetRight();
     local frameYMax = Renderer.projectionFrame:GetTop();
+
+    -- MOUSE UP --
+    -- mouse up state needs to be handled outside of the renderer frame too
+    if (Input.mouseState.LMB ~= LMB) then
+        if (LMB == false) then
+            -- LMB UP
+            Input.mouseState.isDragging = false;
+            Input.OnDragStop();
+        end
+    end
+
+    if (Input.mouseState.RMB ~= RMB) then
+        if (RMB == false) then
+            -- RMB UP
+            Input.mouseState.isDragging = false;
+            Input.OnDragStop();
+        end
+    end
+
+    if (Input.mouseState.MMB ~= MMB) then
+        if (MMB == false) then
+            -- MMB UP
+            Input.mouseState.isDragging = false;
+            Input.OnDragStop();
+        end
+    end
+
+    -- MOUSE DOWN --
+    -- filter mouse down to only in renderer frame
     if (x < frameXMin or x > frameXMax or y < frameYMin or y > frameYMax) then
         return;
     end
@@ -70,10 +99,6 @@ function Input.Update()
             -- LMB DOWN
             Input.mouseState.dragStartX = x;
             Input.mouseState.dragStartY = y;
-        else
-            -- LMB UP
-            Input.mouseState.isDragging = false;
-            Input.OnDragStop();
         end
     end
 
@@ -82,10 +107,6 @@ function Input.Update()
             -- RMB DOWN
             Input.mouseState.dragStartX = x;
             Input.mouseState.dragStartY = y;
-        else
-            -- RMB UP
-            Input.mouseState.isDragging = false;
-            Input.OnDragStop();
         end
     end
 
@@ -94,10 +115,6 @@ function Input.Update()
             -- MMB DOWN
             Input.mouseState.dragStartX = x;
             Input.mouseState.dragStartY = y;
-        else
-            -- MMB UP
-            Input.mouseState.isDragging = false;
-            Input.OnDragStop();
         end
     end
 
@@ -142,9 +159,8 @@ end
 
 function Input.OnDragStop()
     CC.OnRMBUp();
-
     if (Gizmos.isUsed) then
-        Gizmos.OnLMBUp();
+        Gizmos.isUsed = false;
     end
 end
 
