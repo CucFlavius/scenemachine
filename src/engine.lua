@@ -91,8 +91,8 @@ local function SG_UpdateLoop ()
 	
 	Camera.Update();
     CameraController.Update();
-    Gizmos.Update();
 	Input.Update();
+    Gizmos.Update();
     Renderer.RenderGizmos();
 end
 

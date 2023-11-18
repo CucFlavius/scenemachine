@@ -122,6 +122,9 @@ function Input.Update()
     Input.PreviousMouseState.LMB = LMB;
     Input.PreviousMouseState.RMB = RMB;
     Input.PreviousMouseState.MMB = MMB;
+
+    Input.mouseX = relativeX
+    Input.mouseY = relativeY;
 end
 
 function Input.OnDragStart(LMB, RMB, MMB)

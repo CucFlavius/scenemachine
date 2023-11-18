@@ -4,6 +4,7 @@ local Editor = SceneMachine.Editor;
 local SM = Editor.SceneManager;
 local OP = Editor.ObjectProperties;
 local Camera = SceneMachine.Camera;
+local Input = SceneMachine.Input;
 
 Gizmos.isUsed = false;
 Gizmos.isHighlighted = false;
@@ -59,23 +60,26 @@ function Gizmos.CreateLineProjectionFrame()
     return lineProjectionFrame;
 end
 
-local xOfs;
-local yOfs;
-local selected = false;
 function Gizmos.Update()
-    local mouseX, mouseY = GetCursorPosition();
-    -- calculate mouse relative to frame
-    local xOfs = Renderer.projectionFrame:GetLeft();
-    local yOfs = Renderer.projectionFrame:GetBottom();
-
-    local curX = mouseX - xOfs;
-    local curY = mouseY - yOfs;
-
-    -- Select --
-    selected = false;
+    local mouseX, mouseY = Input.mouseX, Input.mouseY;
 
     Gizmos.highlightedAxis = 0;
     
+    -- Handle gizmo mouse highlight and selection --
+    local selected = Gizmos.SelectionCheck(mouseX, mouseY);
+
+    -- Handle gizmo visibility --
+    Gizmos.VisibilityCheck();
+
+    -- Handle gizmo motion to transformation --
+    Gizmos.MotionToTransform();
+
+    Gizmos.isHighlighted = selected;
+    Gizmos.refresh = false;
+end
+
+function Gizmos.SelectionCheck(mouseX, mouseY)
+    local selected = false;
     if not Gizmos.isUsed then
         -- Position --
         if (Gizmos.activeTransformGizmo == 1) then
@@ -85,11 +89,13 @@ function Gizmos.Update()
                 local bX = Gizmos.MoveGizmo.screenSpaceVertices[t][2][1];
                 local bY = Gizmos.MoveGizmo.screenSpaceVertices[t][2][2];
 
-                local dist = distToSegment({curX, curY}, {aX, aY}, {bX, bY});
-                if (dist < 10) then
-                    selected = true;
-                    Gizmos.selectedAxis = t;
-                    Gizmos.highlightedAxis = t;
+                if (mouseX ~= nil and mouseY ~= nil and aX ~= nil and aY ~= nil and bX ~= nil and bY ~= nil) then
+                    local dist = distToSegment({mouseX, mouseY}, {aX, aY}, {bX, bY});
+                    if (dist < 10) then
+                        selected = true;
+                        Gizmos.selectedAxis = t;
+                        Gizmos.highlightedAxis = t;
+                    end
                 end
             end
 
@@ -101,11 +107,13 @@ function Gizmos.Update()
                 local bX = Gizmos.RotateGizmo.screenSpaceVertices[t][2][1];
                 local bY = Gizmos.RotateGizmo.screenSpaceVertices[t][2][2];
 
-                local dist = distToSegment({curX, curY}, {aX, aY}, {bX, bY});
-                if (dist < 10 and Gizmos.RotateGizmo.lines[t].alpha > 0.3) then
-                    selected = true;
-                    Gizmos.selectedAxis = Gizmos.RotateGizmo.lines[t].axis;
-                    Gizmos.highlightedAxis = Gizmos.RotateGizmo.lines[t].axis;
+                if (mouseX ~= nil and mouseY ~= nil and aX ~= nil and aY ~= nil and bX ~= nil and bY ~= nil) then
+                    local dist = distToSegment({mouseX, mouseY}, {aX, aY}, {bX, bY});
+                    if (dist < 10 and Gizmos.RotateGizmo.lines[t].alpha > 0.3) then
+                        selected = true;
+                        Gizmos.selectedAxis = Gizmos.RotateGizmo.lines[t].axis;
+                        Gizmos.highlightedAxis = Gizmos.RotateGizmo.lines[t].axis;
+                    end
                 end
             end
 
@@ -115,6 +123,10 @@ function Gizmos.Update()
         end
     end
 
+    return selected;
+end
+
+function Gizmos.VisibilityCheck()
     if (SM.selectedObject ~= nil) then
         Gizmos.frames["SelectionGizmoFrame"]:Show();
 
@@ -133,9 +145,22 @@ function Gizmos.Update()
         Gizmos.frames["MoveGizmoFrame"]:Hide();
         Gizmos.frames["RotateGizmoFrame"]:Hide();
     end
+end
 
+function dotProduct(vectorA, vectorB)
+    local aX, aY = vectorA[1][1], vectorA[1][2]
+    local bX, bY = vectorB[1][1], vectorB[1][2]
+
+    local result = aX * bX + aY * bY
+    return result
+end
+
+function dotProduct(aX, aY, bX, bY)
+    return aX * bX + aY * bY
+end
+
+function Gizmos.MotionToTransform()
     if (Gizmos.isUsed or Gizmos.refresh) then
-
         -- when using the gizmo (clicked), keep it highlighted even if the mouse moves away
         Gizmos.highlightedAxis = Gizmos.selectedAxis;
 
@@ -148,9 +173,6 @@ function Gizmos.Update()
         
 		local xDiff = curX - Gizmos.LMBPrevious.x;
 		local yDiff = curY - Gizmos.LMBPrevious.y;
-		Gizmos.LMBPrevious.x = curX;
-		Gizmos.LMBPrevious.y = curY;
-
         local diff = ((xDiff + yDiff) / 2) / 100;
 
         if (Gizmos.refresh == true) then
@@ -170,11 +192,29 @@ function Gizmos.Update()
 
             if (Gizmos.activeTransformGizmo == 1) then
                 if (Gizmos.selectedAxis == 1) then
-                    px = px + diff;
+                    local dot = dotProduct(
+                        curX - Gizmos.LMBPrevious.x,
+                        curY - Gizmos.LMBPrevious.y,
+                        Gizmos.MoveGizmo.screenSpaceVertices[1][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][1],
+                        Gizmos.MoveGizmo.screenSpaceVertices[1][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][2]
+                    );
+                    px = px + (dot / 2000);
                 elseif (Gizmos.selectedAxis == 2) then
-                    py = py + diff;
+                    local dot = dotProduct(
+                        curX - Gizmos.LMBPrevious.x,
+                        curY - Gizmos.LMBPrevious.y,
+                        Gizmos.MoveGizmo.screenSpaceVertices[2][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][1],
+                        Gizmos.MoveGizmo.screenSpaceVertices[2][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][2]
+                    );
+                    py = py + (dot / 2000);
                 elseif (Gizmos.selectedAxis == 3) then
-                    pz = pz + diff;
+                    local dot = dotProduct(
+                        curX - Gizmos.LMBPrevious.x,
+                        curY - Gizmos.LMBPrevious.y,
+                        Gizmos.MoveGizmo.screenSpaceVertices[3][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[3][1][1],
+                        Gizmos.MoveGizmo.screenSpaceVertices[3][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[3][1][2]
+                    );
+                    pz = pz + (dot / 2000);
                 end
 
                 SM.selectedObject:SetPosition(px, py, pz);
@@ -200,10 +240,11 @@ function Gizmos.Update()
 
             OP.Refresh();
         end
+
+        Gizmos.LMBPrevious.x = curX;
+		Gizmos.LMBPrevious.y = curY;
     end
 
-    Gizmos.isHighlighted = selected;
-    Gizmos.refresh = false;
 end
 
 function Gizmos.OnLMBDown(x, y)

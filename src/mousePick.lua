@@ -150,7 +150,11 @@ function MousePick.FindConvexHull(points)
     points[1], points[minIdx] = points[minIdx], points[1]
 
     table.sort(points, function(p1, p2)
-        return compare(p1, p2) == -1
+        if (p1 ~= nil and p2 ~= nil) then
+            return compare(p1, p2) == -1
+        else
+            return false;
+        end
     end)
 
     table.insert(convexHull, points[1])
