@@ -14,7 +14,6 @@
     <Script file="camera.lua"/>
     <Script file="input.lua"/>
     <Script file="cameraController.lua"/>
-    <Script file="gizmos.lua"/>
     <Script file="renderer.lua"/>
 	<Script file="settings.lua"/>
     <Script file="assetBrowser.lua"/>
@@ -25,4 +24,9 @@
     <Script file="objectProperties.lua"/>
     <Script file="editor.lua"/>
 	<Script file="engine.lua"/>
+    
+    <Script file="Gizmo\gizmos.lua"/>
+    <Script file="Gizmo\moveGizmo.lua"/>
+    <Script file="Gizmo\rotationGizmo.lua"/>
+    <Script file="Gizmo\selectionGizmo.lua"/>
 </Ui>

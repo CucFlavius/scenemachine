@@ -204,11 +204,27 @@ function SM.LoadScene(index)
                 object.rotation = { x=0, y=0, z=0 };
             end
 
+            if (object.rotation.x == nil) then
+                object.rotation.x = 0;
+            end
+
+            if (object.rotation.y == nil) then
+                object.rotation.y = 0;
+            end
+
+            if (object.rotation.z == nil) then
+                object.rotation.z = 0;
+            end
+
             if (object.scale == nil) then
                 object.scale = 1;
             end
 
             object.actor = Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z);
+            print(object.rotation.x)
+            object.actor:SetRoll(object.rotation.x);
+            object.actor:SetPitch(object.rotation.y);
+            object.actor:SetYaw(object.rotation.z);
 
             object.GetActiveBoundingBox = function(self)
                 return object.actor:GetActiveBoundingBox();

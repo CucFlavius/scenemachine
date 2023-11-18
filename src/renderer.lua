@@ -336,6 +336,8 @@ function MakeBackfaceBoxLinesLessVisible(gizmo)
     end
 
     for i = 1, 3 do
-        sortedLines[i]:SetVertexColor(1, 1, 1, 0.3);
+        if (sortedLines[i] ~= nil) then
+            sortedLines[i]:SetVertexColor(1, 1, 1, 0.3);
+        end
     end
 end
