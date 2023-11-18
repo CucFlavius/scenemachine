@@ -62,7 +62,7 @@ function Gizmos.CreateMoveGizmo()
             {0,1,0,1},
             {0,0,1,1},
         };
-        lineRefs = {};
+        lines = {};
         lineDepths = {};
     }
     -- Create cone vertices --
@@ -104,7 +104,6 @@ function Gizmos.CreateMoveGizmo()
     Gizmos.frames["MoveGizmoFrame"] = lineProjectionFrame;
 
     -- Lines --
-    Gizmos.MoveGizmo.lines = {};
     for t = 1, Gizmos.MoveGizmo.lineCount, 1 do
         Gizmos.MoveGizmo.lines[t] = lineProjectionFrame:CreateLine(nil, nil, nil);
         Gizmos.MoveGizmo.lines[t]:SetThickness(2.5);

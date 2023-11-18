@@ -72,6 +72,8 @@ function Gizmos.Update()
 
     -- Select --
     selected = false;
+
+    Gizmos.highlightedAxis = 0;
     
     if not Gizmos.isUsed then
         -- Position --
@@ -91,6 +93,7 @@ function Gizmos.Update()
                     end
                     selected = true;
                     Gizmos.selectedAxis = t;
+                    Gizmos.highlightedAxis = t;
                 else
                     Gizmos.MoveGizmo.faceColors[t][4] = 0.3;
                     for c = 4 + (coneDetail * (t-1)), 4 + (coneDetail * (t)), 1 do
@@ -101,70 +104,17 @@ function Gizmos.Update()
 
         -- Rotation --
         elseif (Gizmos.activeTransformGizmo == 2) then
-
-            -- X --
-            for t = 1, Gizmos.RotateGizmoX.lineCount, 1 do
-                local aX = Gizmos.RotateGizmoX.screenSpaceVertices[t][1][1];
-                local aY = Gizmos.RotateGizmoX.screenSpaceVertices[t][1][2];
-                local bX = Gizmos.RotateGizmoX.screenSpaceVertices[t][2][1];
-                local bY = Gizmos.RotateGizmoX.screenSpaceVertices[t][2][2];
+            for t = 1, Gizmos.RotateGizmo.lineCount, 1 do
+                local aX = Gizmos.RotateGizmo.screenSpaceVertices[t][1][1];
+                local aY = Gizmos.RotateGizmo.screenSpaceVertices[t][1][2];
+                local bX = Gizmos.RotateGizmo.screenSpaceVertices[t][2][1];
+                local bY = Gizmos.RotateGizmo.screenSpaceVertices[t][2][2];
 
                 local dist = distToSegment({curX, curY}, {aX, aY}, {bX, bY});
-                if (dist < 10) then
+                if (dist < 10 and Gizmos.RotateGizmo.lines[t].alpha > 0.3) then
                     selected = true;
-                    Gizmos.selectedAxis = 1;
-                end
-            end
-
-            for t = 1, Gizmos.RotateGizmoX.lineCount, 1 do
-                if selected then
-                    Gizmos.RotateGizmoX.thickness[t] = 6;
-                else
-                    Gizmos.RotateGizmoX.thickness[t] = 2;
-                end
-            end
-
-            -- Y --
-            for t = 1, Gizmos.RotateGizmoY.lineCount, 1 do
-                local aX = Gizmos.RotateGizmoY.screenSpaceVertices[t][1][1];
-                local aY = Gizmos.RotateGizmoY.screenSpaceVertices[t][1][2];
-                local bX = Gizmos.RotateGizmoY.screenSpaceVertices[t][2][1];
-                local bY = Gizmos.RotateGizmoY.screenSpaceVertices[t][2][2];
-
-                local dist = distToSegment({curX, curY}, {aX, aY}, {bX, bY});
-                if (dist < 10) then
-                    selected = true;
-                    Gizmos.selectedAxis = 2;
-                end
-            end
-
-            for t = 1, Gizmos.RotateGizmoY.lineCount, 1 do
-                if selected then
-                    Gizmos.RotateGizmoY.thickness[t] = 6;
-                else
-                    Gizmos.RotateGizmoY.thickness[t] = 2;
-                end
-            end
-
-            -- Z --
-            for t = 1, Gizmos.RotateGizmoZ.lineCount, 1 do
-                local aX = Gizmos.RotateGizmoZ.screenSpaceVertices[t][1][1];
-                local aY = Gizmos.RotateGizmoZ.screenSpaceVertices[t][1][2];
-                local bX = Gizmos.RotateGizmoZ.screenSpaceVertices[t][2][1];
-                local bY = Gizmos.RotateGizmoZ.screenSpaceVertices[t][2][2];
-
-                local dist = distToSegment({curX, curY}, {aX, aY}, {bX, bY});
-                if (dist < 10) then
-                    selected = true;
-                    Gizmos.selectedAxis = 3;
-                end
-            end
-
-            for t = 1, Gizmos.RotateGizmoZ.lineCount, 1 do
-                if selected then
-                    Gizmos.RotateGizmoZ.thickness[t] = 6;
-                else
-                    Gizmos.RotateGizmoZ.thickness[t] = 2;
+                    Gizmos.selectedAxis = Gizmos.RotateGizmo.lines[t].axis;
+                    Gizmos.highlightedAxis = Gizmos.RotateGizmo.lines[t].axis;
                 end
             end
 
@@ -175,6 +125,10 @@ function Gizmos.Update()
     end
 
     if (Gizmos.isUsed or Gizmos.refresh) then
+
+        -- when using the gizmo (clicked), keep it highlighted even if the mouse moves away
+        Gizmos.highlightedAxis = Gizmos.selectedAxis;
+
 		local curX, curY = GetCursorPosition();
 
         if (Gizmos.LMBPrevious.x == nil) then
@@ -204,42 +158,42 @@ function Gizmos.Update()
         end
 
         if (SM.selectedObject ~= nil) then
-            local position = SM.selectedObject:GetPosition();
-            local x, y, z = position.x, position.y, position.z;
-            
             Gizmos.transformToActorAABB(SceneMachine.Gizmos.WireBox, SM.selectedObject, { SM.selectedObject.position.x, SM.selectedObject.position.y, SM.selectedObject.position.z });
             
+            local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObject:GetActiveBoundingBox();
+            local bbCenter = {(xMax - xMin) / 2, (yMax - yMin) / 2, (zMax - zMin) / 2};
+
+            local position = SM.selectedObject:GetPosition();
+            local px, py, pz = position.x, position.y, position.z;
+            local rotation = SM.selectedObject:GetRotation();
+            local rx, ry, rz = rotation.x, rotation.y, rotation.z;
+
             if (Gizmos.activeTransformGizmo == 1) then
                 if (Gizmos.selectedAxis == 1) then
-                    x = x + diff;
+                    px = px + diff;
                 elseif (Gizmos.selectedAxis == 2) then
-                    y = y + diff;
+                    py = py + diff;
                 elseif (Gizmos.selectedAxis == 3) then
-                    z = z + diff;
+                    pz = pz + diff;
                 end
 
-                SM.selectedObject:SetPosition(x, y, z);
+                SM.selectedObject:SetPosition(px, py, pz);
                 -- TODO: This needs to be done outside of Gizmos.isUsed
                 -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
                 --SceneMachine.Gizmos.MoveGizmo.scale = manhattanDistance3D(x, y, z, Camera.X, Camera.Y, Camera.Z) / 10;
-                Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, {x, y, z});
+                Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, {px, py, pz}, bbCenter);
             elseif (Gizmos.activeTransformGizmo == 2) then
-                local value;
-                local rotation = SM.selectedObject:GetRotation();
+
                 if (Gizmos.selectedAxis == 1) then
-                    value = rotation.x + diff;
-                    SM.selectedObject:SetRotation(value, rotation.y, rotation.z);
+                    rx = rx + diff;
                 elseif (Gizmos.selectedAxis == 2) then
-                    value = rotation.y + diff;
-                    SM.selectedObject:SetRotation(rotation.x, value, rotation.z);
-                else
-                    value = rotation.z + diff;
-                    SM.selectedObject:SetRotation(rotation.x, rotation.y, value);
+                    ry = ry + diff;
+                elseif (Gizmos.selectedAxis == 3) then
+                    rz = rz + diff;
                 end
-                Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoX, {x, y, z});
-                Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoY, {x, y, z});
-                Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmoZ, {x, y, z});
-                -- rotate the gizmos
+
+                SM.selectedObject:SetRotation(rx, ry, rz);
+                Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmo, {px, py, pz}, bbCenter);
             elseif (Gizmos.activeTransformGizmo == 3) then
 
             end
@@ -264,12 +218,12 @@ function Gizmos.OnLMBUp()
     Gizmos.isUsed = false;
 end
 
-function Gizmos.transformGizmo(gizmo, position)
+function Gizmos.transformGizmo(gizmo, position, boundsCenter)
     for q = 1, gizmo.lineCount, 1 do
         for v = 1, 2, 1 do
-            gizmo.transformedVertices[q][v][1] = (gizmo.vertices[q][v][1] * gizmo.scale) + position[1];
-            gizmo.transformedVertices[q][v][2] = (gizmo.vertices[q][v][2] * gizmo.scale) + position[2];
-            gizmo.transformedVertices[q][v][3] = (gizmo.vertices[q][v][3] * gizmo.scale) + position[3];
+            gizmo.transformedVertices[q][v][1] = (gizmo.vertices[q][v][1] * gizmo.scale) + position[1];-- + boundsCenter[1];
+            gizmo.transformedVertices[q][v][2] = (gizmo.vertices[q][v][2] * gizmo.scale) + position[2];-- + boundsCenter[2];
+            gizmo.transformedVertices[q][v][3] = (gizmo.vertices[q][v][3] * gizmo.scale) + position[3] + boundsCenter[3];
         end
     end
 end

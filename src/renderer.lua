@@ -110,6 +110,7 @@ function Renderer.AddActor(fileID, X, Y, Z)
     actor:Show();
     actor:SetModelByFileID(fileID);
     actor:SetPosition(X, Y, Z);
+    --actor:SetUseCenterForOrigin(0, 0, 0);
 
     Gizmos.refresh = true;
 
@@ -194,15 +195,14 @@ function Renderer.RenderGizmos()
         -- Render gizmos --
         if SM.selectedObject ~= nil then
             RenderGizmoLines(SceneMachine.Gizmos.WireBox);
-            MakeBackfaceBoxLinesLessVisible(SceneMachine.Gizmos.WireBox);
+            ShadeSelectionGizmo(SceneMachine.Gizmos.WireBox);
         end
         
         if (SceneMachine.Gizmos.activeTransformGizmo == 1) then
             RenderGizmoLines(SceneMachine.Gizmos.MoveGizmo);
         elseif (SceneMachine.Gizmos.activeTransformGizmo == 2) then
-            RenderGizmo(SceneMachine.Gizmos.RotateGizmoX);
-            RenderGizmo(SceneMachine.Gizmos.RotateGizmoY);
-            RenderGizmo(SceneMachine.Gizmos.RotateGizmoZ);
+            RenderGizmoLines(SceneMachine.Gizmos.RotateGizmo);
+            ShadeRotationGizmo(SceneMachine.Gizmos.RotateGizmo);
         elseif (SceneMachine.Gizmos.activeTransformGizmo == 3) then
             
         end
@@ -297,13 +297,15 @@ function RenderGizmoLines(gizmo)
                 line:SetStartPoint("BOTTOMLEFT", aX, aY) -- start topleft
                 line:SetEndPoint("BOTTOMLEFT", bX, bY)   -- end bottomright
 
-                if (gizmo.lineRefs ~= nil) then
-                    --local dist = manhattanDistance(aX, aY, bX, bY);
+                if (gizmo.dashedLine == true) then
                     local dist = manhattanDistance3D(vert[1][1],vert[1][2],vert[1][3],vert[2][1],vert[2][2],vert[2][3]);
                     dist = max(dist, 1);
                     dist = min(dist, 100);
                     line:SetTexCoord(0, dist , 0, 1);
-                    gizmo.lineRefs[t] = line;
+                end
+
+                if (gizmo.lines ~= nil) then
+                    gizmo.lines[t] = line;
                     gizmo.lineDepths[t] = aZ + bZ;
                 end
             end
@@ -315,7 +317,7 @@ function RenderGizmoLines(gizmo)
 	end
 end
 
-function MakeBackfaceBoxLinesLessVisible(gizmo)
+function ShadeSelectionGizmo(gizmo)
     -- Create an array of indices
     local indices = {}
     for i = 1, #gizmo.lineDepths do
@@ -332,12 +334,61 @@ function MakeBackfaceBoxLinesLessVisible(gizmo)
     local sortedLines = {}
     for _, index in ipairs(indices) do
         table.insert(sortedLineDepths, gizmo.lineDepths[index])
-        table.insert(sortedLines, gizmo.lineRefs[index])
+        table.insert(sortedLines, gizmo.lines[index])
     end
 
     for i = 1, 3 do
         if (sortedLines[i] ~= nil) then
             sortedLines[i]:SetVertexColor(1, 1, 1, 0.3);
         end
+    end
+end
+
+local function lerp(a,b,t)
+    return a * (1-t) + b * t
+end
+
+local function normalize(value, min, max)
+    return (value - min) / (max - min)
+end
+
+local function clamp(value, min, max)
+    return math.min(math.max(value, min), max);
+end
+
+function ShadeRotationGizmo(gizmo)
+
+    local minD = 10000000;
+    local maxD = -10000000;
+
+    -- find min max depth
+    for i = 1, #gizmo.lineDepths do
+        if (gizmo.lineDepths[i] > maxD) then
+            maxD = gizmo.lineDepths[i];
+        end
+        if (gizmo.lineDepths[i] < minD) then
+            minD = gizmo.lineDepths[i];
+        end
+    end
+
+    -- fade alpha
+    for i = 1, #gizmo.lineDepths do
+        -- get an alpha value between 0 and 1
+        local alpha = normalize(gizmo.lineDepths[i], minD, maxD);
+
+        -- make non linear
+        alpha = math.pow(alpha, 2.2);
+
+        gizmo.lines[i].alpha = alpha;
+
+        -- clamp
+        if (gizmo.lines[i].axis == Gizmos.highlightedAxis) then
+            alpha = clamp(alpha, 0.1, 1);
+        else
+            alpha = clamp(alpha, 0, 0.3);
+        end
+
+        local faceColor = gizmo.faceColors[i];
+        gizmo.lines[i]:SetVertexColor(faceColor[1], faceColor[2], faceColor[3], alpha);
     end
 end

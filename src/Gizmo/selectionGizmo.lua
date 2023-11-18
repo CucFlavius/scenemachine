@@ -77,8 +77,9 @@ function Gizmos.CreateSelectionGizmo()
             {1,1,1},
             {1,1,1},
         };
-        lineRefs = {};
+        lines = {};
         lineDepths = {};
+        dashedLine = true;
     }
 
     -- Frame --
@@ -86,7 +87,6 @@ function Gizmos.CreateSelectionGizmo()
     Gizmos.frames["SelectionGizmoFrame"] = lineProjectionFrame;
 
     -- Lines --
-    Gizmos.WireBox.lines = {};
     for t = 1, Gizmos.WireBox.lineCount, 1 do
         Gizmos.WireBox.lines[t] = lineProjectionFrame:CreateLine(nil, nil, nil);
         Gizmos.WireBox.lines[t]:SetThickness(1.5);

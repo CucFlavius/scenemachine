@@ -221,7 +221,7 @@ function SM.LoadScene(index)
             end
 
             object.actor = Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z);
-            print(object.rotation.x)
+
             object.actor:SetRoll(object.rotation.x);
             object.actor:SetPitch(object.rotation.y);
             object.actor:SetYaw(object.rotation.z);

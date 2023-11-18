@@ -30,91 +30,80 @@ local function calculateCirclePoints(centerX, centerY, centerZ, radius, numPoint
 end
 
 function Gizmos.CreateRotateGizmo()
-    Gizmos.RotateGizmoX = {}
-    Gizmos.RotateGizmoY = {}
-    Gizmos.RotateGizmoZ = {}
+    local circleDetail = 40;
 
-    local segments = 40;
-    local radius = 1;
-    local rad;
-    local pointCount = segments + 1;
-    local points = {}
+    Gizmos.RotateGizmo = 
+    {
+        lineCount = circleDetail * 3;
+        scale = 10;
+        vertices = {};
+        transformedVertices = {};
+        screenSpaceVertices = {};
+        faceColors = {};
+        lines = {};
+        lineDepths = {};
+    }
 
-    -- X
-    for i = 1, pointCount, 1 do
-        rad = math.rad(i * 360 / segments);
-        points[i] = {0, math.sin(rad) * radius, math.cos(rad) * radius};
-    end
-    Gizmos.RotateGizmoX.lineCount = (pointCount - 1);
-    Gizmos.RotateGizmoX.vertices = {};
-    Gizmos.RotateGizmoX.scale = 4;
-    Gizmos.RotateGizmoX.transformedVertices = {};
-    Gizmos.RotateGizmoX.screenSpaceVertices = {};
-    Gizmos.RotateGizmoX.faceColors = {};
-    Gizmos.RotateGizmoX.thickness = {};
+    local radius = 0.5;
 
-    for v = 1, pointCount, 1 do
-        if (v == pointCount - 1) then
-            Gizmos.RotateGizmoX.vertices[v] = {points[v], points[1]};
-            Gizmos.RotateGizmoX.transformedVertices[v] = {points[v], points[1]};
-        else
-            Gizmos.RotateGizmoX.vertices[v] = {points[v], points[v + 1]};
-            Gizmos.RotateGizmoX.transformedVertices[v] = {points[v], points[v + 1]};
+    local pointsX = calculateCirclePoints(0, 0, 0, radius, circleDetail, "x");
+    local i = 1;
+    for c = 1, circleDetail, 1 do
+        local a = pointsX[i];
+        local b = pointsX[i + 1];
+        if (i == circleDetail) then
+            b = pointsX[1];
         end
-        Gizmos.RotateGizmoX.screenSpaceVertices[v] = {{0, 0}, {0, 0}};
-        Gizmos.RotateGizmoX.faceColors[v] = {1, 0, 0};
-        Gizmos.RotateGizmoX.thickness[v] = 1;
+        Gizmos.RotateGizmo.vertices[c] = { a, b };
+        Gizmos.RotateGizmo.transformedVertices[c] = {{0,0,0}, {1,0,0}};
+        Gizmos.RotateGizmo.screenSpaceVertices[c] = {{0,0}, {0,0}};
+        Gizmos.RotateGizmo.faceColors[c] = {1,0,0,1};
+        Gizmos.RotateGizmo.lines[c] = lineProjectionFrame:CreateLine(nil, nil, nil);
+        Gizmos.RotateGizmo.lines[c].axis = 1;
+        i = i + 1;
     end
 
-    -- Y
-    for i = 1, pointCount, 1 do
-        rad = math.rad(i * 360 / segments);
-        points[i] = {math.sin(rad) * radius, 0, math.cos(rad) * radius};
-    end
-    Gizmos.RotateGizmoY.lineCount = (pointCount - 1);
-    Gizmos.RotateGizmoY.vertices = {};
-    Gizmos.RotateGizmoY.scale = 4;
-    Gizmos.RotateGizmoY.transformedVertices = {};
-    Gizmos.RotateGizmoY.screenSpaceVertices = {};
-    Gizmos.RotateGizmoY.faceColors = {};
-    Gizmos.RotateGizmoY.thickness = {};
-
-    for v = 1, pointCount, 1 do
-        if (v == pointCount - 1) then
-            Gizmos.RotateGizmoY.vertices[v] = {points[v], points[1]};
-            Gizmos.RotateGizmoY.transformedVertices[v] = {points[v], points[1]};
-        else
-            Gizmos.RotateGizmoY.vertices[v] = {points[v], points[v + 1]};
-            Gizmos.RotateGizmoY.transformedVertices[v] = {points[v], points[v + 1]};
+    local pointsY = calculateCirclePoints(0, 0, 0, radius, circleDetail, "y");
+    i = 1;
+    for c = 1 + circleDetail, 1 + circleDetail * 2, 1 do
+        local a = pointsY[i];
+        local b = pointsY[i + 1];
+        if (i == circleDetail) then
+            b = pointsY[1];
         end
-        Gizmos.RotateGizmoY.screenSpaceVertices[v] = {{0, 0}, {0, 0}};
-        Gizmos.RotateGizmoY.faceColors[v] = {0, 1, 0};
-        Gizmos.RotateGizmoY.thickness[v] = 1;
+        Gizmos.RotateGizmo.vertices[c] = { a, b };
+        Gizmos.RotateGizmo.transformedVertices[c] = {{0,0,0}, {0,1,0}};
+        Gizmos.RotateGizmo.screenSpaceVertices[c] = {{0,0}, {0,0}};
+        Gizmos.RotateGizmo.faceColors[c] = {0,1,0,1};
+        Gizmos.RotateGizmo.lines[c] = lineProjectionFrame:CreateLine(nil, nil, nil);
+        Gizmos.RotateGizmo.lines[c].axis = 2;
+        i = i + 1;
     end
 
-    -- Z
-    for i = 1, pointCount, 1 do
-        rad = math.rad(i * 360 / segments);
-        points[i] = {math.sin(rad) * radius, math.cos(rad) * radius, 0};
-    end
-    Gizmos.RotateGizmoZ.lineCount = (pointCount - 1);
-    Gizmos.RotateGizmoZ.vertices = {};
-    Gizmos.RotateGizmoZ.scale = 4;
-    Gizmos.RotateGizmoZ.transformedVertices = {};
-    Gizmos.RotateGizmoZ.screenSpaceVertices = {};
-    Gizmos.RotateGizmoZ.faceColors = {};
-    Gizmos.RotateGizmoZ.thickness = {};
-
-    for v = 1, pointCount, 1 do
-        if (v == pointCount - 1) then
-            Gizmos.RotateGizmoZ.vertices[v] = {points[v], points[1]};
-            Gizmos.RotateGizmoZ.transformedVertices[v] = {points[v], points[1]};
-        else
-            Gizmos.RotateGizmoZ.vertices[v] = {points[v], points[v + 1]};
-            Gizmos.RotateGizmoZ.transformedVertices[v] = {points[v], points[v + 1]};
+    local pointsZ = calculateCirclePoints(0, 0, 0, radius, circleDetail, "z");
+    i = 1;
+    for c = 1 + (circleDetail * 2), 1 + (circleDetail * 3), 1 do
+        local a = pointsZ[i];
+        local b = pointsZ[i + 1];
+        if (i == circleDetail) then
+            b = pointsZ[1];
         end
-        Gizmos.RotateGizmoZ.screenSpaceVertices[v] = {{0, 0}, {0, 0}};
-        Gizmos.RotateGizmoZ.faceColors[v] = {0, 0, 1};
-        Gizmos.RotateGizmoZ.thickness[v] = 1;
+        Gizmos.RotateGizmo.vertices[c] = { a, b };
+        Gizmos.RotateGizmo.transformedVertices[c] = {{0,0,0}, {0,0,1}};
+        Gizmos.RotateGizmo.screenSpaceVertices[c] = {{0,0}, {0,0}};
+        Gizmos.RotateGizmo.faceColors[c] = {0,0,1,1};
+        Gizmos.RotateGizmo.lines[c] = lineProjectionFrame:CreateLine(nil, nil, nil);
+        Gizmos.RotateGizmo.lines[c].axis = 3;
+        i = i + 1;
+    end
+
+    -- Frame --
+    local lineProjectionFrame = Gizmos.CreateLineProjectionFrame();
+    Gizmos.frames["RotateGizmoFrame"] = lineProjectionFrame;
+
+    -- Lines --
+    for t = 1, Gizmos.RotateGizmo.lineCount, 1 do
+        Gizmos.RotateGizmo.lines[t]:SetThickness(2.5);
+        Gizmos.RotateGizmo.lines[t]:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\line.png", "REPEAT", "REPEAT", "NEAREST");
     end
 end

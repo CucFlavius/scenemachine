@@ -110,7 +110,7 @@ function SH.RefreshHierarchy()
 end
 
 function SH.SelectObject(index)
-    print(index);
+    --print(index);
     local scene = PM.currentProject.scenes[SM.loadedSceneIndex];
     SM.selectedObject = scene.objects[index];
     SH.RefreshHierarchy()
