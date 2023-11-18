@@ -17,6 +17,7 @@ CC.Action.MoveForward = false;		-- true if move forward key pressed
 CC.Action.MoveBackward = false;		-- true if move backward key is pressed
 CC.Action.StrafeLeft = false;		-- true if strafe left key is pressed
 CC.Action.StrafeRight = false;		-- true if strafe right key is pressed
+CC.Action.ShiftSpeed = false;
 
 ----------------------------------
 --			Variables	 		--
@@ -30,32 +31,13 @@ CC.Position.y = 0; 					-- start position
 CC.Position.z = 1;					-- start position
 CC.keyboardTurnSpeed = 1;
 CC.moveSpeed = 0.1;
+CC.acceleration = 1.0;
+CC.maxAcceleration = 12.0;
 CC.mouseTurnSpeed = 0.2;
 
 --------------------------------------
 --			Keyboard Input			--
 --------------------------------------
-function CC.Input(key, pressed)
-	if key == "A" then
-		CC.Action.TurnLeft = pressed;
-	end
-	if key == "D" then
-		CC.Action.TurnRight = pressed;
-	end
-	if key == "W" then
-		CC.Action.MoveForward = pressed;
-	end
-	if key == "S" then
-		CC.Action.MoveBackward = pressed;
-	end
-	if key == "Q" then
-		CC.Action.StrafeLeft = pressed;
-	end
-	if key == "E" then
-		CC.Action.StrafeRight = pressed;
-	end
-end
-
 function CC.Initialize()
     SceneMachine.Input.AddKeyBind("W", function() CC.Action.MoveForward = true end, function() CC.Action.MoveForward = false end);
     SceneMachine.Input.AddKeyBind("S", function() CC.Action.MoveBackward = true end, function() CC.Action.MoveBackward = false end);
@@ -63,6 +45,7 @@ function CC.Initialize()
     SceneMachine.Input.AddKeyBind("D", function() CC.Action.TurnRight = true end, function() CC.Action.TurnRight = false end);
     SceneMachine.Input.AddKeyBind("Q", function() CC.Action.StrafeLeft = true end, function() CC.Action.StrafeLeft = false end);
     SceneMachine.Input.AddKeyBind("E", function() CC.Action.StrafeRight = true end, function() CC.Action.StrafeRight = false end);
+	SceneMachine.Input.AddKeyBind("LSHIFT", function() CC.Action.ShiftSpeed = true end, function() CC.Action.ShiftSpeed = false end);
     SceneMachine.Input.Initialize();
 
 	-- calculate speeds based on update interval --
@@ -71,6 +54,13 @@ function CC.Initialize()
 end
 
 function CC.Update()
+	if (CC.Action.ShiftSpeed == true) then
+		CC.acceleration = CC.acceleration + (SceneMachine.UPDATE_INTERVAL * 3.0);
+		CC.acceleration = math.min(CC.maxAcceleration, CC.acceleration);
+	else
+		CC.acceleration = 1.0;
+	end
+
     if CC.RMBPressed == false then
 	    if CC.Action.TurnLeft then
             CC.Direction = CC.Direction + CC.keyboardTurnSpeed;
@@ -87,24 +77,24 @@ function CC.Update()
 
 	if CC.Action.MoveForward then
 		local xf, yf, zf = SceneMachine.Renderer.projectionFrame:GetCameraForward();
-		CC.Position.x = CC.Position.x + (xf * CC.moveSpeed)
-		CC.Position.y = CC.Position.y + (yf * CC.moveSpeed)
-		CC.Position.z = CC.Position.z + (zf  * CC.moveSpeed)
+		CC.Position.x = CC.Position.x + (xf * CC.moveSpeed * CC.acceleration)
+		CC.Position.y = CC.Position.y + (yf * CC.moveSpeed * CC.acceleration)
+		CC.Position.z = CC.Position.z + (zf  * CC.moveSpeed * CC.acceleration)
 	end
 
 	if CC.Action.MoveBackward then
 		local xf, yf, zf = SceneMachine.Renderer.projectionFrame:GetCameraForward();
-		CC.Position.x = CC.Position.x - (xf * CC.moveSpeed)
-		CC.Position.y = CC.Position.y - (yf * CC.moveSpeed)
-		CC.Position.z = CC.Position.z - (zf  * CC.moveSpeed)
+		CC.Position.x = CC.Position.x - (xf * CC.moveSpeed * CC.acceleration);
+		CC.Position.y = CC.Position.y - (yf * CC.moveSpeed * CC.acceleration);
+		CC.Position.z = CC.Position.z - (zf * CC.moveSpeed * CC.acceleration);
 	end
 	if CC.Action.StrafeLeft then
-		CC.Position.x = CC.Position.x + (CC.moveSpeed * math.cos(DegreeToRadian(CC.Direction + 90)));
-		CC.Position.y = CC.Position.y + (CC.moveSpeed * math.sin(DegreeToRadian(CC.Direction + 90)));
+		CC.Position.x = CC.Position.x + (CC.moveSpeed * CC.acceleration * math.cos(DegreeToRadian(CC.Direction + 90)));
+		CC.Position.y = CC.Position.y + (CC.moveSpeed * CC.acceleration * math.sin(DegreeToRadian(CC.Direction + 90)));
 	end
 	if CC.Action.StrafeRight then
-		CC.Position.x = CC.Position.x + (CC.moveSpeed * math.cos(DegreeToRadian(CC.Direction - 90)));
-		CC.Position.y = CC.Position.y + (CC.moveSpeed * math.sin(DegreeToRadian(CC.Direction - 90)));
+		CC.Position.x = CC.Position.x + (CC.moveSpeed * CC.acceleration * math.cos(DegreeToRadian(CC.Direction - 90)));
+		CC.Position.y = CC.Position.y + (CC.moveSpeed * CC.acceleration * math.sin(DegreeToRadian(CC.Direction - 90)));
 	end
 
     SceneMachine.Camera.X = CC.Position.x;
