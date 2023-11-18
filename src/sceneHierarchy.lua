@@ -105,8 +105,6 @@ function SH.RefreshHierarchy()
     -- resize --
     SH.scrollList.Scrollbar:SetMinMaxValues(0, max((index * 20) - (150), 1));
 	SH.scrollList.Scrollbar:SetValueStep(1);
-
-    Gizmos.refresh = true;
 end
 
 function SH.SelectObject(index)

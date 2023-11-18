@@ -8,7 +8,6 @@ local Input = SceneMachine.Input;
 
 Gizmos.isUsed = false;
 Gizmos.isHighlighted = false;
-Gizmos.refresh = false;
 Gizmos.selectedAxis = 1;
 Gizmos.activeTransformGizmo = 1;
 Gizmos.LMBPrevious = {};
@@ -83,8 +82,6 @@ function Gizmos.Update()
 
     -- Update the gizmo transform --
     Gizmos.UpdateGizmoTransform();
-
-    Gizmos.refresh = false;
 end
 
 function Gizmos.SelectionCheck(mouseX, mouseY)
@@ -275,9 +272,7 @@ end
 function Gizmos.MotionToTransform()
     if (Gizmos.isUsed) then
         -- when using the gizmo (clicked), keep it highlighted even if the mouse moves away
-        if (not Gizmos.refresh) then
-            Gizmos.highlightedAxis = Gizmos.selectedAxis;
-        end
+        Gizmos.highlightedAxis = Gizmos.selectedAxis;
 
 		local curX, curY = GetCursorPosition();
 
@@ -343,10 +338,7 @@ function Gizmos.MotionToTransform()
                         pz = pz + (scale * Gizmos.vectorZ[3]);
                     end
                 end
-
-                if (Gizmos.refresh ~= true) then
-                    SM.selectedObject:SetPosition(px, py, pz);
-                end
+                SM.selectedObject:SetPosition(px, py, pz);
             elseif (Gizmos.activeTransformGizmo == 2) then
                 Gizmos.increment = Gizmos.increment + diff;
                 if (Gizmos.selectedAxis == 1) then
@@ -377,10 +369,7 @@ function Gizmos.MotionToTransform()
                         rz = rot[3];
                     end
                 end
-
-                if (Gizmos.refresh ~= true) then
-                    SM.selectedObject:SetRotation(rx, ry, rz);
-                end
+                SM.selectedObject:SetRotation(rx, ry, rz);
             elseif (Gizmos.activeTransformGizmo == 3) then
 
             end
@@ -403,7 +392,7 @@ local function normalize(vector)
       -- Handle the case where the vector is a zero vector (magnitude is zero)
       return {0, 0, 0}
     end
-  end
+end
 
 function Gizmos.OnLMBDown(x, y)
 	Gizmos.LMBPrevious.x = x;

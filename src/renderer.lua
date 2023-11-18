@@ -115,8 +115,6 @@ function Renderer.AddActor(fileID, X, Y, Z)
     actor:SetPosition(X, Y, Z);
     --actor:SetUseCenterForOrigin(0, 0, 0);
 
-    Gizmos.refresh = true;
-
     return actor;
 end
 

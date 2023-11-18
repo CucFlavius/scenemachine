@@ -26,7 +26,6 @@ function OP.CreateTransformProperties(x, y, w, h, parent)
     resetPosButton:SetScript("OnClick", function(self)
         if (SM.selectedObject ~= nil) then
             SM.selectedObject:SetPosition(0, 0, 0);
-            Gizmos.refresh = true;
             OP.Refresh();
         end
     end);
@@ -39,7 +38,6 @@ function OP.CreateTransformProperties(x, y, w, h, parent)
     resetRotButton:SetScript("OnClick", function(self)
         if (SM.selectedObject ~= nil) then
             SM.selectedObject:SetRotation(0, 0, 0);
-            Gizmos.refresh = true;
             OP.Refresh();
         end
     end);
@@ -73,7 +71,6 @@ function OP.CreateTransformProperties(x, y, w, h, parent)
     resetScaleButton:SetScript("OnClick", function(self)
         if (SM.selectedObject ~= nil) then
             SM.selectedObject:SetScale(1);
-            Gizmos.refresh = true;
             OP.Refresh();
         end
     end);
@@ -142,7 +139,6 @@ function OP.SetPosX(self)
     end
     local pos = SM.selectedObject:GetPosition();
     SM.selectedObject:SetPosition(self.value, pos.y, pos.z);
-    Gizmos.refresh = true;
 end
 
 function OP.SetPosY(self)
@@ -151,7 +147,6 @@ function OP.SetPosY(self)
     end
     local pos = SM.selectedObject:GetPosition();
     SM.selectedObject:SetPosition(pos.x, self.value, pos.z);
-    Gizmos.refresh = true;
 end
 
 function OP.SetPosZ(self)
@@ -160,7 +155,6 @@ function OP.SetPosZ(self)
     end
     local pos = SM.selectedObject:GetPosition();
     SM.selectedObject:SetPosition(pos.x, pos.y, self.value);
-    Gizmos.refresh = true;
 end
 
 function OP.SetRotX(self)
@@ -169,7 +163,6 @@ function OP.SetRotX(self)
     end
     local rot = SM.selectedObject:GetRotation();
     SM.selectedObject:SetRotation(rad(self.value), rot.y, rot.z);
-    Gizmos.refresh = true;
 end
 
 function OP.SetRotY(self)
@@ -178,7 +171,6 @@ function OP.SetRotY(self)
     end
     local rot = SM.selectedObject:GetRotation();
     SM.selectedObject:SetRotation(rot.x, rad(self.value), rot.z);
-    Gizmos.refresh = true;
 end
 
 function OP.SetRotZ(self)
@@ -187,7 +179,6 @@ function OP.SetRotZ(self)
     end
     local rot = SM.selectedObject:GetRotation();
     SM.selectedObject:SetRotation(rot.x, rot.y, rad(self.value));
-    Gizmos.refresh = true;
 end
 
 function OP.SetScale(self)
@@ -195,7 +186,6 @@ function OP.SetScale(self)
         return;
     end
     SM.selectedObject:SetScale(self.value);
-    Gizmos.refresh = true;
 end
 
 function OP.Truncate(num, digits)
