@@ -43,9 +43,11 @@ function Gizmos.CreateRotateGizmo()
         lines = {};
         lineDepths = {};
     }
-
+    
+    local lineProjectionFrame = Gizmos.CreateLineProjectionFrame();
+    Gizmos.frames["RotateGizmoFrame"] = lineProjectionFrame;
+    
     local radius = 0.5;
-
     local pointsX = calculateCirclePoints(0, 0, 0, radius, circleDetail, "x");
     local i = 1;
     for c = 1, circleDetail, 1 do
@@ -96,10 +98,6 @@ function Gizmos.CreateRotateGizmo()
         Gizmos.RotateGizmo.lines[c].axis = 3;
         i = i + 1;
     end
-
-    -- Frame --
-    local lineProjectionFrame = Gizmos.CreateLineProjectionFrame();
-    Gizmos.frames["RotateGizmoFrame"] = lineProjectionFrame;
 
     -- Lines --
     for t = 1, Gizmos.RotateGizmo.lineCount, 1 do

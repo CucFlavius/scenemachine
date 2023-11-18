@@ -65,6 +65,10 @@ function Gizmos.CreateMoveGizmo()
         lines = {};
         lineDepths = {};
     }
+
+    local lineProjectionFrame = Gizmos.CreateLineProjectionFrame();
+    Gizmos.frames["MoveGizmoFrame"] = lineProjectionFrame;
+
     -- Create cone vertices --
     -- calculateCirclePoints(centerX, centerY, centerZ, radius, numPoints, axis)
     local radius = 0.02;
@@ -98,10 +102,6 @@ function Gizmos.CreateMoveGizmo()
         Gizmos.MoveGizmo.faceColors[c] = {0,0,1,1};
         i = i + 1;
     end
-
-    -- Frame --
-    local lineProjectionFrame = Gizmos.CreateLineProjectionFrame();
-    Gizmos.frames["MoveGizmoFrame"] = lineProjectionFrame;
 
     -- Lines --
     for t = 1, Gizmos.MoveGizmo.lineCount, 1 do

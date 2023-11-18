@@ -125,7 +125,6 @@ function Renderer.Clear()
     end
 end
 
----Render a 2D Quad
 --Set a screen space frame properties such as vertex position and color
 ---@param frame table Wow frame to use for this quad
 ---@param color table Color

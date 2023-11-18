@@ -9,7 +9,7 @@ Gizmos.isUsed = false;
 Gizmos.isHighlighted = false;
 Gizmos.refresh = false;
 Gizmos.selectedAxis = 1;
-Gizmos.activeTransformGizmo = 2;
+Gizmos.activeTransformGizmo = 0;
 Gizmos.LMBPrevious = {};
 Gizmos.frames = {};
 
@@ -55,6 +55,7 @@ function Gizmos.CreateLineProjectionFrame()
 	lineProjectionFrame.texture:SetColorTexture(0,0,0,0);
 	lineProjectionFrame.texture:SetAllPoints(Renderer.lineProjectionFrame);
 	lineProjectionFrame:SetFrameLevel(101);
+    lineProjectionFrame:Hide();
     return lineProjectionFrame;
 end
 
@@ -124,6 +125,25 @@ function Gizmos.Update()
         end
     end
 
+    if (SM.selectedObject ~= nil) then
+        Gizmos.frames["SelectionGizmoFrame"]:Show();
+
+        if(Gizmos.activeTransformGizmo == 1) then
+            Gizmos.frames["MoveGizmoFrame"]:Show();
+            Gizmos.frames["RotateGizmoFrame"]:Hide();
+        elseif (Gizmos.activeTransformGizmo == 2) then
+            Gizmos.frames["MoveGizmoFrame"]:Hide();
+            Gizmos.frames["RotateGizmoFrame"]:Show();
+        else
+            Gizmos.frames["MoveGizmoFrame"]:Hide();
+            Gizmos.frames["RotateGizmoFrame"]:Hide();
+        end
+    else
+        Gizmos.frames["SelectionGizmoFrame"]:Hide();
+        Gizmos.frames["MoveGizmoFrame"]:Hide();
+        Gizmos.frames["RotateGizmoFrame"]:Hide();
+    end
+
     if (Gizmos.isUsed or Gizmos.refresh) then
 
         -- when using the gizmo (clicked), keep it highlighted even if the mouse moves away
@@ -145,16 +165,6 @@ function Gizmos.Update()
 
         if (Gizmos.refresh == true) then
             diff = 0;
-        end
-
-        if (SM.selectedObject ~= nil) then
-            Gizmos.frames["SelectionGizmoFrame"]:Show();
-            if(Gizmos.activeTransformGizmo == 1) then
-                Gizmos.frames["MoveGizmoFrame"]:Show();
-            end
-        else
-            Gizmos.frames["SelectionGizmoFrame"]:Hide();
-            Gizmos.frames["MoveGizmoFrame"]:Hide();
         end
 
         if (SM.selectedObject ~= nil) then
@@ -181,7 +191,7 @@ function Gizmos.Update()
                 -- TODO: This needs to be done outside of Gizmos.isUsed
                 -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
                 --SceneMachine.Gizmos.MoveGizmo.scale = manhattanDistance3D(x, y, z, Camera.X, Camera.Y, Camera.Z) / 10;
-                Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, {px, py, pz}, bbCenter);
+                Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, {px, py, pz}, {rx, ry, rz}, bbCenter);
             elseif (Gizmos.activeTransformGizmo == 2) then
 
                 if (Gizmos.selectedAxis == 1) then
@@ -193,7 +203,7 @@ function Gizmos.Update()
                 end
 
                 SM.selectedObject:SetRotation(rx, ry, rz);
-                Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmo, {px, py, pz}, bbCenter);
+                Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmo, {px, py, pz}, {rx, ry, rz}, bbCenter);
             elseif (Gizmos.activeTransformGizmo == 3) then
 
             end
@@ -218,7 +228,7 @@ function Gizmos.OnLMBUp()
     Gizmos.isUsed = false;
 end
 
-function Gizmos.transformGizmo(gizmo, position, boundsCenter)
+function Gizmos.transformGizmo(gizmo, position, rotation, boundsCenter)
     for q = 1, gizmo.lineCount, 1 do
         for v = 1, 2, 1 do
             gizmo.transformedVertices[q][v][1] = (gizmo.vertices[q][v][1] * gizmo.scale) + position[1];-- + boundsCenter[1];

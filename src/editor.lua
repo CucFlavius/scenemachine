@@ -5,6 +5,7 @@ local Renderer = SceneMachine.Renderer;
 local SH = Editor.SceneHierarchy;
 local MousePick = Editor.MousePick;
 local OP = Editor.ObjectProperties;
+local Gizmos = SceneMachine.Gizmos;
 
 Editor.width = 1280;
 Editor.height = 720;
@@ -77,7 +78,15 @@ function Editor.CreateToolbar()
     local toolbar = Win.CreateRectangle(0, -15, Editor.width, 30, SceneMachine.mainWindow, "TOP", "TOP", c1[1], c1[2], c1[3], 1);
     toolbar.button1 = Win.CreateButton(0, 0, 30, 30, toolbar, "LEFT", "LEFT", "Project Manager", nil, "BUTTON_VS");
     toolbar.button1:SetScript("OnClick", function(self) Editor.ProjectManager.OpenWindow() end);
-    toolbar.button2 = Win.CreateButton(30, 0, 30, 30, toolbar, "LEFT", "LEFT", "Btn", nil, "BUTTON_VS");
+
+    toolbar.button2 = Win.CreateButton(30, 0, 30, 30, toolbar, "LEFT", "LEFT", "Select", nil, "BUTTON_VS");
+    toolbar.button2:SetScript("OnClick", function(self) Gizmos.activeTransformGizmo = 0; Gizmos.refresh = true; end);
+
+    toolbar.button3 = Win.CreateButton(60, 0, 30, 30, toolbar, "LEFT", "LEFT", "Move", nil, "BUTTON_VS");
+    toolbar.button3:SetScript("OnClick", function(self) Gizmos.activeTransformGizmo = 1; Gizmos.refresh = true; end);
+
+    toolbar.button4 = Win.CreateButton(90, 0, 30, 30, toolbar, "LEFT", "LEFT", "Rotate", nil, "BUTTON_VS");
+    toolbar.button4:SetScript("OnClick", function(self) Gizmos.activeTransformGizmo = 2; Gizmos.refresh = true; end);
 end
 
 function Editor.CreateRightPanel()
