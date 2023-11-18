@@ -20,7 +20,7 @@ function MousePick.Initialize()
         {ch, ch, ch},
         {-ch, ch, ch},
     };
-    MousePick.bbTransformedVertices = 
+    MousePick.bbTransVerts = 
     {
         {-ch, -ch, -ch},
         {ch, -ch, -ch},
@@ -37,15 +37,7 @@ function MousePick.Initialize()
     };
 end
 
-function MousePick.Pick()
-    local mouseX, mouseY = GetCursorPosition();
-    -- calculate mouse relative to frame
-    local xOfs = Renderer.projectionFrame:GetLeft();
-    local yOfs = Renderer.projectionFrame:GetBottom();
-
-    local relativeMouseX = mouseX - xOfs;
-    local relativeMouseY = mouseY - yOfs;
-
+function MousePick.Pick(x, y)
     local scene = PM.currentProject.scenes[SM.loadedSceneIndex];
     for i in pairs(scene.objects) do
         local object = scene.objects[i];
@@ -60,7 +52,7 @@ function MousePick.Pick()
         local chY = (yMax - yMin) / 2;
         local chZ = (zMax - zMin) / 2;
 
-        MousePick.bbTransformedVertices = 
+        MousePick.bbTransVerts = 
         {
             {-chX, -chY, -chZ},
             {chX, -chY, -chZ},
@@ -75,19 +67,20 @@ function MousePick.Pick()
         local position = object:GetPosition();
 
         for q = 1, 8, 1 do
-            MousePick.bbTransformedVertices[q][1] = MousePick.bbTransformedVertices[q][1] + position.x;
-            MousePick.bbTransformedVertices[q][2] = MousePick.bbTransformedVertices[q][2] + position.y;
-            MousePick.bbTransformedVertices[q][3] = MousePick.bbTransformedVertices[q][3] + position.z + chZ;
+            MousePick.bbTransVerts[q][1] = MousePick.bbTransVerts[q][1] + position.x;
+            MousePick.bbTransVerts[q][2] = MousePick.bbTransVerts[q][2] + position.y;
+            MousePick.bbTransVerts[q][3] = MousePick.bbTransVerts[q][3] + position.z + chZ;
         end
 
         -- fix v --
         for q = 1, 8, 1 do
-            local X, Y = Renderer.projectionFrame:Project3DPointTo2D(MousePick.bbTransformedVertices[q][1],MousePick.bbTransformedVertices[q][2],MousePick.bbTransformedVertices[q][3]);
+            local X, Y = Renderer.projectionFrame:Project3DPointTo2D(MousePick.bbTransVerts[q][1], MousePick.bbTransVerts[q][2], MousePick.bbTransVerts[q][3]);
             MousePick.ssbbVertices[q][1] = X;
             MousePick.ssbbVertices[q][2] = Y;
         end
 
-        local isInside = MousePick.IsPointInsidePolygon(relativeMouseX, relativeMouseY, MousePick.FindConvexHull(MousePick.ssbbVertices))
+        local convexVerts = MousePick.FindConvexHull(MousePick.ssbbVertices);
+        local isInside = MousePick.IsPointInsidePolygon(x, y, convexVerts);
 
         if (isInside) then
             SM.selectedObject = object;
@@ -101,7 +94,6 @@ function MousePick.Pick()
         OP.Refresh();
     end
 end
-
 
 function MousePick.IsPointInsidePolygon(x, y, polygon)
     local oddNodes = false

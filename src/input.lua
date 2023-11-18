@@ -63,6 +63,8 @@ function Input.Update()
         return;
     end
 
+    local relativeX, relativeY = x - frameXMin, y - frameYMin;
+
     if (Input.PreviousMouseState.LMB ~= LMB) then
         if (LMB == true) then
             -- LMB DOWN
@@ -108,10 +110,10 @@ function Input.Update()
             if (dragDistX > dragDiffMin or dragDistY > dragDiffMin) then
                 -- started dragging
                 Input.PreviousMouseState.isDragging = true;
-                Input.OnDragStart();
+                Input.OnDragStart(LMB, RMB, MMB);
             else
                 -- regular click
-                Input.OnClick(LMB, RMB, MMB);
+                Input.OnClick(LMB, RMB, MMB, relativeX, relativeY);
             end
         end
     end
@@ -122,10 +124,7 @@ function Input.Update()
     Input.PreviousMouseState.MMB = MMB;
 end
 
-function Input.OnDragStart()
-    local LMB = IsMouseButtonDown("LeftButton");
-    local RMB = IsMouseButtonDown("RightButton");
-
+function Input.OnDragStart(LMB, RMB, MMB)
     if LMB and RMB then return end
 
     if RMB then
@@ -148,10 +147,12 @@ function Input.OnDragStop()
     end
 end
 
-function Input.OnClick(LMB, RMB, MMB)
+function Input.OnClick(LMB, RMB, MMB, x, y)
     if (LMB) then
         -- mouse pick --
-        MousePick.Pick();
+        if not Gizmos.isHighlighted then
+            MousePick.Pick(x, y);
+        end
     elseif (RMB) then
         -- open RMB context menu --
     elseif (MMB) then

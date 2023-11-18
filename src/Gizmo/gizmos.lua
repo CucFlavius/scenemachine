@@ -9,7 +9,7 @@ Gizmos.isUsed = false;
 Gizmos.isHighlighted = false;
 Gizmos.refresh = false;
 Gizmos.selectedAxis = 1;
-Gizmos.activeTransformGizmo = 0;
+Gizmos.activeTransformGizmo = 1;
 Gizmos.LMBPrevious = {};
 Gizmos.frames = {};
 
@@ -219,8 +219,6 @@ end
 function Gizmos.OnLMBDown(x, y)
 	Gizmos.LMBPrevious.x = x;
 	Gizmos.LMBPrevious.y = y;
-    --local x, y, z = Renderer.selectedActor:GetPosition();
-    --Gizmos.previousPosition = {x, y, z};
     Gizmos.isUsed = true;
 end
 
