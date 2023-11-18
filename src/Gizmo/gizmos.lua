@@ -156,7 +156,7 @@ function Gizmos.MotionToTransform()
         if (not Gizmos.refresh) then
             Gizmos.highlightedAxis = Gizmos.selectedAxis;
         end
-        
+
 		local curX, curY = GetCursorPosition();
 
         if (Gizmos.LMBPrevious.x == nil) then
@@ -169,15 +169,16 @@ function Gizmos.MotionToTransform()
         local diff = ((xDiff + yDiff) / 2) / 100;
 
         if (SM.selectedObject ~= nil) then
-            Gizmos.transformToActorAABB(SceneMachine.Gizmos.WireBox, SM.selectedObject, { SM.selectedObject.position.x, SM.selectedObject.position.y, SM.selectedObject.position.z });
-            
             local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObject:GetActiveBoundingBox();
             local bbCenter = {(xMax - xMin) / 2, (yMax - yMin) / 2, (zMax - zMin) / 2};
-
+            
             local position = SM.selectedObject:GetPosition();
             local px, py, pz = position.x, position.y, position.z;
             local rotation = SM.selectedObject:GetRotation();
             local rx, ry, rz = rotation.x, rotation.y, rotation.z;
+            
+            Gizmos.transformToAABB(SceneMachine.Gizmos.WireBox, bbCenter);
+            Gizmos.transformGizmo(SceneMachine.Gizmos.WireBox, {px, py, pz}, {rx, ry, rz}, bbCenter);
 
             if (Gizmos.activeTransformGizmo == 1) then
                 if (Gizmos.selectedAxis == 1) then
@@ -286,43 +287,35 @@ function Gizmos.transformGizmo(gizmo, position, rotation, boundsCenter)
     end
 end
 
-function Gizmos.transformToActorAABB(gizmo, object, position)
+function Gizmos.transformToAABB(gizmo, boundsCenter)
+    local chX = boundsCenter[1];
+    local chY = boundsCenter[2];
+    local chZ = boundsCenter[3];
 
-    xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
+    gizmo.vertices[1][1] = {-chX, -chY, -chZ};
+    gizmo.vertices[1][2] = {chX, -chY, -chZ};
+    gizmo.vertices[2][1] = {chX, -chY, -chZ};
+    gizmo.vertices[2][2] = {chX, -chY, chZ};
+    gizmo.vertices[3][1] = {chX, -chY, chZ};
+    gizmo.vertices[3][2] = {-chX, -chY, chZ};
+    gizmo.vertices[4][1] = {-chX, -chY, chZ};
+    gizmo.vertices[4][2] = {-chX, -chY, -chZ};
 
-    if (xMax == nil) then return; end
+    gizmo.vertices[5][1] = {-chX, chY, -chZ};
+    gizmo.vertices[5][2] = {chX, chY, -chZ};
+    gizmo.vertices[6][1] = {chX, chY, -chZ};
+    gizmo.vertices[6][2] = {chX, chY, chZ};
+    gizmo.vertices[7][1] = {chX, chY, chZ};
+    gizmo.vertices[7][2] = {-chX, chY, chZ};
+    gizmo.vertices[8][1] = {-chX, chY, chZ};
+    gizmo.vertices[8][2] = {-chX, chY, -chZ};
 
-    local chX = (xMax - xMin) / 2;
-    local chY = (yMax - yMin) / 2;
-    local chZ = (zMax - zMin) / 2;
-
-    -- TODO : recreating this every frame is a bad idea
-    -- Should have it only update this bit when the gizmo is set active on an actor
-    gizmo.transformedVertices =
-    {
-        {{-chX, -chY, -chZ}, {chX, -chY, -chZ}},
-        {{chX, -chY, -chZ}, {chX, -chY, chZ}},
-        {{chX, -chY, chZ}, {-chX, -chY, chZ}},
-        {{-chX, -chY, chZ}, {-chX, -chY, -chZ}},
-    
-        -- Top face
-        {{-chX, chY, -chZ}, {chX, chY, -chZ}},
-        {{chX, chY, -chZ}, {chX, chY, chZ}},
-        {{chX, chY, chZ}, {-chX, chY, chZ}},
-        {{-chX, chY, chZ}, {-chX, chY, -chZ}},
-    
-        -- Connecting edges
-        {{-chX, -chY, -chZ}, {-chX, chY, -chZ}},
-        {{chX, -chY, -chZ}, {chX, chY, -chZ}},
-        {{chX, -chY, chZ}, {chX, chY, chZ}},
-        {{-chX, -chY, chZ}, {-chX, chY, chZ}}
-    }
-
-    for q = 1, gizmo.lineCount, 1 do
-        for v = 1, 2, 1 do
-            gizmo.transformedVertices[q][v][1] = gizmo.transformedVertices[q][v][1] + position[1];
-            gizmo.transformedVertices[q][v][2] = gizmo.transformedVertices[q][v][2] + position[2];
-            gizmo.transformedVertices[q][v][3] = gizmo.transformedVertices[q][v][3] + position[3] + chZ;
-        end
-    end
+    gizmo.vertices[9][1] = {-chX, -chY, -chZ};
+    gizmo.vertices[9][2] = {-chX, chY, -chZ};
+    gizmo.vertices[10][1] = {chX, -chY, -chZ};
+    gizmo.vertices[10][2] = {chX, chY, -chZ};
+    gizmo.vertices[11][1] = {chX, -chY, chZ};
+    gizmo.vertices[11][2] = {chX, chY, chZ};
+    gizmo.vertices[12][1] = {-chX, -chY, chZ};
+    gizmo.vertices[12][2] = {-chX, chY, chZ};
 end

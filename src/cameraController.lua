@@ -24,12 +24,12 @@ CC.Action.StrafeRight = false;		-- true if strafe right key is pressed
 CC.FoV = 70;						-- Field of View in degrees
 CC.Direction = 180;					-- The start angle at which the player is looking in degrees ( in degrees )
 CC.Pitch = 0;
-CC.Position = {};					-- the player position table
-CC.Position.x = 0; 				-- player x start position on map
-CC.Position.y = 0; 				-- player y start position on map
-CC.Position.z = 1;
-CC.keyboardTurnSpeed = 1;--0.4;					-- player turn speed
-CC.moveSpeed = 0.05;--0.01;				-- player movement speed
+CC.Position = {};					-- the position table
+CC.Position.x = 0; 					-- start position
+CC.Position.y = 0; 					-- start position
+CC.Position.z = 1;					-- start position
+CC.keyboardTurnSpeed = 1;
+CC.moveSpeed = 0.1;
 CC.mouseTurnSpeed = 0.2;
 
 --------------------------------------
