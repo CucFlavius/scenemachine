@@ -150,6 +150,59 @@ local function dotProduct(aX, aY, bX, bY)
     return aX * bX + aY * bY
 end
 
+local function rotatePoint(point, angles)
+    local x, y, z = point[1], point[2], point[3]
+    local rx, ry, rz = angles[1], angles[2], angles[3]
+
+    -- Rotate around x-axis
+    local cosRx = math.cos(rx)
+    local sinRx = math.sin(rx)
+    local newY = y * cosRx - z * sinRx
+    local newZ = y * sinRx + z * cosRx
+
+    -- Rotate around y-axis
+    local cosRy = math.cos(ry)
+    local sinRy = math.sin(ry)
+    local newX = x * cosRy + newZ * sinRy
+    newZ = -x * sinRy + newZ * cosRy
+
+    -- Rotate around z-axis
+    local cosRz = math.cos(rz)
+    local sinRz = math.sin(rz)
+    local finalX = newX * cosRz - newY * sinRz
+    local finalY = newX * sinRz + newY * cosRz
+
+    return {finalX, finalY, newZ}
+end
+
+function directionalVector(rx, ry, rz)
+    -- Calculate the components of the directional vector
+    local x = math.sin(ry) * math.cos(rx)
+    local y = math.sin(rx)
+    local z = math.cos(ry) * math.cos(rx)
+
+    return {x, y, z}
+end
+
+function rotateVector(rx, ry, rz, vector)
+    -- Rotation around the x-axis
+    local rotatedX = vector[1]
+    local rotatedY = vector[2] * math.cos(rx) - vector[3] * math.sin(rx)
+    local rotatedZ = vector[2] * math.sin(rx) + vector[3] * math.cos(rx)
+
+    -- Rotation around the y-axis
+    local tempX = rotatedX * math.cos(ry) + rotatedZ * math.sin(ry)
+    local tempY = rotatedY
+    local tempZ = -rotatedX * math.sin(ry) + rotatedZ * math.cos(ry)
+
+    -- Rotation around the z-axis
+    local finalX = tempX * math.cos(rz) - tempY * math.sin(rz)
+    local finalY = tempX * math.sin(rz) + tempY * math.cos(rz)
+    local finalZ = tempZ
+
+    return {finalX, finalY, finalZ}
+end
+
 function Gizmos.MotionToTransform()
     if (Gizmos.isUsed or Gizmos.refresh) then
         -- when using the gizmo (clicked), keep it highlighted even if the mouse moves away
@@ -176,7 +229,7 @@ function Gizmos.MotionToTransform()
             local px, py, pz = position.x, position.y, position.z;
             local rotation = SM.selectedObject:GetRotation();
             local rx, ry, rz = rotation.x, rotation.y, rotation.z;
-            
+
             Gizmos.transformToAABB(SceneMachine.Gizmos.WireBox, bbCenter);
             Gizmos.transformGizmo(SceneMachine.Gizmos.WireBox, {px, py, pz}, {rx, ry, rz}, bbCenter);
 
@@ -188,7 +241,10 @@ function Gizmos.MotionToTransform()
                         Gizmos.MoveGizmo.screenSpaceVertices[1][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][1],
                         Gizmos.MoveGizmo.screenSpaceVertices[1][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][2]
                     );
-                    px = px + (dot / 2000); -- TODO : this divide needs to be based on how close the camera is to the object, or better yet the gizmo scale (when that works)
+                    local vector = rotateVector(rx, ry, rz, {1, 0, 0});
+                    px = px + ((dot / 2000) * vector[1]); -- TODO : this divide needs to be based on how close the camera is to the object, or better yet the gizmo scale (when that works)
+                    py = py + ((dot / 2000) * vector[2]);
+                    pz = pz + ((dot / 2000) * vector[3]);
                 elseif (Gizmos.selectedAxis == 2) then
                     local dot = dotProduct(
                         curX - Gizmos.LMBPrevious.x,
@@ -196,7 +252,10 @@ function Gizmos.MotionToTransform()
                         Gizmos.MoveGizmo.screenSpaceVertices[2][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][1],
                         Gizmos.MoveGizmo.screenSpaceVertices[2][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][2]
                     );
-                    py = py + (dot / 2000);
+                    local vector = rotateVector(rx, ry, rz, {0, 1, 0});
+                    px = px + ((dot / 2000) * vector[1]); -- TODO : this divide needs to be based on how close the camera is to the object, or better yet the gizmo scale (when that works)
+                    py = py + ((dot / 2000) * vector[2]);
+                    pz = pz + ((dot / 2000) * vector[3]);
                 elseif (Gizmos.selectedAxis == 3) then
                     local dot = dotProduct(
                         curX - Gizmos.LMBPrevious.x,
@@ -204,7 +263,10 @@ function Gizmos.MotionToTransform()
                         Gizmos.MoveGizmo.screenSpaceVertices[3][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[3][1][1],
                         Gizmos.MoveGizmo.screenSpaceVertices[3][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[3][1][2]
                     );
-                    pz = pz + (dot / 2000);
+                    local vector = rotateVector(rx, ry, rz, {0, 0, 1});
+                    px = px + ((dot / 2000) * vector[1]); -- TODO : this divide needs to be based on how close the camera is to the object, or better yet the gizmo scale (when that works)
+                    py = py + ((dot / 2000) * vector[2]);
+                    pz = pz + ((dot / 2000) * vector[3]);
                 end
 
                 if (Gizmos.refresh ~= true) then
@@ -249,31 +311,6 @@ end
 
 function Gizmos.OnLMBUp()
     Gizmos.isUsed = false;
-end
-
-local function rotatePoint(point, angles)
-    local x, y, z = point[1], point[2], point[3]
-    local rx, ry, rz = angles[1], angles[2], angles[3]
-
-    -- Rotate around x-axis
-    local cosRx = math.cos(rx)
-    local sinRx = math.sin(rx)
-    local newY = y * cosRx - z * sinRx
-    local newZ = y * sinRx + z * cosRx
-
-    -- Rotate around y-axis
-    local cosRy = math.cos(ry)
-    local sinRy = math.sin(ry)
-    local newX = x * cosRy + newZ * sinRy
-    newZ = -x * sinRy + newZ * cosRy
-
-    -- Rotate around z-axis
-    local cosRz = math.cos(rz)
-    local sinRz = math.sin(rz)
-    local finalX = newX * cosRz - newY * sinRz
-    local finalY = newX * sinRz + newY * cosRz
-
-    return {finalX, finalY, newZ}
 end
 
 function Gizmos.transformGizmo(gizmo, position, rotation, boundsCenter)
