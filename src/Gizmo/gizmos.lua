@@ -13,6 +13,9 @@ Gizmos.selectedAxis = 1;
 Gizmos.activeTransformGizmo = 1;
 Gizmos.LMBPrevious = {};
 Gizmos.frames = {};
+Gizmos.vectorX = {1,0,0};
+Gizmos.vectorY = {0,1,0};
+Gizmos.vectorZ = {0,0,1};
 
 local function sqr(x)
     return x * x;
@@ -74,6 +77,9 @@ function Gizmos.Update()
 
     -- Handle gizmo motion to transformation --
     Gizmos.MotionToTransform();
+
+    -- Update the gizmo transform --
+    Gizmos.UpdateGizmoTransform();
 
     Gizmos.refresh = false;
 end
@@ -175,20 +181,11 @@ local function rotatePoint(point, angles)
     return {finalX, finalY, newZ}
 end
 
-function directionalVector(rx, ry, rz)
-    -- Calculate the components of the directional vector
-    local x = math.sin(ry) * math.cos(rx)
-    local y = math.sin(rx)
-    local z = math.cos(ry) * math.cos(rx)
-
-    return {x, y, z}
-end
-
-function rotateVector(rx, ry, rz, vector)
+function rotateVector(rx, ry, rz, vx, vy, vz)
     -- Rotation around the x-axis
-    local rotatedX = vector[1]
-    local rotatedY = vector[2] * math.cos(rx) - vector[3] * math.sin(rx)
-    local rotatedZ = vector[2] * math.sin(rx) + vector[3] * math.cos(rx)
+    local rotatedX = vx
+    local rotatedY = vy * math.cos(rx) - vz * math.sin(rx)
+    local rotatedZ = vy * math.sin(rx) + vz * math.cos(rx)
 
     -- Rotation around the y-axis
     local tempX = rotatedX * math.cos(ry) + rotatedZ * math.sin(ry)
@@ -203,8 +200,35 @@ function rotateVector(rx, ry, rz, vector)
     return {finalX, finalY, finalZ}
 end
 
+function Gizmos.UpdateGizmoTransform()
+    if (SM.selectedObject == nil) then
+        return;
+    end
+
+    local position = SM.selectedObject:GetPosition();
+    local px, py, pz = position.x, position.y, position.z;
+    local rotation = SM.selectedObject:GetRotation();
+    local rx, ry, rz = rotation.x, rotation.y, rotation.z;
+
+    local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObject:GetActiveBoundingBox();
+    local bbCenter = {(xMax - xMin) / 2, (yMax - yMin) / 2, (zMax - zMin) / 2};
+
+    Gizmos.transformToAABB(SceneMachine.Gizmos.WireBox, bbCenter);
+    Gizmos.transformGizmo(SceneMachine.Gizmos.WireBox, {px, py, pz}, {rx, ry, rz}, bbCenter);
+
+    if (Gizmos.activeTransformGizmo == 1) then
+        -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
+        SceneMachine.Gizmos.MoveGizmo.scale = manhattanDistance3D(px, py, pz, Camera.X, Camera.Y, Camera.Z) / 15;
+        Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, {px, py, pz}, {rx, ry, rz}, bbCenter);
+    elseif (Gizmos.activeTransformGizmo == 2) then
+        -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
+        SceneMachine.Gizmos.RotateGizmo.scale = manhattanDistance3D(px, py, pz, Camera.X, Camera.Y, Camera.Z) / 10;
+        Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmo, {px, py, pz}, {rx, ry, rz}, bbCenter);
+    end
+end
+
 function Gizmos.MotionToTransform()
-    if (Gizmos.isUsed or Gizmos.refresh) then
+    if (Gizmos.isUsed) then
         -- when using the gizmo (clicked), keep it highlighted even if the mouse moves away
         if (not Gizmos.refresh) then
             Gizmos.highlightedAxis = Gizmos.selectedAxis;
@@ -222,74 +246,68 @@ function Gizmos.MotionToTransform()
         local diff = ((xDiff + yDiff) / 2) / 100;
 
         if (SM.selectedObject ~= nil) then
-            local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObject:GetActiveBoundingBox();
-            local bbCenter = {(xMax - xMin) / 2, (yMax - yMin) / 2, (zMax - zMin) / 2};
-            
             local position = SM.selectedObject:GetPosition();
             local px, py, pz = position.x, position.y, position.z;
             local rotation = SM.selectedObject:GetRotation();
             local rx, ry, rz = rotation.x, rotation.y, rotation.z;
 
-            Gizmos.transformToAABB(SceneMachine.Gizmos.WireBox, bbCenter);
-            Gizmos.transformGizmo(SceneMachine.Gizmos.WireBox, {px, py, pz}, {rx, ry, rz}, bbCenter);
-
             if (Gizmos.activeTransformGizmo == 1) then
                 if (Gizmos.selectedAxis == 1) then
                     local dot = dotProduct(
-                        curX - Gizmos.LMBPrevious.x,
-                        curY - Gizmos.LMBPrevious.y,
+                        xDiff,
+                        yDiff,
                         Gizmos.MoveGizmo.screenSpaceVertices[1][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][1],
                         Gizmos.MoveGizmo.screenSpaceVertices[1][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][2]
                     );
-                    local vector = rotateVector(rx, ry, rz, {1, 0, 0});
-                    px = px + ((dot / 2000) * vector[1]); -- TODO : this divide needs to be based on how close the camera is to the object, or better yet the gizmo scale (when that works)
-                    py = py + ((dot / 2000) * vector[2]);
-                    pz = pz + ((dot / 2000) * vector[3]);
+                    local scale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
+                    px = px + (scale * Gizmos.vectorX[1]);
+                    py = py + (scale * Gizmos.vectorX[2]);
+                    pz = pz + (scale * Gizmos.vectorX[3]);
                 elseif (Gizmos.selectedAxis == 2) then
                     local dot = dotProduct(
-                        curX - Gizmos.LMBPrevious.x,
-                        curY - Gizmos.LMBPrevious.y,
+                        xDiff,
+                        yDiff,
                         Gizmos.MoveGizmo.screenSpaceVertices[2][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][1],
                         Gizmos.MoveGizmo.screenSpaceVertices[2][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][2]
                     );
-                    local vector = rotateVector(rx, ry, rz, {0, 1, 0});
-                    px = px + ((dot / 2000) * vector[1]); -- TODO : this divide needs to be based on how close the camera is to the object, or better yet the gizmo scale (when that works)
-                    py = py + ((dot / 2000) * vector[2]);
-                    pz = pz + ((dot / 2000) * vector[3]);
+                    local scale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
+                    px = px + (scale * Gizmos.vectorY[1]);
+                    py = py + (scale * Gizmos.vectorY[2]);
+                    pz = pz + (scale * Gizmos.vectorY[3]);
                 elseif (Gizmos.selectedAxis == 3) then
                     local dot = dotProduct(
-                        curX - Gizmos.LMBPrevious.x,
-                        curY - Gizmos.LMBPrevious.y,
+                        xDiff,
+                        yDiff,
                         Gizmos.MoveGizmo.screenSpaceVertices[3][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[3][1][1],
                         Gizmos.MoveGizmo.screenSpaceVertices[3][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[3][1][2]
                     );
-                    local vector = rotateVector(rx, ry, rz, {0, 0, 1});
-                    px = px + ((dot / 2000) * vector[1]); -- TODO : this divide needs to be based on how close the camera is to the object, or better yet the gizmo scale (when that works)
-                    py = py + ((dot / 2000) * vector[2]);
-                    pz = pz + ((dot / 2000) * vector[3]);
+                    local scale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
+                    px = px + (scale * Gizmos.vectorZ[1]);
+                    py = py + (scale * Gizmos.vectorZ[2]);
+                    pz = pz + (scale * Gizmos.vectorZ[3]);
                 end
 
                 if (Gizmos.refresh ~= true) then
                     SM.selectedObject:SetPosition(px, py, pz);
                 end
-                -- TODO: This needs to be done outside of Gizmos.isUsed
-                -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
-                --SceneMachine.Gizmos.MoveGizmo.scale = manhattanDistance3D(x, y, z, Camera.X, Camera.Y, Camera.Z) / 10;
-                Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, {px, py, pz}, {rx, ry, rz}, bbCenter);
             elseif (Gizmos.activeTransformGizmo == 2) then
-
                 if (Gizmos.selectedAxis == 1) then
-                    rx = rx + diff;
+                    rx = rx + (Gizmos.vectorX[1] * diff);
+                    ry = ry + (Gizmos.vectorX[2] * diff);
+                    rz = rz + (Gizmos.vectorX[3] * diff);
                 elseif (Gizmos.selectedAxis == 2) then
-                    ry = ry + diff;
+                    rx = rx + (Gizmos.vectorY[1] * diff);
+                    ry = ry + (Gizmos.vectorY[2] * diff);
+                    rz = rz + (Gizmos.vectorY[3] * diff);
                 elseif (Gizmos.selectedAxis == 3) then
-                    rz = rz + diff;
+                    rx = rx + (Gizmos.vectorZ[1] * diff);
+                    ry = ry + (Gizmos.vectorZ[2] * diff);
+                    rz = rz + (Gizmos.vectorZ[3] * diff);
                 end
 
                 if (Gizmos.refresh ~= true) then
                     SM.selectedObject:SetRotation(rx, ry, rz);
                 end
-                Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmo, {px, py, pz}, {rx, ry, rz}, bbCenter);
             elseif (Gizmos.activeTransformGizmo == 3) then
 
             end
@@ -307,6 +325,19 @@ function Gizmos.OnLMBDown(x, y)
 	Gizmos.LMBPrevious.x = x;
 	Gizmos.LMBPrevious.y = y;
     Gizmos.isUsed = true;
+
+    -- store rotation vector
+    if (SM.selectedObject ~= nil) then
+        local rotation = SM.selectedObject:GetRotation();
+        local rx, ry, rz = rotation.x, rotation.y, rotation.z;
+        Gizmos.vectorX = rotateVector(rx, ry, rz, 1, 0, 0);
+        Gizmos.vectorY = rotateVector(rx, ry, rz, 0, 1, 0);
+        Gizmos.vectorZ = rotateVector(rx, ry, rz, 0, 0, 1);
+    else
+        Gizmos.vectorX = {1,0,0};
+        Gizmos.vectorY = {0,1,0};
+        Gizmos.vectorZ = {0,0,1};
+    end
 end
 
 function Gizmos.OnLMBUp()
