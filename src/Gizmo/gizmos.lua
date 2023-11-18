@@ -18,6 +18,7 @@ Gizmos.vectorY = {0,1,0};
 Gizmos.vectorZ = {0,0,1};
 Gizmos.savedRotation = {0, 0, 0};
 Gizmos.increment = 0;
+Gizmos.space = 1;   -- 0 = world, 1 = local
 
 local function sqr(x)
     return x * x;
@@ -216,16 +217,16 @@ function Gizmos.UpdateGizmoTransform()
     local bbCenter = {(xMax - xMin) / 2, (yMax - yMin) / 2, (zMax - zMin) / 2};
 
     Gizmos.transformToAABB(SceneMachine.Gizmos.WireBox, bbCenter);
-    Gizmos.transformGizmo(SceneMachine.Gizmos.WireBox, {px, py, pz}, {rx, ry, rz}, bbCenter);
+    Gizmos.transformGizmo(SceneMachine.Gizmos.WireBox, {px, py, pz}, {rx, ry, rz}, bbCenter, 1);
 
     if (Gizmos.activeTransformGizmo == 1) then
         -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
         SceneMachine.Gizmos.MoveGizmo.scale = manhattanDistance3D(px, py, pz, Camera.X, Camera.Y, Camera.Z) / 15;
-        Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, {px, py, pz}, {rx, ry, rz}, bbCenter);
+        Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, {px, py, pz}, {rx, ry, rz}, bbCenter, Gizmos.space);
     elseif (Gizmos.activeTransformGizmo == 2) then
         -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
         SceneMachine.Gizmos.RotateGizmo.scale = manhattanDistance3D(px, py, pz, Camera.X, Camera.Y, Camera.Z) / 10;
-        Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmo, {px, py, pz}, {rx, ry, rz}, bbCenter);
+        Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmo, {px, py, pz}, {rx, ry, rz}, bbCenter, Gizmos.space);
     end
 end
 
@@ -304,9 +305,13 @@ function Gizmos.MotionToTransform()
                         Gizmos.MoveGizmo.screenSpaceVertices[1][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][2]
                     );
                     local scale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
-                    px = px + (scale * Gizmos.vectorX[1]);
-                    py = py + (scale * Gizmos.vectorX[2]);
-                    pz = pz + (scale * Gizmos.vectorX[3]);
+                    if (Gizmos.space == 0) then
+                        px = px + scale;
+                    elseif (Gizmos.space == 1) then
+                        px = px + (scale * Gizmos.vectorX[1]);
+                        py = py + (scale * Gizmos.vectorX[2]);
+                        pz = pz + (scale * Gizmos.vectorX[3]);
+                    end
                 elseif (Gizmos.selectedAxis == 2) then
                     local dot = dotProduct(
                         xDiff,
@@ -315,9 +320,13 @@ function Gizmos.MotionToTransform()
                         Gizmos.MoveGizmo.screenSpaceVertices[2][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][2]
                     );
                     local scale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
-                    px = px + (scale * Gizmos.vectorY[1]);
-                    py = py + (scale * Gizmos.vectorY[2]);
-                    pz = pz + (scale * Gizmos.vectorY[3]);
+                    if (Gizmos.space == 0) then
+                        py = py + scale;
+                    elseif (Gizmos.space == 1) then                    
+                        px = px + (scale * Gizmos.vectorY[1]);
+                        py = py + (scale * Gizmos.vectorY[2]);
+                        pz = pz + (scale * Gizmos.vectorY[3]);
+                    end
                 elseif (Gizmos.selectedAxis == 3) then
                     local dot = dotProduct(
                         xDiff,
@@ -326,9 +335,13 @@ function Gizmos.MotionToTransform()
                         Gizmos.MoveGizmo.screenSpaceVertices[3][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[3][1][2]
                     );
                     local scale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
-                    px = px + (scale * Gizmos.vectorZ[1]);
-                    py = py + (scale * Gizmos.vectorZ[2]);
-                    pz = pz + (scale * Gizmos.vectorZ[3]);
+                    if (Gizmos.space == 0) then
+                        pz = pz + scale;
+                    elseif (Gizmos.space == 1) then
+                        px = px + (scale * Gizmos.vectorZ[1]);
+                        py = py + (scale * Gizmos.vectorZ[2]);
+                        pz = pz + (scale * Gizmos.vectorZ[3]);
+                    end
                 end
 
                 if (Gizmos.refresh ~= true) then
@@ -337,20 +350,32 @@ function Gizmos.MotionToTransform()
             elseif (Gizmos.activeTransformGizmo == 2) then
                 Gizmos.increment = Gizmos.increment + diff;
                 if (Gizmos.selectedAxis == 1) then
-                    local rot = multiplyRotations(Gizmos.savedRotation, {Gizmos.increment, 0, 0});
-                    rx = rot[1];
-                    ry = rot[2];
-                    rz = rot[3];
+                    if (Gizmos.space == 0) then
+                        rx = rx + diff;
+                    elseif (Gizmos.space == 1) then
+                        local rot = multiplyRotations(Gizmos.savedRotation, {Gizmos.increment, 0, 0});
+                        rx = rot[1];
+                        ry = rot[2];
+                        rz = rot[3];
+                    end
                 elseif (Gizmos.selectedAxis == 2) then
-                    local rot = multiplyRotations(Gizmos.savedRotation, {0, Gizmos.increment, 0});
-                    rx = rot[1];
-                    ry = rot[2];
-                    rz = rot[3];
+                    if (Gizmos.space == 0) then
+                        ry = ry + diff;
+                    elseif (Gizmos.space == 1) then
+                        local rot = multiplyRotations(Gizmos.savedRotation, {0, Gizmos.increment, 0});
+                        rx = rot[1];
+                        ry = rot[2];
+                        rz = rot[3];
+                    end
                 elseif (Gizmos.selectedAxis == 3) then
-                    local rot = multiplyRotations(Gizmos.savedRotation, {0, 0, Gizmos.increment});
-                    rx = rot[1];
-                    ry = rot[2];
-                    rz = rot[3];
+                    if (Gizmos.space == 0) then
+                        rz = rz + diff;
+                    elseif (Gizmos.space == 1) then
+                        local rot = multiplyRotations(Gizmos.savedRotation, {0, 0, Gizmos.increment});
+                        rx = rot[1];
+                        ry = rot[2];
+                        rz = rot[3];
+                    end
                 end
 
                 if (Gizmos.refresh ~= true) then
@@ -406,13 +431,21 @@ function Gizmos.OnLMBUp()
     Gizmos.isUsed = false;
 end
 
-function Gizmos.transformGizmo(gizmo, position, rotation, boundsCenter)
+function Gizmos.transformGizmo(gizmo, position, rotation, boundsCenter, space)
     for q = 1, gizmo.lineCount, 1 do
         for v = 1, 2, 1 do
-            local rotated = rotatePoint(gizmo.vertices[q][v], rotation);
-            gizmo.transformedVertices[q][v][1] = rotated[1] * gizmo.scale + position[1];
-            gizmo.transformedVertices[q][v][2] = rotated[2] * gizmo.scale + position[2];
-            gizmo.transformedVertices[q][v][3] = rotated[3] * gizmo.scale + position[3] + boundsCenter[3];
+            if (space == 1) then
+                -- local space --
+                local rotated = rotatePoint(gizmo.vertices[q][v], rotation);
+                gizmo.transformedVertices[q][v][1] = rotated[1] * gizmo.scale + position[1];
+                gizmo.transformedVertices[q][v][2] = rotated[2] * gizmo.scale + position[2];
+                gizmo.transformedVertices[q][v][3] = rotated[3] * gizmo.scale + position[3] + boundsCenter[3];
+            elseif (space == 0) then
+                -- world space --
+                gizmo.transformedVertices[q][v][1] = gizmo.vertices[q][v][1] * gizmo.scale + position[1];
+                gizmo.transformedVertices[q][v][2] = gizmo.vertices[q][v][2] * gizmo.scale + position[2];
+                gizmo.transformedVertices[q][v][3] = gizmo.vertices[q][v][3] * gizmo.scale + position[3] + boundsCenter[3];
+            end
         end
     end
 end

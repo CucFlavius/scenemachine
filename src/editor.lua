@@ -87,6 +87,12 @@ function Editor.CreateToolbar()
 
     toolbar.button4 = Win.CreateButton(90, 0, 30, 30, toolbar, "LEFT", "LEFT", "Rotate", nil, "BUTTON_VS");
     toolbar.button4:SetScript("OnClick", function(self) Gizmos.activeTransformGizmo = 2; Gizmos.refresh = true; end);
+
+    toolbar.button5 = Win.CreateButton(120, 0, 30, 30, toolbar, "LEFT", "LEFT", "L", nil, "BUTTON_VS");
+    toolbar.button5:SetScript("OnClick", function(self) Gizmos.space = 1; print("Local Space"); Gizmos.refresh = true; end);
+
+    toolbar.button6 = Win.CreateButton(150, 0, 30, 30, toolbar, "LEFT", "LEFT", "W", nil, "BUTTON_VS");
+    toolbar.button6:SetScript("OnClick", function(self) Gizmos.space = 0; print("World Space"); Gizmos.refresh = true; end);
 end
 
 function Editor.CreateRightPanel()
