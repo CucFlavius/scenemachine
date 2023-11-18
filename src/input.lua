@@ -10,7 +10,7 @@ local MousePick = Editor.MousePick;
 
 Input.Keys = {}
 
-Input.PreviousMouseState =
+Input.mouseState =
 {
     X = 0,
     Y = 0,
@@ -65,51 +65,51 @@ function Input.Update()
 
     local relativeX, relativeY = x - frameXMin, y - frameYMin;
 
-    if (Input.PreviousMouseState.LMB ~= LMB) then
+    if (Input.mouseState.LMB ~= LMB) then
         if (LMB == true) then
             -- LMB DOWN
-            Input.PreviousMouseState.dragStartX = x;
-            Input.PreviousMouseState.dragStartY = y;
+            Input.mouseState.dragStartX = x;
+            Input.mouseState.dragStartY = y;
         else
             -- LMB UP
-            Input.PreviousMouseState.isDragging = false;
+            Input.mouseState.isDragging = false;
             Input.OnDragStop();
         end
     end
 
-    if (Input.PreviousMouseState.RMB ~= RMB) then
+    if (Input.mouseState.RMB ~= RMB) then
         if (RMB == true) then
             -- RMB DOWN
-            Input.PreviousMouseState.dragStartX = x;
-            Input.PreviousMouseState.dragStartY = y;
+            Input.mouseState.dragStartX = x;
+            Input.mouseState.dragStartY = y;
         else
             -- RMB UP
-            Input.PreviousMouseState.isDragging = false;
+            Input.mouseState.isDragging = false;
             Input.OnDragStop();
         end
     end
 
-    if (Input.PreviousMouseState.MMB ~= MMB) then
+    if (Input.mouseState.MMB ~= MMB) then
         if (MMB == true) then
             -- MMB DOWN
-            Input.PreviousMouseState.dragStartX = x;
-            Input.PreviousMouseState.dragStartY = y;
+            Input.mouseState.dragStartX = x;
+            Input.mouseState.dragStartY = y;
         else
             -- MMB UP
-            Input.PreviousMouseState.isDragging = false;
+            Input.mouseState.isDragging = false;
             Input.OnDragStop();
         end
     end
 
     local dragDiffMin = 3;  -- how many pixels does the mouse need to move to register as a drag
     -- determine if draging
-    if (Input.PreviousMouseState.isDragging == false) then
+    if (Input.mouseState.isDragging == false) then
         if (LMB or RMB or MMB) then
-            local dragDistX = math.abs(x - Input.PreviousMouseState.dragStartX);
-            local dragDistY = math.abs(x - Input.PreviousMouseState.dragStartX);
+            local dragDistX = math.abs(x - Input.mouseState.dragStartX);
+            local dragDistY = math.abs(x - Input.mouseState.dragStartX);
             if (dragDistX > dragDiffMin or dragDistY > dragDiffMin) then
                 -- started dragging
-                Input.PreviousMouseState.isDragging = true;
+                Input.mouseState.isDragging = true;
                 Input.OnDragStart(LMB, RMB, MMB);
             else
                 -- regular click
@@ -119,9 +119,9 @@ function Input.Update()
     end
 
     -- save to previous state --
-    Input.PreviousMouseState.LMB = LMB;
-    Input.PreviousMouseState.RMB = RMB;
-    Input.PreviousMouseState.MMB = MMB;
+    Input.mouseState.LMB = LMB;
+    Input.mouseState.RMB = RMB;
+    Input.mouseState.MMB = MMB;
 
     Input.mouseX = relativeX
     Input.mouseY = relativeY;
@@ -136,7 +136,6 @@ function Input.OnDragStart(LMB, RMB, MMB)
         if Gizmos.isHighlighted then
             local x, y = GetCursorPosition();
             Gizmos.OnLMBDown(x, y);
-            return;
         end
     end
 end
@@ -146,7 +145,6 @@ function Input.OnDragStop()
 
     if (Gizmos.isUsed) then
         Gizmos.OnLMBUp();
-        return;
     end
 end
 

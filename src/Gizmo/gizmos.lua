@@ -64,9 +64,10 @@ function Gizmos.Update()
     local mouseX, mouseY = Input.mouseX, Input.mouseY;
 
     Gizmos.highlightedAxis = 0;
-    
+    Gizmos.isHighlighted = false;
+
     -- Handle gizmo mouse highlight and selection --
-    local selected = Gizmos.SelectionCheck(mouseX, mouseY);
+    local highlighted = Gizmos.SelectionCheck(mouseX, mouseY);
 
     -- Handle gizmo visibility --
     Gizmos.VisibilityCheck();
@@ -74,12 +75,10 @@ function Gizmos.Update()
     -- Handle gizmo motion to transformation --
     Gizmos.MotionToTransform();
 
-    Gizmos.isHighlighted = selected;
     Gizmos.refresh = false;
 end
 
 function Gizmos.SelectionCheck(mouseX, mouseY)
-    local selected = false;
     if not Gizmos.isUsed then
         -- Position --
         if (Gizmos.activeTransformGizmo == 1) then
@@ -92,7 +91,7 @@ function Gizmos.SelectionCheck(mouseX, mouseY)
                 if (mouseX ~= nil and mouseY ~= nil and aX ~= nil and aY ~= nil and bX ~= nil and bY ~= nil) then
                     local dist = distToSegment({mouseX, mouseY}, {aX, aY}, {bX, bY});
                     if (dist < 10) then
-                        selected = true;
+                        Gizmos.isHighlighted = true;
                         Gizmos.selectedAxis = t;
                         Gizmos.highlightedAxis = t;
                     end
@@ -110,7 +109,7 @@ function Gizmos.SelectionCheck(mouseX, mouseY)
                 if (mouseX ~= nil and mouseY ~= nil and aX ~= nil and aY ~= nil and bX ~= nil and bY ~= nil) then
                     local dist = distToSegment({mouseX, mouseY}, {aX, aY}, {bX, bY});
                     if (dist < 10 and Gizmos.RotateGizmo.lines[t].alpha > 0.3) then
-                        selected = true;
+                        Gizmos.isHighlighted = true;
                         Gizmos.selectedAxis = Gizmos.RotateGizmo.lines[t].axis;
                         Gizmos.highlightedAxis = Gizmos.RotateGizmo.lines[t].axis;
                     end
@@ -147,23 +146,17 @@ function Gizmos.VisibilityCheck()
     end
 end
 
-function dotProduct(vectorA, vectorB)
-    local aX, aY = vectorA[1][1], vectorA[1][2]
-    local bX, bY = vectorB[1][1], vectorB[1][2]
-
-    local result = aX * bX + aY * bY
-    return result
-end
-
-function dotProduct(aX, aY, bX, bY)
+local function dotProduct(aX, aY, bX, bY)
     return aX * bX + aY * bY
 end
 
 function Gizmos.MotionToTransform()
     if (Gizmos.isUsed or Gizmos.refresh) then
         -- when using the gizmo (clicked), keep it highlighted even if the mouse moves away
-        Gizmos.highlightedAxis = Gizmos.selectedAxis;
-
+        if (not Gizmos.refresh) then
+            Gizmos.highlightedAxis = Gizmos.selectedAxis;
+        end
+        
 		local curX, curY = GetCursorPosition();
 
         if (Gizmos.LMBPrevious.x == nil) then
@@ -174,10 +167,6 @@ function Gizmos.MotionToTransform()
 		local xDiff = curX - Gizmos.LMBPrevious.x;
 		local yDiff = curY - Gizmos.LMBPrevious.y;
         local diff = ((xDiff + yDiff) / 2) / 100;
-
-        if (Gizmos.refresh == true) then
-            diff = 0;
-        end
 
         if (SM.selectedObject ~= nil) then
             Gizmos.transformToActorAABB(SceneMachine.Gizmos.WireBox, SM.selectedObject, { SM.selectedObject.position.x, SM.selectedObject.position.y, SM.selectedObject.position.z });
@@ -198,7 +187,7 @@ function Gizmos.MotionToTransform()
                         Gizmos.MoveGizmo.screenSpaceVertices[1][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][1],
                         Gizmos.MoveGizmo.screenSpaceVertices[1][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][2]
                     );
-                    px = px + (dot / 2000);
+                    px = px + (dot / 2000); -- TODO : this divide needs to be based on how close the camera is to the object, or better yet the gizmo scale (when that works)
                 elseif (Gizmos.selectedAxis == 2) then
                     local dot = dotProduct(
                         curX - Gizmos.LMBPrevious.x,
@@ -217,7 +206,9 @@ function Gizmos.MotionToTransform()
                     pz = pz + (dot / 2000);
                 end
 
-                SM.selectedObject:SetPosition(px, py, pz);
+                if (Gizmos.refresh ~= true) then
+                    SM.selectedObject:SetPosition(px, py, pz);
+                end
                 -- TODO: This needs to be done outside of Gizmos.isUsed
                 -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
                 --SceneMachine.Gizmos.MoveGizmo.scale = manhattanDistance3D(x, y, z, Camera.X, Camera.Y, Camera.Z) / 10;
@@ -232,7 +223,9 @@ function Gizmos.MotionToTransform()
                     rz = rz + diff;
                 end
 
-                SM.selectedObject:SetRotation(rx, ry, rz);
+                if (Gizmos.refresh ~= true) then
+                    SM.selectedObject:SetRotation(rx, ry, rz);
+                end
                 Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmo, {px, py, pz}, {rx, ry, rz}, bbCenter);
             elseif (Gizmos.activeTransformGizmo == 3) then
 
