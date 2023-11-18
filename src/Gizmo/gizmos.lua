@@ -228,12 +228,38 @@ function Gizmos.OnLMBUp()
     Gizmos.isUsed = false;
 end
 
+local function rotatePoint(point, angles)
+    local x, y, z = point[1], point[2], point[3]
+    local rx, ry, rz = angles[1], angles[2], angles[3]
+
+    -- Rotate around x-axis
+    local cosRx = math.cos(rx)
+    local sinRx = math.sin(rx)
+    local newY = y * cosRx - z * sinRx
+    local newZ = y * sinRx + z * cosRx
+
+    -- Rotate around y-axis
+    local cosRy = math.cos(ry)
+    local sinRy = math.sin(ry)
+    local newX = x * cosRy + newZ * sinRy
+    newZ = -x * sinRy + newZ * cosRy
+
+    -- Rotate around z-axis
+    local cosRz = math.cos(rz)
+    local sinRz = math.sin(rz)
+    local finalX = newX * cosRz - newY * sinRz
+    local finalY = newX * sinRz + newY * cosRz
+
+    return {finalX, finalY, newZ}
+end
+
 function Gizmos.transformGizmo(gizmo, position, rotation, boundsCenter)
     for q = 1, gizmo.lineCount, 1 do
         for v = 1, 2, 1 do
-            gizmo.transformedVertices[q][v][1] = (gizmo.vertices[q][v][1] * gizmo.scale) + position[1];-- + boundsCenter[1];
-            gizmo.transformedVertices[q][v][2] = (gizmo.vertices[q][v][2] * gizmo.scale) + position[2];-- + boundsCenter[2];
-            gizmo.transformedVertices[q][v][3] = (gizmo.vertices[q][v][3] * gizmo.scale) + position[3] + boundsCenter[3];
+            local rotated = rotatePoint(gizmo.vertices[q][v], rotation);
+            gizmo.transformedVertices[q][v][1] = rotated[1] * gizmo.scale + position[1];
+            gizmo.transformedVertices[q][v][2] = rotated[2] * gizmo.scale + position[2];
+            gizmo.transformedVertices[q][v][3] = rotated[3] * gizmo.scale + position[3] + boundsCenter[3];
         end
     end
 end
