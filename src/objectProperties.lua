@@ -19,38 +19,68 @@ function OP.CreateTransformProperties(x, y, w, h, parent)
 
     local editBoxTitleW = 100;
     Win.CreateTextBoxSimple(10, 0, editBoxTitleW, 20, transformRect, "TOPLEFT", "TOPLEFT", "Position", 9);
-    OP.Transform.posX = OP.CreateTransformField(110, 0, transformRect, "x", OP.SetPosX);
-    OP.Transform.posY = OP.CreateTransformField(110 + 55 + 2, 0, transformRect, "y", OP.SetPosY);
-    OP.Transform.posZ = OP.CreateTransformField(110 + (55 * 2) + (2 * 2), 0, transformRect, "z", OP.SetPosZ);
+    OP.Transform.posX = OP.CreateTransformField(110, 0, transformRect, "x", OP.SetPosX, 0);
+    OP.Transform.posY = OP.CreateTransformField(110 + 55 + 2, 0, transformRect, "y", OP.SetPosY, 0);
+    OP.Transform.posZ = OP.CreateTransformField(110 + (55 * 2) + (2 * 2), 0, transformRect, "z", OP.SetPosZ, 0);
 
     Win.CreateTextBoxSimple(10, -22, editBoxTitleW, 20, transformRect, "TOPLEFT", "TOPLEFT", "Rotation", 9);
-    OP.Transform.rotX = OP.CreateTransformField(110, -22, transformRect, "x", OP.SetRotX);
-    OP.Transform.rotY = OP.CreateTransformField(110 + 55 + 2, -22, transformRect, "y", OP.SetRotY);
-    OP.Transform.rotZ = OP.CreateTransformField(110 + (55 * 2) + (2 * 2), -22, transformRect, "z", OP.SetRotZ);
+    OP.Transform.rotX = OP.CreateTransformField(110, -22, transformRect, "x", OP.SetRotX, 0);
+    OP.Transform.rotY = OP.CreateTransformField(110 + 55 + 2, -22, transformRect, "y", OP.SetRotY, 0);
+    OP.Transform.rotZ = OP.CreateTransformField(110 + (55 * 2) + (2 * 2), -22, transformRect, "z", OP.SetRotZ, 0);
 
     Win.CreateTextBoxSimple(10, -44, editBoxTitleW, 20, transformRect, "TOPLEFT", "TOPLEFT", "Scale", 9);
     OP.Transform.scale = Win.CreateEditBox(110 + 8, -44, 160, 20, transformRect, "TOPLEFT", "TOPLEFT", "0");
     OP.Transform.scale:SetScript('OnEscapePressed', function(self1) 
+        -- restore value
+        self1:SetText(tostring(self1.value));
         self1:ClearFocus();
     end);
     OP.Transform.scale:SetScript('OnEnterPressed', function(self1)
-        self1:ClearFocus();
-        self1.value = tonumber(self1:GetText());
+        -- set value
+        local valText = self1:GetText();
+        if (valText == nil or valText == "") then
+            valText = "1";
+        end
+        self1.value = tonumber(valText);
+        OP.SetScale(self1);
+    end);
+    OP.Transform.scale:SetScript('OnEditFocusLost', function(self1) 
+        -- set value
+        local valText = self1:GetText();
+        if (valText == nil or valText == "") then
+            valText = "1";
+        end
+        self1.value = tonumber(valText);
         OP.SetScale(self1);
     end);
 end
 
-function OP.CreateTransformField(x, y, parent, axisName, setValue)
+function OP.CreateTransformField(x, y, parent, axisName, setValue, defaultValue)
     local editBoxW = 45;
     local editBoxH = 20;
     Win.CreateTextBoxSimple(x, y, 10, 20, parent, "TOPLEFT", "TOPLEFT", axisName, 9);
     local transform = Win.CreateEditBox(x + 8, y, editBoxW, editBoxH, parent, "TOPLEFT", "TOPLEFT", "0");
     transform:SetScript('OnEscapePressed', function(self1) 
+        -- restore value
+        self1:SetText(tostring(self1.value));
         self1:ClearFocus();
     end);
     transform:SetScript('OnEnterPressed', function(self1)
-        self1:ClearFocus();
-        self1.value = tonumber(self1:GetText());
+        -- set value
+        local valText = self1:GetText();
+        if (valText == nil or valText == "") then
+            valText = tostring(defaultValue);
+        end
+        self1.value = tonumber(valText);
+        setValue(self1);
+    end);
+    transform:SetScript('OnEditFocusLost', function(self1) 
+        -- set value
+        local valText = self1:GetText();
+        if (valText == nil or valText == "") then
+            valText = tostring(defaultValue);
+        end
+        self1.value = tonumber(valText);
         setValue(self1);
     end);
 
