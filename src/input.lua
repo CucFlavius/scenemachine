@@ -10,6 +10,18 @@ local MousePick = Editor.MousePick;
 
 Input.Keys = {}
 
+Input.PreviousMouseState =
+{
+    X = 0,
+    Y = 0,
+    dragStartX = 0,
+    dragStartY = 0,
+    LMB = false,
+    MMB = false,
+    RMB = false,
+    isDragging = false,
+};
+
 function Input.AddKeyBind(key, downAction, upAction)
 	Input.Keys[key] = {};
 	Input.Keys[key].OnKeyUp = upAction;
@@ -32,27 +44,85 @@ function Input.Initialize()
                 self:SetPropagateKeyboardInput(true);
             end
         end);
-
-    Input.CreateMouseInputFrame();
 end
 
-function Input.CreateMouseInputFrame()
-    local uiScale, x, y = UIParent:GetEffectiveScale();
-    Input.mouseInputFrame = CreateFrame("Button", "Input.mouseInputFrame", SM.groupBG);
-    --Input.mouseInputFrame:SetAllPoints(SM.groupBG);
-	Input.mouseInputFrame:SetPoint("CENTER", SM.groupBG, "CENTER", 0, 0);
-    local w, h = SM.groupBG:GetSize();
-	Input.mouseInputFrame:SetWidth(w);
-	Input.mouseInputFrame:SetHeight(h);
-	Input.mouseInputFrame:EnableMouse(true);
-	Input.mouseInputFrame:RegisterForDrag("RightButton", "LeftButton");
-    Input.mouseInputFrame:RegisterForClicks("LeftButtonUp", "RightButtonUp");
-	Input.mouseInputFrame:SetScript("OnDragStart", Input.OnDragStart);
-	Input.mouseInputFrame:SetScript("OnDragStop", Input.OnDragStop);
-    Input.mouseInputFrame:SetScript("OnClick", Input.OnClick);
+function Input.Update()
+    local LMB = IsMouseButtonDown("LeftButton");
+    local MMB = IsMouseButtonDown("MiddleButton");
+    local RMB = IsMouseButtonDown("RightButton");
+
+    local x, y = GetCursorPosition();
+
+    -- need to verify that the click was done in the editor render frame
+    -- otherwise any ui click will deselect whatever object is selected
+    local frameXMin = Renderer.projectionFrame:GetLeft();
+    local frameYMin = Renderer.projectionFrame:GetBottom();
+    local frameXMax = Renderer.projectionFrame:GetRight();
+    local frameYMax = Renderer.projectionFrame:GetTop();
+    if (x < frameXMin or x > frameXMax or y < frameYMin or y > frameYMax) then
+        return;
+    end
+
+    if (Input.PreviousMouseState.LMB ~= LMB) then
+        if (LMB == true) then
+            -- LMB DOWN
+            Input.PreviousMouseState.dragStartX = x;
+            Input.PreviousMouseState.dragStartY = y;
+        else
+            -- LMB UP
+            Input.PreviousMouseState.isDragging = false;
+            Input.OnDragStop();
+        end
+    end
+
+    if (Input.PreviousMouseState.RMB ~= RMB) then
+        if (RMB == true) then
+            -- RMB DOWN
+            Input.PreviousMouseState.dragStartX = x;
+            Input.PreviousMouseState.dragStartY = y;
+        else
+            -- RMB UP
+            Input.PreviousMouseState.isDragging = false;
+            Input.OnDragStop();
+        end
+    end
+
+    if (Input.PreviousMouseState.MMB ~= MMB) then
+        if (MMB == true) then
+            -- MMB DOWN
+            Input.PreviousMouseState.dragStartX = x;
+            Input.PreviousMouseState.dragStartY = y;
+        else
+            -- MMB UP
+            Input.PreviousMouseState.isDragging = false;
+            Input.OnDragStop();
+        end
+    end
+
+    local dragDiffMin = 3;  -- how many pixels does the mouse need to move to register as a drag
+    -- determine if draging
+    if (Input.PreviousMouseState.isDragging == false) then
+        if (LMB or RMB or MMB) then
+            local dragDistX = math.abs(x - Input.PreviousMouseState.dragStartX);
+            local dragDistY = math.abs(x - Input.PreviousMouseState.dragStartX);
+            if (dragDistX > dragDiffMin or dragDistY > dragDiffMin) then
+                -- started dragging
+                Input.PreviousMouseState.isDragging = true;
+                Input.OnDragStart();
+            else
+                -- regular click
+                Input.OnClick(LMB, RMB, MMB);
+            end
+        end
+    end
+
+    -- save to previous state --
+    Input.PreviousMouseState.LMB = LMB;
+    Input.PreviousMouseState.RMB = RMB;
+    Input.PreviousMouseState.MMB = MMB;
 end
 
-function Input.OnDragStart(info)
+function Input.OnDragStart()
     local LMB = IsMouseButtonDown("LeftButton");
     local RMB = IsMouseButtonDown("RightButton");
 
@@ -78,11 +148,13 @@ function Input.OnDragStop()
     end
 end
 
-function Input.OnClick(self, button, down)
-    if (button == "LeftButton") then
+function Input.OnClick(LMB, RMB, MMB)
+    if (LMB) then
         -- mouse pick --
         MousePick.Pick();
-    elseif (button == "RightButton") then
+    elseif (RMB) then
         -- open RMB context menu --
+    elseif (MMB) then
+        -- mouse pan maybe --
     end
 end

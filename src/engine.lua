@@ -4,6 +4,7 @@ local Renderer = SceneMachine.Renderer;
 local CameraController = SceneMachine.CameraController;
 local Player = SceneMachine.Player;
 local Gizmos = SceneMachine.Gizmos;
+local Input = SceneMachine.Input;
 
 print ("Running SceneMachine")
 
@@ -91,8 +92,7 @@ local function SG_UpdateLoop ()
 	Camera.Update();
     CameraController.Update();
     Gizmos.Update();
-	--World.UpdateWorld()
-	--Renderer.RenderChunks();
+	Input.Update();
     Renderer.RenderGizmos();
 end
 
