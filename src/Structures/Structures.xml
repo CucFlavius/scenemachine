@@ -4,5 +4,5 @@ Structures
 
 <Ui>
 	<Script file="Color.lua"/>
-	<Script file="object.lua"/>
+	<Script file="Object.lua"/>
 </Ui>

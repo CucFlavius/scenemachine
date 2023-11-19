@@ -17,48 +17,14 @@ setmetatable(Object, Object)
 
 local fields = {}
 
-Object.__index = function(t,k)
-	local var = rawget(Object, k)
-		
-	if var == nil then							
-		var = rawget(fields, k)
-		
-		if var ~= nil then
-			return var(t)	
-		end
-	end
-	
-	return var
-end
-
 function Object:New(name, fileID, position, rotation, scale)
-    if (not name) then
-        name = "NewObject";
-    end
-
-    if (not position) then
-        position = { x = 0, y = 0, z = 0 };
-    end
-
-    if (not rotation) then
-        rotation = { x = 0, y = 0, z = 0 };
-    end
-
-    if (not scale) then
-        scale = 1;
-    end
-
-    if (not fileID) then
-        fileID = 0;
-    end
-
 	local v = 
     {
-        fileID = fileID,
-        name = name,
-        position = position,
-        rotation = rotation,
-        scale = scale,	
+        fileID = fileID or 0,
+        name = name or "NewObject",
+        position = position or { x = 0, y = 0, z = 0 },
+        rotation = rotation or { x = 0, y = 0, z = 0 },
+        scale = scale or 1,	
         actor = nil,
         class = "Object",
     };
@@ -220,4 +186,18 @@ end
 Object.__eq = function(a,b)
     -- TODO : implement object comparison
 	return false; --a.r == b.r and a.g == b.g and a.b == b.b and a.a == b.a
+end
+
+Object.__index = function(t,k)
+	local var = rawget(Object, k)
+		
+	if var == nil then							
+		var = rawget(fields, k)
+		
+		if var ~= nil then
+			return var(t)	
+		end
+	end
+	
+	return var
 end
