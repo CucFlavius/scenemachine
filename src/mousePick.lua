@@ -38,9 +38,8 @@ function MousePick.Initialize()
 end
 
 function MousePick.Pick(x, y)
-    local scene = PM.currentProject.scenes[SM.loadedSceneIndex];
-    for i in pairs(scene.objects) do
-        local object = scene.objects[i];
+    for i in pairs(SM.loadedScene.objects) do
+        local object = SM.loadedScene.objects[i];
 
         local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
 

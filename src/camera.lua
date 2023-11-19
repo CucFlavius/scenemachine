@@ -33,14 +33,13 @@ function Camera.Update()
 
     -- remember current camera settings --
     if (SM.loadedSceneIndex ~= -1) then
-        local scene = PM.currentProject.scenes[SM.loadedSceneIndex];
-        if (scene ~= nil) then
-            scene.lastCameraPositionX = Camera.X;
-            scene.lastCameraPositionY = Camera.Y;
-            scene.lastCameraPositionZ = Camera.Z;
-            scene.lastCameraYaw = Camera.Yaw;
-            scene.lastCameraPitch = Camera.Pitch;
-            scene.lastCameraRoll = Camera.Roll;
+        if (SM.loadedScene ~= nil) then
+            SM.loadedScene.lastCameraPositionX = Camera.X;
+            SM.loadedScene.lastCameraPositionY = Camera.Y;
+            SM.loadedScene.lastCameraPositionZ = Camera.Z;
+            SM.loadedScene.lastCameraYaw = Camera.Yaw;
+            SM.loadedScene.lastCameraPitch = Camera.Pitch;
+            SM.loadedScene.lastCameraRoll = Camera.Roll;
         end
     end
 end

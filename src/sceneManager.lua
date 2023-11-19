@@ -15,6 +15,7 @@ local tabButtonHeight = 20;
 local tabPool = {};
 
 SM.loadedSceneIndex = 1;
+SM.loadedScene = nil;
 SM.selectedObject = nil;
 
 function SM.Create(x, y, w, h, parent)
@@ -180,6 +181,7 @@ end
 
 function SM.LoadScene(index)
     SM.loadedSceneIndex = index;
+    --SM.loadedScene = {};
 
     if (#PM.currentProject.scenes == 0) then
         -- current project has no scenes, create a default one
@@ -192,114 +194,27 @@ function SM.LoadScene(index)
 
     -- load new --
     local scene = PM.currentProject.scenes[index];
-    
+    SM.loadedScene = scene;
+
     if (scene.objects == nil) then
-        scene.objects = {}
+        scene.objects = {};
     end
+
+    -- create loaded scene (so that objects get loaded from data not referenced) --
+    --SM.loadedScene.objects = {};
+    --SM.loadedScene.name = scene.name;
 
     if (#scene.objects > 0) then
         for i in pairs(scene.objects) do
-            local object = scene.objects[i];
+            local object = SceneMachine.Object:New();
+            object:ImportData(scene.objects[i]);
 
-            if (object.position == nil) then
-                object.position = { x=0, y=0, z=0 };
-            end
+            -- Create actor
+            local actor = Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z);
+            object:SetActor(actor);
 
-            if (object.rotation == nil) then
-                object.rotation = { x=0, y=0, z=0 };
-            end
-
-            if (object.rotation.x == nil) then
-                object.rotation.x = 0;
-            end
-
-            if (object.rotation.y == nil) then
-                object.rotation.y = 0;
-            end
-
-            if (object.rotation.z == nil) then
-                object.rotation.z = 0;
-            end
-
-            if (object.scale == nil or object.scale == 0) then
-                object.scale = 1;
-            end
-
-            object.actor = Renderer.AddActor(object.fileID, object.position.x / object.scale, object.position.y / object.scale, object.position.z / object.scale);
-
-            object.GetActiveBoundingBox = function(self)
-                local xMin, yMin, zMin, xMax, yMax, zMax = object.actor:GetActiveBoundingBox();
-
-                -- some objects do not have a bounding box :(
-                if (xMin == nil or yMin == nil or zMin == nil) then
-                    xMin, yMin, zMin, xMax, yMax, zMax = -1, -1, -1, 1, 1, 1;
-                end
-        
-                return xMin, yMin, zMin, xMax, yMax, zMax;
-            end
-
-            object.SetPosition = function(self, x, y, z)
-                object.position.x = x;
-                object.position.y = y;
-                object.position.z = z;
-                local s = object:GetScale();
-                object.actor:SetPosition(x / s, y / s, z / s);
-            end
-
-            object.GetPosition = function(self)
-                if (object.position.x == nil) then
-                    object.position.x = 0;
-                end
-                if (object.position.y == nil) then
-                    object.position.y = 0;
-                end
-                if (object.position.z == nil) then
-                    object.position.z = 0;
-                end
-                return object.position;
-            end
-
-            object.SetRotation = function(self, x, y, z)
-                if (Gizmos.pivot == 1) then
-                    local angleDiff = { x - object.rotation.x, y - object.rotation.y, z - object.rotation.z };
-                    local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
-                    local bbCenter = ((zMax - zMin) / 2) * object:GetScale();
-                    local ppoint = Math.RotateObjectAroundPivot({0, 0, bbCenter}, {0, 0, 0}, angleDiff);
-                    local position = SM.selectedObject:GetPosition();
-                    local px, py, pz = position.x, position.y, position.z;
-                    px = px + ppoint[1];
-                    py = py + ppoint[2];
-                    pz = (pz + ppoint[3]) - bbCenter;
-                    object:SetPosition(px, py, pz);
-                end
-
-                object.rotation.x = x;
-                object.rotation.y = y;
-                object.rotation.z = z;
-                object.actor:SetRoll(x);
-                object.actor:SetPitch(y);
-                object.actor:SetYaw(z);
-            end
-
-            object.GetRotation = function(self)
-                return object.rotation;
-            end
-
-            object.SetScale = function(self, value)
-                object.scale = value;
-                object.actor:SetPosition(object.position.x / value, object.position.y / value, object.position.z / value);
-                object.actor:SetScale(value);
-            end
-
-            object.GetScale = function(self)
-                return object.scale;
-            end
-
-            --object.actor:SetPosition(object.position.x / object.scale, object.position.y / object.scale, object.position.z / object.scale);
-            object.actor:SetRoll(object.rotation.x);
-            object.actor:SetPitch(object.rotation.y);
-            object.actor:SetYaw(object.rotation.z);
-            object.actor:SetScale(object.scale);
+            -- assigning the new object so that we have access to the class functions (which get stripped when exporting to savedata)
+            SM.loadedScene.objects[i] = object;
         end
     end
 
@@ -320,8 +235,9 @@ function SM.LoadScene(index)
     -- refresh the scene tabs
     SM.RefreshSceneTabs();
 
-    -- refresh hierarchy
+    -- refresh
     SH.RefreshHierarchy();
+    OP.Refresh();
 
     SM.selectedObject = nil;
 end
@@ -332,104 +248,18 @@ function SM.UnloadScene()
 end
 
 function SM.CreateObject(_fileID, _name, _x, _y, _z)
-    local object = {
-        fileID = _fileID,
-        name = _name,
-        position = { x = _x, y = _y, z = _z },
-        rotation = { x = 0, y = 0, z = 0 },
-        scale = 1,
-    }
-    local scene = PM.currentProject.scenes[SM.loadedSceneIndex];
+    local object = SceneMachine.Object:New(_name, _fileID, { x = _x, y = _y, z = _z });
+
+    local scene = SM.loadedScene;--PM.currentProject.scenes[SM.loadedSceneIndex];
     scene.objects[#scene.objects + 1] = object;
 
+    -- Create actor
+    local actor = Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z);
+    object:SetActor(actor);
 
-    if (object.position == nil) then
-        object.position = { x=0, y=0, z=0 };
-    end
-
-    if (object.rotation == nil) then
-        object.rotation = { x=0, y=0, z=0 };
-    end
-
-    if (object.rotation.x == nil) then
-        object.rotation.x = 0;
-    end
-
-    if (object.rotation.y == nil) then
-        object.rotation.y = 0;
-    end
-
-    if (object.rotation.z == nil) then
-        object.rotation.z = 0;
-    end
-
-    if (object.scale == nil) then
-        object.scale = 1;
-    end
-
-    object.actor = Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z);
-
-    object.GetActiveBoundingBox = function(self)
-        local xMin, yMin, zMin, xMax, yMax, zMax = object.actor:GetActiveBoundingBox();
-
-        -- some objects do not have a bounding box :(
-        if (xMin == nil or yMin == nil or zMin == nil) then
-            xMin, yMin, zMin, xMax, yMax, zMax = -1, -1, -1, 1, 1, 1;
-        end
-
-        return xMin, yMin, zMin, xMax, yMax, zMax;
-    end
-
-    object.SetPosition = function(self, x, y, z)
-        object.position.x = x;
-        object.position.y = y;
-        object.position.z = z;
-        local s = object:GetScale();
-        object.actor:SetPosition(x / s, y / s, z / s);
-    end
-
-    object.GetPosition = function(self)
-        if (object.position.x == nil) then
-            object.position.x = 0;
-        end
-        if (object.position.y == nil) then
-            object.position.y = 0;
-        end
-        if (object.position.z == nil) then
-            object.position.z = 0;
-        end
-        return object.position;
-    end
-
-    object.SetRotation = function(self, x, y, z)
-        object.rotation.x = x;
-        object.rotation.y = y;
-        object.rotation.z = z;
-        object.actor:SetRoll(x);
-        object.actor:SetPitch(y);
-        object.actor:SetYaw(z);
-    end
-
-    object.GetRotation = function(self)
-        return object.rotation;
-    end
-
-    object.SetScale = function(self, value)
-        object.scale = value;
-        object.actor:SetPosition(object.position.x / value, object.position.y / value, object.position.z / value);
-        object.actor:SetScale(value);
-    end
-
-    object.GetScale = function(self)
-        return object.scale;
-    end
-
-    --object.actor:SetPosition(object.position.x / object.scale, object.position.y / object.scale, object.position.z / object.scale);
-    object.actor:SetRoll(object.rotation.x);
-    object.actor:SetPitch(object.rotation.y);
-    object.actor:SetYaw(object.rotation.z);
-    object.actor:SetScale(object.scale);
+    -- Refresh
     SH.RefreshHierarchy();
+    OP.Refresh();
 end
 
 function SM.DeleteObject(object)
@@ -441,12 +271,10 @@ function SM.DeleteObject(object)
         SM.selectedObject = nil;
     end
 
-    local scene = PM.currentProject.scenes[SM.loadedSceneIndex];
-
-    if (#scene.objects > 0) then
-        for i in pairs(scene.objects) do
-            if (scene.objects[i] == object) then
-                table.remove(scene.objects, i);
+    if (#SM.loadedScene.objects > 0) then
+        for i in pairs(SM.loadedScene.objects) do
+            if (SM.loadedScene.objects[i] == object) then
+                table.remove(SM.loadedScene.objects, i);
             end
         end
         

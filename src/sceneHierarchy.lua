@@ -97,9 +97,8 @@ function SH.RefreshHierarchy()
     SH.list:Clear();
 
     local index = 1;
-    local scene = PM.currentProject.scenes[SM.loadedSceneIndex];
-    for i in pairs(scene.objects) do
-        local object = scene.objects[i];
+    for i in pairs(SM.loadedScene.objects) do
+        local object = SM.loadedScene.objects[i];
         SH.list:SetItem(index, object.name);
         if (object == SM.selectedObject) then
             SH.list.pool[index].ntex:SetColorTexture(0, 0.4765, 0.7968,1);
@@ -114,8 +113,7 @@ end
 
 function SH.SelectObject(index)
     --print(index);
-    local scene = PM.currentProject.scenes[SM.loadedSceneIndex];
-    SM.selectedObject = scene.objects[index];
+    SM.selectedObject = SM.loadedScene.objects[index];
     SH.RefreshHierarchy();
 	OP.Refresh();
 end
