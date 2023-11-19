@@ -113,6 +113,12 @@ function Editor.CreateToolbar()
 
     toolbar.button7 = Win.CreateButton(180, 0, 30, 30, toolbar, "LEFT", "LEFT", "W", nil, "BUTTON_VS");
     toolbar.button7:SetScript("OnClick", function(self) Gizmos.space = 0; print("World Space"); end);
+
+    toolbar.button8 = Win.CreateButton(210, 0, 30, 30, toolbar, "LEFT", "LEFT", "Center", nil, "BUTTON_VS");
+    toolbar.button8:SetScript("OnClick", function(self) Gizmos.pivot = 0; print("Pivot Center"); end);
+
+    toolbar.button9 = Win.CreateButton(240, 0, 30, 30, toolbar, "LEFT", "LEFT", "Base", nil, "BUTTON_VS");
+    toolbar.button9:SetScript("OnClick", function(self) Gizmos.pivot = 1; print("Pivot Base"); end);
 end
 
 function Editor.CreateRightPanel()

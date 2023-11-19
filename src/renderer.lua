@@ -313,7 +313,7 @@ function ShadeRotationGizmo(gizmo)
 
         -- clamp
         if (gizmo.lines[i].axis == Gizmos.highlightedAxis) then
-            alpha = clamp(alpha, 0.1, 1);
+            alpha = clamp(alpha, 0.5, 1);
         else
             alpha = clamp(alpha, 0, 0.3);
         end
@@ -322,7 +322,6 @@ function ShadeRotationGizmo(gizmo)
         gizmo.lines[i]:SetVertexColor(faceColor[1], faceColor[2], faceColor[3], alpha);
     end
 end
-
 
 function ShadeScaleGizmo(gizmo)
     for t = 1, gizmo.lineCount, 1 do
