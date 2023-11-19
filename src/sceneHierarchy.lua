@@ -5,6 +5,7 @@ local SM = Editor.SceneManager;
 local SH = Editor.SceneHierarchy;
 local Gizmos = SceneMachine.Gizmos;
 local CC = SceneMachine.CameraController;
+local OP = Editor.ObjectProperties;
 
 function SH.CreatePanel(x, y, w, h, c4)
     local leftPanel = Win.CreateRectangle(x, y, w, h, SceneMachine.mainWindow, "TOPLEFT", "TOPLEFT", c4[1], c4[2], c4[3], 1);
@@ -116,5 +117,6 @@ function SH.SelectObject(index)
     --print(index);
     local scene = PM.currentProject.scenes[SM.loadedSceneIndex];
     SM.selectedObject = scene.objects[index];
-    SH.RefreshHierarchy()
+    SH.RefreshHierarchy();
+	OP.Refresh();
 end

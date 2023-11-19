@@ -55,7 +55,8 @@ function Win.CreateSlider (parent, name, title, minVal, maxVal, valStep)
         local val = self:GetText()
         if tonumber(val) then
             self:GetParent():SetValue(val)
-            self:ClearFocus()
+            self:ClearFocus();
+            Win.focused = false;
         end
     end)
     slider.editbox = editbox

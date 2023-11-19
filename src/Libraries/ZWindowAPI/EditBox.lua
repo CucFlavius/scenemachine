@@ -4,6 +4,7 @@
 
 --EditBox--
 local Win = ZWindowAPI;
+Win.focused = false;
 
 function Win.CreateEditBox(posX, posY, sizeX, sizeY, parent, windowPoint, parentPoint, text, textHeight)
 
@@ -32,10 +33,12 @@ function Win.CreateEditBox(posX, posY, sizeX, sizeY, parent, windowPoint, parent
 	EditBox:EnableMouse(true);
 	EditBox:SetMaxLetters(100);
 	--EditBox:SetFont(textFont, textHeight, 'NORMAL');
-	EditBox:SetScript('OnEscapePressed', function() EditBox:ClearFocus();  end);
-	EditBox:SetScript('OnEnterPressed', function() EditBox:ClearFocus();  end);
+	EditBox:SetScript('OnEscapePressed', function() EditBox:ClearFocus(); Win.focused = false; end);
+	EditBox:SetScript('OnEnterPressed', function() EditBox:ClearFocus(); Win.focused = false; end);
 	EditBox:EnableMouse();
 	EditBox:SetScript('OnMouseDown', function() EditBox:SetFocus(); end);
+	EditBox:SetScript("OnEditFocusGained", function() Win.focused = true; end);
+	EditBox:SetScript("OnEditFocusLost", function() Win.focused = false; end);
 	return EditBox;
 
 end

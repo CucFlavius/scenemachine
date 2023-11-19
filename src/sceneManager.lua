@@ -7,6 +7,7 @@ local Camera = SceneMachine.Camera;
 local Player = SceneMachine.Player;
 local CameraController = SceneMachine.CameraController;
 local SH = Editor.SceneHierarchy;
+local OP = Editor.ObjectProperties;
 
 local tabButtonHeight = 20;
 local tabPool = {};
@@ -122,6 +123,7 @@ function SM.Button_RenameScene(index, x)
 
     SM.addSceneEditBox:SetScript('OnEscapePressed', function(self1) 
         self1:ClearFocus();
+        Win.focused = false;
         self1:Hide();
         SM.addSceneButtonTab:Show();
         if (index ~= -1) then
@@ -131,6 +133,7 @@ function SM.Button_RenameScene(index, x)
     end);
     SM.addSceneEditBox:SetScript('OnEnterPressed', function(self1)
         self1:ClearFocus();
+        Win.focused = false;
         local text = self1:GetText();
         if (text ~= nil and text ~= "") then
             if (index == -1) then
@@ -144,6 +147,7 @@ function SM.Button_RenameScene(index, x)
         end
         self1:Hide();
         SM.addSceneButtonTab:Show();
+        self1:ClearFocus();
     end);
 end
 
@@ -216,11 +220,11 @@ function SM.LoadScene(index)
                 object.rotation.z = 0;
             end
 
-            if (object.scale == nil) then
+            if (object.scale == nil or object.scale == 0) then
                 object.scale = 1;
             end
 
-            object.actor = Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z);
+            object.actor = Renderer.AddActor(object.fileID, object.position.x / object.scale, object.position.y / object.scale, object.position.z / object.scale);
 
             object.GetActiveBoundingBox = function(self)
                 local xMin, yMin, zMin, xMax, yMax, zMax = object.actor:GetActiveBoundingBox();
@@ -438,6 +442,7 @@ function SM.DeleteObject(object)
 
     -- refresh hierarchy
     SH.RefreshHierarchy();
+    OP.Refresh();
 end
 
 function SM.DeleteScene(index)

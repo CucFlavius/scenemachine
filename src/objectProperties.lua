@@ -48,6 +48,7 @@ function OP.CreateTransformProperties(x, y, w, h, parent)
         -- restore value
         self1:SetText(tostring(self1.value));
         self1:ClearFocus();
+        Win.focused = false;
     end);
     OP.Transform.scale:SetScript('OnEnterPressed', function(self1)
         -- set value
@@ -57,6 +58,8 @@ function OP.CreateTransformProperties(x, y, w, h, parent)
         end
         self1.value = tonumber(valText);
         OP.SetScale(self1);
+        self1:ClearFocus();
+        Win.focused = false;
     end);
     OP.Transform.scale:SetScript('OnEditFocusLost', function(self1) 
         -- set value
@@ -66,6 +69,7 @@ function OP.CreateTransformProperties(x, y, w, h, parent)
         end
         self1.value = tonumber(valText);
         OP.SetScale(self1);
+        Win.focused = false;
     end);
     local resetScaleButton = Win.CreateButton(editBoxTitleW + 10 + (55 * 3) + (2 * 2), -44, 20, 20, transformRect, "TOPLEFT", "TOPLEFT", "R", nil, "BUTTON_VS");
     resetScaleButton:SetScript("OnClick", function(self)
@@ -85,6 +89,7 @@ function OP.CreateTransformField(x, y, parent, axisName, setValue, defaultValue)
         -- restore value
         self1:SetText(tostring(self1.value));
         self1:ClearFocus();
+        Win.focused = false;
     end);
     transform:SetScript('OnEnterPressed', function(self1)
         -- set value
@@ -94,6 +99,8 @@ function OP.CreateTransformField(x, y, parent, axisName, setValue, defaultValue)
         end
         self1.value = tonumber(valText);
         setValue(self1);
+        self1:ClearFocus();
+        Win.focused = false;
     end);
     transform:SetScript('OnEditFocusLost', function(self1) 
         -- set value
@@ -103,6 +110,7 @@ function OP.CreateTransformField(x, y, parent, axisName, setValue, defaultValue)
         end
         self1.value = tonumber(valText);
         setValue(self1);
+        Win.focused = false;
     end);
 
     return transform;

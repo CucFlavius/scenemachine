@@ -154,7 +154,7 @@ function MousePick.FindConvexHull(points)
         if (p1 ~= nil and p2 ~= nil) then
             return compare(p1, p2) == -1
         else
-            return false;
+            return 1;
         end
     end)
 
