@@ -132,7 +132,7 @@ end
 
 function Editor.CreateLeftPanel()
     SH.CreatePanel(0, -Editor.toolbarHeight, leftPanelWidth - 12, 350, c4);
-    OP.CreatePanel(0, -(Editor.toolbarHeight + 350 + 5), leftPanelWidth - 12, 310, c4);
+    OP.CreatePanel(0, -(Editor.toolbarHeight + 350 + 5), leftPanelWidth - 12, 310, c1, c2, c3, c4);
 end
 
 function Editor.CreateBottomPanel()
@@ -171,7 +171,7 @@ function Editor.Save()
             local scene = project.scenes[s];
 
             for o = 1, #scene.objects, 1 do
-                
+
             end
         end
     end

@@ -11,27 +11,29 @@ function Win.CreateCollapsableList(posX, posY, sizeX, sizesY, parent, windowPoin
         bars[c] = Win.CreateCollapsableBox(posX, y, sizeX, sizesY[c], parent, windowPoint, parentPoint, titles[c], R, G, B, A, bars)
     end
 
-    Win.SortCollapsableBoxes(bars);
+    for c = 1, #bars, 1 do
+        bars[c].list = bars;
+    end
 
+    Win.SortCollapsableBoxes(bars);
     return bars;
 end
 
-function Win.CreateCollapsableBox(posX, posY, sizeX, sizeY, parent, windowPoint, parentPoint, title, R, G, B, A, list)
+function Win.CreateCollapsableBox(posX, posY, sizeX, sizeY, parent, windowPoint, parentPoint, title, R, G, B, A)
     local bar = Win.CreateButton(0, 0, sizeX, 12, parent, "TOP", "TOP", title);
     bar.isCollapsed = false;
     bar.text:SetJustifyH("CENTER");
     bar.text:SetFont(Win.defaultFont, 9, "NORMAL");
-    bar.list = list;
     bar.parent = parent;
     bar.posX = posX;
     bar:SetScript("OnClick", function (self, button, down)
         self.isCollapsed = not self.isCollapsed;
         if (self.isCollapsed) then
+            Win.SortCollapsableBoxes(self.list);
             self.panel:Hide();
-            Win.SortCollapsableBoxes(self.list);
         else
-            self.panel:Show();
             Win.SortCollapsableBoxes(self.list);
+            self.panel:Show();
         end
     end);
 
@@ -45,9 +47,12 @@ function Win.SortCollapsableBoxes(list)
     local y = 0;
     for c = 1, #list, 1 do
         local bar = list[c];
-        if (bar.panel:IsVisible()) then
-            bar:ClearAllPoints();
-            bar:SetPoint("TOP", bar.parent, "TOP", bar.posX, y);
+
+        bar:ClearAllPoints();
+        bar:SetPoint("TOP", bar:GetParent(), "TOP", bar.posX, y);
+        bar:SetHeight(12);
+
+        if (not bar.isCollapsed) then
             y = y - (bar.panel:GetHeight() + 13);
         else
             y = y - 13;

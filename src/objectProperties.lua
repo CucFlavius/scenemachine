@@ -6,11 +6,11 @@ local SH = Editor.SceneHierarchy;
 local Gizmos = SceneMachine.Gizmos;
 local OP = Editor.ObjectProperties;
 
-function OP.CreatePanel(x, y, w, h, c4)
+function OP.CreatePanel(x, y, w, h, c1, c2, c3, c4)
     local leftPanel = Win.CreateRectangle(x, y, w, h, SceneMachine.mainWindow, "TOPLEFT", "TOPLEFT", c4[1], c4[2], c4[3], 1);
     local group = Editor.CreateGroup("Properties", h, leftPanel);
 
-    local collapseList = Win.CreateCollapsableList(1, -1, w - 2, { 60, 80 }, group, "TOPLEFT", "TOPLEFT", { "Transform", "Test" }, 0, 0, 0, 0);
+    local collapseList = Win.CreateCollapsableList(0, -1, w - 2, { 60, 80, 100 }, group, "TOP", "TOP", { "Transform", "Test Property A", "Test Property B" }, c1[1], c1[2], c1[3], 1);
 
     OP.CreateTransformProperties(0, 0, w - 2, 60, collapseList[1].panel);
 
