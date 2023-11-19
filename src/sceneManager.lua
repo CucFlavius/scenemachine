@@ -407,6 +407,32 @@ function SM.CreateObject(_fileID, _name, _x, _y, _z)
     SH.RefreshHierarchy();
 end
 
+function SM.DeleteObject(object)
+    if (SM.selectedObject == nil) then
+        return;
+    end
+
+    if (SM.selectedObject == object) then
+        SM.selectedObject = nil;
+    end
+
+    local scene = PM.currentProject.scenes[SM.loadedSceneIndex];
+
+    if (#scene.objects > 0) then
+        for i in pairs(scene.objects) do
+            if (scene.objects[i] == object) then
+                table.remove(scene.objects, i);
+            end
+        end
+        
+    end
+
+    Renderer.RemoveActor(object.actor);
+
+    -- refresh hierarchy
+    SH.RefreshHierarchy();
+end
+
 function SM.DeleteScene(index)
     -- switch to a different scene because the currently loaded is being deleted
     -- load first that isn't this one

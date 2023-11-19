@@ -6,6 +6,7 @@ local SH = Editor.SceneHierarchy;
 local MousePick = Editor.MousePick;
 local OP = Editor.ObjectProperties;
 local Gizmos = SceneMachine.Gizmos;
+local SM = Editor.SceneManager;
 
 Editor.width = 1280;
 Editor.height = 720;
@@ -34,6 +35,9 @@ function Editor.Initialize()
     local sceneW = Editor.width - (rightPanelWidth + leftPanelWidth);
     local sceneH = Editor.height - (Editor.toolbarHeight + bottomPanelHeight + 6 + 20);
     Editor.SceneManager.Create(sceneX, sceneY, sceneW, sceneH, SceneMachine.mainWindow);
+
+    -- Keybinds --
+    SceneMachine.Input.AddKeyBind("DELETE",function() SM.DeleteObject(SM.selectedObject); end, nil);
 
     -- load saved variables (this is safe to do because Editor.Initialize() is done on ADDON_LOADED)
     Editor.ProjectManager.LoadSavedData();

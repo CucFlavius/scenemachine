@@ -118,11 +118,14 @@ function Renderer.AddActor(fileID, X, Y, Z)
     return actor;
 end
 
+function Renderer.RemoveActor(actor)
+    actor:Hide();
+end
+
 function Renderer.Clear()
     for i in pairs(Renderer.actors) do
         local actor = Renderer.actors[i];
-        actor:Hide();
-        --actor.loaded = false;
+        Renderer.RemoveActor(actor);
     end
 end
 

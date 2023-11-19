@@ -34,13 +34,17 @@ function Input.Initialize()
     Input.KeyboardListener:SetPropagateKeyboardInput(true);
     Input.KeyboardListener:SetScript("OnKeyDown", function(self, key)
 			if Input.Keys[key] ~= nil then
-				Input.Keys[key].OnKeyDown();
+                if Input.Keys[key].OnKeyDown ~= nil then
+				    Input.Keys[key].OnKeyDown();
+                end
                 self:SetPropagateKeyboardInput(false);
 			end
         end);
 		Input.KeyboardListener:SetScript("OnKeyUp", function(self, key)
 			if Input.Keys[key] ~= nil then
-				Input.Keys[key].OnKeyUp();
+                if Input.Keys[key].OnKeyUp ~= nil then
+				    Input.Keys[key].OnKeyUp();
+                end
                 self:SetPropagateKeyboardInput(true);
             end
         end);
