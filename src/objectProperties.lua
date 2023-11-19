@@ -11,6 +11,7 @@ function OP.CreatePanel(x, y, w, h, c4)
     local group = Editor.CreateGroup("Properties", h, leftPanel);
 
     OP.CreateTransformProperties(1, -1, w - 2, 100, group);
+    OP.Refresh();
 end
 
 function OP.CreateTransformProperties(x, y, w, h, parent)
@@ -135,8 +136,9 @@ function OP.Refresh()
         pos = { x=0, y=0, z=0 };
         rot = { x=0, y=0, z=0 };
         scale = 1;
-        return;
+        OP.ToggleTransformFields(false);
     else
+        OP.ToggleTransformFields(true);
         pos = SM.selectedObject:GetPosition();
         rot = SM.selectedObject:GetRotation();
         scale = SM.selectedObject:GetScale();
@@ -151,6 +153,30 @@ function OP.Refresh()
     OP.Transform.rotZ:SetText(tostring(OP.Truncate(deg(rot.z), 3)));
 
     OP.Transform.scale:SetText(tostring(OP.Truncate(scale, 3)));
+end
+
+function OP.ToggleTransformFields(on)
+    local c = 0.5;
+    if (on) then
+        c = 1;
+    end
+
+    OP.Transform.posX:SetEnabled(on);
+    OP.Transform.posX:SetTextColor(1, 1, 1, c);
+    OP.Transform.posY:SetEnabled(on);
+    OP.Transform.posY:SetTextColor(1, 1, 1, c);
+    OP.Transform.posZ:SetEnabled(on);
+    OP.Transform.posZ:SetTextColor(1, 1, 1, c);
+
+    OP.Transform.rotX:SetEnabled(on);
+    OP.Transform.rotX:SetTextColor(1, 1, 1, c);
+    OP.Transform.rotY:SetEnabled(on);
+    OP.Transform.rotY:SetTextColor(1, 1, 1, c);
+    OP.Transform.rotZ:SetEnabled(on);
+    OP.Transform.rotZ:SetTextColor(1, 1, 1, c);
+
+    OP.Transform.scale:SetEnabled(on);
+    OP.Transform.scale:SetTextColor(1, 1, 1, c);
 end
 
 function OP.SetPosX(self)
