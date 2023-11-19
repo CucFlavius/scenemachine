@@ -72,7 +72,7 @@ function Renderer.CreateRenderer(x, y, w, h, parent, point, relativePoint)
 	Renderer.projectionFrame:SetClipsChildren(true);
 	Renderer.projectionFrame:SetCameraPosition(4,0,0);
 	Renderer.projectionFrame:SetCameraOrientationByYawPitchRoll(0, 0, 0);
-
+    Renderer.projectionFrame:SetCameraFarClip(1000)
 	Renderer.CreateBackgroundFrame();
 	Renderer.GenerateFrameBuffer();
 	Renderer.active = false;

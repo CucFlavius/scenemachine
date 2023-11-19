@@ -8,16 +8,16 @@ local Input = SceneMachine.Input;
 
 Gizmos.isUsed = false;
 Gizmos.isHighlighted = false;
-Gizmos.selectedAxis = 1;
-Gizmos.activeTransformGizmo = 3;
+Gizmos.selectedAxis = 1;            -- x = 1, y = 2, z = 3
+Gizmos.activeTransformGizmo = 0;    -- select = 0, move = 1, rotate = 2, scale = 3
+Gizmos.space = 1;                   -- world = 0, local = 1
 Gizmos.LMBPrevious = {};
 Gizmos.frames = {};
 Gizmos.vectorX = {1,0,0};
 Gizmos.vectorY = {0,1,0};
 Gizmos.vectorZ = {0,0,1};
 Gizmos.savedRotation = {0, 0, 0};
-Gizmos.increment = 0;
-Gizmos.space = 1;   -- 0 = world, 1 = local
+Gizmos.rotationIncrement = 0;
 
 local function sqr(x)
     return x * x;
@@ -232,24 +232,25 @@ function Gizmos.UpdateGizmoTransform()
     local px, py, pz = position.x, position.y, position.z;
     local rotation = SM.selectedObject:GetRotation();
     local rx, ry, rz = rotation.x, rotation.y, rotation.z;
+    local scale = SM.selectedObject:GetScale();
 
     local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObject:GetActiveBoundingBox();
     local bbCenter = {(xMax - xMin) / 2, (yMax - yMin) / 2, (zMax - zMin) / 2};
 
     Gizmos.transformToAABB(SceneMachine.Gizmos.WireBox, bbCenter);
-    Gizmos.transformGizmo(SceneMachine.Gizmos.WireBox, {px, py, pz}, {rx, ry, rz}, bbCenter, 1);
+    Gizmos.transformGizmo(SceneMachine.Gizmos.WireBox, {px, py, pz}, {rx, ry, rz}, scale, bbCenter, 1);
 
     if (Gizmos.activeTransformGizmo == 1) then
         -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
         SceneMachine.Gizmos.MoveGizmo.scale = manhattanDistance3D(px, py, pz, Camera.X, Camera.Y, Camera.Z) / 15;
-        Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, {px, py, pz}, {rx, ry, rz}, bbCenter, Gizmos.space);
+        Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, {px, py, pz}, {rx, ry, rz}, 1, bbCenter, Gizmos.space);
     elseif (Gizmos.activeTransformGizmo == 2) then
         -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
         SceneMachine.Gizmos.RotateGizmo.scale = manhattanDistance3D(px, py, pz, Camera.X, Camera.Y, Camera.Z) / 10;
-        Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmo, {px, py, pz}, {rx, ry, rz}, bbCenter, Gizmos.space);
+        Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmo, {px, py, pz}, {rx, ry, rz}, 1, bbCenter, Gizmos.space);
     elseif (Gizmos.activeTransformGizmo == 3) then
         SceneMachine.Gizmos.ScaleGizmo.scale = manhattanDistance3D(px, py, pz, Camera.X, Camera.Y, Camera.Z) / 15;
-        Gizmos.transformGizmo(SceneMachine.Gizmos.ScaleGizmo, {px, py, pz}, {rx, ry, rz}, bbCenter, Gizmos.space);
+        Gizmos.transformGizmo(SceneMachine.Gizmos.ScaleGizmo, {px, py, pz}, {rx, ry, rz}, 1, bbCenter, Gizmos.space);
     end
 end
 
@@ -367,12 +368,12 @@ function Gizmos.MotionToTransform()
                 end
                 SM.selectedObject:SetPosition(px, py, pz);
             elseif (Gizmos.activeTransformGizmo == 2) then
-                Gizmos.increment = Gizmos.increment + diff;
+                Gizmos.rotationIncrement = Gizmos.rotationIncrement + diff;
                 if (Gizmos.selectedAxis == 1) then
                     if (Gizmos.space == 0) then
                         rx = rx + diff;
                     elseif (Gizmos.space == 1) then
-                        local rot = multiplyRotations(Gizmos.savedRotation, {Gizmos.increment, 0, 0});
+                        local rot = multiplyRotations(Gizmos.savedRotation, {Gizmos.rotationIncrement, 0, 0});
                         rx = rot[1];
                         ry = rot[2];
                         rz = rot[3];
@@ -381,7 +382,7 @@ function Gizmos.MotionToTransform()
                     if (Gizmos.space == 0) then
                         ry = ry + diff;
                     elseif (Gizmos.space == 1) then
-                        local rot = multiplyRotations(Gizmos.savedRotation, {0, Gizmos.increment, 0});
+                        local rot = multiplyRotations(Gizmos.savedRotation, {0, Gizmos.rotationIncrement, 0});
                         rx = rot[1];
                         ry = rot[2];
                         rz = rot[3];
@@ -390,7 +391,7 @@ function Gizmos.MotionToTransform()
                     if (Gizmos.space == 0) then
                         rz = rz + diff;
                     elseif (Gizmos.space == 1) then
-                        local rot = multiplyRotations(Gizmos.savedRotation, {0, 0, Gizmos.increment});
+                        local rot = multiplyRotations(Gizmos.savedRotation, {0, 0, Gizmos.rotationIncrement});
                         rx = rot[1];
                         ry = rot[2];
                         rz = rot[3];
@@ -427,7 +428,7 @@ function Gizmos.OnLMBDown(x, y)
 	Gizmos.LMBPrevious.x = x;
 	Gizmos.LMBPrevious.y = y;
     Gizmos.isUsed = true;
-    Gizmos.increment = 0;
+    Gizmos.rotationIncrement = 0;
 
     -- store rotation vector
     if (SM.selectedObject ~= nil) then
@@ -449,20 +450,20 @@ function Gizmos.OnLMBUp()
     Gizmos.isUsed = false;
 end
 
-function Gizmos.transformGizmo(gizmo, position, rotation, boundsCenter, space)
+function Gizmos.transformGizmo(gizmo, position, rotation, scale, boundsCenter, space)
     for q = 1, gizmo.lineCount, 1 do
         for v = 1, 2, 1 do
             if (space == 1) then
                 -- local space --
                 local rotated = rotatePoint(gizmo.vertices[q][v], rotation);
-                gizmo.transformedVertices[q][v][1] = rotated[1] * gizmo.scale + position[1];
-                gizmo.transformedVertices[q][v][2] = rotated[2] * gizmo.scale + position[2];
-                gizmo.transformedVertices[q][v][3] = rotated[3] * gizmo.scale + position[3] + boundsCenter[3];
+                gizmo.transformedVertices[q][v][1] = rotated[1] * gizmo.scale * scale + position[1];
+                gizmo.transformedVertices[q][v][2] = rotated[2] * gizmo.scale * scale + position[2];
+                gizmo.transformedVertices[q][v][3] = rotated[3] * gizmo.scale * scale + position[3] + (boundsCenter[3] * scale);
             elseif (space == 0) then
                 -- world space --
-                gizmo.transformedVertices[q][v][1] = gizmo.vertices[q][v][1] * gizmo.scale + position[1];
-                gizmo.transformedVertices[q][v][2] = gizmo.vertices[q][v][2] * gizmo.scale + position[2];
-                gizmo.transformedVertices[q][v][3] = gizmo.vertices[q][v][3] * gizmo.scale + position[3] + boundsCenter[3];
+                gizmo.transformedVertices[q][v][1] = gizmo.vertices[q][v][1] * gizmo.scale * scale + position[1];
+                gizmo.transformedVertices[q][v][2] = gizmo.vertices[q][v][2] * gizmo.scale * scale + position[2];
+                gizmo.transformedVertices[q][v][3] = gizmo.vertices[q][v][3] * gizmo.scale * scale + position[3] + (boundsCenter[3] * scale);
             end
         end
     end
