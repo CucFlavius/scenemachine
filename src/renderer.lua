@@ -6,6 +6,7 @@ local Camera = SceneMachine.Camera;
 local World = SceneMachine.World;
 local FX = SceneMachine.FX;
 local Input = SceneMachine.Input;
+local Math = SceneMachine.Math;
 
 --- WTF ---
 local sqrt = math.sqrt;
@@ -19,13 +20,6 @@ SceneMachine.UsedFrames = 1;
 SceneMachine.CulledFrames = 1;
 SceneMachine.lineThickness = 2;
 
-local function manhattanDistance(aX, aY, bX, bY)
-    return math.abs(aX - bX) + math.abs(aY - bY)
-end
-
-local function manhattanDistance3D(aX, aY, aZ, bX, bY, bZ)
-    return math.abs(aX - bX) + math.abs(aY - bY) + math.abs(aZ - bZ)
-end
 
 function Renderer.GenerateFrameBuffer()
 
@@ -212,7 +206,7 @@ function RenderGizmoLines(gizmo)
                 line:SetEndPoint("BOTTOMLEFT", bX, bY)   -- end bottomright
 
                 if (gizmo.dashedLine == true) then
-                    local dist = manhattanDistance3D(vert[1][1],vert[1][2],vert[1][3],vert[2][1],vert[2][2],vert[2][3]);
+                    local dist = Math.manhattanDistance3D(vert[1][1],vert[1][2],vert[1][3],vert[2][1],vert[2][2],vert[2][3]);
                     dist = max(dist, 1);
                     dist = min(dist, 100);
                     line:SetTexCoord(0, dist , 0, 1);

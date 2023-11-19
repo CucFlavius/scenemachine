@@ -8,6 +8,8 @@ local Player = SceneMachine.Player;
 local CameraController = SceneMachine.CameraController;
 local SH = Editor.SceneHierarchy;
 local OP = Editor.ObjectProperties;
+local Gizmos = SceneMachine.Gizmos;
+local Math = SceneMachine.Math;
 
 local tabButtonHeight = 20;
 local tabPool = {};
@@ -258,6 +260,19 @@ function SM.LoadScene(index)
             end
 
             object.SetRotation = function(self, x, y, z)
+                if (Gizmos.pivot == 1) then
+                    local angleDiff = { x - object.rotation.x, y - object.rotation.y, z - object.rotation.z };
+                    local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
+                    local bbCenter = ((zMax - zMin) / 2) * object:GetScale();
+                    local ppoint = Math.RotateObjectAroundPivot({0, 0, bbCenter}, {0, 0, 0}, angleDiff);
+                    local position = SM.selectedObject:GetPosition();
+                    local px, py, pz = position.x, position.y, position.z;
+                    px = px + ppoint[1];
+                    py = py + ppoint[2];
+                    pz = (pz + ppoint[3]) - bbCenter;
+                    object:SetPosition(px, py, pz);
+                end
+
                 object.rotation.x = x;
                 object.rotation.y = y;
                 object.rotation.z = z;

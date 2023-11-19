@@ -4,6 +4,7 @@ local Renderer = SceneMachine.Renderer;
 local Gizmos = SceneMachine.Gizmos;
 local Input = SceneMachine.Input;
 local Camera = SceneMachine.Camera;
+local Math = SceneMachine.Math;
 
 ----------------------------------
 --			CC State	 		--
@@ -43,53 +44,6 @@ CC.moveSpeed = 0.1;
 CC.acceleration = 1.0;
 CC.maxAcceleration = 12.0;
 CC.mouseTurnSpeed = 0.2;
-
-
-local function manhattanDistance3D(aX, aY, aZ, bX, bY, bZ)
-    return math.abs(aX - bX) + math.abs(aY - bY) + math.abs(aZ - bZ)
-end
-
-local function abs3D(x, y, z)
-	return { math.abs[x], math.abs[y], math.abs[z] };
-end
-
-local function lerp(start, finish, t)
-    return start * (1 - t) + finish * t
-end
-
-local function normalize(vector)
-    local magnitude = math.sqrt(vector[1]^2 + vector[2]^2 + vector[3]^2)
-    
-    if magnitude ~= 0 then
-      return {vector[1] / magnitude, vector[2] / magnitude, vector[3] / magnitude}
-    else
-      -- Handle the case where the vector is a zero vector (magnitude is zero)
-      return {0, 0, 0}
-    end
-end
-
-local function eulerToDirection(rx, ry, rz)
-    -- Calculate direction vector components
-    local vx = math.cos(ry) * math.cos(rz)
-    local vy = math.sin(rz)
-    local vz = math.sin(ry) * math.cos(rz)
-
-    return { vx, vy, vz }
-end
-
-local function pointOnSphere(yaw, pitch, roll, distance)
-    -- Convert degrees to radians
-    yaw = math.rad(yaw)
-    pitch = math.rad(pitch)
-    roll = math.rad(roll)
-
-    -- Calculate Cartesian coordinates
-    local x = distance * math.cos(pitch) * math.cos(yaw)
-    local y = distance * math.cos(pitch) * math.sin(yaw)
-    local z = distance * math.sin(pitch)
-
-    return { x, y, z }
-end
 
 --------------------------------------
 --			Keyboard Input			--
@@ -181,9 +135,9 @@ function CC.Update()
 			fractionOfJourney = distCovered / CC.Focus.distance;
 		end
 
-		CC.Position.x = lerp(CC.Focus.startPos[1], CC.Focus.endPos[1], fractionOfJourney);
-		CC.Position.y = lerp(CC.Focus.startPos[2], CC.Focus.endPos[2], fractionOfJourney);
-		CC.Position.z = lerp(CC.Focus.startPos[3], CC.Focus.endPos[3], fractionOfJourney);
+		CC.Position.x = Math.lerp(CC.Focus.startPos[1], CC.Focus.endPos[1], fractionOfJourney);
+		CC.Position.y = Math.lerp(CC.Focus.startPos[2], CC.Focus.endPos[2], fractionOfJourney);
+		CC.Position.z = Math.lerp(CC.Focus.startPos[3], CC.Focus.endPos[3], fractionOfJourney);
 
 		if (fractionOfJourney >= 1) then
 			CC.Focus.focusing = false;
@@ -215,7 +169,7 @@ function CC.FocusObject(object)
 	-- TODO: need to calculate an offset from the current object position, using the camera vector and object bounds
 	local objectPos = object:GetPosition();
 	local objectScale = object:GetScale();
-	local vector = normalize(eulerToDirection(Camera.Roll, math.abs(Camera.Pitch), Camera.Yaw));
+	local vector = Math.normalize(Math.eulerToDirection(Camera.Roll, math.abs(Camera.Pitch), Camera.Yaw));
 	local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
 	local objectCenter = { objectPos.x * objectScale, objectPos.y * objectScale, (objectPos.z + (zMax / 2)) * objectScale}
 	local radius = math.max(xMax, math.max(yMax, zMax));
@@ -228,7 +182,7 @@ function CC.FocusObject(object)
 	CC.Focus.startTime = SceneMachine.time;
 
 	-- calculate the journey length.
-	CC.Focus.distance = manhattanDistance3D(CC.Focus.startPos[1], CC.Focus.startPos[2], CC.Focus.startPos[3], CC.Focus.endPos[1], CC.Focus.endPos[2], CC.Focus.endPos[3]);
+	CC.Focus.distance = Math.manhattanDistance3D(CC.Focus.startPos[1], CC.Focus.startPos[2], CC.Focus.startPos[3], CC.Focus.endPos[1], CC.Focus.endPos[2], CC.Focus.endPos[3]);
 
 	CC.Focus.focusing = true;
 end

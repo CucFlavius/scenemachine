@@ -3,6 +3,7 @@ SceneMachine = {};
 
 SceneMachine.Data = {};
 
+SceneMachine.Math = {};
 SceneMachine.Camera = {};
 SceneMachine.CameraController = {};
 SceneMachine.Renderer = {};

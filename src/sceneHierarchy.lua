@@ -17,7 +17,6 @@ function SH.CreatePanel(x, y, w, h, c4)
     SH.RefreshHierarchy();
 end
 
-
 function SH.ItemList(itemSizeX, itemSizeY, parent)
 	local itemList = {
 		selectedIndex = -1,

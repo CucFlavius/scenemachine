@@ -24,6 +24,7 @@
     <Script file="objectProperties.lua"/>
     <Script file="editor.lua"/>
 	<Script file="engine.lua"/>
+    <Script file="math.lua"/>
     
     <Script file="Gizmo\gizmos.lua"/>
     <Script file="Gizmo\moveGizmo.lua"/>
