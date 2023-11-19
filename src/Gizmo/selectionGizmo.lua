@@ -27,56 +27,9 @@ function Gizmos.CreateSelectionGizmo()
             {{ch, -ch, ch}, {ch, ch, ch}},
             {{-ch, -ch, ch}, {-ch, ch, ch}}
         };
-        transformedVertices =
-        {
-            -- Bottom face
-            {{-ch, -ch, -ch}, {ch, -ch, -ch}},
-            {{ch, -ch, -ch}, {ch, -ch, ch}},
-            {{ch, -ch, ch}, {-ch, -ch, ch}},
-            {{-ch, -ch, ch}, {-ch, -ch, -ch}},
-
-            -- Top face
-            {{-ch, ch, -ch}, {ch, ch, -ch}},
-            {{ch, ch, -ch}, {ch, ch, ch}},
-            {{ch, ch, ch}, {-ch, ch, ch}},
-            {{-ch, ch, ch}, {-ch, ch, -ch}},
-
-            -- Connecting edges
-            {{-ch, -ch, -ch}, {-ch, ch, -ch}},
-            {{ch, -ch, -ch}, {ch, ch, -ch}},
-            {{ch, -ch, ch}, {ch, ch, ch}},
-            {{-ch, -ch, ch}, {-ch, ch, ch}}
-        };
-        screenSpaceVertices = 
-        {
-            {{0,0}, {0,0}},
-            {{0,0}, {0,0}},
-            {{0,0}, {0,0}},
-            {{0,0}, {0,0}},
-            {{0,0}, {0,0}},
-            {{0,0}, {0,0}},
-            {{0,0}, {0,0}},
-            {{0,0}, {0,0}},
-            {{0,0}, {0,0}},
-            {{0,0}, {0,0}},
-            {{0,0}, {0,0}},
-            {{0,0}, {0,0}},
-        };
-        faceColors = 
-        {
-            {1,1,1},
-            {1,1,1},
-            {1,1,1},
-            {1,1,1},
-            {1,1,1},
-            {1,1,1},
-            {1,1,1},
-            {1,1,1},
-            {1,1,1},
-            {1,1,1},
-            {1,1,1},
-            {1,1,1},
-        };
+        transformedVertices = {};
+        screenSpaceVertices = {};
+        faceColors = {};
         lines = {};
         lineDepths = {};
         dashedLine = true;
@@ -85,6 +38,13 @@ function Gizmos.CreateSelectionGizmo()
     -- Frame --
     local lineProjectionFrame = Gizmos.CreateLineProjectionFrame();
     Gizmos.frames["SelectionGizmoFrame"] = lineProjectionFrame;
+
+    -- Fill tables --
+    for v = 1, #Gizmos.WireBox.vertices, 1 do
+        Gizmos.WireBox.transformedVertices[v] = {{0,0,0}, {0,0,0}};
+        Gizmos.WireBox.screenSpaceVertices[v] = {{0,0}, {0,0}};
+        Gizmos.WireBox.faceColors[v] = {1,1,1,1};
+    end
 
     -- Lines --
     for t = 1, Gizmos.WireBox.lineCount, 1 do

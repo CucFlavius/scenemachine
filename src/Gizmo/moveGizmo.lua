@@ -44,18 +44,8 @@ function Gizmos.CreateMoveGizmo()
             {{0,0,0}, {0,1,0}}, -- Y
             {{0,0,0}, {0,0,1}}, -- Z
         };
-        transformedVertices =
-        {
-            {{0,0,0}, {1,0,0}}, -- X
-            {{0,0,0}, {0,1,0}}, -- Y
-            {{0,0,0}, {0,0,1}}, -- Z
-        };
-        screenSpaceVertices = 
-        {
-            {{0,0}, {0,0}},
-            {{0,0}, {0,0}},
-            {{0,0}, {0,0}},
-        };
+        transformedVertices = {};
+        screenSpaceVertices = {};
         faceColors = 
         {
             {1,0,0,1},
@@ -68,6 +58,12 @@ function Gizmos.CreateMoveGizmo()
 
     local lineProjectionFrame = Gizmos.CreateLineProjectionFrame();
     Gizmos.frames["MoveGizmoFrame"] = lineProjectionFrame;
+
+    -- Fill tables --
+    for v = 1, #Gizmos.MoveGizmo.vertices, 1 do
+        Gizmos.MoveGizmo.transformedVertices[v] = {{0,0,0}, {0,0,0}};
+        Gizmos.MoveGizmo.screenSpaceVertices[v] = {{0,0}, {0,0}};
+    end
 
     -- Lines --
     for t = 1, Gizmos.MoveGizmo.lineCount + 1, 1 do

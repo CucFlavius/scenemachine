@@ -41,6 +41,7 @@ function Gizmos.CreateScaleGizmo()
     local lineProjectionFrame = Gizmos.CreateLineProjectionFrame();
     Gizmos.frames["ScaleGizmoFrame"] = lineProjectionFrame;
 
+    -- Fill tables --
     for v = 1, #Gizmos.ScaleGizmo.vertices, 1 do
         Gizmos.ScaleGizmo.transformedVertices[v] = {{0,0,0}, {0,0,0}};
         Gizmos.ScaleGizmo.screenSpaceVertices[v] = {{0,0}, {0,0}};
