@@ -147,7 +147,6 @@ function SM.Button_RenameScene(index, x)
         end
         self1:Hide();
         SM.addSceneButtonTab:Show();
-        self1:ClearFocus();
     end);
 end
 

@@ -56,7 +56,10 @@ function OP.CreateTransformProperties(x, y, w, h, parent)
         if (valText == nil or valText == "") then
             valText = "1";
         end
-        self1.value = tonumber(valText);
+        local val = tonumber(valText);
+        if (val ~= nil) then
+            self1.value = val;
+        end
         OP.SetScale(self1);
         self1:ClearFocus();
         Win.focused = false;
@@ -67,7 +70,10 @@ function OP.CreateTransformProperties(x, y, w, h, parent)
         if (valText == nil or valText == "") then
             valText = "1";
         end
-        self1.value = tonumber(valText);
+        local val = tonumber(valText);
+        if (val ~= nil) then
+            self1.value = val;
+        end
         OP.SetScale(self1);
         Win.focused = false;
     end);
@@ -97,7 +103,10 @@ function OP.CreateTransformField(x, y, parent, axisName, setValue, defaultValue)
         if (valText == nil or valText == "") then
             valText = tostring(defaultValue);
         end
-        self1.value = tonumber(valText);
+        local val = tonumber(valText);
+        if (val ~= nil) then
+            self1.value = val;
+        end
         setValue(self1);
         self1:ClearFocus();
         Win.focused = false;
@@ -108,7 +117,10 @@ function OP.CreateTransformField(x, y, parent, axisName, setValue, defaultValue)
         if (valText == nil or valText == "") then
             valText = tostring(defaultValue);
         end
-        self1.value = tonumber(valText);
+        local val = tonumber(valText);
+        if (val ~= nil) then
+            self1.value = val;
+        end
         setValue(self1);
         Win.focused = false;
     end);

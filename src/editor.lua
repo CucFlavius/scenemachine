@@ -46,7 +46,6 @@ function Editor.Initialize()
     SceneMachine.Input.AddKeyBind("E", function() CC.Action.StrafeRight = true end, function() CC.Action.StrafeRight = false end);
 	SceneMachine.Input.AddKeyBind("LSHIFT", function() CC.Action.ShiftSpeed = true end, function() CC.Action.ShiftSpeed = false end);
     SceneMachine.Input.AddKeyBind("DELETE",function()
-        print(Win.focused);
         if (Win.focused == false) then
             SM.DeleteObject(SM.selectedObject);
         end
