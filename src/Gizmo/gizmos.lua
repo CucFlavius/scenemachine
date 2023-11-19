@@ -125,7 +125,7 @@ function Gizmos.SelectionCheck(mouseX, mouseY)
 
         -- Scale --
         elseif(Gizmos.activeTransformGizmo == 3) then
-            for t = 1, 3, 1 do
+            for t = 1, Gizmos.ScaleGizmo.lineCount, 1 do
                 local aX = Gizmos.ScaleGizmo.screenSpaceVertices[t][1][1];
                 local aY = Gizmos.ScaleGizmo.screenSpaceVertices[t][1][2];
                 local bX = Gizmos.ScaleGizmo.screenSpaceVertices[t][2][1];
@@ -133,7 +133,7 @@ function Gizmos.SelectionCheck(mouseX, mouseY)
 
                 if (mouseX ~= nil and mouseY ~= nil and aX ~= nil and aY ~= nil and bX ~= nil and bY ~= nil) then
                     local dist = distToSegment({mouseX, mouseY}, {aX, aY}, {bX, bY});
-                    if (dist < 10) then
+                    if (dist < 30) then
                         Gizmos.isHighlighted = true;
                         Gizmos.selectedAxis = 1;
                         Gizmos.highlightedAxis = 1;
@@ -316,6 +316,7 @@ function Gizmos.MotionToTransform()
             local px, py, pz = position.x, position.y, position.z;
             local rotation = SM.selectedObject:GetRotation();
             local rx, ry, rz = rotation.x, rotation.y, rotation.z;
+            local s = SM.selectedObject:GetScale();
 
             if (Gizmos.activeTransformGizmo == 1) then
                 if (Gizmos.selectedAxis == 1) then
@@ -325,13 +326,13 @@ function Gizmos.MotionToTransform()
                         Gizmos.MoveGizmo.screenSpaceVertices[1][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][1],
                         Gizmos.MoveGizmo.screenSpaceVertices[1][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][2]
                     );
-                    local scale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
+                    local gscale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
                     if (Gizmos.space == 0) then
-                        px = px + scale;
+                        px = px + gscale;
                     elseif (Gizmos.space == 1) then
-                        px = px + (scale * Gizmos.vectorX[1]);
-                        py = py + (scale * Gizmos.vectorX[2]);
-                        pz = pz + (scale * Gizmos.vectorX[3]);
+                        px = px + (gscale * Gizmos.vectorX[1]);
+                        py = py + (gscale * Gizmos.vectorX[2]);
+                        pz = pz + (gscale * Gizmos.vectorX[3]);
                     end
                 elseif (Gizmos.selectedAxis == 2) then
                     local dot = dotProduct(
@@ -340,13 +341,13 @@ function Gizmos.MotionToTransform()
                         Gizmos.MoveGizmo.screenSpaceVertices[2][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][1],
                         Gizmos.MoveGizmo.screenSpaceVertices[2][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][2]
                     );
-                    local scale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
+                    local gscale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
                     if (Gizmos.space == 0) then
-                        py = py + scale;
+                        py = py + gscale;
                     elseif (Gizmos.space == 1) then                    
-                        px = px + (scale * Gizmos.vectorY[1]);
-                        py = py + (scale * Gizmos.vectorY[2]);
-                        pz = pz + (scale * Gizmos.vectorY[3]);
+                        px = px + (gscale * Gizmos.vectorY[1]);
+                        py = py + (gscale * Gizmos.vectorY[2]);
+                        pz = pz + (gscale * Gizmos.vectorY[3]);
                     end
                 elseif (Gizmos.selectedAxis == 3) then
                     local dot = dotProduct(
@@ -355,13 +356,13 @@ function Gizmos.MotionToTransform()
                         Gizmos.MoveGizmo.screenSpaceVertices[3][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[3][1][1],
                         Gizmos.MoveGizmo.screenSpaceVertices[3][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[3][1][2]
                     );
-                    local scale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
+                    local gscale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
                     if (Gizmos.space == 0) then
-                        pz = pz + scale;
+                        pz = pz + gscale;
                     elseif (Gizmos.space == 1) then
-                        px = px + (scale * Gizmos.vectorZ[1]);
-                        py = py + (scale * Gizmos.vectorZ[2]);
-                        pz = pz + (scale * Gizmos.vectorZ[3]);
+                        px = px + (gscale * Gizmos.vectorZ[1]);
+                        py = py + (gscale * Gizmos.vectorZ[2]);
+                        pz = pz + (gscale * Gizmos.vectorZ[3]);
                     end
                 end
                 SM.selectedObject:SetPosition(px, py, pz);
@@ -397,7 +398,9 @@ function Gizmos.MotionToTransform()
                 end
                 SM.selectedObject:SetRotation(rx, ry, rz);
             elseif (Gizmos.activeTransformGizmo == 3) then
-
+                s = s + diff;
+                s = math.max(0.0001, s);
+                SM.selectedObject:SetScale(s, s, s);
             end
 
             OP.Refresh();

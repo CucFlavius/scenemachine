@@ -1,35 +1,24 @@
 local Gizmos = SceneMachine.Gizmos;
 
 function Gizmos.CreateScaleGizmo()
-    local coneDetail = 10;
-    local emptySSVertex = {{0,0}, {0,0}};
-    local emptyVertex = {{0,0,0}, {0,0,0}};
-
     local ch = 0.5;
-
     Gizmos.ScaleGizmo = 
     {
-        lineCount = 12;
+        lineCount = 9;
         scale = 10;
         vertices = 
         {
-            -- Bottom face
-            {{-ch, -ch, -ch}, {ch, -ch, -ch}},
-            {{ch, -ch, -ch}, {ch, -ch, ch}},
-            {{ch, -ch, ch}, {-ch, -ch, ch}},
-            {{-ch, -ch, ch}, {-ch, -ch, -ch}},
+            {{0,1,0}, {1,0,0}},
+            {{0,0,1}, {0,1,0}},
+            {{1,0,0}, {0,0,1}},
 
-            -- Top face
-            {{-ch, ch, -ch}, {ch, ch, -ch}},
-            {{ch, ch, -ch}, {ch, ch, ch}},
-            {{ch, ch, ch}, {-ch, ch, ch}},
-            {{-ch, ch, ch}, {-ch, ch, -ch}},
+            {{0,ch,0}, {ch,0,0}},
+            {{0,0,ch}, {0,ch,0}},
+            {{ch,0,0}, {0,0,ch}},
 
-            -- Connecting edges
-            {{-ch, -ch, -ch}, {-ch, ch, -ch}},
-            {{ch, -ch, -ch}, {ch, ch, -ch}},
-            {{ch, -ch, ch}, {ch, ch, ch}},
-            {{-ch, -ch, ch}, {-ch, ch, ch}}
+            {{0,0,0}, {1,0,0}},
+            {{0,0,0}, {0,1,0}},
+            {{0,0,0}, {0,0,1}},
         };
         transformedVertices = {};
         screenSpaceVertices = {};

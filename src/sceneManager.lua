@@ -225,6 +225,7 @@ function SM.LoadScene(index)
             object.actor:SetRoll(object.rotation.x);
             object.actor:SetPitch(object.rotation.y);
             object.actor:SetYaw(object.rotation.z);
+            object.actor:SetScale(object.scale);
 
             object.GetActiveBoundingBox = function(self)
                 local xMin, yMin, zMin, xMax, yMax, zMax = object.actor:GetActiveBoundingBox();

@@ -175,6 +175,7 @@ function Renderer.RenderGizmos()
             ShadeRotationGizmo(SceneMachine.Gizmos.RotateGizmo);
         elseif (SceneMachine.Gizmos.activeTransformGizmo == 3) then
             RenderGizmoLines(SceneMachine.Gizmos.ScaleGizmo);
+            ShadeScaleGizmo(SceneMachine.Gizmos.ScaleGizmo);
         end
     end
 end
@@ -315,5 +316,16 @@ function ShadeRotationGizmo(gizmo)
 
         local faceColor = gizmo.faceColors[i];
         gizmo.lines[i]:SetVertexColor(faceColor[1], faceColor[2], faceColor[3], alpha);
+    end
+end
+
+
+function ShadeScaleGizmo(gizmo)
+    for t = 1, gizmo.lineCount, 1 do
+        if (Gizmos.highlightedAxis ~= 0) then
+            gizmo.faceColors[t][4] = 1.0;
+        else
+            gizmo.faceColors[t][4] = 0.3;
+        end
     end
 end
