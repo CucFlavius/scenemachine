@@ -229,7 +229,7 @@ end
 function AssetBrowser.CreateThumbnail(x, y, w, h, parent, name)
     local thumbnail = Win.CreateButton(x, y, w, h, parent, "TOPLEFT", "TOPLEFT", "", nil, Win.BUTTON_VS);
 
-    thumbnail:SetScript("OnClick", function (self, button, down)
+    thumbnail:SetScript("OnDoubleClick", function (self, button, down)
             AssetBrowser.OnThumbnailClick(self.textBox.text:GetText());
        end);
 
