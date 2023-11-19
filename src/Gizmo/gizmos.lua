@@ -86,6 +86,24 @@ function Gizmos.Update()
     Gizmos.UpdateGizmoTransform();
 end
 
+function indexOfSmallestValue(tbl)
+    if #tbl ~= 3 then
+        error("Input table must have exactly 3 values.")
+    end
+
+    local minIndex = 1
+    local minValue = tbl[1]
+
+    for i = 2, 3 do
+        if tbl[i] < minValue then
+            minIndex = i
+            minValue = tbl[i]
+        end
+    end
+
+    return minIndex
+end
+
 function Gizmos.SelectionCheck(mouseX, mouseY)
     if not Gizmos.isUsed then
         -- Position --
@@ -108,6 +126,7 @@ function Gizmos.SelectionCheck(mouseX, mouseY)
 
         -- Rotation --
         elseif (Gizmos.activeTransformGizmo == 2) then
+            local minDists = { 10000, 10000, 10000 };
             for t = 1, Gizmos.RotateGizmo.lineCount, 1 do
                 local aX = Gizmos.RotateGizmo.screenSpaceVertices[t][1][1];
                 local aY = Gizmos.RotateGizmo.screenSpaceVertices[t][1][2];
@@ -116,12 +135,21 @@ function Gizmos.SelectionCheck(mouseX, mouseY)
 
                 if (mouseX ~= nil and mouseY ~= nil and aX ~= nil and aY ~= nil and bX ~= nil and bY ~= nil) then
                     local dist = distToSegment({mouseX, mouseY}, {aX, aY}, {bX, bY});
-                    if (dist < 10 and Gizmos.RotateGizmo.lines[t].alpha > 0.2) then
-                        Gizmos.isHighlighted = true;
-                        Gizmos.selectedAxis = Gizmos.RotateGizmo.lines[t].axis;
-                        Gizmos.highlightedAxis = Gizmos.RotateGizmo.lines[t].axis;
+                    local line = Gizmos.RotateGizmo.lines[t];
+                    if (dist < 10 and line.alpha > 0.2) then
+                        local ax = line.axis;
+                        if (minDists[ax] > dist) then
+                            minDists[ax] = dist;
+                        end
                     end
                 end
+            end
+
+            local smallest = indexOfSmallestValue(minDists);
+            if (minDists[smallest] < 10) then
+                Gizmos.isHighlighted = true;
+                Gizmos.selectedAxis = smallest;
+                Gizmos.highlightedAxis = smallest;
             end
 
         -- Scale --
@@ -455,6 +483,7 @@ function Gizmos.MotionToTransform()
                 elseif (Gizmos.selectedAxis == 2) then
                     if (Gizmos.space == 0) then
                         ry = ry + diff;
+                        ------------------ TODO: This needs work ----------------
                         if (Gizmos.pivot == 1) then
                             local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObject:GetActiveBoundingBox();
                             local bbCenter = ((zMax - zMin) / 2) * s;
@@ -464,6 +493,7 @@ function Gizmos.MotionToTransform()
                             pz = pz + ppoint[3] - bbCenter;
                             SM.selectedObject:SetPosition(px, py, pz);
                         end
+                        ---------------------------------------------------------
                     elseif (Gizmos.space == 1) then
                         local rot = multiplyRotations(Gizmos.savedRotation, {0, Gizmos.rotationIncrement, 0});
                         rx = rot[1];
