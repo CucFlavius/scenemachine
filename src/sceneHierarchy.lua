@@ -4,6 +4,7 @@ local PM = Editor.ProjectManager;
 local SM = Editor.SceneManager;
 local SH = Editor.SceneHierarchy;
 local Gizmos = SceneMachine.Gizmos;
+local CC = SceneMachine.CameraController;
 
 function SH.CreatePanel(x, y, w, h, c4)
     local leftPanel = Win.CreateRectangle(x, y, w, h, SceneMachine.mainWindow, "TOPLEFT", "TOPLEFT", c4[1], c4[2], c4[3], 1);
@@ -26,6 +27,10 @@ function SH.ItemList(itemSizeX, itemSizeY, parent)
 				self.pool[index].text:SetText(text);
                 self.pool[index]:SetScript("OnClick", function(self2)
                     SH.SelectObject(index);
+                end);
+				self.pool[index]:SetScript("OnDoubleClick", function(self2)
+                    SH.SelectObject(index);
+					CC.FocusObject(SM.selectedObject);
                 end);
 			else
 				self.pool[index]:Show();

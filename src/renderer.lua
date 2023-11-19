@@ -240,7 +240,11 @@ function ShadeSelectionGizmo(gizmo)
 
     -- Sort the indices based on the values in the 'numbers' table
     table.sort(indices, function(a, b)
-        return gizmo.lineDepths[a] < gizmo.lineDepths[b]
+        if (gizmo.lineDepths[a] ~= nil and gizmo.lineDepths[b] ~= nil) then
+            return gizmo.lineDepths[a] < gizmo.lineDepths[b];
+        else
+            return false;
+        end
     end)
 
     -- Create sorted tables

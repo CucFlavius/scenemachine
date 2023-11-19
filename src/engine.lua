@@ -9,7 +9,7 @@ local Input = SceneMachine.Input;
 print ("Running SceneMachine")
 
 local TimeSinceLastUpdate = 0;
-local time = 0;
+SceneMachine.time = 0;
 
 ------------------------
 --	 	  Start  	  --
@@ -53,13 +53,13 @@ local resetAvgFPS = 0;
 local fps = 0;
 function UpdateCumulativeMovingAverageFPS(newFPS)
 	-- delay by 5 seconds so we don't get wrong value at start
-	if (time > 5) then
+	if (SceneMachine.time > 5) then
 		qty = qty + 1;
 		currentAvgFPS = currentAvgFPS + (newFPS - currentAvgFPS)/qty;
 	end
 	-- reset the average calculation buffer every 5 seconds
-	if (time > resetAvgFPS) then
-		resetAvgFPS = time + 5;
+	if (SceneMachine.time > resetAvgFPS) then
+		resetAvgFPS = SceneMachine.time + 5;
 		qty = 0;
 		currentAvgFPS = 0;
 	end
@@ -80,7 +80,7 @@ local function SG_UpdateLoop ()
 		SceneMachine.StatsFrame.text:SetText(
 			"FrameBuffer : " .. SceneMachine.UsedFrames .. "/" .. SceneMachine.Renderer.FrameBufferSize .. ", Culled : " .. SceneMachine.CulledFrames .. "\n" ..
 			"FPS : " .. floor(fps) .. " Avg. " .. floor(currentAvgFPS) .. "\n" ..
-			"Time : " .. floor(time) .. "\n" ..
+			"Time : " .. floor(SceneMachine.time) .. "\n" ..
 			"Renderer : " .. tostring(Renderer.active)
 		);
 	end
@@ -101,7 +101,7 @@ local function SG_OnUpdate(self, elapsed)
 	TimeSinceLastUpdate = TimeSinceLastUpdate + elapsed; 	
 	while (TimeSinceLastUpdate > SceneMachine.UPDATE_INTERVAL) do
 		SG_UpdateLoop()
-		time = time + SceneMachine.UPDATE_INTERVAL;
+		SceneMachine.time = SceneMachine.time + SceneMachine.UPDATE_INTERVAL;
 		TimeSinceLastUpdate = TimeSinceLastUpdate - SceneMachine.UPDATE_INTERVAL;
 	end
 end

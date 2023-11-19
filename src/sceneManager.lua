@@ -222,11 +222,6 @@ function SM.LoadScene(index)
 
             object.actor = Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z);
 
-            object.actor:SetRoll(object.rotation.x);
-            object.actor:SetPitch(object.rotation.y);
-            object.actor:SetYaw(object.rotation.z);
-            object.actor:SetScale(object.scale);
-
             object.GetActiveBoundingBox = function(self)
                 local xMin, yMin, zMin, xMax, yMax, zMax = object.actor:GetActiveBoundingBox();
 
@@ -242,7 +237,8 @@ function SM.LoadScene(index)
                 object.position.x = x;
                 object.position.y = y;
                 object.position.z = z;
-                self.actor:SetPosition(x, y, z);
+                local s = object:GetScale();
+                object.actor:SetPosition(x / s, y / s, z / s);
             end
 
             object.GetPosition = function(self)
@@ -262,9 +258,9 @@ function SM.LoadScene(index)
                 object.rotation.x = x;
                 object.rotation.y = y;
                 object.rotation.z = z;
-                self.actor:SetRoll(x);
-                self.actor:SetPitch(y);
-                self.actor:SetYaw(z);
+                object.actor:SetRoll(x);
+                object.actor:SetPitch(y);
+                object.actor:SetYaw(z);
             end
 
             object.GetRotation = function(self)
@@ -273,12 +269,19 @@ function SM.LoadScene(index)
 
             object.SetScale = function(self, value)
                 object.scale = value;
-                self.actor:SetScale(value);
+                object.actor:SetPosition(object.position.x / value, object.position.y / value, object.position.z / value);
+                object.actor:SetScale(value);
             end
 
             object.GetScale = function(self)
                 return object.scale;
             end
+
+            --object.actor:SetPosition(object.position.x / object.scale, object.position.y / object.scale, object.position.z / object.scale);
+            object.actor:SetRoll(object.rotation.x);
+            object.actor:SetPitch(object.rotation.y);
+            object.actor:SetYaw(object.rotation.z);
+            object.actor:SetScale(object.scale);
         end
     end
 
@@ -348,10 +351,6 @@ function SM.CreateObject(_fileID, _name, _x, _y, _z)
 
     object.actor = Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z);
 
-    object.actor:SetRoll(object.rotation.x);
-    object.actor:SetPitch(object.rotation.y);
-    object.actor:SetYaw(object.rotation.z);
-
     object.GetActiveBoundingBox = function(self)
         local xMin, yMin, zMin, xMax, yMax, zMax = object.actor:GetActiveBoundingBox();
 
@@ -367,7 +366,8 @@ function SM.CreateObject(_fileID, _name, _x, _y, _z)
         object.position.x = x;
         object.position.y = y;
         object.position.z = z;
-        self.actor:SetPosition(x, y, z);
+        local s = object:GetScale();
+        object.actor:SetPosition(x / s, y / s, z / s);
     end
 
     object.GetPosition = function(self)
@@ -387,9 +387,9 @@ function SM.CreateObject(_fileID, _name, _x, _y, _z)
         object.rotation.x = x;
         object.rotation.y = y;
         object.rotation.z = z;
-        self.actor:SetRoll(x);
-        self.actor:SetPitch(y);
-        self.actor:SetYaw(z);
+        object.actor:SetRoll(x);
+        object.actor:SetPitch(y);
+        object.actor:SetYaw(z);
     end
 
     object.GetRotation = function(self)
@@ -398,13 +398,19 @@ function SM.CreateObject(_fileID, _name, _x, _y, _z)
 
     object.SetScale = function(self, value)
         object.scale = value;
-        self.actor:SetScale(value);
+        object.actor:SetPosition(object.position.x / value, object.position.y / value, object.position.z / value);
+        object.actor:SetScale(value);
     end
 
     object.GetScale = function(self)
         return object.scale;
     end
 
+    --object.actor:SetPosition(object.position.x / object.scale, object.position.y / object.scale, object.position.z / object.scale);
+    object.actor:SetRoll(object.rotation.x);
+    object.actor:SetPitch(object.rotation.y);
+    object.actor:SetYaw(object.rotation.z);
+    object.actor:SetScale(object.scale);
     SH.RefreshHierarchy();
 end
 

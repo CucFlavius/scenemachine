@@ -7,6 +7,7 @@ local MousePick = Editor.MousePick;
 local OP = Editor.ObjectProperties;
 local Gizmos = SceneMachine.Gizmos;
 local SM = Editor.SceneManager;
+local CC = SceneMachine.CameraController;
 
 Editor.width = 1280;
 Editor.height = 720;
@@ -37,7 +38,15 @@ function Editor.Initialize()
     Editor.SceneManager.Create(sceneX, sceneY, sceneW, sceneH, SceneMachine.mainWindow);
 
     -- Keybinds --
+    SceneMachine.Input.AddKeyBind("W", function() CC.Action.MoveForward = true end, function() CC.Action.MoveForward = false end);
+    SceneMachine.Input.AddKeyBind("S", function() CC.Action.MoveBackward = true end, function() CC.Action.MoveBackward = false end);
+    SceneMachine.Input.AddKeyBind("A", function() CC.Action.TurnLeft = true end, function() CC.Action.TurnLeft = false end);
+    SceneMachine.Input.AddKeyBind("D", function() CC.Action.TurnRight = true end, function() CC.Action.TurnRight = false end);
+    SceneMachine.Input.AddKeyBind("Q", function() CC.Action.StrafeLeft = true end, function() CC.Action.StrafeLeft = false end);
+    SceneMachine.Input.AddKeyBind("E", function() CC.Action.StrafeRight = true end, function() CC.Action.StrafeRight = false end);
+	SceneMachine.Input.AddKeyBind("LSHIFT", function() CC.Action.ShiftSpeed = true end, function() CC.Action.ShiftSpeed = false end);
     SceneMachine.Input.AddKeyBind("DELETE",function() SM.DeleteObject(SM.selectedObject); end, nil);
+    SceneMachine.Input.AddKeyBind("F",function() CC.FocusObject(SM.selectedObject); end, nil);
 
     -- load saved variables (this is safe to do because Editor.Initialize() is done on ADDON_LOADED)
     Editor.ProjectManager.LoadSavedData();

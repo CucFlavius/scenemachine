@@ -3,13 +3,14 @@ local Player = SceneMachine.Player;
 local Renderer = SceneMachine.Renderer;
 local Gizmos = SceneMachine.Gizmos;
 local Input = SceneMachine.Input;
+local Camera = SceneMachine.Camera;
 
 ----------------------------------
 --			CC State	 		--
 ----------------------------------
 CC.Action = {};						-- the collection of player action booleans
-CC.RMBStartPos = {}
-CC.RMBPrevious = {}
+CC.RMBStartPos = {};
+CC.RMBPrevious = {};
 CC.RMBPressed = false;
 CC.Action.TurnLeft = false;			-- true if turn right key is pressed
 CC.Action.TurnRight = false;		-- true if turn right key is pressed
@@ -18,6 +19,14 @@ CC.Action.MoveBackward = false;		-- true if move backward key is pressed
 CC.Action.StrafeLeft = false;		-- true if strafe left key is pressed
 CC.Action.StrafeRight = false;		-- true if strafe right key is pressed
 CC.Action.ShiftSpeed = false;
+CC.Focus = 
+{
+	startPos = { 0, 0, 0 };
+	endPos = { 0, 0, 0 };
+	distance = 0;
+	startTime = 0;
+	focusing = false;
+};
 
 ----------------------------------
 --			Variables	 		--
@@ -35,17 +44,57 @@ CC.acceleration = 1.0;
 CC.maxAcceleration = 12.0;
 CC.mouseTurnSpeed = 0.2;
 
+
+local function manhattanDistance3D(aX, aY, aZ, bX, bY, bZ)
+    return math.abs(aX - bX) + math.abs(aY - bY) + math.abs(aZ - bZ)
+end
+
+local function abs3D(x, y, z)
+	return { math.abs[x], math.abs[y], math.abs[z] };
+end
+
+local function lerp(start, finish, t)
+    return start * (1 - t) + finish * t
+end
+
+local function normalize(vector)
+    local magnitude = math.sqrt(vector[1]^2 + vector[2]^2 + vector[3]^2)
+    
+    if magnitude ~= 0 then
+      return {vector[1] / magnitude, vector[2] / magnitude, vector[3] / magnitude}
+    else
+      -- Handle the case where the vector is a zero vector (magnitude is zero)
+      return {0, 0, 0}
+    end
+end
+
+local function eulerToDirection(rx, ry, rz)
+    -- Calculate direction vector components
+    local vx = math.cos(ry) * math.cos(rz)
+    local vy = math.sin(rz)
+    local vz = math.sin(ry) * math.cos(rz)
+
+    return { vx, vy, vz }
+end
+
+local function pointOnSphere(yaw, pitch, roll, distance)
+    -- Convert degrees to radians
+    yaw = math.rad(yaw)
+    pitch = math.rad(pitch)
+    roll = math.rad(roll)
+
+    -- Calculate Cartesian coordinates
+    local x = distance * math.cos(pitch) * math.cos(yaw)
+    local y = distance * math.cos(pitch) * math.sin(yaw)
+    local z = distance * math.sin(pitch)
+
+    return { x, y, z }
+end
+
 --------------------------------------
 --			Keyboard Input			--
 --------------------------------------
 function CC.Initialize()
-    SceneMachine.Input.AddKeyBind("W", function() CC.Action.MoveForward = true end, function() CC.Action.MoveForward = false end);
-    SceneMachine.Input.AddKeyBind("S", function() CC.Action.MoveBackward = true end, function() CC.Action.MoveBackward = false end);
-    SceneMachine.Input.AddKeyBind("A", function() CC.Action.TurnLeft = true end, function() CC.Action.TurnLeft = false end);
-    SceneMachine.Input.AddKeyBind("D", function() CC.Action.TurnRight = true end, function() CC.Action.TurnRight = false end);
-    SceneMachine.Input.AddKeyBind("Q", function() CC.Action.StrafeLeft = true end, function() CC.Action.StrafeLeft = false end);
-    SceneMachine.Input.AddKeyBind("E", function() CC.Action.StrafeRight = true end, function() CC.Action.StrafeRight = false end);
-	SceneMachine.Input.AddKeyBind("LSHIFT", function() CC.Action.ShiftSpeed = true end, function() CC.Action.ShiftSpeed = false end);
     SceneMachine.Input.Initialize();
 
 	-- calculate speeds based on update interval --
@@ -116,6 +165,30 @@ function CC.Update()
 	else
         SceneMachine.Camera.Yaw = rad(CC.Direction);
     end
+
+	-- handle focus
+	if (CC.Action.MoveForward or CC.Action.MoveBackward or CC.Action.StrafeLeft or CC.Action.StrafeRight) then
+		-- cancel focus if any movement key is pressed
+		CC.Focus.focusing = false;
+	end
+
+	if (CC.Focus.focusing) then
+		-- animate focus
+		local speed = CC.Focus.distance * 2.0;
+		local distCovered = (SceneMachine.time - CC.Focus.startTime) * speed;
+		local fractionOfJourney = 0;
+		if (CC.Focus.distance ~= 0) then
+			fractionOfJourney = distCovered / CC.Focus.distance;
+		end
+
+		CC.Position.x = lerp(CC.Focus.startPos[1], CC.Focus.endPos[1], fractionOfJourney);
+		CC.Position.y = lerp(CC.Focus.startPos[2], CC.Focus.endPos[2], fractionOfJourney);
+		CC.Position.z = lerp(CC.Focus.startPos[3], CC.Focus.endPos[3], fractionOfJourney);
+
+		if (fractionOfJourney >= 1) then
+			CC.Focus.focusing = false;
+		end
+	end
 end
 
 function CC.OnRMBDown()
@@ -129,6 +202,35 @@ end
 
 function CC.OnRMBUp()
 	CC.RMBPressed = false;
+end
+
+function CC.FocusObject(object)
+	if (object == nil) then
+		return;
+	end
+
+	-- set start position
+	CC.Focus.startPos = { Camera.X, Camera.Y, Camera.Z };
+	
+	-- TODO: need to calculate an offset from the current object position, using the camera vector and object bounds
+	local objectPos = object:GetPosition();
+	local objectScale = object:GetScale();
+	local vector = normalize(eulerToDirection(Camera.Roll, math.abs(Camera.Pitch), Camera.Yaw));
+	local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
+	local objectCenter = { objectPos.x * objectScale, objectPos.y * objectScale, (objectPos.z + (zMax / 2)) * objectScale}
+	local radius = math.max(xMax, math.max(yMax, zMax));
+	local dist = radius / (math.sin(math.rad(CC.FoV)) * 0.5);
+	local offs = { vector[1] * dist, vector[2] * dist, vector[3] * dist };
+	
+	-- set end position
+	CC.Focus.endPos = { objectCenter[1] - offs[1], objectCenter[2] - offs[2], objectCenter[3] - offs[3] };
+
+	CC.Focus.startTime = SceneMachine.time;
+
+	-- calculate the journey length.
+	CC.Focus.distance = manhattanDistance3D(CC.Focus.startPos[1], CC.Focus.startPos[2], CC.Focus.startPos[3], CC.Focus.endPos[1], CC.Focus.endPos[2], CC.Focus.endPos[3]);
+
+	CC.Focus.focusing = true;
 end
 
 function DegreeToRadian(angle)

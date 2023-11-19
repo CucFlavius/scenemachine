@@ -455,7 +455,7 @@ function Gizmos.transformGizmo(gizmo, position, rotation, scale, boundsCenter, s
         for v = 1, 2, 1 do
             if (space == 1) then
                 -- local space --
-                local rotated = rotatePoint(gizmo.vertices[q][v], rotation);
+                local rotated = rotatePoint(gizmo.vertices[q][v], rotation, scale);
                 gizmo.transformedVertices[q][v][1] = rotated[1] * gizmo.scale * scale + position[1];
                 gizmo.transformedVertices[q][v][2] = rotated[2] * gizmo.scale * scale + position[2];
                 gizmo.transformedVertices[q][v][3] = rotated[3] * gizmo.scale * scale + position[3] + (boundsCenter[3] * scale);
