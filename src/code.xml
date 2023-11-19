@@ -28,5 +28,6 @@
     <Script file="Gizmo\gizmos.lua"/>
     <Script file="Gizmo\moveGizmo.lua"/>
     <Script file="Gizmo\rotationGizmo.lua"/>
+    <Script file="Gizmo\scaleGizmo.lua"/>
     <Script file="Gizmo\selectionGizmo.lua"/>
 </Ui>

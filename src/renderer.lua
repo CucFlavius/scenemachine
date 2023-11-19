@@ -174,7 +174,7 @@ function Renderer.RenderGizmos()
             RenderGizmoLines(SceneMachine.Gizmos.RotateGizmo);
             ShadeRotationGizmo(SceneMachine.Gizmos.RotateGizmo);
         elseif (SceneMachine.Gizmos.activeTransformGizmo == 3) then
-            
+            RenderGizmoLines(SceneMachine.Gizmos.ScaleGizmo);
         end
     end
 end

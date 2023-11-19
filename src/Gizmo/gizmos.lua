@@ -9,7 +9,7 @@ local Input = SceneMachine.Input;
 Gizmos.isUsed = false;
 Gizmos.isHighlighted = false;
 Gizmos.selectedAxis = 1;
-Gizmos.activeTransformGizmo = 1;
+Gizmos.activeTransformGizmo = 3;
 Gizmos.LMBPrevious = {};
 Gizmos.frames = {};
 Gizmos.vectorX = {1,0,0};
@@ -49,6 +49,7 @@ function Gizmos.Create()
     Gizmos.CreateSelectionGizmo();
     Gizmos.CreateMoveGizmo();
     Gizmos.CreateRotateGizmo();
+    Gizmos.CreateScaleGizmo();
 end
 
 function Gizmos.CreateLineProjectionFrame()
@@ -124,7 +125,21 @@ function Gizmos.SelectionCheck(mouseX, mouseY)
 
         -- Scale --
         elseif(Gizmos.activeTransformGizmo == 3) then
-            
+            for t = 1, 3, 1 do
+                local aX = Gizmos.ScaleGizmo.screenSpaceVertices[t][1][1];
+                local aY = Gizmos.ScaleGizmo.screenSpaceVertices[t][1][2];
+                local bX = Gizmos.ScaleGizmo.screenSpaceVertices[t][2][1];
+                local bY = Gizmos.ScaleGizmo.screenSpaceVertices[t][2][2];
+
+                if (mouseX ~= nil and mouseY ~= nil and aX ~= nil and aY ~= nil and bX ~= nil and bY ~= nil) then
+                    local dist = distToSegment({mouseX, mouseY}, {aX, aY}, {bX, bY});
+                    if (dist < 10) then
+                        Gizmos.isHighlighted = true;
+                        Gizmos.selectedAxis = 1;
+                        Gizmos.highlightedAxis = 1;
+                    end
+                end
+            end
         end
     end
 
@@ -138,17 +153,25 @@ function Gizmos.VisibilityCheck()
         if(Gizmos.activeTransformGizmo == 1) then
             Gizmos.frames["MoveGizmoFrame"]:Show();
             Gizmos.frames["RotateGizmoFrame"]:Hide();
+            Gizmos.frames["ScaleGizmoFrame"]:Hide();
         elseif (Gizmos.activeTransformGizmo == 2) then
             Gizmos.frames["MoveGizmoFrame"]:Hide();
             Gizmos.frames["RotateGizmoFrame"]:Show();
+            Gizmos.frames["ScaleGizmoFrame"]:Hide();
+        elseif (Gizmos.activeTransformGizmo == 3) then
+            Gizmos.frames["MoveGizmoFrame"]:Hide();
+            Gizmos.frames["RotateGizmoFrame"]:Hide();
+            Gizmos.frames["ScaleGizmoFrame"]:Show();
         else
             Gizmos.frames["MoveGizmoFrame"]:Hide();
             Gizmos.frames["RotateGizmoFrame"]:Hide();
+            Gizmos.frames["ScaleGizmoFrame"]:Hide();
         end
     else
         Gizmos.frames["SelectionGizmoFrame"]:Hide();
         Gizmos.frames["MoveGizmoFrame"]:Hide();
         Gizmos.frames["RotateGizmoFrame"]:Hide();
+        Gizmos.frames["ScaleGizmoFrame"]:Hide();
     end
 end
 
@@ -224,6 +247,9 @@ function Gizmos.UpdateGizmoTransform()
         -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
         SceneMachine.Gizmos.RotateGizmo.scale = manhattanDistance3D(px, py, pz, Camera.X, Camera.Y, Camera.Z) / 10;
         Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmo, {px, py, pz}, {rx, ry, rz}, bbCenter, Gizmos.space);
+    elseif (Gizmos.activeTransformGizmo == 3) then
+        SceneMachine.Gizmos.ScaleGizmo.scale = manhattanDistance3D(px, py, pz, Camera.X, Camera.Y, Camera.Z) / 15;
+        Gizmos.transformGizmo(SceneMachine.Gizmos.ScaleGizmo, {px, py, pz}, {rx, ry, rz}, bbCenter, Gizmos.space);
     end
 end
 
