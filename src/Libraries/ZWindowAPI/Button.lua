@@ -8,7 +8,7 @@ Win.BUTTON_DEFAULT = "BUTTON_DEFAULT";
 Win.BUTTON_WOW = "BUTTON_WOW";
 Win.BUTTON_VS = "BUTTON_VS";
 
-function Win.CreateButton(posX, posY, sizeX, sizeY, parent, buttonPoint, parentPoint, text, icon, theme)
+function Win.CreateButton(posX, posY, sizeX, sizeY, parent, buttonPoint, parentPoint, text, icon, theme, texcoords)
 
 	-- properties --
 	local ButtonFont = Win.defaultFont;
@@ -60,11 +60,11 @@ function Win.CreateButton(posX, posY, sizeX, sizeY, parent, buttonPoint, parentP
 
 	-- icon --
 	if icon ~= nil then
-		local iconSize = 10;
-		if sizeX >= sizeY then iconSize = sizeY; end
-		if sizeX <= sizeY then iconSize = sizeX; end
+		local iconSize = sizeX - 4;
+		--if sizeX >= sizeY then iconSize = sizeY; end
+		--if sizeX <= sizeY then iconSize = sizeX; end
 
-		Button.icon = Win.CreateImageBox(0, 0, iconSize, iconSize, Button, "CENTER", "CENTER", icon);
+		Button.icon = Win.CreateImageBox(0, 0, iconSize, iconSize, Button, "CENTER", "CENTER", icon, texcoords);
 	end
 
 	-- text --

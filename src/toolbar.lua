@@ -1,6 +1,7 @@
 local Editor = SceneMachine.Editor;
 local Win = ZWindowAPI;
 local Toolbar = Editor.Toolbar;
+local Gizmos = SceneMachine.Gizmos;
 
 local c1 = { 0.1757, 0.1757, 0.1875 };
 local c2 = { 0.242, 0.242, 0.25 };
@@ -9,30 +10,81 @@ local c4 = { 0.1171, 0.1171, 0.1171 };
 
 function Toolbar.Create()
     local toolbar = Win.CreateRectangle(0, -15, Editor.width, 30, SceneMachine.mainWindow, "TOP", "TOP", c1[1], c1[2], c1[3], 1);
-    toolbar.button1 = Win.CreateButton(0, 0, 30, 30, toolbar, "LEFT", "LEFT", "Project Manager", nil, "BUTTON_VS");
-    toolbar.button1:SetScript("OnClick", function(self) Editor.ProjectManager.OpenWindow() end);
 
-    toolbar.button2 = Win.CreateButton(30, 0, 30, 30, toolbar, "LEFT", "LEFT", "Select", nil, "BUTTON_VS");
-    toolbar.button2:SetScript("OnClick", function(self) Gizmos.activeTransformGizmo = 0; end);
+    local iconsTexture = "Interface\\Addons\\scenemachine\\static\\textures\\toolbar.png";
 
-    toolbar.button3 = Win.CreateButton(60, 0, 30, 30, toolbar, "LEFT", "LEFT", "Move", nil, "BUTTON_VS");
-    toolbar.button3:SetScript("OnClick", function(self) Gizmos.activeTransformGizmo = 1; end);
+    local iconCoordMap = {
+        { "select", "move", "rotate", "scale", "worldpivot", "localpivot", "centerpivot", "basepivot" },
+        { "projects", "", "", "", "", "", "", "" },
+        { "", "", "", "", "", "", "", "" },
+        { "", "", "", "", "", "", "", "" },
+        { "", "", "", "", "", "", "", "" },
+        { "", "", "", "", "", "", "", "" },
+        { "", "", "", "", "", "", "", "" },
+        { "", "", "", "", "", "", "", "" },
+    };
 
-    toolbar.button4 = Win.CreateButton(90, 0, 30, 30, toolbar, "LEFT", "LEFT", "Rotate", nil, "BUTTON_VS");
-    toolbar.button4:SetScript("OnClick", function(self) Gizmos.activeTransformGizmo = 2; end);
+    local iconCoordLookup = {};
 
-    toolbar.button5 = Win.CreateButton(120, 0, 30, 30, toolbar, "LEFT", "LEFT", "Scale", nil, "BUTTON_VS");
-    toolbar.button5:SetScript("OnClick", function(self) Gizmos.activeTransformGizmo = 3; end);
+    
+    local div = 1 / 8;
+    for x = 1, 8, 1 do
+        for y = 1, 8, 1 do
+            iconCoordLookup[iconCoordMap[y][x]] = { div * (x - 1), div * x, div * (y - 1), div * y };
+        end
+    end
 
-    toolbar.button6 = Win.CreateButton(150, 0, 30, 30, toolbar, "LEFT", "LEFT", "L", nil, "BUTTON_VS");
-    toolbar.button6:SetScript("OnClick", function(self) Gizmos.space = 1; print("Local Space"); end);
+    local function getIcon(name)
+        local iconCoords = iconCoordLookup[name];
+        return { iconsTexture, iconCoords };
+    end
 
-    toolbar.button7 = Win.CreateButton(180, 0, 30, 30, toolbar, "LEFT", "LEFT", "W", nil, "BUTTON_VS");
-    toolbar.button7:SetScript("OnClick", function(self) Gizmos.space = 0; print("World Space"); end);
+    local transformGroup = Toolbar.CreateGroup(0, toolbar,
+        {
+            { type = "DragHandle" },
+            { type = "Button", name = "Project", icon = getIcon("projects"), action = function(self) Editor.ProjectManager.OpenWindow() end },
+            { type = "Separator" },
+            { type = "Button", name = "Select", icon = getIcon("select"), action = function(self) Gizmos.activeTransformGizmo = 0; end },
+            { type = "Button", name = "Move", icon = getIcon("move"), action = function(self) Gizmos.activeTransformGizmo = 1; end },
+            { type = "Button", name = "Rotate", icon = getIcon("rotate"), action = function(self) Gizmos.activeTransformGizmo = 2; end },
+            { type = "Button", name = "Scale", icon = getIcon("scale"), action = function(self) Gizmos.activeTransformGizmo = 3; end },
+            { type = "Separator" },
+            { type = "Button", name = "L", icon = getIcon("localpivot"), action = function(self) Gizmos.space = 1; print("Local Space"); end },
+            { type = "Button", name = "W", icon = getIcon("worldpivot"), action = function(self) Gizmos.space = 0; print("World Space"); end },
+            { type = "Separator" },
+            { type = "Button", name = "Center", icon = getIcon("centerpivot"), action = function(self) Gizmos.pivot = 0; print("Pivot Center"); end },
+            { type = "Button", name = "Base", icon = getIcon("basepivot"), action = function(self) Gizmos.pivot = 1; print("Pivot Base"); end },
+            { type = "Separator" },
+        }
+    );
+end
 
-    toolbar.button8 = Win.CreateButton(210, 0, 30, 30, toolbar, "LEFT", "LEFT", "Center", nil, "BUTTON_VS");
-    toolbar.button8:SetScript("OnClick", function(self) Gizmos.pivot = 0; print("Pivot Center"); end);
+function Toolbar.CreateGroup(x, toolbar, components)
+    local group = Win.CreateRectangle(x, 0, Editor.width, 30, toolbar, "TOPLEFT", "TOPLEFT", c1[1], c1[2], c1[3], 1);
+    group.components = {};
 
-    toolbar.button9 = Win.CreateButton(240, 0, 30, 30, toolbar, "LEFT", "LEFT", "Base", nil, "BUTTON_VS");
-    toolbar.button9:SetScript("OnClick", function(self) Gizmos.pivot = 1; print("Pivot Base"); end);
+    local x = 0;
+    local buttonW = 30;
+    local buttonH = 30;
+
+    for c = 1, #components, 1 do
+        local component = components[c];
+        if (component.type == "Separator") then
+            group.components[c] = Win.CreateRectangle(x + 2, 0, 1, 20, group, "LEFT", "LEFT", c2[1], c2[2], c2[3], 1);
+            x = x + 6;
+        elseif (component.type == "DragHandle") then
+            group.components[c] = Win.CreateRectangle(x + 2, 0, 5, 20, group, "LEFT", "LEFT", c2[1], c2[2], c2[3], 1);
+            x = x + 9;
+        elseif (component.type == "Button") then
+            if (component.icon ~= nil) then
+                group.components[c] = Win.CreateButton(x, 0, buttonW, buttonH, group, "LEFT", "LEFT", nil, component.icon[1], "BUTTON_VS", component.icon[2]);
+            else
+                group.components[c] = Win.CreateButton(x, 0, buttonW, buttonH, group, "LEFT", "LEFT", component.name, nil, "BUTTON_VS");
+            end
+            group.components[c]:SetScript("OnClick", component.action);
+            x = x + buttonW;
+        end
+    end
+
+    return group;
 end

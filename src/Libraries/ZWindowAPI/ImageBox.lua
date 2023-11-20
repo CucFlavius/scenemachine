@@ -5,7 +5,7 @@
 --ImageBox--
 local Win = ZWindowAPI;
 
-function Win.CreateImageBox(posX, posY, sizeX, sizeY, parent, windowPoint, parentPoint, texture)
+function Win.CreateImageBox(posX, posY, sizeX, sizeY, parent, windowPoint, parentPoint, texture, texcoords)
 
 	-- defaults --
 	if posX == nil then posX = 0; end
@@ -23,7 +23,9 @@ function Win.CreateImageBox(posX, posY, sizeX, sizeY, parent, windowPoint, paren
 	ImageBox.texture = ImageBox:CreateTexture("Zee.WindowAPI.ImageBox texture", "BACKGROUND");
 	ImageBox.texture:SetTexture(texture)
 	ImageBox.texture:SetAllPoints(ImageBox);
-
+	if (texcoords ~= nil) then
+		ImageBox.texture:SetTexCoord(texcoords[1], texcoords[2], texcoords[3], texcoords[4]);
+	end
 	return ImageBox;
 
 end
