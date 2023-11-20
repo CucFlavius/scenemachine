@@ -164,18 +164,6 @@ function SceneMachine.CreateStatsFrame()
 end
 
 function Editor.Save()
-    for p = 1, #Editor.ProjectManager.projects, 1 do
-        local project = Editor.ProjectManager.projects[p];
-
-        for s = 1, #project.scenes, 1 do
-            local scene = project.scenes[s];
-
-            for o = 1, #scene.objects, 1 do
-
-            end
-        end
-    end
-
     scenemachine_projects = Editor.ProjectManager.projects;
 
     -- ask for restart / or restart --

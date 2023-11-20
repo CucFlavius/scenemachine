@@ -10,7 +10,6 @@ local Math = SceneMachine.Math;
 --			CC State	 		--
 ----------------------------------
 CC.Action = {};						-- the collection of player action booleans
-CC.RMBStartPos = {};
 CC.RMBPrevious = {};
 CC.RMBPressed = false;
 CC.Action.TurnLeft = false;			-- true if turn right key is pressed
@@ -147,8 +146,6 @@ end
 
 function CC.OnRMBDown()
 	local x, y = GetCursorPosition();
-	CC.RMBStartPos.x = x;
-	CC.RMBStartPos.y = y;
 	CC.RMBPressed = true;
 	CC.RMBPrevious.x = x;
 	CC.RMBPrevious.y = y;
