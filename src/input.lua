@@ -54,21 +54,26 @@ function Input.Update()
     local LMB = IsMouseButtonDown("LeftButton");
     local MMB = IsMouseButtonDown("MiddleButton");
     local RMB = IsMouseButtonDown("RightButton");
-
+    
     local x, y = GetCursorPosition();
-
+    
     -- need to verify that the click was done in the editor render frame
     -- otherwise any ui click will deselect whatever object is selected
     local frameXMin = Renderer.projectionFrame:GetLeft();
     local frameYMin = Renderer.projectionFrame:GetBottom();
     local frameXMax = Renderer.projectionFrame:GetRight();
     local frameYMax = Renderer.projectionFrame:GetTop();
+    local relativeX, relativeY = x - frameXMin, y - frameYMin;
 
     -- MOUSE UP --
     -- mouse up state needs to be handled outside of the renderer frame too
     if (Input.mouseState.LMB ~= LMB) then
         if (LMB == false) then
             -- LMB UP
+            if (not Input.mouseState.isDragging) then
+                Input.OnClickUp(true, false, false, relativeX, relativeY);
+            end
+
             Input.mouseState.isDragging = false;
             Input.OnDragStop();
         end
@@ -77,6 +82,10 @@ function Input.Update()
     if (Input.mouseState.RMB ~= RMB) then
         if (RMB == false) then
             -- RMB UP
+            if (not Input.mouseState.isDragging) then
+                Input.OnClickUp(false, true, false, relativeX, relativeY);
+            end
+
             Input.mouseState.isDragging = false;
             Input.OnDragStop();
         end
@@ -85,6 +94,10 @@ function Input.Update()
     if (Input.mouseState.MMB ~= MMB) then
         if (MMB == false) then
             -- MMB UP
+            if (not Input.mouseState.isDragging) then
+                Input.OnClickUp(false, false, true, relativeX, relativeY);
+            end
+
             Input.mouseState.isDragging = false;
             Input.OnDragStop();
         end
@@ -96,7 +109,6 @@ function Input.Update()
         return;
     end
 
-    local relativeX, relativeY = x - frameXMin, y - frameYMin;
 
     if (Input.mouseState.LMB ~= LMB) then
         if (LMB == true) then
@@ -122,24 +134,25 @@ function Input.Update()
         end
     end
 
-    if (Input.mouseState.LMB ~= LMB or Input.mouseState.RMB or Input.mouseState.MMB ~= MMB) then
-        local dragDiffMin = 3;  -- how many pixels does the mouse need to move to register as a drag
-        -- determine if draging
-        if (Input.mouseState.isDragging == false) then
-            if (LMB or RMB or MMB) then
-                local dragDistX = math.abs(x - Input.mouseState.dragStartX);
-                local dragDistY = math.abs(x - Input.mouseState.dragStartX);
-                if (dragDistX > dragDiffMin or dragDistY > dragDiffMin) then
-                    -- started dragging
-                    Input.mouseState.isDragging = true;
-                    Input.OnDragStart(LMB, RMB, MMB);
-                else
-                    -- regular click
+    local dragDiffMin = 3;  -- how many pixels does the mouse need to move to register as a drag
+    -- determine if draging
+    if (Input.mouseState.isDragging == false) then
+        if (LMB or RMB or MMB) then
+            local dragDistX = math.abs(x - Input.mouseState.dragStartX);
+            local dragDistY = math.abs(y - Input.mouseState.dragStartY);
+            if (dragDistX > dragDiffMin or dragDistY > dragDiffMin) then
+                -- started dragging
+                Input.mouseState.isDragging = true;
+                Input.OnDragStart(LMB, RMB, MMB);
+            else
+                -- regular click
+                if (Input.mouseState.LMB ~= LMB or Input.mouseState.RMB ~= RMB or Input.mouseState.MMB ~= MMB) then
                     Input.OnClick(LMB, RMB, MMB, relativeX, relativeY);
                 end
             end
         end
     end
+
     -- save to previous state --
     Input.mouseState.LMB = LMB;
     Input.mouseState.RMB = RMB;
@@ -176,8 +189,16 @@ function Input.OnClick(LMB, RMB, MMB, x, y)
             MousePick.Pick(x, y);
         end
     elseif (RMB) then
-        -- open RMB context menu --
     elseif (MMB) then
-        -- mouse pan maybe --
+    end
+end
+
+function Input.OnClickUp(LMB, RMB, MMB, x, y)
+    if (LMB) then
+    elseif (RMB) then
+        -- open RMB context menu --
+        local x, y = GetCursorPosition();
+        Editor.OpenContextMenu(x, y);
+    elseif (MMB) then
     end
 end

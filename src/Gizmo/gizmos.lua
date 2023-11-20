@@ -10,8 +10,8 @@ local Math = SceneMachine.Math;
 Gizmos.isUsed = false;
 Gizmos.isHighlighted = false;
 Gizmos.selectedAxis = 1;            -- x = 1, y = 2, z = 3
-Gizmos.activeTransformGizmo = 2;    -- select = 0, move = 1, rotate = 2, scale = 3
-Gizmos.space = 0;                   -- world = 0, local = 1
+Gizmos.activeTransformGizmo = 0;    -- select = 0, move = 1, rotate = 2, scale = 3
+Gizmos.space = 1;                   -- world = 0, local = 1
 Gizmos.pivot = 0;                   -- center = 0, base(original) = 1 (Only really affects rotation)
 Gizmos.LMBPrevious = {};
 Gizmos.frames = {};

@@ -176,3 +176,13 @@ end
 function Editor.ShowProjectManager()
     Editor.ProjectManager.OpenWindow();
 end
+
+function Editor.OpenContextMenu(x, y)
+	local menuOptions = {
+        [1] = { ["Name"] = "Rename", ["Action"] = function() end },
+        [2] = { ["Name"] = "Edit", ["Action"] = function()  end },
+        [3] = { ["Name"] = "Delete", ["Action"] = function()  end },
+	};
+print(x .. " " .. y)
+    Win.PopupWindowMenu(x, y, SceneMachine.mainWindow, menuOptions);
+end
