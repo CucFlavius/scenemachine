@@ -24,6 +24,7 @@ function Editor.Initialize()
     -- Create all of the UI --
     Win.Initialize("Interface\\AddOns\\scenemachine\\src\\Libraries\\ZWindowAPI");
     Editor.CreateMainWindow();
+    Editor.CreateMainMenu();
     Editor.CreateToolbar();
     Editor.CreateRightPanel();
     Editor.CreateLeftPanel();
@@ -69,33 +70,43 @@ function Editor.CreateMainWindow()
 	SceneMachine.WINDOW_WIDTH = Editor.width;
 	SceneMachine.WINDOW_HEIGHT = Editor.height;
 	SceneMachine.mainWindow:SetIgnoreParentScale(true);		-- This way the camera doesn't get offset when the wow window or UI changes size/aspect
-
-	local menu = {};
-	menu[1] = {
-		["Name"] = "File",
-		["Options"] = {
-            [1] = { ["Name"] = "Project Manager", ["Action"] = function() Editor.ShowProjectManager() end },
-			[2] = { ["Name"] = "Save", ["Action"] = function() Editor.Save() end },
-		},
-	};
-	menu[2] = {
-		["Name"] = "Tools",
-		["Options"] = {
-		},
-	};
-	menu[3] = {
-		["Name"] = "Help",
-		["Options"] = {
-			[1] = { ["Name"] = "About", ["Action"] = nil },
-		},
-	};
-	Win.WindowCreateMenuBar(SceneMachine.mainWindow, menu);
-
     SceneMachine.mainWindow.texture:SetColorTexture(c4[1], c4[2], c4[3],1);
     SceneMachine.mainWindow.TitleBar.texture:SetColorTexture(c1[1], c1[2], c1[3], 1);
     SceneMachine.mainWindow.CloseButton.ntex:SetColorTexture(c1[1], c1[2], c1[3], 1);
     SceneMachine.mainWindow.CloseButton.htex:SetColorTexture(c2[1], c2[2], c2[3], 1);
     SceneMachine.mainWindow.CloseButton.ptex:SetColorTexture(c3[1], c3[2], c3[3], 1);
+end
+
+function Editor.CreateMainMenu()
+	local menu = 
+    {
+        {
+            ["Name"] = "File",
+            ["Options"] = {
+                { ["Name"] = "Project Manager", ["Action"] = function() Editor.ShowProjectManager() end },
+                { ["Name"] = "Save", ["Action"] = function() Editor.Save() end },
+            },
+        },
+        {
+            ["Name"] = "Edit",
+            ["Options"] = {
+                { ["Name"] = "Clone Selected", ["Action"] = function() SM.CloneObject(SM.selectedObject, true); end },
+                { ["Name"] = "Delete Selected", ["Action"] = function() SM.DeleteObject(SM.selectedObject); end },
+            },
+        },
+        {
+            ["Name"] = "Tools",
+            ["Options"] = {
+            },
+        },
+        {
+            ["Name"] = "Help",
+            ["Options"] = {
+                { ["Name"] = "About", ["Action"] = nil },
+            },
+        },
+    };
+	Win.WindowCreateMenuBar(SceneMachine.mainWindow, menu);
 end
 
 function Editor.CreateToolbar()
