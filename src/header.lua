@@ -11,6 +11,8 @@ SceneMachine.Gizmos = {};
 SceneMachine.Input = {};
 
 SceneMachine.Editor = {};
+SceneMachine.Editor.Toolbar = {};
+SceneMachine.Editor.MainMenu = {};
 SceneMachine.Editor.AssetBrowser = {};
 SceneMachine.Editor.ProjectManager = {};
 SceneMachine.Editor.SceneHierarchy = {};

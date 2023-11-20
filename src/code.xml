@@ -22,6 +22,8 @@
     <Script file="sceneHierarchy.lua"/>
     <Script file="mousePick.lua"/>
     <Script file="objectProperties.lua"/>
+    <Script file="toolbar.lua"/>
+    <Script file="mainMenu.lua"/>
     <Script file="editor.lua"/>
 	<Script file="engine.lua"/>
     <Script file="math.lua"/>

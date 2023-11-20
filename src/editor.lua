@@ -15,6 +15,7 @@ Editor.toolbarHeight = 15 + 30;
 local rightPanelWidth = 300;
 local leftPanelWidth = 300;
 local bottomPanelHeight = 200;
+
 local c1 = { 0.1757, 0.1757, 0.1875 };
 local c2 = { 0.242, 0.242, 0.25 };
 local c3 = { 0, 0.4765, 0.7968 };
@@ -24,8 +25,8 @@ function Editor.Initialize()
     -- Create all of the UI --
     Win.Initialize("Interface\\AddOns\\scenemachine\\src\\Libraries\\ZWindowAPI");
     Editor.CreateMainWindow();
-    Editor.CreateMainMenu();
-    Editor.CreateToolbar();
+    Editor.MainMenu.Create();
+    Editor.Toolbar.Create();
     Editor.CreateRightPanel();
     Editor.CreateLeftPanel();
     Editor.CreateBottomPanel();
@@ -75,68 +76,6 @@ function Editor.CreateMainWindow()
     SceneMachine.mainWindow.CloseButton.ntex:SetColorTexture(c1[1], c1[2], c1[3], 1);
     SceneMachine.mainWindow.CloseButton.htex:SetColorTexture(c2[1], c2[2], c2[3], 1);
     SceneMachine.mainWindow.CloseButton.ptex:SetColorTexture(c3[1], c3[2], c3[3], 1);
-end
-
-function Editor.CreateMainMenu()
-	local menu = 
-    {
-        {
-            ["Name"] = "File",
-            ["Options"] = {
-                { ["Name"] = "Project Manager", ["Action"] = function() Editor.ShowProjectManager() end },
-                { ["Name"] = "Save", ["Action"] = function() Editor.Save() end },
-            },
-        },
-        {
-            ["Name"] = "Edit",
-            ["Options"] = {
-                { ["Name"] = "Clone Selected", ["Action"] = function() SM.CloneObject(SM.selectedObject, true); end },
-                { ["Name"] = "Delete Selected", ["Action"] = function() SM.DeleteObject(SM.selectedObject); end },
-            },
-        },
-        {
-            ["Name"] = "Tools",
-            ["Options"] = {
-            },
-        },
-        {
-            ["Name"] = "Help",
-            ["Options"] = {
-                { ["Name"] = "About", ["Action"] = nil },
-            },
-        },
-    };
-	Win.WindowCreateMenuBar(SceneMachine.mainWindow, menu);
-end
-
-function Editor.CreateToolbar()
-    local toolbar = Win.CreateRectangle(0, -15, Editor.width, 30, SceneMachine.mainWindow, "TOP", "TOP", c1[1], c1[2], c1[3], 1);
-    toolbar.button1 = Win.CreateButton(0, 0, 30, 30, toolbar, "LEFT", "LEFT", "Project Manager", nil, "BUTTON_VS");
-    toolbar.button1:SetScript("OnClick", function(self) Editor.ProjectManager.OpenWindow() end);
-
-    toolbar.button2 = Win.CreateButton(30, 0, 30, 30, toolbar, "LEFT", "LEFT", "Select", nil, "BUTTON_VS");
-    toolbar.button2:SetScript("OnClick", function(self) Gizmos.activeTransformGizmo = 0; end);
-
-    toolbar.button3 = Win.CreateButton(60, 0, 30, 30, toolbar, "LEFT", "LEFT", "Move", nil, "BUTTON_VS");
-    toolbar.button3:SetScript("OnClick", function(self) Gizmos.activeTransformGizmo = 1; end);
-
-    toolbar.button4 = Win.CreateButton(90, 0, 30, 30, toolbar, "LEFT", "LEFT", "Rotate", nil, "BUTTON_VS");
-    toolbar.button4:SetScript("OnClick", function(self) Gizmos.activeTransformGizmo = 2; end);
-
-    toolbar.button5 = Win.CreateButton(120, 0, 30, 30, toolbar, "LEFT", "LEFT", "Scale", nil, "BUTTON_VS");
-    toolbar.button5:SetScript("OnClick", function(self) Gizmos.activeTransformGizmo = 3; end);
-
-    toolbar.button6 = Win.CreateButton(150, 0, 30, 30, toolbar, "LEFT", "LEFT", "L", nil, "BUTTON_VS");
-    toolbar.button6:SetScript("OnClick", function(self) Gizmos.space = 1; print("Local Space"); end);
-
-    toolbar.button7 = Win.CreateButton(180, 0, 30, 30, toolbar, "LEFT", "LEFT", "W", nil, "BUTTON_VS");
-    toolbar.button7:SetScript("OnClick", function(self) Gizmos.space = 0; print("World Space"); end);
-
-    toolbar.button8 = Win.CreateButton(210, 0, 30, 30, toolbar, "LEFT", "LEFT", "Center", nil, "BUTTON_VS");
-    toolbar.button8:SetScript("OnClick", function(self) Gizmos.pivot = 0; print("Pivot Center"); end);
-
-    toolbar.button9 = Win.CreateButton(240, 0, 30, 30, toolbar, "LEFT", "LEFT", "Base", nil, "BUTTON_VS");
-    toolbar.button9:SetScript("OnClick", function(self) Gizmos.pivot = 1; print("Pivot Base"); end);
 end
 
 function Editor.CreateRightPanel()
