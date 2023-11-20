@@ -39,6 +39,10 @@ function Object:GetFileID()
     return self.fileID;
 end
 
+function Object:GetName()
+    return self.name;
+end
+
 function Object:SetActor(actor)
     self.actor = actor;
 

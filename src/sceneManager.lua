@@ -254,10 +254,34 @@ function SM.CreateObject(_fileID, _name, _x, _y, _z)
     scene.objects[#scene.objects + 1] = object;
 
     -- Create actor
-    local actor = Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z);
-    object:SetActor(actor);
+    if (object.fileID ~= nil) then
+        local actor = Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z);
+        object:SetActor(actor);
+    end
 
     -- Refresh
+    SH.RefreshHierarchy();
+    OP.Refresh();
+
+    return object;
+end
+
+function SM.CloneObject(object, selectAfter)
+    if (object == nil) then
+        return;
+    end
+
+    local pos = object:GetPosition();
+    local rot = object:GetRotation();
+    local scale = object:GetScale();
+    local clone = SM.CreateObject(object:GetFileID(), object:GetName(), pos.x, pos.y, pos.z);
+    clone:SetRotation(rot.x, rot.y, rot.z);
+    clone:SetScale(scale);
+
+    if (selectAfter) then
+        SM.selectedObject = clone;
+    end
+
     SH.RefreshHierarchy();
     OP.Refresh();
 end

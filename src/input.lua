@@ -170,7 +170,12 @@ function Input.OnDragStart(LMB, RMB, MMB)
     if RMB then
         CC.OnRMBDown();
     elseif LMB then
-        if Gizmos.isHighlighted then
+        if (Gizmos.isHighlighted) then
+            if (SceneMachine.Input.ShiftModifier) then
+                -- clone object first
+                SM.CloneObject(SM.selectedObject, true);
+            end
+
             local x, y = GetCursorPosition();
             Gizmos.OnLMBDown(x, y);
         end

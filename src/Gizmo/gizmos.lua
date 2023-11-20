@@ -151,6 +151,10 @@ function Gizmos.SelectionCheck(mouseX, mouseY)
 end
 
 function Gizmos.VisibilityCheck()
+    if (Gizmos.frames["SelectionGizmoFrame"] == nil) then
+        return;
+    end
+    
     if (SM.selectedObject ~= nil) then
         Gizmos.frames["SelectionGizmoFrame"]:Show();
 
