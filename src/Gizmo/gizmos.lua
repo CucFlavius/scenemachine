@@ -176,36 +176,6 @@ function Gizmos.SelectionCheck(mouseX, mouseY)
                 end
 
             end
-            --[[
-            local totalSelected = 0;
-            local smallest = indexOfSmallestValue(minDists);
-            for t = 1, 3, 1 do
-                if (minDists[t] < 10) then
-                    totalSelected = totalSelected + 1;
-                end
-            end
-
-            if (totalSelected == 1) then
-                Gizmos.isHighlighted = true;
-                Gizmos.selectedAxis = smallest;
-                Gizmos.highlightedAxis = smallest;
-            elseif (totalSelected >= 2) then
-                if (minDists[1] < minDists[3] and minDists[2] < minDists[3]) then
-                    -- XY
-                    Gizmos.isHighlighted = true;
-                    Gizmos.selectedAxis = 4;
-                    Gizmos.highlightedAxis = 4;
-                end
-            end
-            --]]
---[[
-            local smallest = indexOfSmallestValue(minDists);
-            if (minDists[smallest] < 10) then
-                Gizmos.isHighlighted = true;
-                Gizmos.selectedAxis = smallest;
-                Gizmos.highlightedAxis = smallest;
-            end
-          --]]  
         -- Rotation --
         elseif (Gizmos.activeTransformGizmo == 2) then
             local minDists = { 10000, 10000, 10000 };
@@ -346,6 +316,7 @@ function Gizmos.MotionToTransform()
             
             if (Gizmos.activeTransformGizmo == 1) then
                 if (Gizmos.selectedAxis == 1) then
+                    -- X --
                     local dot = Math.dotProduct(
                         xDiff,
                         yDiff,
@@ -361,6 +332,7 @@ function Gizmos.MotionToTransform()
                         pz = pz + (gscale * Gizmos.vectorX[3]);
                     end
                 elseif (Gizmos.selectedAxis == 2) then
+                    -- Y --
                     local dot = Math.dotProduct(
                         xDiff,
                         yDiff,
@@ -376,6 +348,7 @@ function Gizmos.MotionToTransform()
                         pz = pz + (gscale * Gizmos.vectorY[3]);
                     end
                 elseif (Gizmos.selectedAxis == 3) then
+                    -- Z --
                     local dot = Math.dotProduct(
                         xDiff,
                         yDiff,
@@ -391,11 +364,14 @@ function Gizmos.MotionToTransform()
                         pz = pz + (gscale * Gizmos.vectorZ[3]);
                     end
                 elseif (Gizmos.selectedAxis == 4) then
+                    -- XY --
+                    local xVec = { Gizmos.MoveGizmo.screenSpaceVertices[1][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][1],
+                                    Gizmos.MoveGizmo.screenSpaceVertices[1][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][2] }
                     local dot = Math.dotProduct(
                         xDiff,
                         yDiff,
-                        Gizmos.MoveGizmo.screenSpaceVertices[1][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][1],
-                        Gizmos.MoveGizmo.screenSpaceVertices[1][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][2]
+                        xVec[1],
+                        xVec[2]
                     );
                     local gscale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
                     if (Gizmos.space == 0) then
@@ -405,11 +381,14 @@ function Gizmos.MotionToTransform()
                         py = py + (gscale * Gizmos.vectorX[2]);
                         pz = pz + (gscale * Gizmos.vectorX[3]);
                     end
+
+                    local yVec = { Gizmos.MoveGizmo.screenSpaceVertices[2][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][1],
+                                    Gizmos.MoveGizmo.screenSpaceVertices[2][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][2] }
                     local dot = Math.dotProduct(
                         xDiff,
                         yDiff,
-                        Gizmos.MoveGizmo.screenSpaceVertices[2][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][1],
-                        Gizmos.MoveGizmo.screenSpaceVertices[2][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][2]
+                        yVec[1],
+                        yVec[2]
                     );
                     local gscale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
                     if (Gizmos.space == 0) then
@@ -419,7 +398,29 @@ function Gizmos.MotionToTransform()
                         py = py + (gscale * Gizmos.vectorY[2]);
                         pz = pz + (gscale * Gizmos.vectorY[3]);
                     end
+
+                    local halfwayVec = { (Gizmos.MoveGizmo.screenSpaceVertices[2][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][1]) + (Gizmos.MoveGizmo.screenSpaceVertices[1][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][1]),
+                                            (Gizmos.MoveGizmo.screenSpaceVertices[2][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][2]) + (Gizmos.MoveGizmo.screenSpaceVertices[1][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][2]) }
+                    local dot = Math.dotProduct(
+                        xDiff,
+                        yDiff,
+                        halfwayVec[1],
+                        halfwayVec[2]
+                    );
+                    local gscale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
+                    if (Gizmos.space == 0) then
+                        px = px + gscale;
+                        py = py + gscale;
+                    elseif (Gizmos.space == 1) then    
+                        px = px + (gscale * Gizmos.vectorX[1]);
+                        py = py + (gscale * Gizmos.vectorX[2]);
+                        pz = pz + (gscale * Gizmos.vectorX[3]);                
+                        px = px + (gscale * Gizmos.vectorY[1]);
+                        py = py + (gscale * Gizmos.vectorY[2]);
+                        pz = pz + (gscale * Gizmos.vectorY[3]);
+                    end
                 elseif (Gizmos.selectedAxis == 5) then
+                    -- XZ --
                     local dot = Math.dotProduct(
                         xDiff,
                         yDiff,
@@ -449,6 +450,7 @@ function Gizmos.MotionToTransform()
                         pz = pz + (gscale * Gizmos.vectorZ[3]);
                     end
                 elseif (Gizmos.selectedAxis == 6) then
+                    -- YZ --
                     local dot = Math.dotProduct(
                         xDiff,
                         yDiff,

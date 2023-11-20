@@ -56,6 +56,7 @@ function MousePick.CompareSelectionLists(listA, listB)
 end
 
 function MousePick.Pick(x, y)
+    -- x, y are relative coordinates to the viewport
     local idx = 1;
     MousePick.selectionList = {};
 

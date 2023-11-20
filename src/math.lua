@@ -204,6 +204,15 @@ function Math.normalize(vector)
     end
 end
 
+function Math.normalize2D(x, y)
+    local magnitude = math.sqrt(x^2 + y^2)
+    if magnitude ~= 0 then
+        return { x / magnitude, y / magnitude }
+    else
+        return { x = 0, y = 0 }
+    end
+end
+
 function Math.abs3D(x, y, z)
 	return { math.abs[x], math.abs[y], math.abs[z] };
 end
@@ -286,4 +295,33 @@ function Math.isPointInPolygon(px, py, x1, y1, x2, y2, x3, y3, x4, y4)
     end
 
     return count % 2 == 1
+end
+
+function Math.intersectRayPlane(rayOrigin, rayDirection, planeNormal, planePoint)
+    local epsilon = 1e-6
+
+    -- Ensure that the ray and plane are not parallel
+    local dotProduct = planeNormal.x * rayDirection.x + planeNormal.y * rayDirection.y + planeNormal.z * rayDirection.z
+    if math.abs(dotProduct) < epsilon then
+        return nil  -- Ray and plane are parallel, no intersection
+    end
+
+    -- Calculate the parameter t for the intersection point
+    local t = -((planeNormal.x * (rayOrigin.x - planePoint.x) +
+                 planeNormal.y * (rayOrigin.y - planePoint.y) +
+                 planeNormal.z * (rayOrigin.z - planePoint.z)) / dotProduct)
+
+    -- Ensure the intersection point is in front of the ray origin
+    if t < 0 then
+        return nil  -- Intersection point is behind the ray origin
+    end
+
+    -- Calculate the intersection point
+    local intersectionPoint = {
+        x = rayOrigin.x + t * rayDirection.x,
+        y = rayOrigin.y + t * rayDirection.y,
+        z = rayOrigin.z + t * rayDirection.z
+    }
+
+    return intersectionPoint
 end
