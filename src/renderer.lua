@@ -7,6 +7,7 @@ local World = SceneMachine.World;
 local FX = SceneMachine.FX;
 local Input = SceneMachine.Input;
 local Math = SceneMachine.Math;
+local CC = SceneMachine.CameraController;
 
 --- WTF ---
 local sqrt = math.sqrt;
@@ -67,6 +68,7 @@ function Renderer.CreateRenderer(x, y, w, h, parent, point, relativePoint)
 	Renderer.projectionFrame:SetCameraPosition(4,0,0);
 	Renderer.projectionFrame:SetCameraOrientationByYawPitchRoll(0, 0, 0);
     Renderer.projectionFrame:SetCameraFarClip(1000)
+    Renderer.projectionFrame:SetCameraFieldOfView(math.rad(CC.FoV));
 	Renderer.CreateBackgroundFrame();
 	Renderer.GenerateFrameBuffer();
 	Renderer.active = false;

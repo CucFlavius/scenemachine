@@ -6,6 +6,7 @@ local OP = Editor.ObjectProperties;
 local Camera = SceneMachine.Camera;
 local Input = SceneMachine.Input;
 local Math = SceneMachine.Math;
+local CC = SceneMachine.CameraController;
 
 Gizmos.isUsed = false;
 Gizmos.isHighlighted = false;
@@ -297,6 +298,17 @@ function Gizmos.MotionToTransform()
         Gizmos.highlightedAxis = Gizmos.selectedAxis;
 
 		local curX, curY = GetCursorPosition();
+        local frameXMin = Renderer.projectionFrame:GetLeft();
+        local frameYMin = Renderer.projectionFrame:GetBottom();
+        local frameXMax = Renderer.projectionFrame:GetRight();
+        local frameYMax = Renderer.projectionFrame:GetTop();
+        local width = Renderer.projectionFrame:GetWidth();
+        local height = Renderer.projectionFrame:GetHeight();
+        local relativeX, relativeY = curX - frameXMin, curY - frameYMin;
+
+        local mouseRayOrigin = { x = Camera.X, y = Camera.Y, z = Camera.Z };
+        local cameraRotation = { x = Camera.Yaw, y = Camera.Pitch, z = Camera.Roll };
+        local mouseRayDir = Math.calculateMouseRay(cameraRotation, width, height, CC.FoV, relativeX, relativeY);
 
         if (Gizmos.LMBPrevious.x == nil) then
             Gizmos.LMBPrevious.x = curX;
@@ -365,6 +377,17 @@ function Gizmos.MotionToTransform()
                     end
                 elseif (Gizmos.selectedAxis == 4) then
                     -- XY --
+                    --[[
+                    local planeNormal = { x = 0, y = 0, z = 1 };
+                    local planePoint = { x = 0, y = 0, z = 0 };
+                    local intersects = Math.intersectRayPlane(mouseRayOrigin, mouseRayDir, planeNormal, planePoint);
+
+                    if (intersects ~= nil) then
+                        px = intersects.x;
+                        py = intersects.y;
+                        pz = intersects.z;
+                    end
+                    --]]
                     local xVec = { Gizmos.MoveGizmo.screenSpaceVertices[1][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][1],
                                     Gizmos.MoveGizmo.screenSpaceVertices[1][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][2] }
                     local dot = Math.dotProduct(
@@ -524,6 +547,7 @@ function Gizmos.MotionToTransform()
                         rz = rot[3];
                     end
                 end
+
                 SM.selectedObject:SetRotation(rx, ry, rz);
             elseif (Gizmos.activeTransformGizmo == 3) then
                 s = s + diff;

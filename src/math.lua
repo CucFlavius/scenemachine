@@ -297,6 +297,90 @@ function Math.isPointInPolygon(px, py, x1, y1, x2, y2, x3, y3, x4, y4)
     return count % 2 == 1
 end
 
+--[[
+function Math.calculateMouseRay(screenWidth, screenHeight, fieldOfView, mouseX, mouseY)
+    local aspectRatio = screenWidth / screenHeight
+
+    -- Calculate the normalized device coordinates (NDC) from screen coordinates
+    local ndcX = (2 * mouseX / screenWidth - 1) * aspectRatio
+    local ndcY = 1 - 2 * mouseY / screenHeight
+
+    -- Calculate the tan of half the field of view
+    local tanHalfFOV = math.tan(math.rad(fieldOfView / 2))
+
+    -- Calculate the camera space coordinates (unprojecting from NDC)
+    local cameraSpaceX = ndcX * tanHalfFOV
+    local cameraSpaceY = ndcY * tanHalfFOV
+
+    -- The ray direction in camera space
+    local rayDirectionCamera = { x = cameraSpaceX, y = cameraSpaceY, z = -1 }
+
+    -- Normalize the ray direction
+    local length = math.sqrt(rayDirectionCamera.x^2 + rayDirectionCamera.y^2 + rayDirectionCamera.z^2)
+    rayDirectionCamera.x = rayDirectionCamera.x / length
+    rayDirectionCamera.y = rayDirectionCamera.y / length
+    rayDirectionCamera.z = rayDirectionCamera.z / length
+
+    return rayDirectionCamera
+end
+--]]
+
+function Math.calculateMouseRay(cameraRotation, screenWidth, screenHeight, fieldOfView, mouseX, mouseY)
+    local aspectRatio = screenWidth / screenHeight
+
+    -- Calculate the normalized device coordinates (NDC) from screen coordinates
+    --local ndcX = (2 * mouseX / screenWidth - 1) * aspectRatio
+    --local ndcY = 1 - 2 * mouseY / screenHeight
+    local ndcX = (mouseX / screenWidth * 2 - 1) * aspectRatio;
+    local ndcY = mouseY / screenHeight * 2 - 1;
+    --float ndc_x = screen_x / width * 2 - 1;
+    --float ndc_y = screen_y / height * 2 - 1;
+
+    -- Calculate the tan of half the field of view
+    local tanHalfFOV = math.tan(math.rad(fieldOfView / 2))
+
+    -- Calculate the camera space coordinates (unprojecting from NDC)
+    local cameraSpaceX = ndcX * tanHalfFOV
+    local cameraSpaceY = ndcY * tanHalfFOV
+    local cameraSpaceZ = -1  -- This is the direction along the negative z-axis in camera space
+
+    -- Rotate the camera space coordinates based on camera rotation
+    local cosYaw = math.cos(cameraRotation.x)
+    local sinYaw = math.sin(cameraRotation.x)
+    local cosPitch = math.cos(cameraRotation.y)
+    local sinPitch = math.sin(cameraRotation.y)
+
+    local rotatedCameraSpaceX = cosYaw * cameraSpaceX - sinYaw * cameraSpaceY
+    local rotatedCameraSpaceY = sinYaw * cameraSpaceX + cosYaw * cameraSpaceY
+    local rotatedCameraSpaceZ = cosPitch * cameraSpaceZ
+    
+    -- The ray direction in camera space
+    local rayDirectionCamera = {
+        x = rotatedCameraSpaceX,
+        y = rotatedCameraSpaceY,
+        z = rotatedCameraSpaceZ
+    }
+
+--[[
+    -- Rotate the camera space coordinates based on camera rotation
+    local rotated = Math.multiplyRotations( { cameraRotation.x, cameraRotation.y, cameraRotation.z} , { cameraSpaceX, cameraSpaceY, cameraSpaceZ } );
+
+    -- The ray direction in camera space
+    local rayDirectionCamera = {
+        x = rotated[1],
+        y = rotated[2],
+        z = rotated[3]
+    }
+--]]
+    -- Normalize the ray direction
+    local length = math.sqrt(rayDirectionCamera.x^2 + rayDirectionCamera.y^2 + rayDirectionCamera.z^2)
+    rayDirectionCamera.x = rayDirectionCamera.x / length
+    rayDirectionCamera.y = rayDirectionCamera.y / length
+    rayDirectionCamera.z = rayDirectionCamera.z / length
+
+    return rayDirectionCamera
+end
+
 function Math.intersectRayPlane(rayOrigin, rayDirection, planeNormal, planePoint)
     local epsilon = 1e-6
 

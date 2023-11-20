@@ -55,6 +55,15 @@ function CC.Initialize()
 	CC.moveSpeed = CC.moveSpeed * (SceneMachine.UPDATE_INTERVAL * 100);
 end
 
+function clampAngle(angle)
+    local twoPi = 2 * math.pi
+    angle = angle % twoPi  -- Ensure the angle is within [0, 2π)
+    if angle < 0 then
+        angle = angle + twoPi  -- Make sure the angle is positive
+    end
+    return angle
+end
+
 function CC.Update()
 	if (CC.Action.ShiftSpeed == true) then
 		CC.acceleration = CC.acceleration + (SceneMachine.UPDATE_INTERVAL * 3.0);
@@ -111,12 +120,12 @@ function CC.Update()
 		CC.RMBPrevious.y = y;
 
 		-- if camera is in flight mode then handle that --
-		SceneMachine.Camera.Yaw = SceneMachine.Camera.Yaw - rad(xDiff * CC.mouseTurnSpeed);
-		SceneMachine.Camera.Pitch = SceneMachine.Camera.Pitch - rad(yDiff * CC.mouseTurnSpeed);
+		SceneMachine.Camera.Yaw = clampAngle(SceneMachine.Camera.Yaw - rad(xDiff * CC.mouseTurnSpeed));
+		SceneMachine.Camera.Pitch = clampAngle(SceneMachine.Camera.Pitch - rad(yDiff * CC.mouseTurnSpeed));
         CC.Direction = CC.Direction - xDiff * CC.mouseTurnSpeed;
         CC.Pitch = CC.Pitch - yDiff * CC.mouseTurnSpeed;
 	else
-        SceneMachine.Camera.Yaw = rad(CC.Direction);
+        SceneMachine.Camera.Yaw = clampAngle(rad(CC.Direction));
     end
 
 	-- handle focus

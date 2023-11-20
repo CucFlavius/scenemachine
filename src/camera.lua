@@ -22,7 +22,7 @@ Camera.planeNormalZ = 0;
 
 function Camera.Update()
     Renderer.projectionFrame:SetCameraPosition(Camera.X, Camera.Y, Camera.Z);
-    --print(Camera.X .. " " .. Camera.Y .. " " .. Camera.Z);
+    --print(Camera.Yaw .. " " .. Camera.Pitch .. " " .. Camera.Roll);
     Renderer.projectionFrame:SetCameraOrientationByYawPitchRoll(Camera.Yaw, Camera.Pitch, Camera.Roll);
 
     -- Calculate camera near plane -- 
