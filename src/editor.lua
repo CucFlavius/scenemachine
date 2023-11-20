@@ -179,10 +179,13 @@ end
 
 function Editor.OpenContextMenu(x, y)
 	local menuOptions = {
-        [1] = { ["Name"] = "Rename", ["Action"] = function() end },
-        [2] = { ["Name"] = "Edit", ["Action"] = function()  end },
-        [3] = { ["Name"] = "Delete", ["Action"] = function()  end },
+        { ["Name"] = "Select", ["Action"] = function() Gizmos.activeTransformGizmo = 0; end },
+        { ["Name"] = "Move", ["Action"] = function() Gizmos.activeTransformGizmo = 1; end },
+        { ["Name"] = "Rotate", ["Action"] = function() Gizmos.activeTransformGizmo = 2; end },
+        { ["Name"] = "Scale", ["Action"] = function() Gizmos.activeTransformGizmo = 3; end },
+        { ["Name"] = nil },
+        { ["Name"] = "Delete Selected", ["Action"] = function() SM.DeleteObject(SM.selectedObject); end },
 	};
-print(x .. " " .. y)
+
     Win.PopupWindowMenu(x, y, SceneMachine.mainWindow, menuOptions);
 end

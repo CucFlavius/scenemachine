@@ -109,7 +109,6 @@ function Input.Update()
         return;
     end
 
-
     if (Input.mouseState.LMB ~= LMB) then
         if (LMB == true) then
             -- LMB DOWN
@@ -147,7 +146,10 @@ function Input.Update()
             else
                 -- regular click
                 if (Input.mouseState.LMB ~= LMB or Input.mouseState.RMB ~= RMB or Input.mouseState.MMB ~= MMB) then
-                    Input.OnClick(LMB, RMB, MMB, relativeX, relativeY);
+                    -- also filter the context menu out
+                    if (not SceneMachine.mainWindow.menuIsOpen) then
+                        Input.OnClick(LMB, RMB, MMB, relativeX, relativeY);
+                    end
                 end
             end
         end
@@ -198,7 +200,9 @@ function Input.OnClickUp(LMB, RMB, MMB, x, y)
     elseif (RMB) then
         -- open RMB context menu --
         local x, y = GetCursorPosition();
-        Editor.OpenContextMenu(x, y);
+        local rx = x - SceneMachine.mainWindow:GetLeft();
+        local ry = y - SceneMachine.mainWindow:GetHeight() - 10;
+        Editor.OpenContextMenu(rx, ry);
     elseif (MMB) then
     end
 end

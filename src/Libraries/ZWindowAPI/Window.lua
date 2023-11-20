@@ -105,6 +105,7 @@ function Win.CreateMenu(window, parent)
 	popup:SetPoint("CENTER", window, "CENTER", 0, 0);
 	popup:SetWidth(window:GetWidth());
 	popup:SetHeight(window:GetHeight() - 30);
+	popup:SetFrameStrata("DIALOG");
 	popup.ntex = popup:CreateTexture()
 	popup.ntex:SetColorTexture(0,0,0,0.0);
 	popup.ntex:SetAllPoints()	
@@ -138,21 +139,34 @@ function Win.PopupWindowMenu(x, y, window, menuOptions)
 	popup:Show();
 	popup.menu:Show();
 	popup.menu:SetPoint("TOPLEFT", popup, "TOPLEFT", x, y);
-	popup.menu:SetHeight(optionCount * 20);
 
+	local y = 0;
 	for i = 1, maxMenuOptions, 1 do
 		if (i <= optionCount) then
-			popup.menu.buttons[i]:Show();
-			popup.menu.buttons[i].text:SetText("    " .. menuOptions[i]["Name"]);
-			popup.menu.buttons[i]:SetScript("OnClick", function (self, button, down)
-				popup:Hide();
-				window.menuIsOpen = false;
-				if (menuOptions[i]["Action"] ~= nil) then
-					menuOptions[i]["Action"]();
-				end
-			end)
+			if (menuOptions[i]["Name"] == nil) then
+				-- spacer --
+				y = y - 5;
+				popup.menu.buttons[i]:Hide();
+			else
+				-- button --
+				popup.menu.buttons[i]:Show();
+				popup.menu.buttons[i]:ClearAllPoints();
+				popup.menu.buttons[i]:SetPoint("TOPLEFT", popup.menu, "TOPLEFT", 0, y);
+				popup.menu.buttons[i].text:SetText("    " .. menuOptions[i]["Name"]);
+				popup.menu.buttons[i]:SetScript("OnClick", function (self, button, down)
+					popup:Hide();
+					window.menuIsOpen = false;
+					if (menuOptions[i]["Action"] ~= nil) then
+						menuOptions[i]["Action"]();
+					end
+				end)
+
+				y = y - 20;
+			end
 		else
 			popup.menu.buttons[i]:Hide();
 		end
 	end
+
+	popup.menu:SetHeight(-y);
 end
