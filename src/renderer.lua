@@ -107,7 +107,22 @@ function Renderer.AddActor(fileID, X, Y, Z)
     actor:Show();
     actor:SetModelByFileID(fileID);
     actor:SetPosition(X, Y, Z);
-    --actor:SetUseCenterForOrigin(0, 0, 0);
+
+    -- self:SetUseCenterForOrigin(actorInfo.useCenterForOriginX, actorInfo.useCenterForOriginY, actorInfo.useCenterForOriginZ);
+    --Name = "UIModelSceneActorFlag",
+    --Type = "Enumeration",
+    --NumValues = 4,
+    --MinValue = 1,
+    --MaxValue = 8,
+    --Fields =
+    --{
+    --    { Name = "Deprecated1", Type = "UIModelSceneActorFlag", EnumValue = 1 },
+    --    { Name = "1", Type = "UIModelSceneActorFlag", EnumValue = 2 },
+    --    { Name = "UseCenterForOriginY", Type = "UIModelSceneActorFlag", EnumValue = 4 },
+    --    { Name = "UseCenterForOriginZ", Type = "UIModelSceneActorFlag", EnumValue = 8 },
+    --},
+    -- forcing center as origin so that the bounding boxes stay consistent
+    actor:SetUseCenterForOrigin(0, 0, 0);
 
     return actor;
 end

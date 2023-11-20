@@ -571,11 +571,11 @@ function Gizmos.transformGizmo(gizmo, position, rotation, scale, boundsCenter, s
     local boundsCenterOffset = boundsCenter[3] * scale;
     if (pivot == 0) then
         -- center
-        pivotOffset = { 0, 0, boundsCenterOffset };
+        pivotOffset = { 0, 0, 0 };
     elseif (pivot == 1) then
         -- base
         local point = Math.RotatePointAroundPivot({0, 0, -boundsCenterOffset}, {0, 0, 0}, {rotation[1], rotation[2], rotation[3]});
-        pivotOffset = { point[1], point[2], point[3] + boundsCenterOffset};
+        pivotOffset = { point[1], point[2], point[3] };
     end
 
     for q = 1, gizmo.lineCount, 1 do

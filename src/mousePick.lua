@@ -93,7 +93,7 @@ function MousePick.Pick(x, y)
         for q = 1, 8, 1 do
             MousePick.bbTransVerts[q][1] = MousePick.bbTransVerts[q][1] * scale + position.x;
             MousePick.bbTransVerts[q][2] = MousePick.bbTransVerts[q][2] * scale + position.y;
-            MousePick.bbTransVerts[q][3] = MousePick.bbTransVerts[q][3] * scale + position.z + (chZ * scale);
+            MousePick.bbTransVerts[q][3] = MousePick.bbTransVerts[q][3] * scale + position.z;-- + (chZ * scale);
         end
 
         for q = 1, 8, 1 do
