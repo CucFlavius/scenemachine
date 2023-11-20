@@ -9,6 +9,7 @@ SceneMachine.Object =
     scale = 1,	
 	actor = nil,
 	class = "Object",
+    id = 0,
 }
 
 local Object = SceneMachine.Object;
@@ -27,10 +28,15 @@ function Object:New(name, fileID, position, rotation, scale)
         scale = scale or 1,	
         actor = nil,
         class = "Object",
+        id = math.random(99999999);
     };
 
 	setmetatable(v, Object)
 	return v
+end
+
+function Object:GetFileID()
+    return self.fileID;
 end
 
 function Object:SetActor(actor)
@@ -130,6 +136,7 @@ function Object:ExportData()
         position = self.position;
         rotation = self.rotation;
         scale = self.scale;
+        id = self.id;
     };
 
     return data;
@@ -177,6 +184,8 @@ function Object:ImportData(data)
     if (data.scale ~= nil and data.scale ~= 0) then
         self.scale = data.scale;
     end
+
+    self.id = data.id or math.random(99999999);
 end
 
 Object.__tostring = function(self)
@@ -184,8 +193,7 @@ Object.__tostring = function(self)
 end
 
 Object.__eq = function(a,b)
-    -- TODO : implement object comparison
-	return false; --a.r == b.r and a.g == b.g and a.b == b.b and a.a == b.a
+    return a.id == b.id;
 end
 
 Object.__index = function(t,k)

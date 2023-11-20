@@ -122,23 +122,24 @@ function Input.Update()
         end
     end
 
-    local dragDiffMin = 3;  -- how many pixels does the mouse need to move to register as a drag
-    -- determine if draging
-    if (Input.mouseState.isDragging == false) then
-        if (LMB or RMB or MMB) then
-            local dragDistX = math.abs(x - Input.mouseState.dragStartX);
-            local dragDistY = math.abs(x - Input.mouseState.dragStartX);
-            if (dragDistX > dragDiffMin or dragDistY > dragDiffMin) then
-                -- started dragging
-                Input.mouseState.isDragging = true;
-                Input.OnDragStart(LMB, RMB, MMB);
-            else
-                -- regular click
-                Input.OnClick(LMB, RMB, MMB, relativeX, relativeY);
+    if (Input.mouseState.LMB ~= LMB or Input.mouseState.RMB or Input.mouseState.MMB ~= MMB) then
+        local dragDiffMin = 3;  -- how many pixels does the mouse need to move to register as a drag
+        -- determine if draging
+        if (Input.mouseState.isDragging == false) then
+            if (LMB or RMB or MMB) then
+                local dragDistX = math.abs(x - Input.mouseState.dragStartX);
+                local dragDistY = math.abs(x - Input.mouseState.dragStartX);
+                if (dragDistX > dragDiffMin or dragDistY > dragDiffMin) then
+                    -- started dragging
+                    Input.mouseState.isDragging = true;
+                    Input.OnDragStart(LMB, RMB, MMB);
+                else
+                    -- regular click
+                    Input.OnClick(LMB, RMB, MMB, relativeX, relativeY);
+                end
             end
         end
     end
-
     -- save to previous state --
     Input.mouseState.LMB = LMB;
     Input.mouseState.RMB = RMB;
