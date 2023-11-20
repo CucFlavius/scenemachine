@@ -33,16 +33,29 @@ function Gizmos.CreateMoveGizmo()
     local coneDetail = 10;
     local emptySSVertex = {{0,0}, {0,0}};
     local emptyVertex = {{0,0,0}, {0,0,0}};
-
+    local ch = 0.3;
     Gizmos.MoveGizmo = 
     {
-        lineCount = 3 + (coneDetail * 3);
+        coneDetail = coneDetail;
+        lineCount = 3 + 6 + (coneDetail * 3);
         scale = 10;
         vertices = 
         {
             {{0,0,0}, {1,0,0}}, -- X
             {{0,0,0}, {0,1,0}}, -- Y
             {{0,0,0}, {0,0,1}}, -- Z
+
+            -- XY
+            {{ch,0,0}, {ch,ch,0}},
+            {{0,ch,0}, {ch,ch,0}},
+
+            -- XZ
+            {{ch,0,0}, {ch,0,ch}},
+            {{0,0,ch}, {ch,0,ch}},
+
+            -- YZ
+            {{0,ch,0}, {0,ch,ch}},
+            {{0,0,ch}, {0,ch,ch}},
         };
         transformedVertices = {};
         screenSpaceVertices = {};
@@ -51,6 +64,13 @@ function Gizmos.CreateMoveGizmo()
             {1,0,0,1},
             {0,1,0,1},
             {0,0,1,1},
+
+            {1,1,0,1},
+            {1,1,0,1},
+            {1,1,0,1},
+            {1,1,0,1},
+            {1,1,0,1},
+            {1,1,0,1},
         };
         lines = {};
         lineDepths = {};
@@ -73,9 +93,18 @@ function Gizmos.CreateMoveGizmo()
     end
 
     -- setting the axis on the main 3 lines
-    for t = 1, 3, 1 do
-        Gizmos.MoveGizmo.lines[t].axis = t;
-    end
+    Gizmos.MoveGizmo.lines[1].axis = 1;
+    Gizmos.MoveGizmo.lines[2].axis = 2;
+    Gizmos.MoveGizmo.lines[3].axis = 3;
+    -- setting the axis on XY
+    Gizmos.MoveGizmo.lines[4].axis = 4;
+    Gizmos.MoveGizmo.lines[5].axis = 4;
+    -- setting the axis on XZ
+    Gizmos.MoveGizmo.lines[6].axis = 5;
+    Gizmos.MoveGizmo.lines[7].axis = 5;
+    -- setting the axis on YZ
+    Gizmos.MoveGizmo.lines[8].axis = 6;
+    Gizmos.MoveGizmo.lines[9].axis = 6;
 
     -- Create cone vertices --
     -- calculateCirclePoints(centerX, centerY, centerZ, radius, numPoints, axis)
@@ -83,7 +112,8 @@ function Gizmos.CreateMoveGizmo()
 
     local pointsX = calculateCirclePoints(0.9, 0, 0, radius, coneDetail, "x");
     local i = 1;
-    for c = 4, 4 + coneDetail, 1 do
+    local iOffs = 4 + 6;
+    for c = iOffs, iOffs + coneDetail, 1 do
         Gizmos.MoveGizmo.vertices[c] = {{1,0,0},pointsX[i]};
         Gizmos.MoveGizmo.transformedVertices[c] = {{0,0,0}, {1,0,0}};
         Gizmos.MoveGizmo.screenSpaceVertices[c] = {{0,0}, {0,0}};
@@ -94,7 +124,8 @@ function Gizmos.CreateMoveGizmo()
 
     local pointsY = calculateCirclePoints(0, 0.9, 0, radius, coneDetail, "y");
     i = 1;
-    for c = 4 + coneDetail, 4 + (coneDetail * 2), 1 do
+    iOffs = iOffs + coneDetail;
+    for c = iOffs, iOffs + coneDetail, 1 do
         Gizmos.MoveGizmo.vertices[c] = {{0,1,0},pointsY[i]};
         Gizmos.MoveGizmo.transformedVertices[c] = {{0,0,0}, {0,1,0}};
         Gizmos.MoveGizmo.screenSpaceVertices[c] = {{0,0}, {0,0}};
@@ -105,7 +136,8 @@ function Gizmos.CreateMoveGizmo()
 
     local pointsZ = calculateCirclePoints(0, 0, 0.9, radius, coneDetail, "z");
     i = 1;
-    for c = 4 + (coneDetail * 2), 4 + (coneDetail * 3), 1 do
+    iOffs = iOffs + coneDetail;
+    for c = iOffs, iOffs + coneDetail, 1 do
         Gizmos.MoveGizmo.vertices[c] = {{0,0,1},pointsZ[i]};
         Gizmos.MoveGizmo.transformedVertices[c] = {{0,0,0}, {0,0,1}};
         Gizmos.MoveGizmo.screenSpaceVertices[c] = {{0,0}, {0,0}};

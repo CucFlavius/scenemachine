@@ -203,8 +203,6 @@ function MousePick.FindConvexHull(points)
     table.sort(points, function(p1, p2)
         if (p1 ~= nil and p2 ~= nil) then
             return compare(p1, p2) == -1
-        else
-            return 1;
         end
     end)
 

@@ -10,7 +10,7 @@ local Math = SceneMachine.Math;
 Gizmos.isUsed = false;
 Gizmos.isHighlighted = false;
 Gizmos.selectedAxis = 1;            -- x = 1, y = 2, z = 3
-Gizmos.activeTransformGizmo = 0;    -- select = 0, move = 1, rotate = 2, scale = 3
+Gizmos.activeTransformGizmo = 1;    -- select = 0, move = 1, rotate = 2, scale = 3
 Gizmos.space = 1;                   -- world = 0, local = 1
 Gizmos.pivot = 0;                   -- center = 0, base(original) = 1 (Only really affects rotation)
 Gizmos.LMBPrevious = {};
@@ -83,22 +83,129 @@ function Gizmos.SelectionCheck(mouseX, mouseY)
     if not Gizmos.isUsed then
         -- Position --
         if (Gizmos.activeTransformGizmo == 1) then
-            for t = 1, 3, 1 do
-                local aX = Gizmos.MoveGizmo.screenSpaceVertices[t][1][1];
-                local aY = Gizmos.MoveGizmo.screenSpaceVertices[t][1][2];
-                local bX = Gizmos.MoveGizmo.screenSpaceVertices[t][2][1];
-                local bY = Gizmos.MoveGizmo.screenSpaceVertices[t][2][2];
-
-                if (mouseX ~= nil and mouseY ~= nil and aX ~= nil and aY ~= nil and bX ~= nil and bY ~= nil) then
-                    local dist = Math.distToSegment({mouseX, mouseY}, {aX, aY}, {bX, bY});
-                    if (dist < 10) then
-                        Gizmos.isHighlighted = true;
-                        Gizmos.selectedAxis = t;
-                        Gizmos.highlightedAxis = t;
-                    end
+            -- check against the rectangle XY
+            -- <
+            local aX = Gizmos.MoveGizmo.screenSpaceVertices[4][1][1];
+            local aY = Gizmos.MoveGizmo.screenSpaceVertices[4][1][2];
+            -- >
+            local bX = Gizmos.MoveGizmo.screenSpaceVertices[5][1][1];
+            local bY = Gizmos.MoveGizmo.screenSpaceVertices[5][1][2];
+            -- v
+            local cX = Gizmos.MoveGizmo.screenSpaceVertices[5][2][1];
+            local cY = Gizmos.MoveGizmo.screenSpaceVertices[5][2][2];
+            -- ^
+            local dX = Gizmos.MoveGizmo.screenSpaceVertices[1][1][1];
+            local dY = Gizmos.MoveGizmo.screenSpaceVertices[1][1][2];
+            if (mouseX ~= nil and mouseY ~= nil and aX ~= nil and aY ~= nil and bX ~= nil and bY ~= nil) then
+                local inTriangle = Math.isPointInPolygon(mouseX, mouseY, aX, aY, cX, cY, bX, bY, dX, dY);
+                if (inTriangle) then
+                    Gizmos.isHighlighted = true;
+                    Gizmos.selectedAxis = 4;
+                    Gizmos.highlightedAxis = 4;
                 end
             end
 
+            -- check against the rectangle XZ
+            -- <
+            local aX = Gizmos.MoveGizmo.screenSpaceVertices[6][1][1];
+            local aY = Gizmos.MoveGizmo.screenSpaceVertices[6][1][2];
+            -- >
+            local bX = Gizmos.MoveGizmo.screenSpaceVertices[7][1][1];
+            local bY = Gizmos.MoveGizmo.screenSpaceVertices[7][1][2];
+            -- v
+            local cX = Gizmos.MoveGizmo.screenSpaceVertices[7][2][1];
+            local cY = Gizmos.MoveGizmo.screenSpaceVertices[7][2][2];
+            -- ^
+            local dX = Gizmos.MoveGizmo.screenSpaceVertices[1][1][1];
+            local dY = Gizmos.MoveGizmo.screenSpaceVertices[1][1][2];
+            if (mouseX ~= nil and mouseY ~= nil and aX ~= nil and aY ~= nil and bX ~= nil and bY ~= nil) then
+                local inTriangle = Math.isPointInPolygon(mouseX, mouseY, aX, aY, cX, cY, bX, bY, dX, dY);
+                if (inTriangle) then
+                    Gizmos.isHighlighted = true;
+                    Gizmos.selectedAxis = 5;
+                    Gizmos.highlightedAxis = 5;
+                end
+            end
+
+            -- check against the rectangle YZ
+            -- <
+            local aX = Gizmos.MoveGizmo.screenSpaceVertices[8][1][1];
+            local aY = Gizmos.MoveGizmo.screenSpaceVertices[8][1][2];
+            -- >
+            local bX = Gizmos.MoveGizmo.screenSpaceVertices[9][1][1];
+            local bY = Gizmos.MoveGizmo.screenSpaceVertices[9][1][2];
+            -- v
+            local cX = Gizmos.MoveGizmo.screenSpaceVertices[9][2][1];
+            local cY = Gizmos.MoveGizmo.screenSpaceVertices[9][2][2];
+            -- ^
+            local dX = Gizmos.MoveGizmo.screenSpaceVertices[1][1][1];
+            local dY = Gizmos.MoveGizmo.screenSpaceVertices[1][1][2];
+            if (mouseX ~= nil and mouseY ~= nil and aX ~= nil and aY ~= nil and bX ~= nil and bY ~= nil) then
+                local inTriangle = Math.isPointInPolygon(mouseX, mouseY, aX, aY, cX, cY, bX, bY, dX, dY);
+                if (inTriangle) then
+                    Gizmos.isHighlighted = true;
+                    Gizmos.selectedAxis = 6;
+                    Gizmos.highlightedAxis = 6;
+                end
+            end
+            
+            -- check against the line distances
+            if (not Gizmos.isHighlighted) then
+                local minDists = { 10000, 10000, 10000 };
+                for t = 1, 3, 1 do
+                    local aX = Gizmos.MoveGizmo.screenSpaceVertices[t][1][1];
+                    local aY = Gizmos.MoveGizmo.screenSpaceVertices[t][1][2];
+                    local bX = Gizmos.MoveGizmo.screenSpaceVertices[t][2][1];
+                    local bY = Gizmos.MoveGizmo.screenSpaceVertices[t][2][2];
+
+                    if (mouseX ~= nil and mouseY ~= nil and aX ~= nil and aY ~= nil and bX ~= nil and bY ~= nil) then
+                        local dist = Math.distToSegment({mouseX, mouseY}, {aX, aY}, {bX, bY});
+                        if (dist < 10) then
+                            if (minDists[t] > dist) then
+                                minDists[t] = dist;
+                            end
+                        end
+                    end
+                end
+
+                local smallest = indexOfSmallestValue(minDists);
+                if (minDists[smallest] < 10) then
+                    Gizmos.isHighlighted = true;
+                    Gizmos.selectedAxis = smallest;
+                    Gizmos.highlightedAxis = smallest;
+                end
+
+            end
+            --[[
+            local totalSelected = 0;
+            local smallest = indexOfSmallestValue(minDists);
+            for t = 1, 3, 1 do
+                if (minDists[t] < 10) then
+                    totalSelected = totalSelected + 1;
+                end
+            end
+
+            if (totalSelected == 1) then
+                Gizmos.isHighlighted = true;
+                Gizmos.selectedAxis = smallest;
+                Gizmos.highlightedAxis = smallest;
+            elseif (totalSelected >= 2) then
+                if (minDists[1] < minDists[3] and minDists[2] < minDists[3]) then
+                    -- XY
+                    Gizmos.isHighlighted = true;
+                    Gizmos.selectedAxis = 4;
+                    Gizmos.highlightedAxis = 4;
+                end
+            end
+            --]]
+--[[
+            local smallest = indexOfSmallestValue(minDists);
+            if (minDists[smallest] < 10) then
+                Gizmos.isHighlighted = true;
+                Gizmos.selectedAxis = smallest;
+                Gizmos.highlightedAxis = smallest;
+            end
+          --]]  
         -- Rotation --
         elseif (Gizmos.activeTransformGizmo == 2) then
             local minDists = { 10000, 10000, 10000 };
@@ -154,7 +261,7 @@ function Gizmos.VisibilityCheck()
     if (Gizmos.frames["SelectionGizmoFrame"] == nil) then
         return;
     end
-    
+
     if (SM.selectedObject ~= nil) then
         Gizmos.frames["SelectionGizmoFrame"]:Show();
 
@@ -269,6 +376,93 @@ function Gizmos.MotionToTransform()
                         pz = pz + (gscale * Gizmos.vectorY[3]);
                     end
                 elseif (Gizmos.selectedAxis == 3) then
+                    local dot = Math.dotProduct(
+                        xDiff,
+                        yDiff,
+                        Gizmos.MoveGizmo.screenSpaceVertices[3][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[3][1][1],
+                        Gizmos.MoveGizmo.screenSpaceVertices[3][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[3][1][2]
+                    );
+                    local gscale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
+                    if (Gizmos.space == 0) then
+                        pz = pz + gscale;
+                    elseif (Gizmos.space == 1) then
+                        px = px + (gscale * Gizmos.vectorZ[1]);
+                        py = py + (gscale * Gizmos.vectorZ[2]);
+                        pz = pz + (gscale * Gizmos.vectorZ[3]);
+                    end
+                elseif (Gizmos.selectedAxis == 4) then
+                    local dot = Math.dotProduct(
+                        xDiff,
+                        yDiff,
+                        Gizmos.MoveGizmo.screenSpaceVertices[1][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][1],
+                        Gizmos.MoveGizmo.screenSpaceVertices[1][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][2]
+                    );
+                    local gscale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
+                    if (Gizmos.space == 0) then
+                        px = px + gscale;
+                    elseif (Gizmos.space == 1) then
+                        px = px + (gscale * Gizmos.vectorX[1]);
+                        py = py + (gscale * Gizmos.vectorX[2]);
+                        pz = pz + (gscale * Gizmos.vectorX[3]);
+                    end
+                    local dot = Math.dotProduct(
+                        xDiff,
+                        yDiff,
+                        Gizmos.MoveGizmo.screenSpaceVertices[2][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][1],
+                        Gizmos.MoveGizmo.screenSpaceVertices[2][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][2]
+                    );
+                    local gscale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
+                    if (Gizmos.space == 0) then
+                        py = py + gscale;
+                    elseif (Gizmos.space == 1) then                    
+                        px = px + (gscale * Gizmos.vectorY[1]);
+                        py = py + (gscale * Gizmos.vectorY[2]);
+                        pz = pz + (gscale * Gizmos.vectorY[3]);
+                    end
+                elseif (Gizmos.selectedAxis == 5) then
+                    local dot = Math.dotProduct(
+                        xDiff,
+                        yDiff,
+                        Gizmos.MoveGizmo.screenSpaceVertices[1][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][1],
+                        Gizmos.MoveGizmo.screenSpaceVertices[1][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][2]
+                    );
+                    local gscale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
+                    if (Gizmos.space == 0) then
+                        px = px + gscale;
+                    elseif (Gizmos.space == 1) then
+                        px = px + (gscale * Gizmos.vectorX[1]);
+                        py = py + (gscale * Gizmos.vectorX[2]);
+                        pz = pz + (gscale * Gizmos.vectorX[3]);
+                    end
+                    local dot = Math.dotProduct(
+                        xDiff,
+                        yDiff,
+                        Gizmos.MoveGizmo.screenSpaceVertices[3][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[3][1][1],
+                        Gizmos.MoveGizmo.screenSpaceVertices[3][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[3][1][2]
+                    );
+                    local gscale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
+                    if (Gizmos.space == 0) then
+                        pz = pz + gscale;
+                    elseif (Gizmos.space == 1) then
+                        px = px + (gscale * Gizmos.vectorZ[1]);
+                        py = py + (gscale * Gizmos.vectorZ[2]);
+                        pz = pz + (gscale * Gizmos.vectorZ[3]);
+                    end
+                elseif (Gizmos.selectedAxis == 6) then
+                    local dot = Math.dotProduct(
+                        xDiff,
+                        yDiff,
+                        Gizmos.MoveGizmo.screenSpaceVertices[2][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][1],
+                        Gizmos.MoveGizmo.screenSpaceVertices[2][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][2]
+                    );
+                    local gscale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
+                    if (Gizmos.space == 0) then
+                        py = py + gscale;
+                    elseif (Gizmos.space == 1) then                    
+                        px = px + (gscale * Gizmos.vectorY[1]);
+                        py = py + (gscale * Gizmos.vectorY[2]);
+                        pz = pz + (gscale * Gizmos.vectorY[3]);
+                    end
                     local dot = Math.dotProduct(
                         xDiff,
                         yDiff,

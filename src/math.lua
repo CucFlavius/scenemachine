@@ -234,3 +234,56 @@ function Math.pointOnSphere(yaw, pitch, roll, distance)
 
     return { x, y, z }
 end
+
+function Math.isPointInPolygon(px, py, x1, y1, x2, y2, x3, y3, x4, y4)
+    local function isLeft(p1, p2, p)
+        return (p2[1] - p1[1]) * (p[2] - p1[2]) - (p[1] - p1[1]) * (p2[2] - p1[2])
+    end
+
+    local function isPointOnSegment(p1, p2, p)
+        return math.min(p1[1], p2[1]) <= p[1] and p[1] <= math.max(p1[1], p2[1]) and
+               math.min(p1[2], p2[2]) <= p[2] and p[2] <= math.max(p1[2], p2[2])
+    end
+
+    local function doIntersect(p1, q1, p2, q2)
+        local o1 = isLeft(p1, q1, p2)
+        local o2 = isLeft(p1, q1, q2)
+        local o3 = isLeft(p2, q2, p1)
+        local o4 = isLeft(p2, q2, q1)
+
+        if o1 * o2 < 0 and o3 * o4 < 0 then
+            return true
+        end
+
+        if o1 == 0 and isPointOnSegment(p1, q1, p2) then
+            return true
+        end
+
+        if o2 == 0 and isPointOnSegment(p1, q1, q2) then
+            return true
+        end
+
+        if o3 == 0 and isPointOnSegment(p2, q2, p1) then
+            return true
+        end
+
+        if o4 == 0 and isPointOnSegment(p2, q2, q1) then
+            return true
+        end
+
+        return false
+    end
+
+    local vertices = {{x1, y1}, {x2, y2}, {x3, y3}, {x4, y4}}
+
+    -- Check if the point is inside the polygon
+    local count = 0
+    for i = 1, #vertices do
+        local nextVertex = i % #vertices + 1
+        if doIntersect(vertices[i], vertices[nextVertex], {px, py}, {math.huge, py}) then
+            count = count + 1
+        end
+    end
+
+    return count % 2 == 1
+end

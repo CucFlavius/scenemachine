@@ -257,18 +257,25 @@ function ShadeSelectionGizmo(gizmo)
 end
 
 function ShadeMovementGizmo(gizmo)
-    local coneDetail = (gizmo.lineCount - 3) / 3;
     for t = 1, 3, 1 do
         if (gizmo.lines[t].axis == Gizmos.highlightedAxis) then
             gizmo.faceColors[t][4] = 1.0;
-            for c = 4 + (coneDetail * (t-1)), 4 + (coneDetail * (t)), 1 do
+            for c = 4 + 2 + (gizmo.coneDetail * (t-1)), 4 + 2 + (gizmo.coneDetail * (t)), 1 do
                 gizmo.faceColors[c][4] = 1.0;
             end
         else
             gizmo.faceColors[t][4] = 0.3;
-            for c = 4 + (coneDetail * (t-1)), 4 + (coneDetail * (t)), 1 do
+            for c = 4 + 2 + (gizmo.coneDetail * (t-1)), 4 + 2 + (gizmo.coneDetail * (t)), 1 do
                 gizmo.faceColors[c][4] = 0.3;
             end
+        end
+    end
+
+    for t = 4, 4 + 6, 1 do
+        if (gizmo.lines[t].axis == Gizmos.highlightedAxis) then
+            gizmo.faceColors[t][4] = 1.0;
+        else
+            gizmo.faceColors[t][4] = 0.3;
         end
     end
 end
