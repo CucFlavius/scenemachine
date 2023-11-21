@@ -5,14 +5,16 @@ local SM = Editor.SceneManager;
 local SH = Editor.SceneHierarchy;
 local Gizmos = SceneMachine.Gizmos;
 local OP = Editor.ObjectProperties;
+local Renderer = SceneMachine.Renderer;
 
 function OP.CreatePanel(x, y, w, h, c1, c2, c3, c4)
     local leftPanel = Win.CreateRectangle(x, y, w, h, SceneMachine.mainWindow, "TOPLEFT", "TOPLEFT", c4[1], c4[2], c4[3], 1);
     local group = Editor.CreateGroup("Properties", h, leftPanel);
 
-    local collapseList = Win.CreateCollapsableList(0, -1, w - 2, { 60, 80, 100 }, group, "TOP", "TOP", { "Transform", "Test Property A", "Test Property B" }, c1[1], c1[2], c1[3], 1);
+    local collapseList = Win.CreateCollapsableList(0, -1, w - 2, { 60, 80, 100 }, group, "TOP", "TOP", { "Transform", "Scene properties (temp)", "Test Property B" }, c1[1], c1[2], c1[3], 1);
 
     OP.CreateTransformProperties(0, 0, w - 2, 60, collapseList[1].panel);
+    OP.CreateSceneProperties(0, 0, w - 2, 80, collapseList[2].panel);
 
     OP.Refresh();
 end
@@ -133,6 +135,41 @@ function OP.CreateTransformField(x, y, w, h, parent, axisName, setValue, default
     return transform;
 end
 
+function OP.CreateActorProperties(x, y, w, h, parent)
+    -- writing notes on potential properties
+
+    -- 1. actor:SetAlpha(value) works, even on opaque
+    -- 2. actor:SetDesaturation(strength) works
+    -- 3. actor:SetParticleOverrideScale(scale) works
+    -- 4. SetSpellVisualKit(ID) id comes from SpellVisualKit.db2 (finding ones that work is hard though, gonna need to show them in a list like asset browser, to see what they do)
+
+end
+
+function OP.CreateSceneProperties(x, y, w, h, parent)
+    local editBoxTitleW = 85;
+    local h = 16;
+    local hPad = h + 2;
+    local y = -5;
+    Win.CreateTextBoxSimple(10, y, editBoxTitleW, h, parent, "TOPLEFT", "TOPLEFT", "Ambient Color", 9);
+    local lightAmbColorR = OP.CreateTransformField(editBoxTitleW + 10, y, 45, h, parent, "r", OP.SetAmbientColorR, 1)
+    local lightAmbColorG = OP.CreateTransformField(editBoxTitleW + 10 + 55 + 2, y, 45, h, parent, "g", OP.SetAmbientColorG, 1);
+    local lightAmbColorB = OP.CreateTransformField(editBoxTitleW + 10 + (55 * 2) + (2 * 2), y, 45, h, parent, "b", OP.SetAmbientColorB, 1);
+    y = y - hPad;
+    Win.CreateTextBoxSimple(10, y, editBoxTitleW, h, parent, "TOPLEFT", "TOPLEFT", "Diffuse Color", 9);
+    local lightDifColorR = OP.CreateTransformField(editBoxTitleW + 10, y, 45, h, parent, "r", OP.SetDiffuseColorR, 0)
+    local lightDifColorG = OP.CreateTransformField(editBoxTitleW + 10 + 55 + 2, y, 45, h, parent, "g", OP.SetDiffuseColorG, 0);
+    local lightDifColorB = OP.CreateTransformField(editBoxTitleW + 10 + (55 * 2) + (2 * 2), y, 45, h, parent, "b", OP.SetDiffuseColorB, 0);
+    y = y - hPad;
+    local testPosButton = Win.CreateButton(10, y, 100, h, parent, "TOPLEFT", "TOPLEFT", "Test", nil, "BUTTON_VS");
+    --testPosButton:SetScript("OnClick", function(self) Renderer.projectionFrame:SetLightType(1); Renderer.projectionFrame:SetLightPosition(0, 0, 0); Renderer.projectionFrame:SetLightDirection(1, 1, 1); end);
+    --{ Name = "Directional", Type = "ModelLightType", EnumValue = 0 },
+    --{ Name = "Point", Type = "ModelLightType", EnumValue = 1 },
+    --testPosButton:SetScript("OnClick", function(self) SM.selectedObject:GetActor():SetSpellVisualKit(174103); end);
+    --testPosButton:SetScript("OnClick", function(self) Renderer.projectionFrame:SetLightAmbientColor(0, 0, 0); Renderer.projectionFrame:SetLightDiffuseColor(0, 0, 0); end);
+    testPosButton:SetScript("OnClick", function(self) Renderer.projectionFrame:SetLightType(1) end);
+    
+end
+
 function OP.Refresh()
     local pos, rot, scale;
 
@@ -241,4 +278,34 @@ end
 function OP.Truncate(num, digits)
     local mult = 10^(digits)
     return math.modf(num*mult)/mult
-  end
+end
+
+function OP.SetAmbientColorR(self)
+    local r, g, b = Renderer.projectionFrame:GetLightAmbientColor();
+    Renderer.projectionFrame:SetLightAmbientColor(self.value, g, b);
+end
+
+function OP.SetAmbientColorG(self)
+    local r, g, b = Renderer.projectionFrame:GetLightAmbientColor();
+    Renderer.projectionFrame:SetLightAmbientColor(r, self.value, b);
+end
+
+function OP.SetAmbientColorB(self)
+    local r, g, b = Renderer.projectionFrame:GetLightAmbientColor();
+    Renderer.projectionFrame:SetLightAmbientColor(r, g, self.value);
+end
+
+function OP.SetDiffuseColorR(self)
+    local r, g, b = Renderer.projectionFrame:GetLightDiffuseColor();
+    Renderer.projectionFrame:SetLightDiffuseColor(self.value, g, b);
+end
+
+function OP.SetDiffuseColorG(self)
+    local r, g, b = Renderer.projectionFrame:GetLightDiffuseColor();
+    Renderer.projectionFrame:SetLightDiffuseColor(r, self.value, b);
+end
+
+function OP.SetDiffuseColorB(self)
+    local r, g, b = Renderer.projectionFrame:GetLightDiffuseColor();
+    Renderer.projectionFrame:SetLightDiffuseColor(r, g, self.value);
+end

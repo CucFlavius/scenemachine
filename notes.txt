@@ -1,0 +1,2 @@
+-- notes :
+-- world/expansion01/doodads/m2lights/m2_light_lightblue.m2
