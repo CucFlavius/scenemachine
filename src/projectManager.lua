@@ -63,6 +63,13 @@ function PM.LoadSavedData()
     print("PM.LoadSavedData()");
     PM.projects = scenemachine_projects or {};
 
+    PM.projectListIDs = {}
+    local index = 1;
+    for ID in pairs(PM.projects) do
+        PM.projectListIDs[index] = ID;
+        index = index + 1;
+    end
+
     local lastID = nil;
 
     if (PM.GetProjectCount() == 0) then
@@ -72,6 +79,8 @@ function PM.LoadSavedData()
 
     -- load last project
     PM.LoadLastProject();
+
+    Editor.Toolbar.RefreshProjectsDropdown();
 end
 
 function PM.CreateProject(name)
@@ -81,6 +90,15 @@ function PM.CreateProject(name)
     PM.projects[ID].ID = ID;
     PM.projects[ID].name = name;
     PM.projects[ID].scenes = {};
+
+    Editor.Toolbar.RefreshProjectsDropdown();
+    PM.projectListIDs = {}
+    local index = 1;
+    for ID in pairs(PM.projects) do
+        PM.projectListIDs[index] = ID;
+        index = index + 1;
+    end
+
     return PM.projects[ID];
 end
 
@@ -89,6 +107,11 @@ function PM.CreateDefaultProject()
     local project = PM.CreateProject("MyNewProject");
     project.lastLoaded = true;
     return project.ID;
+end
+
+function PM.LoadProjectByIndex(index)
+    PM.selectedProjectID = PM.projectListIDs[index];
+    PM.LoadProject(PM.selectedProjectID);
 end
 
 function PM.LoadProject(ID)
@@ -117,6 +140,8 @@ function PM.LoadProject(ID)
 
     -- update scene tabs with available scenes
     SM.RefreshSceneTabs();
+
+    Editor.Toolbar.RefreshProjectsDropdown();
 end
 
 function PM.LoadLastProject()
@@ -153,7 +178,6 @@ function PM.RefreshProjectWindow()
     local index = 1;
     for ID in pairs(PM.projects) do
         PM.projectList:SetItem(index, PM.projects[ID].name .. " " .. ID);
-        PM.projectListIDs[index] = ID;
         index = index + 1;
     end
 
@@ -240,8 +264,15 @@ function PM.DeleteProject(ID)
     end
 
     PM.projects[ID] = nil;
-
+    PM.projectListIDs = {}
+    local index = 1;
+    for ID in pairs(PM.projects) do
+        PM.projectListIDs[index] = ID;
+        index = index + 1;
+    end
+    
     PM.RefreshProjectWindow();
+    Editor.Toolbar.RefreshProjectsDropdown();
 end
 
 function PM.GetProjectCount()

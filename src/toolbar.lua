@@ -26,7 +26,6 @@ function Toolbar.Create()
 
     local iconCoordLookup = {};
 
-    
     local div = 1 / 8;
     for x = 1, 8, 1 do
         for y = 1, 8, 1 do
@@ -39,10 +38,11 @@ function Toolbar.Create()
         return { iconsTexture, iconCoords };
     end
 
-    local transformGroup = Toolbar.CreateGroup(0, toolbar,
+    Toolbar.transformGroup = Toolbar.CreateGroup(0, toolbar,
         {
             { type = "DragHandle" },
             { type = "Button", name = "Project", icon = getIcon("projects"), action = function(self) Editor.ProjectManager.OpenWindow() end },
+            { type = "Dropdown", name = "ProjectList", width = 200, options = {}, action = function(index) Editor.ProjectManager.LoadProjectByIndex(index); end },
             { type = "Separator" },
             { type = "Button", name = "Select", icon = getIcon("select"), action = function(self) Gizmos.activeTransformGizmo = 0; end },
             { type = "Button", name = "Move", icon = getIcon("move"), action = function(self) Gizmos.activeTransformGizmo = 1; end },
@@ -59,6 +59,30 @@ function Toolbar.Create()
     );
 end
 
+function Toolbar.RefreshProjectsDropdown()
+    local projectNames = {}
+    local selectedName = "";
+    
+    for v in pairs(Editor.ProjectManager.projects) do
+        projectNames[#projectNames + 1] = Editor.ProjectManager.projects[v].name;
+
+        if (Editor.ProjectManager.currentProject.ID == v) then
+            selectedName = Editor.ProjectManager.projects[v].name;
+        end
+    end
+
+    for c = 1, #Toolbar.transformGroup.components, 1 do
+        local component = Toolbar.transformGroup.components[c];
+
+        if (component.type == "Dropdown") then
+            if (component.name == "ProjectList") then
+                Toolbar.transformGroup.components[c].SetOptions(projectNames);
+                Toolbar.transformGroup.components[c].ShowSelectedName(selectedName);
+            end
+        end
+    end
+end
+
 function Toolbar.CreateGroup(x, toolbar, components)
     local group = Win.CreateRectangle(x, 0, Editor.width, 30, toolbar, "TOPLEFT", "TOPLEFT", c1[1], c1[2], c1[3], 1);
     group.components = {};
@@ -69,6 +93,7 @@ function Toolbar.CreateGroup(x, toolbar, components)
 
     for c = 1, #components, 1 do
         local component = components[c];
+        
         if (component.type == "Separator") then
             group.components[c] = Win.CreateRectangle(x + 2, 0, 1, 20, group, "LEFT", "LEFT", c2[1], c2[2], c2[3], 1);
             x = x + 6;
@@ -83,7 +108,14 @@ function Toolbar.CreateGroup(x, toolbar, components)
             end
             group.components[c]:SetScript("OnClick", component.action);
             x = x + buttonW;
+        elseif (component.type == "Dropdown") then
+            -- Win.CreateDropdown(posX, posY, sizeX, sizeY, parent, dropdownPoint, parentPoint)
+            group.components[c] = Win.CreateDropdown(x, 0, component.width, buttonH, group, "LEFT", "LEFT", component.options, component.action);
+            x = x + component.width;
         end
+
+        group.components[c].type = component.type;
+        group.components[c].name = component.name;
     end
 
     return group;
