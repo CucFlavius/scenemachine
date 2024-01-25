@@ -331,17 +331,17 @@ function Math.calculateMouseRay(cameraRotation, screenWidth, screenHeight, field
     -- Calculate the normalized device coordinates (NDC) from screen coordinates
     --local ndcX = (2 * mouseX / screenWidth - 1) * aspectRatio
     --local ndcY = 1 - 2 * mouseY / screenHeight
-    local ndcX = ((mouseX / screenWidth) * 2 - 1);
-    local ndcY = ((mouseY / screenHeight) * 2 - 1) / aspectRatio;
+    local ndcX = 0.5 - (mouseX / screenWidth);
+    local ndcY = mouseY / screenHeight;
     --float ndc_x = screen_x / width * 2 - 1;
     --float ndc_y = screen_y / height * 2 - 1;
     
     -- Calculate the tan of half the field of view
-    local tanHalfFOV = math.tan(math.rad(fieldOfView / 2))
+    local tanHalfFOV = math.tan(math.rad(fieldOfView / 2.0))
     
     -- Calculate the camera space coordinates (unprojecting from NDC)
-    local cameraSpaceX = ndcX * tanHalfFOV
-    local cameraSpaceY = ndcY * tanHalfFOV
+    local cameraSpaceX = ndcY * tanHalfFOV
+    local cameraSpaceY = ndcX * tanHalfFOV
     local cameraSpaceZ = -1  -- This is the direction along the negative z-axis in camera space
     
     -- Rotate the camera space coordinates based on camera rotation
@@ -379,7 +379,7 @@ function Math.calculateMouseRay(cameraRotation, screenWidth, screenHeight, field
     rayDirectionCamera.y = rayDirectionCamera.y / length
     rayDirectionCamera.z = rayDirectionCamera.z / length
 
-    return rayDirectionCamera
+    return { rayDirectionCamera.x, rayDirectionCamera.y, rayDirectionCamera.z }
 end
 
 function Math.UnprojectMouse(mouseX, mouseY, screenWidth, screenHeight, cameraProjection, cameraView)
@@ -391,8 +391,8 @@ function Math.UnprojectMouse(mouseX, mouseY, screenWidth, screenHeight, cameraPr
 end
 
 function Math.MouseToNormalizedDeviceCoords(mouseX, mouseY, width, height)
-    local x = 1.0 - (1.0 * mouseX) / width - 1.0 + 0.5;
-    local y = (1.0 * mouseY) / height - 0.5;
+    local x = 0.5 - mouseX / width;
+    local y = mouseY / height - 0.5;
     return { x, y };
 end
 
@@ -402,22 +402,22 @@ end
 
 function Math.ClipToEye(ray_clip, projection_matrix)
     projection_matrix:Invert();
-    local ray_eye = projection_matrix:MultiplyVector(ray_clip);
+    local ray_eye = projection_matrix:MultiplyVector4(ray_clip);
     return { ray_eye[1], ray_eye[2], -1.0, 0.0 };
 end
 
 function Math.EyeToRayVector(ray_eye, view_matrix)
     view_matrix:Invert()
-    local ray_wor = view_matrix:MultiplyVector(ray_eye)
-    --Vector3 ray_wor = (ray_eye * ray_eye).Xyz;
+    local ray_wor = view_matrix:MultiplyVector4(ray_eye)
+    --Vector3 ray_wor = (ray_eye * view_matrix.Inverted()).Xyz;
     --ray_wor.Normalize();
     ray_wor = Math.normalizeVector3(ray_wor);
     return ray_wor;
 end
 
 function Math.normalizeVector3(vector)
-    local magnitude = math.sqrt(vector[1]^2 + vector[2]^2 + vector[3]^2)
-    --print(vector[1] .. " " .. vector[2] .. " " .. vector[3])
+    local magnitude = math.sqrt((vector[1] * vector[1]) + (vector[2] * vector[2]) + (vector[3] * vector[3]));
+
     if magnitude ~= 0 then
         return {
             vector[1] / magnitude,
@@ -445,15 +445,15 @@ function Math.intersectRayPlane(rayOrigin, rayDirection, planeNormal, planePoint
     local epsilon = 1e-6
 
     -- Ensure that the ray and plane are not parallel
-    local dotProduct = planeNormal.x * rayDirection[1] + planeNormal.y * rayDirection[2] + planeNormal.z * rayDirection[3]
+    local dotProduct = (planeNormal.x * rayDirection[1]) + (planeNormal.y * rayDirection[2]) + (planeNormal.z * rayDirection[3])
     if math.abs(dotProduct) < epsilon then
         return nil  -- Ray and plane are parallel, no intersection
     end
 
     -- Calculate the parameter t for the intersection point
-    local t = -((planeNormal.x * (rayOrigin.x - planePoint.x) +
-                 planeNormal.y * (rayOrigin.y - planePoint.y) +
-                 planeNormal.z * (rayOrigin.z - planePoint.z)) / dotProduct)
+    local t = ((planeNormal.x * (planePoint.x - rayOrigin.x) +
+                 planeNormal.y * (planePoint.y - rayOrigin.y) +
+                 planeNormal.z * (planePoint.z - rayOrigin.z)) / dotProduct)
 
     -- Ensure the intersection point is in front of the ray origin
     if t < 0 then
@@ -462,9 +462,9 @@ function Math.intersectRayPlane(rayOrigin, rayDirection, planeNormal, planePoint
 
     -- Calculate the intersection point
     local intersectionPoint = {
-        x = rayOrigin.x + t * rayDirection[1],
-        y = rayOrigin.y + t * rayDirection[2],
-        z = rayOrigin.z + t * rayDirection[3]
+        x = rayOrigin.x + (t * rayDirection[1]),
+        y = rayOrigin.y + (t * rayDirection[2]),
+        z = rayOrigin.z + (t * rayDirection[3])
     }
 
     return intersectionPoint

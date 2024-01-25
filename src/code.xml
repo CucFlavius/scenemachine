@@ -33,4 +33,5 @@
     <Script file="Gizmo\rotationGizmo.lua"/>
     <Script file="Gizmo\scaleGizmo.lua"/>
     <Script file="Gizmo\selectionGizmo.lua"/>
+    <Script file="Gizmo\debugGizmo.lua"/>
 </Ui>

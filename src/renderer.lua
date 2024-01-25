@@ -173,6 +173,12 @@ function Renderer.RenderGizmos()
         SceneMachine.CulledFrames = 1;
 
         -- Render gizmos --
+
+        if (SceneMachine.Gizmos.DebugGizmo.active == true) then
+            RenderGizmoLines(SceneMachine.Gizmos.DebugGizmo);
+            --ShadeScaleGizmo(SceneMachine.Gizmos.DebugGizmo);
+        end
+
         if SM.selectedObject ~= nil then
             RenderGizmoLines(SceneMachine.Gizmos.WireBox);
             ShadeSelectionGizmo(SceneMachine.Gizmos.WireBox);
@@ -198,9 +204,9 @@ function RenderGizmoLines(gizmo)
 	for t = 1, gizmo.lineCount, 1 do
 		local vert = vertices[t];
 		local faceColor = faceColors[t];
-
+        
         local line = gizmo.lines[t];
-
+        
 		-- Near plane face culling --
 		local cull = NearPlaneFaceCullingLine(vert, Camera.planePositionX, Camera.planePositionY, Camera.planePositionZ, Camera.planeNormalX, Camera.planeNormalY, Camera.planeNormalZ, 0);
 
@@ -208,7 +214,7 @@ function RenderGizmoLines(gizmo)
 			-- Project to screen space --
 			local aX, aY, aZ = Renderer.projectionFrame:Project3DPointTo2D(vert[1][1],vert[1][2],vert[1][3]);
 			local bX, bY, bZ = Renderer.projectionFrame:Project3DPointTo2D(vert[2][1],vert[2][2],vert[2][3]);
-    
+            
             --- these are needed for calculating mouse over
             gizmo.screenSpaceVertices[t][1][1] = aX;
             gizmo.screenSpaceVertices[t][1][2] = aY;
@@ -240,6 +246,8 @@ function RenderGizmoLines(gizmo)
 		end
 
 	end
+
+    --print(SceneMachine.Gizmos.DebugGizmo.lines[1]:IsVisible())
 end
 
 function ShadeSelectionGizmo(gizmo)

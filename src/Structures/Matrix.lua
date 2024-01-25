@@ -60,7 +60,51 @@ function Matrix:CreatePerspectiveFieldOfView(fov, aspectRatio, depthNear, depthF
     return self;
 end
 
-function Matrix:CreateCameraViewMatrix(position, target, up)
+function Matrix:LookAtJJJ(eye, target, up)
+    local z = Math.normalizeVector3({eye[1] - target[1], eye[2] - target[2], eye[3] - target[3]});
+    local x = Math.normalizeVector3(Math.crossProduct(up, z));
+    local y = Math.normalizeVector3(Math.crossProduct(z, x));
+
+    self.m00 = x[1];
+    self.m01 = y[1];
+    self.m02 = z[1];
+    self.m03 = 0;
+    self.m10 = x[2];
+    self.m11 = y[2];
+    self.m12 = z[2];
+    self.m13 = 0;
+    self.m20 = x[3];
+    self.m21 = y[3];
+    self.m22 = z[3];
+    self.m23 = 0;
+    self.m30 = -((x[1] * eye[1]) + (x[2] * eye[2]) + (x[3] * eye[3]));
+    self.m31 = -((y[1] * eye[1]) + (y[2] * eye[2]) + (y[3] * eye[3]));
+    self.m32 = -((z[1] * eye[1]) + (z[2] * eye[2]) + (z[3] * eye[3]));
+    self.m33 = 1;
+
+--[[
+self.m00 = x[1];
+self.m10 = y[1];
+self.m20 = z[1];
+self.m30 = 0;
+self.m01 = x[2];
+self.m11 = y[2];
+self.m21 = z[2];
+self.m31 = 0;
+self.m02 = x[3];
+self.m12 = y[3];
+self.m22 = z[3];
+self.m32 = 0;
+self.m03 = -((x[1] * eye[1]) + (x[2] * eye[2]) + (x[3] * eye[3]));
+self.m13 = -((y[1] * eye[1]) + (y[2] * eye[2]) + (y[3] * eye[3]));
+self.m23 = -((z[1] * eye[1]) + (z[2] * eye[2]) + (z[3] * eye[3]));
+self.m33 = 1;
+--]]
+
+    return self;
+end
+
+function Matrix:LookAt(position, target, up)
     local forward = Math.normalizeVector3({target[1] - position[1], target[2] - position[2], target[3] - position[3]})
     local right = Math.normalizeVector3(Math.crossProduct(up, forward))
     local newUp = Math.crossProduct(forward, right)
@@ -125,12 +169,23 @@ function Matrix:Invert()
     return self;
 end
 
-function Matrix:MultiplyVector(vector)
+function Matrix:MultiplyVector3(vector)
     local result = {
-        self.m00 * vector[1] + self.m01 * vector[2] + self.m02 * vector[3] + self.m03 * vector[4],
-        self.m10 * vector[1] + self.m11 * vector[2] + self.m12 * vector[3] + self.m13 * vector[4],
-        self.m20 * vector[1] + self.m21 * vector[2] + self.m22 * vector[3] + self.m23 * vector[4],
-        self.m30 * vector[1] + self.m31 * vector[2] + self.m32 * vector[3] + self.m33 * vector[4]
+        (self.m00 * vector[1]) + (self.m01 * vector[2]) + (self.m02 * vector[3]),-- + (self.m03 * vector[4]),
+        (self.m10 * vector[1]) + (self.m11 * vector[2]) + (self.m12 * vector[3]),-- + (self.m13 * vector[4]),
+        (self.m20 * vector[1]) + (self.m21 * vector[2]) + (self.m22 * vector[3]),-- + (self.m23 * vector[4]),
+        (self.m30 * vector[1]) + (self.m31 * vector[2]) + (self.m32 * vector[3]),-- + (self.m33 * vector[4])
+    }
+
+    return result
+end
+
+function Matrix:MultiplyVector4(vector)
+    local result = {
+        (self.m00 * vector[1]) + (self.m01 * vector[2]) + (self.m02 * vector[3]) + (self.m03 * vector[4]),
+        (self.m10 * vector[1]) + (self.m11 * vector[2]) + (self.m12 * vector[3]) + (self.m13 * vector[4]),
+        (self.m20 * vector[1]) + (self.m21 * vector[2]) + (self.m22 * vector[3]) + (self.m23 * vector[4]),
+        (self.m30 * vector[1]) + (self.m31 * vector[2]) + (self.m32 * vector[3]) + (self.m33 * vector[4])
     }
 
     return result

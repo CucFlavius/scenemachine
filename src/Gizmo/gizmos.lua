@@ -27,6 +27,7 @@ function Gizmos.Create()
     Gizmos.CreateMoveGizmo();
     Gizmos.CreateRotateGizmo();
     Gizmos.CreateScaleGizmo();
+    Gizmos.CreateDebugGizmo();
 end
 
 function Gizmos.CreateLineProjectionFrame()
@@ -60,6 +61,60 @@ function Gizmos.Update()
 
     -- Update the gizmo transform --
     Gizmos.UpdateGizmoTransform();
+
+    -- Debug Mouse to plane
+    if (Input.mouseState.LMB) then
+		local curX, curY = GetCursorPosition();
+        local frameXMin = Renderer.projectionFrame:GetLeft();
+        local frameYMin = Renderer.projectionFrame:GetBottom();
+        local frameXMax = Renderer.projectionFrame:GetRight();
+        local frameYMax = Renderer.projectionFrame:GetTop();
+        local width = Renderer.projectionFrame:GetWidth();
+        local height = Renderer.projectionFrame:GetHeight();
+        local relativeX, relativeY = curX - frameXMin, curY - frameYMin;
+        local mouseX, mouseY = Input.mouseX, Input.mouseY;
+
+        local mouseRayOrigin = { x = Camera.X, y = Camera.Y, z = Camera.Z };
+        local cameraRotation = { x = Camera.Yaw, y = Camera.Pitch, z = Camera.Roll };
+        local aspectRatio = width / height;
+        local FoV = math.rad(CC.FoV);
+        Camera.projectionMatrix:CreatePerspectiveFieldOfView(FoV, aspectRatio, 0.01, 1000);
+
+        local frontX = math.cos(Camera.Yaw) * math.cos(Camera.Pitch);
+        local frontY = math.sin(Camera.Pitch);
+        local frontZ = math.sin(Camera.Yaw) * math.cos(Camera.Pitch);
+
+        local front = Math.normalizeVector3({ frontX, frontY, frontZ });
+
+        Camera.viewMatrix:LookAt({ Camera.X, Camera.Y, Camera.Z }, { front[1], front[2], front[3] }, { 0, 0, 1 });
+        --Camera.viewMatrix:LookAt({ Camera.X, Camera.Y, Camera.Z }, { Camera.X + front[1], Camera.Y + front[2], Camera.Z + front[3] }, { 0, 0, 1 });
+        local mouseRayDir = Math.UnprojectMouse(relativeX, relativeY, width, height, Camera.projectionMatrix, Camera.viewMatrix);
+        --local mouseRayDir = Math.calculateMouseRay(cameraRotation, width, height, CC.FoV, relativeX, relativeY);
+        local planeNormal = { x = 0, y = 0, z = 1 };
+        local planePoint = { x = 0, y = 0, z = 0 };
+        local intersects = Math.intersectRayPlane(mouseRayOrigin, mouseRayDir, planeNormal, planePoint);
+        if (intersects ~= nil) then
+            SceneMachine.Gizmos.DebugGizmo.position[1] = intersects.x;
+            SceneMachine.Gizmos.DebugGizmo.position[2] = intersects.y;
+            SceneMachine.Gizmos.DebugGizmo.position[3] = intersects.z;
+
+            -- Calculate yaw (rotation around the vertical axis)
+            local yaw = math.atan2(mouseRayDir[1], mouseRayDir[3])
+
+            -- Calculate pitch (rotation around the lateral axis)
+            local pitch = math.atan2(mouseRayDir[2], math.sqrt(mouseRayDir[1]^2 + mouseRayDir[3]^2))
+
+            SceneMachine.Gizmos.DebugGizmo.rotation[1] = yaw;
+            SceneMachine.Gizmos.DebugGizmo.rotation[2] = pitch;
+
+            print(round(intersects.x, 2) .. " " .. round(intersects.y, 2) .. " " .. round(intersects.z, 2));
+        end
+    end
+end
+
+function round(num, numDecimalPlaces)
+    local mult = 10^(numDecimalPlaces or 0)
+    return math.floor(num * mult + 0.5) / mult
 end
 
 function indexOfSmallestValue(tbl)
@@ -262,6 +317,12 @@ function Gizmos.VisibilityCheck()
 end
 
 function Gizmos.UpdateGizmoTransform()
+
+    if (SceneMachine.Gizmos.DebugGizmo.active == true) then
+        --SceneMachine.Gizmos.DebugGizmo.scale = Math.manhattanDistance3D(px, py, pz, Camera.X, Camera.Y, Camera.Z) / 15;
+        Gizmos.transformGizmo(SceneMachine.Gizmos.DebugGizmo, SceneMachine.Gizmos.DebugGizmo.position, SceneMachine.Gizmos.DebugGizmo.rotation, 1, {0, 0, 0}, 1, 0);
+    end
+
     if (SM.selectedObject == nil) then
         return;
     end
@@ -310,18 +371,16 @@ function Gizmos.MotionToTransform()
         local cameraRotation = { x = Camera.Yaw, y = Camera.Pitch, z = Camera.Roll };
         --local cameraRotation = { x = 0, y = 0, z = 0 };
         --local mouseRayDir = Math.calculateMouseRay(cameraRotation, width, height, CC.FoV, relativeX, relativeY);
-        Camera.projectionMatrix:CreatePerspectiveFieldOfView(math.rad(70), width / height, 0.01, 100);
+        Camera.projectionMatrix:CreatePerspectiveFieldOfView(math.rad(70), width / height, 0.01, 1000);
 
         local frontX = math.cos(Camera.Yaw) * math.cos(Camera.Pitch);
         local frontY = math.sin(Camera.Pitch);
         local frontZ = math.sin(Camera.Yaw) * math.cos(Camera.Pitch);
 
-        Camera.viewMatrix:CreateCameraViewMatrix({ Camera.X, Camera.Y, Camera.Z }, {frontX, frontY, frontZ}, { 0, 0, 1 });
+        Camera.viewMatrix:LookAt({ Camera.X, Camera.Y, Camera.Z }, {frontX, frontY, frontZ}, { 0, 0, 1 });
 
         local mouseRayDir = Math.UnprojectMouse(relativeX, relativeY, width, height, Camera.projectionMatrix, Camera.viewMatrix);
-        --print(relativeX .. " " .. relativeY) |_ 0,0
-        --print(width .. " " .. height) 680 / 429
-        --print(mouseRayDir[1] .. " " .. mouseRayDir[2] .. " " .. mouseRayDir[3]);
+
         if (Gizmos.LMBPrevious.x == nil) then
             Gizmos.LMBPrevious.x = curX;
             Gizmos.LMBPrevious.y = curY;
@@ -337,7 +396,10 @@ function Gizmos.MotionToTransform()
             local rotation = SM.selectedObject:GetRotation();
             local rx, ry, rz = rotation.x, rotation.y, rotation.z;
             local s = SM.selectedObject:GetScale();
-            
+            local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObject:GetActiveBoundingBox();
+            local centerH = zMax / 2;
+            --local objectCenter = { position.x * s, position.y * s, (position.z + (zMax / 2)) * s}
+
             if (Gizmos.activeTransformGizmo == 1) then
                 if (Gizmos.selectedAxis == 1) then
                     -- X --
@@ -393,7 +455,6 @@ function Gizmos.MotionToTransform()
                     local planeNormal = { x = 0, y = 0, z = 1 };
                     local planePoint = { x = 0, y = 0, z = 0 };
                     local intersects = Math.intersectRayPlane(mouseRayOrigin, mouseRayDir, planeNormal, planePoint);
-
                     if (intersects ~= nil) then
                         px = intersects.x;
                         py = intersects.y;
