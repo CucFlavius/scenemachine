@@ -104,8 +104,27 @@ self.m33 = 1;
     return self;
 end
 
+function Matrix:TRS(t, r, s)
+    self.m00 = (1.0-2.0*(r[2]*r[2]+r[3]*r[3]))*s[1];
+    self.m10 = (r[1]*r[2]+r[3]*r[4])*s[1]*2.0;
+    self.m20 = (r[1]*r[3]-r[2]*r[4])*s[1]*2.0;
+    self.m30 = 0.0;
+    self.m01 = (r[1]*r[2]-r[3]*r[4])*s[2]*2.0;
+    self.m11 = (1.0-2.0*(r[1]*r[1]+r[3]*r[3]))*s[2];
+    self.m21 = (r[2]*r[3]+r[1]*r[4])*s[2]*2.0;
+    self.m31 = 0.0;
+    self.m02 = (r[1]*r[3]+r[2]*r[4])*s[3]*2.0;
+    self.m12 = (r[2]*r[3]-r[1]*r[4])*s[3]*2.0;
+    self.m22 = (1.0-2.0*(r[1]*r[1]+r[2]*r[2]))*s[3];
+    self.m32 = 0.0;
+    self.m03 = t[1];
+    self.m13 = t[2];
+    self.m23 = t[3];
+    self.m33 = 1.0;
+end
+
 function Matrix:LookAt(position, target, up)
-    local forward = Math.normalizeVector3({target[1] - position[1], target[2] - position[2], target[3] - position[3]})
+    local forward = Math.normalizeVector3({ target[1] - position[1], target[2] - position[2], target[3] - position[3] })
     local right = Math.normalizeVector3(Math.crossProduct(up, forward))
     local newUp = Math.crossProduct(forward, right)
 

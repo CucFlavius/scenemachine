@@ -12,6 +12,9 @@ Camera.Yaw = 0;
 Camera.Pitch = 0;
 Camera.Roll = 0;
 Camera.ProjectionPlaneOffset = 1.2;
+Camera.Forward = { 0, 0, 0 };
+Camera.Up = { 0, 0, 0 };
+Camera.Right = { 0, 0, 0 };
 
 Camera.planePositionX = 0;
 Camera.planePositionY = 0;
@@ -27,6 +30,21 @@ function Camera.Update()
     Renderer.projectionFrame:SetCameraPosition(Camera.X, Camera.Y, Camera.Z);
     --print(Camera.Yaw .. " " .. Camera.Pitch .. " " .. Camera.Roll);
     Renderer.projectionFrame:SetCameraOrientationByYawPitchRoll(Camera.Yaw, Camera.Pitch, Camera.Roll);
+
+    local forwardX, forwardY, forwardZ = Renderer.projectionFrame:GetCameraForward();
+    Camera.Forward[1] = forwardX;
+    Camera.Forward[2] = forwardY;
+    Camera.Forward[3] = forwardZ;
+
+    local upX, upY, upZ = Renderer.projectionFrame:GetCameraUp();
+    Camera.Up[1] = upX;
+    Camera.Up[2] = upY;
+    Camera.Up[3] = upZ;
+
+    local rightX, rightY, rightZ = Renderer.projectionFrame:GetCameraRight();
+    Camera.Right[1] = rightX;
+    Camera.Right[2] = rightY;
+    Camera.Right[3] = rightZ;
 
     -- Calculate camera near plane -- 
 	Camera.planeNormalX, Camera.planeNormalY, Camera.planeNormalZ = Renderer.projectionFrame:GetCameraForward();

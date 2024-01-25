@@ -79,16 +79,11 @@ function Gizmos.Update()
         local aspectRatio = width / height;
         local FoV = math.rad(CC.FoV);
         Camera.projectionMatrix:CreatePerspectiveFieldOfView(FoV, aspectRatio, 0.01, 1000);
-
-        local frontX = math.cos(Camera.Yaw) * math.cos(Camera.Pitch);
-        local frontY = math.sin(Camera.Pitch);
-        local frontZ = math.sin(Camera.Yaw) * math.cos(Camera.Pitch);
-
-        local front = Math.normalizeVector3({ frontX, frontY, frontZ });
-
-        Camera.viewMatrix:LookAt({ Camera.X, Camera.Y, Camera.Z }, { front[1], front[2], front[3] }, { 0, 0, 1 });
+        Camera.viewMatrix:LookAt({ Camera.X, Camera.Y, Camera.Z }, Camera.Forward, { 0, 0, 1 });
+        --Camera.viewMatrix:TRS({ Camera.X, Camera.Y, Camera.Z }, yawPitchRollToQuaternion(Camera.Yaw, Camera.Pitch, Camera.Roll), { 1, 1, 1 })
         --Camera.viewMatrix:LookAt({ Camera.X, Camera.Y, Camera.Z }, { Camera.X + front[1], Camera.Y + front[2], Camera.Z + front[3] }, { 0, 0, 1 });
         local mouseRayDir = Math.UnprojectMouse(relativeX, relativeY, width, height, Camera.projectionMatrix, Camera.viewMatrix);
+
         --local mouseRayDir = Math.calculateMouseRay(cameraRotation, width, height, CC.FoV, relativeX, relativeY);
         local planeNormal = { x = 0, y = 0, z = 1 };
         local planePoint = { x = 0, y = 0, z = 0 };
@@ -104,12 +99,30 @@ function Gizmos.Update()
             -- Calculate pitch (rotation around the lateral axis)
             local pitch = math.atan2(mouseRayDir[2], math.sqrt(mouseRayDir[1]^2 + mouseRayDir[3]^2))
 
-            SceneMachine.Gizmos.DebugGizmo.rotation[1] = yaw;
-            SceneMachine.Gizmos.DebugGizmo.rotation[2] = pitch;
-
+            --SceneMachine.Gizmos.DebugGizmo.rotation[1] = yaw;
+            --SceneMachine.Gizmos.DebugGizmo.rotation[2] = pitch;
+            --print(round(mouseRayDir[1], 2) .. " " .. round(mouseRayDir[2], 2) .. " " .. round(mouseRayDir[3], 2));
             print(round(intersects.x, 2) .. " " .. round(intersects.y, 2) .. " " .. round(intersects.z, 2));
         end
     end
+end
+
+function yawPitchRollToQuaternion(yaw, pitch, roll)
+    -- Calculate half angles
+    local cosYaw = math.cos(yaw * 0.5)
+    local sinYaw = math.sin(yaw * 0.5)
+    local cosPitch = math.cos(pitch * 0.5)
+    local sinPitch = math.sin(pitch * 0.5)
+    local cosRoll = math.cos(roll * 0.5)
+    local sinRoll = math.sin(roll * 0.5)
+
+    -- Calculate quaternion components
+    local w = cosYaw * cosPitch * cosRoll + sinYaw * sinPitch * sinRoll
+    local x = sinYaw * cosPitch * cosRoll - cosYaw * sinPitch * sinRoll
+    local y = cosYaw * sinPitch * cosRoll + sinYaw * cosPitch * sinRoll
+    local z = cosYaw * cosPitch * sinRoll - sinYaw * sinPitch * cosRoll
+
+    return { x, y, z, w }
 end
 
 function round(num, numDecimalPlaces)

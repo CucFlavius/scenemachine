@@ -302,8 +302,10 @@ function Math.calculateMouseRay(cameraRotation, screenWidth, screenHeight, field
     local aspectRatio = screenWidth / screenHeight
 
     -- Calculate the normalized device coordinates (NDC) from screen coordinates
-    local ndcX = --(2 * mouseX / screenWidth - 1) * aspectRatio
-    local ndcY = --1 - 2 * mouseY / screenHeight
+    --local ndcX = --(2 * mouseX / screenWidth - 1) * aspectRatio
+    --local ndcY = --1 - 2 * mouseY / screenHeight
+    local ndcX = 0.5 - (mouseX / screenWidth);
+    local ndcY = mouseY / screenHeight;
 
     -- Calculate the tan of half the field of view
     local tanHalfFOV = math.tan(math.rad(fieldOfView / 2))
@@ -321,7 +323,7 @@ function Math.calculateMouseRay(cameraRotation, screenWidth, screenHeight, field
     rayDirectionCamera.y = rayDirectionCamera.y / length
     rayDirectionCamera.z = rayDirectionCamera.z / length
 
-    return rayDirectionCamera
+    return { rayDirectionCamera.x, rayDirectionCamera.y, rayDirectionCamera.z }
 end
 --]]
 
@@ -407,8 +409,8 @@ function Math.ClipToEye(ray_clip, projection_matrix)
 end
 
 function Math.EyeToRayVector(ray_eye, view_matrix)
-    view_matrix:Invert()
-    local ray_wor = view_matrix:MultiplyVector4(ray_eye)
+    view_matrix:Invert();
+    local ray_wor = view_matrix:MultiplyVector4(ray_eye);
     --Vector3 ray_wor = (ray_eye * view_matrix.Inverted()).Xyz;
     --ray_wor.Normalize();
     ray_wor = Math.normalizeVector3(ray_wor);
