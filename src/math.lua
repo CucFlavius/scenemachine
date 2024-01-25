@@ -298,12 +298,12 @@ function Math.isPointInPolygon(px, py, x1, y1, x2, y2, x3, y3, x4, y4)
 end
 
 --[[
-function Math.calculateMouseRay(screenWidth, screenHeight, fieldOfView, mouseX, mouseY)
+function Math.calculateMouseRay(cameraRotation, screenWidth, screenHeight, fieldOfView, mouseX, mouseY)
     local aspectRatio = screenWidth / screenHeight
 
     -- Calculate the normalized device coordinates (NDC) from screen coordinates
-    local ndcX = (2 * mouseX / screenWidth - 1) * aspectRatio
-    local ndcY = 1 - 2 * mouseY / screenHeight
+    local ndcX = --(2 * mouseX / screenWidth - 1) * aspectRatio
+    local ndcY = --1 - 2 * mouseY / screenHeight
 
     -- Calculate the tan of half the field of view
     local tanHalfFOV = math.tan(math.rad(fieldOfView / 2))
@@ -331,25 +331,27 @@ function Math.calculateMouseRay(cameraRotation, screenWidth, screenHeight, field
     -- Calculate the normalized device coordinates (NDC) from screen coordinates
     --local ndcX = (2 * mouseX / screenWidth - 1) * aspectRatio
     --local ndcY = 1 - 2 * mouseY / screenHeight
-    local ndcX = (mouseX / screenWidth * 2 - 1) * aspectRatio;
-    local ndcY = mouseY / screenHeight * 2 - 1;
+    local ndcX = ((mouseX / screenWidth) * 2 - 1);
+    local ndcY = ((mouseY / screenHeight) * 2 - 1) / aspectRatio;
     --float ndc_x = screen_x / width * 2 - 1;
     --float ndc_y = screen_y / height * 2 - 1;
-
+    
     -- Calculate the tan of half the field of view
     local tanHalfFOV = math.tan(math.rad(fieldOfView / 2))
-
+    
     -- Calculate the camera space coordinates (unprojecting from NDC)
     local cameraSpaceX = ndcX * tanHalfFOV
     local cameraSpaceY = ndcY * tanHalfFOV
     local cameraSpaceZ = -1  -- This is the direction along the negative z-axis in camera space
-
+    
     -- Rotate the camera space coordinates based on camera rotation
     local cosYaw = math.cos(cameraRotation.x)
     local sinYaw = math.sin(cameraRotation.x)
     local cosPitch = math.cos(cameraRotation.y)
     local sinPitch = math.sin(cameraRotation.y)
 
+    --print(cameraSpaceX .. " " ..cameraSpaceY);
+    
     local rotatedCameraSpaceX = cosYaw * cameraSpaceX - sinYaw * cameraSpaceY
     local rotatedCameraSpaceY = sinYaw * cameraSpaceX + cosYaw * cameraSpaceY
     local rotatedCameraSpaceZ = cosPitch * cameraSpaceZ
@@ -361,17 +363,16 @@ function Math.calculateMouseRay(cameraRotation, screenWidth, screenHeight, field
         z = rotatedCameraSpaceZ
     }
 
---[[
     -- Rotate the camera space coordinates based on camera rotation
-    local rotated = Math.multiplyRotations( { cameraRotation.x, cameraRotation.y, cameraRotation.z} , { cameraSpaceX, cameraSpaceY, cameraSpaceZ } );
+    --local rotated = Math.multiplyRotations( { cameraRotation.x, cameraRotation.y, cameraRotation.z} , { cameraSpaceX, cameraSpaceY, cameraSpaceZ } );
 
     -- The ray direction in camera space
-    local rayDirectionCamera = {
-        x = rotated[1],
-        y = rotated[2],
-        z = rotated[3]
-    }
---]]
+    --local rayDirectionCamera = {
+    --    x = rotated[1],
+    --    y = rotated[2],
+    --    z = rotated[3]
+    --}
+
     -- Normalize the ray direction
     local length = math.sqrt(rayDirectionCamera.x^2 + rayDirectionCamera.y^2 + rayDirectionCamera.z^2)
     rayDirectionCamera.x = rayDirectionCamera.x / length
@@ -381,11 +382,70 @@ function Math.calculateMouseRay(cameraRotation, screenWidth, screenHeight, field
     return rayDirectionCamera
 end
 
+function Math.UnprojectMouse(mouseX, mouseY, screenWidth, screenHeight, cameraProjection, cameraView)
+    local ndc = Math.MouseToNormalizedDeviceCoords(mouseX, mouseY, screenWidth, screenHeight);
+    local clip = Math.NDCToClipCoords(ndc);
+    local eye = Math.ClipToEye(clip, cameraProjection);
+    local rayvec = Math.EyeToRayVector(eye, cameraView);
+    return rayvec;
+end
+
+function Math.MouseToNormalizedDeviceCoords(mouseX, mouseY, width, height)
+    local x = 1.0 - (1.0 * mouseX) / width - 1.0 + 0.5;
+    local y = (1.0 * mouseY) / height - 0.5;
+    return { x, y };
+end
+
+function Math.NDCToClipCoords(ray_nds)
+    return { ray_nds[1], ray_nds[2], -1.0, 1.0 };
+end
+
+function Math.ClipToEye(ray_clip, projection_matrix)
+    projection_matrix:Invert();
+    local ray_eye = projection_matrix:MultiplyVector(ray_clip);
+    return { ray_eye[1], ray_eye[2], -1.0, 0.0 };
+end
+
+function Math.EyeToRayVector(ray_eye, view_matrix)
+    view_matrix:Invert()
+    local ray_wor = view_matrix:MultiplyVector(ray_eye)
+    --Vector3 ray_wor = (ray_eye * ray_eye).Xyz;
+    --ray_wor.Normalize();
+    ray_wor = Math.normalizeVector3(ray_wor);
+    return ray_wor;
+end
+
+function Math.normalizeVector3(vector)
+    local magnitude = math.sqrt(vector[1]^2 + vector[2]^2 + vector[3]^2)
+    --print(vector[1] .. " " .. vector[2] .. " " .. vector[3])
+    if magnitude ~= 0 then
+        return {
+            vector[1] / magnitude,
+            vector[2] / magnitude,
+            vector[3] / magnitude
+        }
+    else
+        return {0, 0, 0}  -- Avoid division by zero if the vector is a zero vector
+    end
+end
+
+function Math.crossProduct(a, b)
+    return {
+        a[2] * b[3] - a[3] * b[2],
+        a[3] * b[1] - a[1] * b[3],
+        a[1] * b[2] - a[2] * b[1]
+    }
+end
+
+function Math.dotProductVec3(a, b)
+    return a[1] * b[1] + a[2] * b[2] + a[3] * b[3]
+end
+
 function Math.intersectRayPlane(rayOrigin, rayDirection, planeNormal, planePoint)
     local epsilon = 1e-6
 
     -- Ensure that the ray and plane are not parallel
-    local dotProduct = planeNormal.x * rayDirection.x + planeNormal.y * rayDirection.y + planeNormal.z * rayDirection.z
+    local dotProduct = planeNormal.x * rayDirection[1] + planeNormal.y * rayDirection[2] + planeNormal.z * rayDirection[3]
     if math.abs(dotProduct) < epsilon then
         return nil  -- Ray and plane are parallel, no intersection
     end
@@ -402,9 +462,9 @@ function Math.intersectRayPlane(rayOrigin, rayDirection, planeNormal, planePoint
 
     -- Calculate the intersection point
     local intersectionPoint = {
-        x = rayOrigin.x + t * rayDirection.x,
-        y = rayOrigin.y + t * rayDirection.y,
-        z = rayOrigin.z + t * rayDirection.z
+        x = rayOrigin.x + t * rayDirection[1],
+        y = rayOrigin.y + t * rayDirection[2],
+        z = rayOrigin.z + t * rayDirection[3]
     }
 
     return intersectionPoint

@@ -308,8 +308,20 @@ function Gizmos.MotionToTransform()
 
         local mouseRayOrigin = { x = Camera.X, y = Camera.Y, z = Camera.Z };
         local cameraRotation = { x = Camera.Yaw, y = Camera.Pitch, z = Camera.Roll };
-        local mouseRayDir = Math.calculateMouseRay(cameraRotation, width, height, CC.FoV, relativeX, relativeY);
+        --local cameraRotation = { x = 0, y = 0, z = 0 };
+        --local mouseRayDir = Math.calculateMouseRay(cameraRotation, width, height, CC.FoV, relativeX, relativeY);
+        Camera.projectionMatrix:CreatePerspectiveFieldOfView(math.rad(70), width / height, 0.01, 100);
 
+        local frontX = math.cos(Camera.Yaw) * math.cos(Camera.Pitch);
+        local frontY = math.sin(Camera.Pitch);
+        local frontZ = math.sin(Camera.Yaw) * math.cos(Camera.Pitch);
+
+        Camera.viewMatrix:CreateCameraViewMatrix({ Camera.X, Camera.Y, Camera.Z }, {frontX, frontY, frontZ}, { 0, 0, 1 });
+
+        local mouseRayDir = Math.UnprojectMouse(relativeX, relativeY, width, height, Camera.projectionMatrix, Camera.viewMatrix);
+        --print(relativeX .. " " .. relativeY) |_ 0,0
+        --print(width .. " " .. height) 680 / 429
+        --print(mouseRayDir[1] .. " " .. mouseRayDir[2] .. " " .. mouseRayDir[3]);
         if (Gizmos.LMBPrevious.x == nil) then
             Gizmos.LMBPrevious.x = curX;
             Gizmos.LMBPrevious.y = curY;
@@ -377,7 +389,7 @@ function Gizmos.MotionToTransform()
                     end
                 elseif (Gizmos.selectedAxis == 4) then
                     -- XY --
-                    --[[
+                    
                     local planeNormal = { x = 0, y = 0, z = 1 };
                     local planePoint = { x = 0, y = 0, z = 0 };
                     local intersects = Math.intersectRayPlane(mouseRayOrigin, mouseRayDir, planeNormal, planePoint);
@@ -387,7 +399,8 @@ function Gizmos.MotionToTransform()
                         py = intersects.y;
                         pz = intersects.z;
                     end
-                    --]]
+                    
+                    --[[
                     local xVec = { Gizmos.MoveGizmo.screenSpaceVertices[1][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][1],
                                     Gizmos.MoveGizmo.screenSpaceVertices[1][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][2] }
                     local dot = Math.dotProduct(
@@ -442,6 +455,7 @@ function Gizmos.MotionToTransform()
                         py = py + (gscale * Gizmos.vectorY[2]);
                         pz = pz + (gscale * Gizmos.vectorY[3]);
                     end
+                    --]]
                 elseif (Gizmos.selectedAxis == 5) then
                     -- XZ --
                     local dot = Math.dotProduct(

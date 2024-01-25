@@ -20,6 +20,9 @@ Camera.planeNormalX = 0;
 Camera.planeNormalY = 0;
 Camera.planeNormalZ = 0;
 
+Camera.projectionMatrix = SceneMachine.Matrix:New();
+Camera.viewMatrix = SceneMachine.Matrix:New();
+
 function Camera.Update()
     Renderer.projectionFrame:SetCameraPosition(Camera.X, Camera.Y, Camera.Z);
     --print(Camera.Yaw .. " " .. Camera.Pitch .. " " .. Camera.Roll);
