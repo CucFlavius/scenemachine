@@ -70,22 +70,15 @@ function Gizmos.Update()
         local frameYMin = Renderer.projectionFrame:GetBottom();
         local frameXMax = Renderer.projectionFrame:GetRight();
         local frameYMax = Renderer.projectionFrame:GetTop();
-        local width = Renderer.projectionFrame:GetWidth();
-        local height = Renderer.projectionFrame:GetHeight();
+
         local relativeX, relativeY = curX - frameXMin, curY - frameYMin;
         local mouseX, mouseY = Input.mouseX, Input.mouseY;
 
         local mouseRayOrigin = { x = Camera.position.x, y = Camera.position.y, z = Camera.position.z };
         local cameraRotation = { x = Camera.eulerRotation.x, y = Camera.eulerRotation.y, z = Camera.eulerRotation.z };
-        local aspectRatio = width / height;
-        local FoV = math.rad(CC.FoV);
-        Camera.projectionMatrix:CreatePerspectiveFieldOfView(FoV, aspectRatio, 0.01, 1000);
-        Camera.viewMatrix:LookAt({ Camera.position.x, Camera.position.y, Camera.position.z }, { Camera.forward.x, Camera.forward.y, Camera.forward.z }, { 0, 0, 1 });
-        --Camera.viewMatrix:TRS({ Camera.position.x, Camera.position.y, Camera.position.z }, yawPitchRollToQuaternion(Camera.position.x, Camera.eulerRotation.y, Camera.eulerRotation.z), { 1, 1, 1 })
-        --Camera.viewMatrix:LookAt({ Camera.position.x, Camera.position.y, Camera.position.z }, { Camera.position.x + front[1], Camera.position.y + front[2], Camera.position.z + front[3] }, { 0, 0, 1 });
-        local mouseRayDir = Math.UnprojectMouse(relativeX, relativeY, width, height, Camera.projectionMatrix, Camera.viewMatrix);
+        
+        local mouseRayDir = Math.UnprojectMouse(relativeX, relativeY, Camera.width, Camera.height, Camera.projectionMatrix, Camera.viewMatrix);
 
-        --local mouseRayDir = Math.calculateMouseRay(cameraRotation, width, height, CC.FoV, relativeX, relativeY);
         local planeNormal = { x = 0, y = 0, z = 1 };
         local planePoint = { x = 0, y = 0, z = 0 };
         local intersects = Math.intersectRayPlane(mouseRayOrigin, mouseRayDir, planeNormal, planePoint);
@@ -372,23 +365,12 @@ function Gizmos.MotionToTransform()
         local frameYMin = Renderer.projectionFrame:GetBottom();
         local frameXMax = Renderer.projectionFrame:GetRight();
         local frameYMax = Renderer.projectionFrame:GetTop();
-        local width = Renderer.projectionFrame:GetWidth();
-        local height = Renderer.projectionFrame:GetHeight();
         local relativeX, relativeY = curX - frameXMin, curY - frameYMin;
 
         local mouseRayOrigin = { x = Camera.position.x, y = Camera.position.y, z = Camera.position.z };
         local cameraRotation = { x = Camera.position.x, y = Camera.eulerRotation.y, z = Camera.eulerRotation.z };
-        --local cameraRotation = { x = 0, y = 0, z = 0 };
-        --local mouseRayDir = Math.calculateMouseRay(cameraRotation, width, height, CC.FoV, relativeX, relativeY);
-        Camera.projectionMatrix:CreatePerspectiveFieldOfView(math.rad(70), width / height, 0.01, 1000);
 
-        local frontX = math.cos(Camera.position.x) * math.cos(Camera.eulerRotation.y);
-        local frontY = math.sin(Camera.eulerRotation.y);
-        local frontZ = math.sin(Camera.position.x) * math.cos(Camera.eulerRotation.y);
-
-        Camera.viewMatrix:LookAt({ Camera.position.x, Camera.position.y, Camera.position.z }, {frontX, frontY, frontZ}, { 0, 0, 1 });
-
-        local mouseRayDir = Math.UnprojectMouse(relativeX, relativeY, width, height, Camera.projectionMatrix, Camera.viewMatrix);
+        local mouseRayDir = Math.UnprojectMouse(relativeX, relativeY, Camera.width, Camera.height, Camera.projectionMatrix, Camera.viewMatrix);
 
         if (Gizmos.LMBPrevious.x == nil) then
             Gizmos.LMBPrevious.x = curX;

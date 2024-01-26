@@ -68,6 +68,10 @@ function Vector3.ManhattanDistanceP(aX, aY, aZ, bX, bY, bZ)
     return math.abs(aX - bX) + math.abs(aY - bY) + math.abs(aZ - bZ);
 end
 
+function Vector3.DotProduct(a, b)
+    return a.x * b.x + a.y * b.y + a.z * b.z;
+end
+
 function Vector3:RotateAroundPivot(pivot, rotation)
     -- Translate the object and pivot to the origin
     self.x = self.x - pivot.x;
@@ -140,6 +144,16 @@ function Vector3:Normalize()
     return self;
 end
 
+function Vector3:CrossProduct(v)
+    local x = self.y * v.z - self.z * v.y;
+    local y = self.z * v.x - self.x * v.z;
+    local z = self.x * v.y - self.y * v.x;
+
+    self.x = x;
+    self.y = y;
+    self.z = z;
+end
+
 function Vector3:Lerp(a, b, t)
     self.x = a.x * (1 - t) + b.x * t;
     self.y = a.y * (1 - t) + b.y * t;
@@ -177,3 +191,5 @@ Vector3.__index = function(t,k)
 	
 	return var
 end
+
+Vector3.up = Vector3:New(0, 0, 1);

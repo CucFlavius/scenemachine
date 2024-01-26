@@ -347,10 +347,6 @@ function Math.crossProduct(a, b)
     }
 end
 
-function Math.dotProductVec3(a, b)
-    return a[1] * b[1] + a[2] * b[2] + a[3] * b[3]
-end
-
 function Math.intersectRayPlane(rayOrigin, rayDirection, planeNormal, planePoint)
     local epsilon = 1e-6
 

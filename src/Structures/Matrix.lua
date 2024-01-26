@@ -1,4 +1,5 @@
 local Math = SceneMachine.Math;
+local Vector3 = SceneMachine.Vector3;
 
 SceneMachine.Matrix = 
 {
@@ -82,25 +83,6 @@ function Matrix:LookAtJJJ(eye, target, up)
     self.m32 = -((z[1] * eye[1]) + (z[2] * eye[2]) + (z[3] * eye[3]));
     self.m33 = 1;
 
---[[
-self.m00 = x[1];
-self.m10 = y[1];
-self.m20 = z[1];
-self.m30 = 0;
-self.m01 = x[2];
-self.m11 = y[2];
-self.m21 = z[2];
-self.m31 = 0;
-self.m02 = x[3];
-self.m12 = y[3];
-self.m22 = z[3];
-self.m32 = 0;
-self.m03 = -((x[1] * eye[1]) + (x[2] * eye[2]) + (x[3] * eye[3]));
-self.m13 = -((y[1] * eye[1]) + (y[2] * eye[2]) + (y[3] * eye[3]));
-self.m23 = -((z[1] * eye[1]) + (z[2] * eye[2]) + (z[3] * eye[3]));
-self.m33 = 1;
---]]
-
     return self;
 end
 
@@ -124,22 +106,32 @@ function Matrix:TRS(t, r, s)
 end
 
 function Matrix:LookAt(position, target, up)
-    local forward = Math.normalizeVector3({ target[1] - position[1], target[2] - position[2], target[3] - position[3] })
-    local right = Math.normalizeVector3(Math.crossProduct(up, forward))
-    local newUp = Math.crossProduct(forward, right)
+    local forward = Vector3:New();
+    forward:SetVector3(target);
+    forward:Subtract(position);
+    forward:Normalize();
 
-    self.m00 = right[1];
-    self.m01 = right[2];
-    self.m02 = right[3];
-    self.m03 = -Math.dotProductVec3(right, position);
-    self.m10 = newUp[1];
-    self.m11 = newUp[2];
-    self.m12 = newUp[3];
-    self.m13 = -Math.dotProductVec3(newUp, position);
-    self.m20 = -forward[1];
-    self.m21 = -forward[2];
-    self.m22 = -forward[3];
-    self.m23 = Math.dotProductVec3(forward, position);
+    local right = Vector3:New();
+    right:SetVector3(up);
+    right:CrossProduct(forward);
+    right:Normalize();
+
+    local newUp = Vector3:New();
+    newUp:SetVector3(forward);
+    newUp:CrossProduct(right);
+
+    self.m00 = right.x;
+    self.m01 = right.y;
+    self.m02 = right.z;
+    self.m03 = -Vector3.DotProduct(right, position);
+    self.m10 = newUp.x;
+    self.m11 = newUp.y;
+    self.m12 = newUp.z;
+    self.m13 = -Vector3.DotProduct(newUp, position);
+    self.m20 = -forward.x;
+    self.m21 = -forward.y;
+    self.m22 = -forward.z;
+    self.m23 = Vector3.DotProduct(forward, position);
     self.m30 = 0;
     self.m31 = 0;
     self.m32 = 0;

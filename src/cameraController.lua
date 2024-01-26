@@ -32,7 +32,6 @@ CC.Focus =
 ----------------------------------
 --			Variables	 		--
 ----------------------------------
-CC.FoV = 70;						-- Field of View in degrees
 CC.Direction = 180;					-- The start angle at which the player is looking in degrees ( in degrees )
 CC.Pitch = 0;
 CC.position = Vector3:New(0, 0, 1);	-- start position
@@ -180,7 +179,7 @@ function CC.FocusObject(object)
 	local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
 	local objectCenter = Vector3:New( objectPos.x * objectScale, objectPos.y * objectScale, (objectPos.z + (zMax / 2)) * objectScale );
 	local radius = math.max(xMax, math.max(yMax, zMax));
-	local dist = radius / (math.sin(math.rad(CC.FoV)) * 0.5);
+	local dist = radius / (math.sin(Camera.fov) * 0.5);
 	vector:Scale(dist);
 	objectCenter:Subtract(vector);
 
