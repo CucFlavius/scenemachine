@@ -60,6 +60,31 @@ function Vector3:Subtract(v)
     self.z = self.z - v.z;
 end
 
+function Vector3:Multiply(v)
+    self.x = self.x * v.x;
+    self.y = self.y * v.y;
+    self.z = self.z * v.z;
+end
+
+function Vector3:Divide(v)
+    self.x = self.x / v.x;
+    self.y = self.y / v.y;
+    self.z = self.z / v.z;
+end
+
+function Vector3:MultiplyMatrix(mat)
+
+    local x = (mat.m00 * self.x) + (mat.m01 * self.y) + (mat.m02 * self.z);
+    local y = (mat.m10 * self.x) + (mat.m11 * self.y) + (mat.m12 * self.z);
+    local z = (mat.m20 * self.x) + (mat.m21 * self.y) + (mat.m22 * self.z);
+
+    self.x = x;
+    self.y = y;
+    self.z = z;
+
+    return self;
+end
+
 function Vector3.ManhattanDistance(a, b)
     return math.abs(a.x - b.x) + math.abs(a.y - b.y) + math.abs(a.z - b.z);
 end

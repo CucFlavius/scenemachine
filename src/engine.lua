@@ -20,6 +20,7 @@ function SceneMachine.Start()
     CameraController.Initialize();
     SceneMachine.CreateStatsFrame();
 	Gizmos.Create();
+	if (Debug) then Debug.Init(); end
 
 	-- tests ---
 	--[[
@@ -94,6 +95,7 @@ local function SG_UpdateLoop ()
 	Input.Update();
     Gizmos.Update();
     Renderer.RenderGizmos();
+	if (Debug) then Debug.FlushLinePool(); end
 end
 
 

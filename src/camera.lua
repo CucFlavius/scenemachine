@@ -4,7 +4,10 @@ local Camera = SceneMachine.Camera;
 local SM = Editor.SceneManager;
 local Renderer = SceneMachine.Renderer;
 local PM = Editor.ProjectManager;
+local Input = SceneMachine.Input;
+
 local Vector3 = SceneMachine.Vector3;
+local Vector4 = SceneMachine.Vector4;
 local Matrix = SceneMachine.Matrix;
 local Math = SceneMachine.Math;
 local Ray = SceneMachine.Ray;
@@ -62,7 +65,6 @@ function Camera.Update()
     end
 end
 
--- TODO : convert these to use the new Vector3/4 classes
 local function MouseToNormalizedDeviceCoords(mouseX, mouseY, width, height)
     local x = 0.5 - mouseX / width;
     local y = mouseY / height - 0.5;
@@ -70,22 +72,22 @@ local function MouseToNormalizedDeviceCoords(mouseX, mouseY, width, height)
 end
 
 local function NDCToClipCoords(ray_nds)
-    return { ray_nds[1], ray_nds[2], -1.0, 1.0 };
+    return Vector4:New(ray_nds[1], ray_nds[2], -1.0, 1.0 );
 end
 
 local function ClipToEye(ray_clip, projection_matrix)
     projection_matrix:Invert();
-    local ray_eye = projection_matrix:MultiplyVector4(ray_clip);
-    return { ray_eye[1], ray_eye[2], -1.0, 0.0 };
+    local ray_eye = ray_clip:MultiplyMatrix(projection_matrix);
+    return Vector4:New( ray_eye.x, ray_eye.y, -1.0, 0.0 );
 end
 
 local function EyeToRayVector(ray_eye, view_matrix)
     view_matrix:Invert();
-    local ray_wor = view_matrix:MultiplyVector4(ray_eye);
-    --Vector3 ray_wor = (ray_eye * view_matrix.Inverted()).Xyz;
-    --ray_wor.Normalize();
-    ray_wor = Math.normalizeVector3(ray_wor);
-    return Vector3:New(ray_wor[1], ray_wor[2], ray_wor[3]);
+    ray_eye:MultiplyMatrix(view_matrix);
+    local ray_wor = Vector3:New();
+    ray_wor:SetVector3(ray_eye);
+    ray_wor:Normalize();
+    return ray_wor;
 end
 
 local function UnprojectMouse(mouseX, mouseY, screenWidth, screenHeight, cameraProjection, cameraView)
@@ -97,14 +99,7 @@ local function UnprojectMouse(mouseX, mouseY, screenWidth, screenHeight, cameraP
 end
 
 function Camera.GetMouseRay()
-    local curX, curY = GetCursorPosition();
-    local frameXMin = Renderer.projectionFrame:GetLeft();
-    local frameYMin = Renderer.projectionFrame:GetBottom();
-    local frameXMax = Renderer.projectionFrame:GetRight();
-    local frameYMax = Renderer.projectionFrame:GetTop();
-
-    local relativeX, relativeY = curX - frameXMin, curY - frameYMin;
-    local direction = UnprojectMouse(relativeX, relativeY, Camera.width, Camera.height, Camera.projectionMatrix, Camera.viewMatrix);
+    local direction = UnprojectMouse(Input.mouseX, Input.mouseY, Camera.width, Camera.height, Camera.projectionMatrix, Camera.viewMatrix);
     local origin = Camera.position;
     local mouseRay = Ray:New(origin, direction);
 

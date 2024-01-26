@@ -61,31 +61,6 @@ function Matrix:CreatePerspectiveFieldOfView(fov, aspectRatio, depthNear, depthF
     return self;
 end
 
-function Matrix:LookAtJJJ(eye, target, up)
-    local z = Math.normalizeVector3({eye[1] - target[1], eye[2] - target[2], eye[3] - target[3]});
-    local x = Math.normalizeVector3(Math.crossProduct(up, z));
-    local y = Math.normalizeVector3(Math.crossProduct(z, x));
-
-    self.m00 = x[1];
-    self.m01 = y[1];
-    self.m02 = z[1];
-    self.m03 = 0;
-    self.m10 = x[2];
-    self.m11 = y[2];
-    self.m12 = z[2];
-    self.m13 = 0;
-    self.m20 = x[3];
-    self.m21 = y[3];
-    self.m22 = z[3];
-    self.m23 = 0;
-    self.m30 = -((x[1] * eye[1]) + (x[2] * eye[2]) + (x[3] * eye[3]));
-    self.m31 = -((y[1] * eye[1]) + (y[2] * eye[2]) + (y[3] * eye[3]));
-    self.m32 = -((z[1] * eye[1]) + (z[2] * eye[2]) + (z[3] * eye[3]));
-    self.m33 = 1;
-
-    return self;
-end
-
 function Matrix:TRS(t, r, s)
     self.m00 = (1.0-2.0*(r[2]*r[2]+r[3]*r[3]))*s[1];
     self.m10 = (r[1]*r[2]+r[3]*r[4])*s[1]*2.0;
@@ -178,28 +153,6 @@ function Matrix:Invert()
     self.m33 = (m00 * (m11 * m22 - m21 * m12) - m01 * (m10 * m22 - m20 * m12) + m02 * (m10 * m21 - m20 * m11)) * invDet
 
     return self;
-end
-
-function Matrix:MultiplyVector3(vector)
-    local result = {
-        (self.m00 * vector[1]) + (self.m01 * vector[2]) + (self.m02 * vector[3]),-- + (self.m03 * vector[4]),
-        (self.m10 * vector[1]) + (self.m11 * vector[2]) + (self.m12 * vector[3]),-- + (self.m13 * vector[4]),
-        (self.m20 * vector[1]) + (self.m21 * vector[2]) + (self.m22 * vector[3]),-- + (self.m23 * vector[4]),
-        (self.m30 * vector[1]) + (self.m31 * vector[2]) + (self.m32 * vector[3]),-- + (self.m33 * vector[4])
-    }
-
-    return result
-end
-
-function Matrix:MultiplyVector4(vector)
-    local result = {
-        (self.m00 * vector[1]) + (self.m01 * vector[2]) + (self.m02 * vector[3]) + (self.m03 * vector[4]),
-        (self.m10 * vector[1]) + (self.m11 * vector[2]) + (self.m12 * vector[3]) + (self.m13 * vector[4]),
-        (self.m20 * vector[1]) + (self.m21 * vector[2]) + (self.m22 * vector[3]) + (self.m23 * vector[4]),
-        (self.m30 * vector[1]) + (self.m31 * vector[2]) + (self.m32 * vector[3]) + (self.m33 * vector[4])
-    }
-
-    return result
 end
 
 --function Matrix:GetFileID()

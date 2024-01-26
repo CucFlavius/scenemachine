@@ -112,11 +112,10 @@ function CC.Update()
 	SceneMachine.Camera.position:SetVector3(CC.position);
     
     if (CC.RMBPressed == true) then
-		local x, y = GetCursorPosition();
-		local xDiff = x - CC.RMBPrevious.x;
-		local yDiff = y - CC.RMBPrevious.y;
-		CC.RMBPrevious.x = x;
-		CC.RMBPrevious.y = y;
+		local xDiff = Input.mouseXRaw - CC.RMBPrevious.x;
+		local yDiff = Input.mouseYRaw - CC.RMBPrevious.y;
+		CC.RMBPrevious.x = Input.mouseXRaw;
+		CC.RMBPrevious.y = Input.mouseYRaw;
 
 		-- if camera is in flight mode then handle that --
 		SceneMachine.Camera.eulerRotation.x = clampAngle(SceneMachine.Camera.eulerRotation.x - rad(xDiff * CC.mouseTurnSpeed));
@@ -151,10 +150,9 @@ function CC.Update()
 end
 
 function CC.OnRMBDown()
-	local x, y = GetCursorPosition();
 	CC.RMBPressed = true;
-	CC.RMBPrevious.x = x;
-	CC.RMBPrevious.y = y;
+	CC.RMBPrevious.x = Input.mouseXRaw;
+	CC.RMBPrevious.y = Input.mouseYRaw;
 end
 
 function CC.OnRMBUp()

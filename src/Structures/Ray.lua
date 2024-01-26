@@ -1,5 +1,7 @@
 local Math = SceneMachine.Math;
 local Vector3 = SceneMachine.Vector3;
+local Quaternion = SceneMachine.Quaternion;
+
 local epsilon = 1e-6
 
 SceneMachine.Ray = 
@@ -74,6 +76,55 @@ function Ray:PlaneIntersection(planePoint, planeNormal)
     )
 
     return intersectionPoint;
+end
+
+function Ray:IntersectsOBB(obb)
+    if (obb.rotation == Quaternion.identity) then
+        -- AABB
+        local tMin = obb:GetMin();
+        tMin:Subtract(self.origin);
+        tMin:Divide(self.direction);
+
+        local tMax = obb:GetMax();
+        tMax:Subtract(self.origin);
+        tMax:Divide(self.direction);
+
+        local t1 = Vector3:New(math.min(tMin.x, tMax.x), math.min(tMin.y, tMax.y), math.min(tMin.z, tMax.z));
+        local t2 = Vector3:New(math.max(tMin.x, tMax.x), math.max(tMin.y, tMax.y), math.max(tMin.z, tMax.z));
+
+        local tNear = math.max(math.max(t1.x, t1.y), t1.z);
+        local tFar = math.min(math.min(t2.x, t2.y), t2.x);
+        return tNear <= tFar;
+        --local tMin = (this.min - ray.origin) / ray.direction;
+        --local tMax = (this.max - ray.origin) / ray.direction;
+        --local t1 = new Vector3(math.min(tMin.X, tMax.X), math.min(tMin.Y, tMax.Y), math.min(tMin.Z, tMax.Z));
+        --local t2 = new Vector3(math.max(tMin.X, tMax.X), math.max(tMin.Y, tMax.Y), math.max(tMin.Z, tMax.Z));
+        --float tNear = math.max(math.max(t1.X, t1.Y), t1.Z);
+        --float tFar = math.min(math.min(t2.X, t2.Y), t2.Z);
+        --return new Vector2(tNear, tFar);
+    else
+        -- OBB
+        --[[
+        -- Transform the ray into the local space of the OBB
+        Vector3 rayOrigin = ray.origin - worldPosition;
+        Vector3 rayDirection = ray.direction;
+        Quaternion inverseOrientation = Quaternion.Invert(this.orientation);
+        rayOrigin = inverseOrientation * rayOrigin;
+        rayDirection = inverseOrientation * rayDirection;
+        rayOrigin /= scale;
+
+        var min = (this.center - ((this.size) * 0.5f));
+        var max = (this.center + ((this.size) * 0.5f));
+
+        Vector3 tMin = (min - rayOrigin) / rayDirection;
+        Vector3 tMax = (max - rayOrigin) / rayDirection;
+        Vector3 t1 = new Vector3(math.min(tMin.X, tMax.X), math.min(tMin.Y, tMax.Y), math.min(tMin.Z, tMax.Z));
+        Vector3 t2 = new Vector3(math.max(tMin.X, tMax.X), math.max(tMin.Y, tMax.Y), math.max(tMin.Z, tMax.Z));
+        float tNear = math.max(math.max(t1.X, t1.Y), t1.Z);
+        float tFar = math.min(math.min(t2.X, t2.Y), t2.Z);
+        return new Vector2(tNear, tFar);
+        --]]
+    end
 end
 
 Ray.__tostring = function(self)

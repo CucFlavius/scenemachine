@@ -39,8 +39,33 @@ function OBB:SetOBB(v)
     self.size = v.size;
 end
 
+function OBB:SetFromMinMaxAABB(xMin, yMin, zMin, xMax, yMax, zMax)
+    self.size.x = xMax - xMin;
+    self.size.y = yMax - yMin;
+    self.size.z = zMax - zMin;
+    self.center.x = xMin + (self.size.x / 2.0);
+    self.center.y = yMin + (self.size.y / 2.0);
+    self.center.z = zMin + (self.size.z / 2.0);
+end
+
 function OBB:Get()
     return self.center, self.rotation, self.size;
+end
+
+function OBB:GetMin()
+    -- center - (size / 2)
+    local mx = self.center.x - (self.size.x / 2.0);
+    local my = self.center.y - (self.size.x / 2.0);
+    local mz = self.center.z - (self.size.z / 2.0);
+    return Vector3:New(mx, my, mz);
+end
+
+function OBB:GetMax()
+    -- center + (size / 2)
+    local mx = self.center.x + (self.size.x / 2.0);
+    local my = self.center.y + (self.size.x / 2.0);
+    local mz = self.center.z + (self.size.z / 2.0);
+    return Vector3:New(mx, my, mz);
 end
 
 OBB.__tostring = function(self)

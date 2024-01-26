@@ -65,6 +65,11 @@ function Input.Update()
     local frameYMax = Renderer.projectionFrame:GetTop();
     local relativeX, relativeY = x - frameXMin, y - frameYMin;
 
+    Input.mouseX = relativeX
+    Input.mouseXRaw = x;
+    Input.mouseY = relativeY;
+    Input.mouseYRaw = y;
+    
     -- MOUSE UP --
     -- mouse up state needs to be handled outside of the renderer frame too
     if (Input.mouseState.LMB ~= LMB) then
@@ -159,9 +164,6 @@ function Input.Update()
     Input.mouseState.LMB = LMB;
     Input.mouseState.RMB = RMB;
     Input.mouseState.MMB = MMB;
-
-    Input.mouseX = relativeX
-    Input.mouseY = relativeY;
 end
 
 function Input.OnDragStart(LMB, RMB, MMB)
@@ -176,8 +178,7 @@ function Input.OnDragStart(LMB, RMB, MMB)
                 SM.CloneObject(SM.selectedObject, true);
             end
 
-            local x, y = GetCursorPosition();
-            Gizmos.OnLMBDown(x, y);
+            Gizmos.OnLMBDown(Input.mouseXRaw, Input.mouseYRaw);
         end
     end
 end
@@ -204,9 +205,8 @@ function Input.OnClickUp(LMB, RMB, MMB, x, y)
     if (LMB) then
     elseif (RMB) then
         -- open RMB context menu --
-        local x, y = GetCursorPosition();
-        local rx = x - SceneMachine.mainWindow:GetLeft();
-        local ry = y - SceneMachine.mainWindow:GetHeight() - 10;
+        local rx = Input.mouseXRaw - SceneMachine.mainWindow:GetLeft();
+        local ry = Input.mouseYRaw - SceneMachine.mainWindow:GetHeight() - 10;
         Editor.OpenContextMenu(rx, ry);
     elseif (MMB) then
     end

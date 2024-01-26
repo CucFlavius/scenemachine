@@ -6,6 +6,9 @@ local SH = Editor.SceneHierarchy;
 local Renderer = SceneMachine.Renderer;
 local PM = Editor.ProjectManager;
 local OP = Editor.ObjectProperties;
+local Camera = SceneMachine.Camera;
+local OBB = SceneMachine.OBB;
+local Ray = SceneMachine.Ray;
 
 function MousePick.Initialize()
     local ch = 0.5;
@@ -53,6 +56,67 @@ function MousePick.CompareSelectionLists(listA, listB)
     end
 
     return same;
+end
+
+function MousePick.Pick__(x, y)
+    -- x, y are relative coordinates to the viewport
+    local idx = 1;
+    MousePick.selectionList = {};
+
+    -- go through each object and determine if the mouse is on top of the bounding box
+    -- then add to the MousePick.selectionList table
+    for i in pairs(SM.loadedScene.objects) do
+        local object = SM.loadedScene.objects[i];
+
+        local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
+        
+        if (xMax == nil) then
+            return;
+        end
+
+        local ray = Camera.GetMouseRay();
+        local obb = OBB:New();
+        obb:SetFromMinMaxAABB(xMin, yMin, zMin, xMax, yMax, zMax);
+        if (ray:IntersectsOBB(obb)) then
+            MousePick.selectionList[idx] = object;
+            idx = idx + 1;
+        end
+    end
+
+    -- go through each selection list item and determine which one to select
+    if (#MousePick.selectionList == 0) then
+        SM.selectedObject = nil;
+    elseif (#MousePick.selectionList == 1) then
+        SM.selectedObject = MousePick.selectionList[1];
+    else
+        if (MousePick.CompareSelectionLists(MousePick.previousSelectionList, MousePick.selectionList)) then
+            -- same selection list, so loop through to determine which one to select next
+            for i = 1, #MousePick.selectionList, 1 do
+                if (SM.selectedObject == MousePick.selectionList[i]) then
+                    local currentIndex = i;
+                    if (currentIndex >= #MousePick.selectionList) then
+                        -- loop back
+                        currentIndex = 0;
+                    end
+                    -- select next
+                    SM.selectedObject = MousePick.selectionList[currentIndex + 1];
+                    break;
+                end
+            end
+        else
+            -- different selection list, so just select first object
+            SM.selectedObject = MousePick.selectionList[1];
+        end
+    end
+
+    -- store previous selection list
+    MousePick.previousSelectionList = {};
+    for i = 1, #MousePick.selectionList, 1 do
+        MousePick.previousSelectionList[i] = MousePick.selectionList[i];
+    end
+
+    SH.RefreshHierarchy();
+    OP.Refresh();
 end
 
 function MousePick.Pick(x, y)

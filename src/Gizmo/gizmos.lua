@@ -8,6 +8,7 @@ local Input = SceneMachine.Input;
 local Math = SceneMachine.Math;
 local CC = SceneMachine.CameraController;
 local Vector3 = SceneMachine.Vector3;
+local Quaternion = SceneMachine.Quaternion;
 
 Gizmos.isUsed = false;
 Gizmos.isHighlighted = false;
@@ -64,31 +65,19 @@ function Gizmos.Update()
     Gizmos.UpdateGizmoTransform();
 
     -- Debug Mouse to plane
-    if (Input.mouseState.LMB) then
-
-        local mouseRay = Camera.GetMouseRay();
-        local intersectionPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.up);
-        --print(intersectionPoint);
-        SceneMachine.Gizmos.DebugGizmo.position:SetVector3(intersectionPoint or Vector3.zero);
-    end
-end
-
-function yawPitchRollToQuaternion(yaw, pitch, roll)
-    -- Calculate half angles
-    local cosYaw = math.cos(yaw * 0.5)
-    local sinYaw = math.sin(yaw * 0.5)
-    local cosPitch = math.cos(pitch * 0.5)
-    local sinPitch = math.sin(pitch * 0.5)
-    local cosRoll = math.cos(roll * 0.5)
-    local sinRoll = math.sin(roll * 0.5)
-
-    -- Calculate quaternion components
-    local w = cosYaw * cosPitch * cosRoll + sinYaw * sinPitch * sinRoll
-    local x = sinYaw * cosPitch * cosRoll - cosYaw * sinPitch * sinRoll
-    local y = cosYaw * sinPitch * cosRoll + sinYaw * cosPitch * sinRoll
-    local z = cosYaw * cosPitch * sinRoll - sinYaw * sinPitch * cosRoll
-
-    return { x, y, z, w }
+    local mouseRay = Camera.GetMouseRay();
+    local origin = Vector3:New(
+        mouseRay.origin.x + (mouseRay.direction.x * 0.11),
+        mouseRay.origin.y + (mouseRay.direction.y * 0.11),
+        mouseRay.origin.z + (mouseRay.direction.z * 0.11));
+    local destination = Vector3:New(
+        mouseRay.origin.x + (mouseRay.direction.x * 50),
+        mouseRay.origin.y + (mouseRay.direction.y * 50),
+        mouseRay.origin.z + (mouseRay.direction.z * 50));
+    Debug.DrawLine(Vector3:New(origin.x, origin.y, origin.z - 1), origin, 1, 0, 0, 1);
+    Debug.DrawLine(origin, destination);
+    local intersectionPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.up);
+    SceneMachine.Gizmos.DebugGizmo.position:SetVector3(intersectionPoint or Vector3.zero);
 end
 
 function round(num, numDecimalPlaces)
@@ -334,25 +323,15 @@ function Gizmos.MotionToTransform()
         -- when using the gizmo (clicked), keep it highlighted even if the mouse moves away
         Gizmos.highlightedAxis = Gizmos.selectedAxis;
 
-		local curX, curY = GetCursorPosition();
-        local frameXMin = Renderer.projectionFrame:GetLeft();
-        local frameYMin = Renderer.projectionFrame:GetBottom();
-        local frameXMax = Renderer.projectionFrame:GetRight();
-        local frameYMax = Renderer.projectionFrame:GetTop();
-        local relativeX, relativeY = curX - frameXMin, curY - frameYMin;
-
-        local mouseRayOrigin = { x = Camera.position.x, y = Camera.position.y, z = Camera.position.z };
-        local cameraRotation = { x = Camera.position.x, y = Camera.eulerRotation.y, z = Camera.eulerRotation.z };
-
-        local mouseRayDir = Math.UnprojectMouse(relativeX, relativeY, Camera.width, Camera.height, Camera.projectionMatrix, Camera.viewMatrix);
+        local mouseRay = Camera.GetMouseRay();
 
         if (Gizmos.LMBPrevious.x == nil) then
-            Gizmos.LMBPrevious.x = curX;
-            Gizmos.LMBPrevious.y = curY;
+            Gizmos.LMBPrevious.x = Input.mouseXRaw;
+            Gizmos.LMBPrevious.y = Input.mouseYRaw;
         end
         
-		local xDiff = curX - Gizmos.LMBPrevious.x;
-		local yDiff = curY - Gizmos.LMBPrevious.y;
+		local xDiff = Input.mouseXRaw - Gizmos.LMBPrevious.x;
+		local yDiff = Input.mouseYRaw - Gizmos.LMBPrevious.y;
         local diff = ((xDiff + yDiff) / 2) / 100;
 
         if (SM.selectedObject ~= nil) then
@@ -361,9 +340,6 @@ function Gizmos.MotionToTransform()
             local rotation = SM.selectedObject:GetRotation();
             local rx, ry, rz = rotation.x, rotation.y, rotation.z;
             local s = SM.selectedObject:GetScale();
-            local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObject:GetActiveBoundingBox();
-            local centerH = zMax / 2;
-            --local objectCenter = { position.x * s, position.y * s, (position.z + (zMax / 2)) * s}
 
             if (Gizmos.activeTransformGizmo == 1) then
                 if (Gizmos.selectedAxis == 1) then
@@ -416,16 +392,12 @@ function Gizmos.MotionToTransform()
                     end
                 elseif (Gizmos.selectedAxis == 4) then
                     -- XY --
-                    
-                    local planeNormal = { x = 0, y = 0, z = 1 };
-                    local planePoint = { x = 0, y = 0, z = 0 };
-                    local intersects = Math.intersectRayPlane(mouseRayOrigin, mouseRayDir, planeNormal, planePoint);
-                    if (intersects ~= nil) then
-                        px = intersects.x;
-                        py = intersects.y;
-                        pz = intersects.z;
+                    local intersectionPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.up);
+                    if (intersectionPoint ~= nil) then
+                        px = intersectionPoint.x;
+                        py = intersectionPoint.y;
+                        pz = intersectionPoint.z;
                     end
-                    
                     --[[
                     local xVec = { Gizmos.MoveGizmo.screenSpaceVertices[1][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][1],
                                     Gizmos.MoveGizmo.screenSpaceVertices[1][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][2] }
@@ -598,8 +570,8 @@ function Gizmos.MotionToTransform()
             OP.Refresh();
         end
 
-        Gizmos.LMBPrevious.x = curX;
-		Gizmos.LMBPrevious.y = curY;
+        Gizmos.LMBPrevious.x = Input.mouseXRaw;
+		Gizmos.LMBPrevious.y = Input.mouseYRaw;
     end
 
 end
