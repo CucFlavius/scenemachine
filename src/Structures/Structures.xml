@@ -6,5 +6,6 @@ Structures
 	<Script file="Color.lua"/>
 	<Script file="Vector3.lua"/>
 	<Script file="Matrix.lua"/>
+	<Script file="Ray.lua"/>
 	<Script file="Object.lua"/>
 </Ui>

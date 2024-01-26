@@ -65,37 +65,11 @@ function Gizmos.Update()
 
     -- Debug Mouse to plane
     if (Input.mouseState.LMB) then
-		local curX, curY = GetCursorPosition();
-        local frameXMin = Renderer.projectionFrame:GetLeft();
-        local frameYMin = Renderer.projectionFrame:GetBottom();
-        local frameXMax = Renderer.projectionFrame:GetRight();
-        local frameYMax = Renderer.projectionFrame:GetTop();
 
-        local relativeX, relativeY = curX - frameXMin, curY - frameYMin;
-        local mouseX, mouseY = Input.mouseX, Input.mouseY;
-
-        local mouseRayOrigin = { x = Camera.position.x, y = Camera.position.y, z = Camera.position.z };
-        local cameraRotation = { x = Camera.eulerRotation.x, y = Camera.eulerRotation.y, z = Camera.eulerRotation.z };
-        
-        local mouseRayDir = Math.UnprojectMouse(relativeX, relativeY, Camera.width, Camera.height, Camera.projectionMatrix, Camera.viewMatrix);
-
-        local planeNormal = { x = 0, y = 0, z = 1 };
-        local planePoint = { x = 0, y = 0, z = 0 };
-        local intersects = Math.intersectRayPlane(mouseRayOrigin, mouseRayDir, planeNormal, planePoint);
-        if (intersects ~= nil) then
-            SceneMachine.Gizmos.DebugGizmo.position:Set(intersects.x, intersects.y, intersects.z);
-
-            -- Calculate yaw (rotation around the vertical axis)
-            local yaw = math.atan2(mouseRayDir[1], mouseRayDir[3])
-
-            -- Calculate pitch (rotation around the lateral axis)
-            local pitch = math.atan2(mouseRayDir[2], math.sqrt(mouseRayDir[1]^2 + mouseRayDir[3]^2))
-
-            --SceneMachine.Gizmos.DebugGizmo.rotation[1] = yaw;
-            --SceneMachine.Gizmos.DebugGizmo.rotation[2] = pitch;
-            --print(round(mouseRayDir[1], 2) .. " " .. round(mouseRayDir[2], 2) .. " " .. round(mouseRayDir[3], 2));
-            print(round(intersects.x, 2) .. " " .. round(intersects.y, 2) .. " " .. round(intersects.z, 2));
-        end
+        local mouseRay = Camera.GetMouseRay();
+        local intersectionPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.up);
+        --print(intersectionPoint);
+        SceneMachine.Gizmos.DebugGizmo.position:SetVector3(intersectionPoint or Vector3.zero);
     end
 end
 
