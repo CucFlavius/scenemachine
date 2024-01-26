@@ -1,11 +1,12 @@
 local Math = SceneMachine.Math;
+local Vector3 = SceneMachine.Vector3;
 
 SceneMachine.Object = 
 {
     fileID = 0,
     name = "",
-    position = { x = 0, y = 0, z = 0 },
-    rotation = { x = 0, y = 0, z = 0 },
+    position = Vector3:New(),
+    rotation = Vector3:New(),
     scale = 1,	
 	actor = nil,
 	class = "Object",
@@ -23,8 +24,8 @@ function Object:New(name, fileID, position, rotation, scale)
     {
         fileID = fileID or 0,
         name = name or "NewObject",
-        position = position or { x = 0, y = 0, z = 0 },
-        rotation = rotation or { x = 0, y = 0, z = 0 },
+        position = position or Vector3:New(),
+        rotation = rotation or Vector3:New(),
         scale = scale or 1,	
         actor = nil,
         class = "Object",

@@ -5,6 +5,7 @@ local Gizmos = SceneMachine.Gizmos;
 local Input = SceneMachine.Input;
 local Camera = SceneMachine.Camera;
 local Math = SceneMachine.Math;
+local Vector3 = SceneMachine.Vector3;
 
 ----------------------------------
 --			CC State	 		--
@@ -21,8 +22,8 @@ CC.Action.StrafeRight = false;		-- true if strafe right key is pressed
 CC.Action.ShiftSpeed = false;
 CC.Focus = 
 {
-	startPos = { 0, 0, 0 };
-	endPos = { 0, 0, 0 };
+	startPos = Vector3:New(0, 0, 0);
+	endPos = Vector3:New(0, 0, 0);
 	distance = 0;
 	startTime = 0;
 	focusing = false;
@@ -34,10 +35,7 @@ CC.Focus =
 CC.FoV = 70;						-- Field of View in degrees
 CC.Direction = 180;					-- The start angle at which the player is looking in degrees ( in degrees )
 CC.Pitch = 0;
-CC.Position = {};					-- the position table
-CC.Position.x = 0; 					-- start position
-CC.Position.y = 0; 					-- start position
-CC.Position.z = 1;					-- start position
+CC.position = Vector3:New(0, 0, 1);	-- start position
 CC.keyboardTurnSpeed = 1;
 CC.moveSpeed = 0.1;
 CC.acceleration = 1.0;
@@ -87,30 +85,32 @@ function CC.Update()
     end
 
 	if CC.Action.MoveForward then
-		local xf, yf, zf = SceneMachine.Renderer.projectionFrame:GetCameraForward();
-		CC.Position.x = CC.Position.x + (xf * CC.moveSpeed * CC.acceleration)
-		CC.Position.y = CC.Position.y + (yf * CC.moveSpeed * CC.acceleration)
-		CC.Position.z = CC.Position.z + (zf  * CC.moveSpeed * CC.acceleration)
+		local v = Vector3:New();
+		v:SetVector3(Camera.forward);
+		v:Scale(CC.moveSpeed * CC.acceleration);
+		CC.position:Add(v);
 	end
 
 	if CC.Action.MoveBackward then
-		local xf, yf, zf = SceneMachine.Renderer.projectionFrame:GetCameraForward();
-		CC.Position.x = CC.Position.x - (xf * CC.moveSpeed * CC.acceleration);
-		CC.Position.y = CC.Position.y - (yf * CC.moveSpeed * CC.acceleration);
-		CC.Position.z = CC.Position.z - (zf * CC.moveSpeed * CC.acceleration);
+		local v = Vector3:New();
+		v:SetVector3(Camera.forward);
+		v:Scale(CC.moveSpeed * CC.acceleration);
+		CC.position:Subtract(v);
 	end
 	if CC.Action.StrafeLeft then
-		CC.Position.x = CC.Position.x + (CC.moveSpeed * CC.acceleration * math.cos(DegreeToRadian(CC.Direction + 90)));
-		CC.Position.y = CC.Position.y + (CC.moveSpeed * CC.acceleration * math.sin(DegreeToRadian(CC.Direction + 90)));
+		local cosDir = math.cos(DegreeToRadian(CC.Direction + 90))
+		local sinDir = math.sin(DegreeToRadian(CC.Direction + 90));
+		CC.position.x = CC.position.x + (CC.moveSpeed * CC.acceleration * cosDir);
+		CC.position.y = CC.position.y + (CC.moveSpeed * CC.acceleration * sinDir);
 	end
 	if CC.Action.StrafeRight then
-		CC.Position.x = CC.Position.x + (CC.moveSpeed * CC.acceleration * math.cos(DegreeToRadian(CC.Direction - 90)));
-		CC.Position.y = CC.Position.y + (CC.moveSpeed * CC.acceleration * math.sin(DegreeToRadian(CC.Direction - 90)));
+		local cosDir = math.cos(DegreeToRadian(CC.Direction - 90))
+		local sinDir = math.sin(DegreeToRadian(CC.Direction - 90));
+		CC.position.x = CC.position.x + (CC.moveSpeed * CC.acceleration * cosDir);
+		CC.position.y = CC.position.y + (CC.moveSpeed * CC.acceleration * sinDir);
 	end
 
-    SceneMachine.Camera.X = CC.Position.x;
-    SceneMachine.Camera.Y = CC.Position.y;
-    SceneMachine.Camera.Z = CC.Position.z;
+	SceneMachine.Camera.position:SetVector3(CC.position);
     
     if (CC.RMBPressed == true) then
 		local x, y = GetCursorPosition();
@@ -120,12 +120,12 @@ function CC.Update()
 		CC.RMBPrevious.y = y;
 
 		-- if camera is in flight mode then handle that --
-		SceneMachine.Camera.Yaw = clampAngle(SceneMachine.Camera.Yaw - rad(xDiff * CC.mouseTurnSpeed));
-		SceneMachine.Camera.Pitch = clampAngle(SceneMachine.Camera.Pitch - rad(yDiff * CC.mouseTurnSpeed));
+		SceneMachine.Camera.eulerRotation.x = clampAngle(SceneMachine.Camera.eulerRotation.x - rad(xDiff * CC.mouseTurnSpeed));
+		SceneMachine.Camera.eulerRotation.y = clampAngle(SceneMachine.Camera.eulerRotation.y - rad(yDiff * CC.mouseTurnSpeed));
         CC.Direction = CC.Direction - xDiff * CC.mouseTurnSpeed;
         CC.Pitch = CC.Pitch - yDiff * CC.mouseTurnSpeed;
 	else
-        SceneMachine.Camera.Yaw = clampAngle(rad(CC.Direction));
+        SceneMachine.Camera.eulerRotation.x = clampAngle(rad(CC.Direction));
     end
 
 	-- handle focus
@@ -143,9 +143,7 @@ function CC.Update()
 			fractionOfJourney = distCovered / CC.Focus.distance;
 		end
 
-		CC.Position.x = Math.lerp(CC.Focus.startPos[1], CC.Focus.endPos[1], fractionOfJourney);
-		CC.Position.y = Math.lerp(CC.Focus.startPos[2], CC.Focus.endPos[2], fractionOfJourney);
-		CC.Position.z = Math.lerp(CC.Focus.startPos[3], CC.Focus.endPos[3], fractionOfJourney);
+		CC.position:Lerp(CC.Focus.startPos, CC.Focus.endPos, fractionOfJourney);
 
 		if (fractionOfJourney >= 1) then
 			CC.Focus.focusing = false;
@@ -170,25 +168,29 @@ function CC.FocusObject(object)
 	end
 
 	-- set start position
-	CC.Focus.startPos = { Camera.X, Camera.Y, Camera.Z };
-	
-	-- TODO: need to calculate an offset from the current object position, using the camera vector and object bounds
-	local objectPos = object:GetPosition();
-	local objectScale = object:GetScale();
-	local vector = Math.normalize(Math.eulerToDirection(Camera.Roll, math.abs(Camera.Pitch), Camera.Yaw));
+	CC.Focus.startPos:SetVector3(Camera.position);
+
+	local objectPos = object:GetPosition();--Vector3
+	local objectScale = object:GetScale();--Float
+	local vector = Vector3:New();
+	vector:SetVector3(Camera.eulerRotation);
+	vector:EulerToDirection();
+	vector:Normalize();
+
 	local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
-	local objectCenter = { objectPos.x * objectScale, objectPos.y * objectScale, (objectPos.z + (zMax / 2)) * objectScale}
+	local objectCenter = Vector3:New( objectPos.x * objectScale, objectPos.y * objectScale, (objectPos.z + (zMax / 2)) * objectScale );
 	local radius = math.max(xMax, math.max(yMax, zMax));
 	local dist = radius / (math.sin(math.rad(CC.FoV)) * 0.5);
-	local offs = { vector[1] * dist, vector[2] * dist, vector[3] * dist };
-	
+	vector:Scale(dist);
+	objectCenter:Subtract(vector);
+
 	-- set end position
-	CC.Focus.endPos = { objectCenter[1] - offs[1], objectCenter[2] - offs[2], objectCenter[3] - offs[3] };
+	CC.Focus.endPos:SetVector3(objectCenter);
 
 	CC.Focus.startTime = SceneMachine.time;
 
 	-- calculate the journey length.
-	CC.Focus.distance = Math.manhattanDistance3D(CC.Focus.startPos[1], CC.Focus.startPos[2], CC.Focus.startPos[3], CC.Focus.endPos[1], CC.Focus.endPos[2], CC.Focus.endPos[3]);
+	CC.Focus.distance = Vector3.ManhattanDistance(CC.Focus.startPos, CC.Focus.endPos);
 
 	CC.Focus.focusing = true;
 end

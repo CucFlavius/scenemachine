@@ -4,63 +4,42 @@ local Camera = SceneMachine.Camera;
 local SM = Editor.SceneManager;
 local Renderer = SceneMachine.Renderer;
 local PM = Editor.ProjectManager;
+local Vector3 = SceneMachine.Vector3;
+local Matrix = SceneMachine.Matrix;
 
-Camera.X = 0;
-Camera.Y = 0;
-Camera.Z = 0;		-- topdown
-Camera.Yaw = 0;
-Camera.Pitch = 0;
-Camera.Roll = 0;
-Camera.ProjectionPlaneOffset = 1.2;
-Camera.Forward = { 0, 0, 0 };
-Camera.Up = { 0, 0, 0 };
-Camera.Right = { 0, 0, 0 };
+Camera.position = Vector3:New();
+Camera.eulerRotation = Vector3:New();
+Camera.forward = Vector3:New();
+Camera.up = Vector3:New();
+Camera.right = Vector3:New();
+Camera.projectionPlaneOffset = 1.2;
+Camera.planePosition = Vector3:New();
 
-Camera.planePositionX = 0;
-Camera.planePositionY = 0;
-Camera.planePositionZ = 0;
-Camera.planeNormalX = 0;
-Camera.planeNormalY = 0;
-Camera.planeNormalZ = 0;
-
-Camera.projectionMatrix = SceneMachine.Matrix:New();
-Camera.viewMatrix = SceneMachine.Matrix:New();
+Camera.projectionMatrix = Matrix:New();
+Camera.viewMatrix = Matrix:New();
 
 function Camera.Update()
-    Renderer.projectionFrame:SetCameraPosition(Camera.X, Camera.Y, Camera.Z);
-    --print(Camera.Yaw .. " " .. Camera.Pitch .. " " .. Camera.Roll);
-    Renderer.projectionFrame:SetCameraOrientationByYawPitchRoll(Camera.Yaw, Camera.Pitch, Camera.Roll);
+    Renderer.projectionFrame:SetCameraPosition(Camera.position:Get());
+    Renderer.projectionFrame:SetCameraOrientationByYawPitchRoll(Camera.eulerRotation:Get());
 
-    local forwardX, forwardY, forwardZ = Renderer.projectionFrame:GetCameraForward();
-    Camera.Forward[1] = forwardX;
-    Camera.Forward[2] = forwardY;
-    Camera.Forward[3] = forwardZ;
-
-    local upX, upY, upZ = Renderer.projectionFrame:GetCameraUp();
-    Camera.Up[1] = upX;
-    Camera.Up[2] = upY;
-    Camera.Up[3] = upZ;
-
-    local rightX, rightY, rightZ = Renderer.projectionFrame:GetCameraRight();
-    Camera.Right[1] = rightX;
-    Camera.Right[2] = rightY;
-    Camera.Right[3] = rightZ;
+    Camera.forward:Set(Renderer.projectionFrame:GetCameraForward());
+    Camera.up:Set(Renderer.projectionFrame:GetCameraUp());
+    Camera.right:Set(Renderer.projectionFrame:GetCameraRight());
 
     -- Calculate camera near plane -- 
-	Camera.planeNormalX, Camera.planeNormalY, Camera.planeNormalZ = Renderer.projectionFrame:GetCameraForward();
-	Camera.planePositionX = Camera.X + (Camera.planeNormalX * Camera.ProjectionPlaneOffset);
-	Camera.planePositionY = Camera.Y + (Camera.planeNormalY * Camera.ProjectionPlaneOffset);
-	Camera.planePositionZ = Camera.Z + (Camera.planeNormalZ * Camera.ProjectionPlaneOffset);
+    Camera.planePosition:SetVector3(Camera.forward);
+    Camera.planePosition:Scale(Camera.projectionPlaneOffset);
+    Camera.planePosition:Add(Camera.position);
 
     -- remember current camera settings --
-    if (SM.loadedSceneIndex ~= -1) then
-        if (SM.loadedScene ~= nil) then
-            SM.loadedScene.lastCameraPositionX = Camera.X;
-            SM.loadedScene.lastCameraPositionY = Camera.Y;
-            SM.loadedScene.lastCameraPositionZ = Camera.Z;
-            SM.loadedScene.lastCameraYaw = Camera.Yaw;
-            SM.loadedScene.lastCameraPitch = Camera.Pitch;
-            SM.loadedScene.lastCameraRoll = Camera.Roll;
+    if (SM.loadedSceneIndex ~= -1 and SM.loadedScene ~= nil) then
+        if (SM.loadedScene.lastCameraPosition == nil) then
+            SM.loadedScene.lastCameraPosition = {};
         end
+        SM.loadedScene.lastCameraPosition[1],SM.loadedScene.lastCameraPosition[2],SM.loadedScene.lastCameraPosition[3]  = Camera.position:Get();
+        if (SM.loadedScene.lastCameraEuler == nil) then
+            SM.loadedScene.lastCameraEuler = {};
+        end
+        SM.loadedScene.lastCameraEuler[1], SM.loadedScene.lastCameraEuler[2], SM.loadedScene.lastCameraEuler[3] = Camera.eulerRotation:Get();
     end
 end

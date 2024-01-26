@@ -74,14 +74,14 @@ function Gizmos.Update()
         local relativeX, relativeY = curX - frameXMin, curY - frameYMin;
         local mouseX, mouseY = Input.mouseX, Input.mouseY;
 
-        local mouseRayOrigin = { x = Camera.X, y = Camera.Y, z = Camera.Z };
-        local cameraRotation = { x = Camera.Yaw, y = Camera.Pitch, z = Camera.Roll };
+        local mouseRayOrigin = { x = Camera.position.x, y = Camera.position.y, z = Camera.position.z };
+        local cameraRotation = { x = Camera.eulerRotation.x, y = Camera.eulerRotation.y, z = Camera.eulerRotation.z };
         local aspectRatio = width / height;
         local FoV = math.rad(CC.FoV);
         Camera.projectionMatrix:CreatePerspectiveFieldOfView(FoV, aspectRatio, 0.01, 1000);
-        Camera.viewMatrix:LookAt({ Camera.X, Camera.Y, Camera.Z }, Camera.Forward, { 0, 0, 1 });
-        --Camera.viewMatrix:TRS({ Camera.X, Camera.Y, Camera.Z }, yawPitchRollToQuaternion(Camera.Yaw, Camera.Pitch, Camera.Roll), { 1, 1, 1 })
-        --Camera.viewMatrix:LookAt({ Camera.X, Camera.Y, Camera.Z }, { Camera.X + front[1], Camera.Y + front[2], Camera.Z + front[3] }, { 0, 0, 1 });
+        Camera.viewMatrix:LookAt({ Camera.position.x, Camera.position.y, Camera.position.z }, { Camera.forward.x, Camera.forward.y, Camera.forward.z }, { 0, 0, 1 });
+        --Camera.viewMatrix:TRS({ Camera.position.x, Camera.position.y, Camera.position.z }, yawPitchRollToQuaternion(Camera.position.x, Camera.eulerRotation.y, Camera.eulerRotation.z), { 1, 1, 1 })
+        --Camera.viewMatrix:LookAt({ Camera.position.x, Camera.position.y, Camera.position.z }, { Camera.position.x + front[1], Camera.position.y + front[2], Camera.position.z + front[3] }, { 0, 0, 1 });
         local mouseRayDir = Math.UnprojectMouse(relativeX, relativeY, width, height, Camera.projectionMatrix, Camera.viewMatrix);
 
         --local mouseRayDir = Math.calculateMouseRay(cameraRotation, width, height, CC.FoV, relativeX, relativeY);
@@ -332,7 +332,7 @@ end
 function Gizmos.UpdateGizmoTransform()
 
     if (SceneMachine.Gizmos.DebugGizmo.active == true) then
-        --SceneMachine.Gizmos.DebugGizmo.scale = Math.manhattanDistance3D(px, py, pz, Camera.X, Camera.Y, Camera.Z) / 15;
+        --SceneMachine.Gizmos.DebugGizmo.scale = Math.manhattanDistance3D(px, py, pz, Camera.position.x, Camera.position.y, Camera.position.z) / 15;
         Gizmos.transformGizmo(SceneMachine.Gizmos.DebugGizmo, SceneMachine.Gizmos.DebugGizmo.position, SceneMachine.Gizmos.DebugGizmo.rotation, 1, {0, 0, 0}, 1, 0);
     end
 
@@ -354,14 +354,14 @@ function Gizmos.UpdateGizmoTransform()
 
     if (Gizmos.activeTransformGizmo == 1) then
         -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
-        SceneMachine.Gizmos.MoveGizmo.scale = Math.manhattanDistance3D(px, py, pz, Camera.X, Camera.Y, Camera.Z) / 15;
+        SceneMachine.Gizmos.MoveGizmo.scale = Math.manhattanDistance3D(px, py, pz, Camera.position.x, Camera.position.y, Camera.position.z) / 15;
         Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, {px, py, pz}, {rx, ry, rz}, 1, bbCenter, Gizmos.space, Gizmos.pivot);
     elseif (Gizmos.activeTransformGizmo == 2) then
         -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
-        SceneMachine.Gizmos.RotateGizmo.scale = Math.manhattanDistance3D(px, py, pz, Camera.X, Camera.Y, Camera.Z) / 10;
+        SceneMachine.Gizmos.RotateGizmo.scale = Math.manhattanDistance3D(px, py, pz, Camera.position.x, Camera.position.y, Camera.position.z) / 10;
         Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmo, {px, py, pz}, {rx, ry, rz}, 1, bbCenter, Gizmos.space, Gizmos.pivot);
     elseif (Gizmos.activeTransformGizmo == 3) then
-        SceneMachine.Gizmos.ScaleGizmo.scale = Math.manhattanDistance3D(px, py, pz, Camera.X, Camera.Y, Camera.Z) / 15;
+        SceneMachine.Gizmos.ScaleGizmo.scale = Math.manhattanDistance3D(px, py, pz, Camera.position.x, Camera.position.y, Camera.position.z) / 15;
         Gizmos.transformGizmo(SceneMachine.Gizmos.ScaleGizmo, {px, py, pz}, {rx, ry, rz}, 1, bbCenter, Gizmos.space, Gizmos.pivot);
     end
 end
@@ -380,17 +380,17 @@ function Gizmos.MotionToTransform()
         local height = Renderer.projectionFrame:GetHeight();
         local relativeX, relativeY = curX - frameXMin, curY - frameYMin;
 
-        local mouseRayOrigin = { x = Camera.X, y = Camera.Y, z = Camera.Z };
-        local cameraRotation = { x = Camera.Yaw, y = Camera.Pitch, z = Camera.Roll };
+        local mouseRayOrigin = { x = Camera.position.x, y = Camera.position.y, z = Camera.position.z };
+        local cameraRotation = { x = Camera.position.x, y = Camera.eulerRotation.y, z = Camera.eulerRotation.z };
         --local cameraRotation = { x = 0, y = 0, z = 0 };
         --local mouseRayDir = Math.calculateMouseRay(cameraRotation, width, height, CC.FoV, relativeX, relativeY);
         Camera.projectionMatrix:CreatePerspectiveFieldOfView(math.rad(70), width / height, 0.01, 1000);
 
-        local frontX = math.cos(Camera.Yaw) * math.cos(Camera.Pitch);
-        local frontY = math.sin(Camera.Pitch);
-        local frontZ = math.sin(Camera.Yaw) * math.cos(Camera.Pitch);
+        local frontX = math.cos(Camera.position.x) * math.cos(Camera.eulerRotation.y);
+        local frontY = math.sin(Camera.eulerRotation.y);
+        local frontZ = math.sin(Camera.position.x) * math.cos(Camera.eulerRotation.y);
 
-        Camera.viewMatrix:LookAt({ Camera.X, Camera.Y, Camera.Z }, {frontX, frontY, frontZ}, { 0, 0, 1 });
+        Camera.viewMatrix:LookAt({ Camera.position.x, Camera.position.y, Camera.position.z }, {frontX, frontY, frontZ}, { 0, 0, 1 });
 
         local mouseRayDir = Math.UnprojectMouse(relativeX, relativeY, width, height, Camera.projectionMatrix, Camera.viewMatrix);
 

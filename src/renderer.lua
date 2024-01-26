@@ -208,7 +208,7 @@ function RenderGizmoLines(gizmo)
         local line = gizmo.lines[t];
         
 		-- Near plane face culling --
-		local cull = NearPlaneFaceCullingLine(vert, Camera.planePositionX, Camera.planePositionY, Camera.planePositionZ, Camera.planeNormalX, Camera.planeNormalY, Camera.planeNormalZ, 0);
+		local cull = NearPlaneFaceCullingLine(vert, Camera.planePosition.x, Camera.planePosition.y, Camera.planePosition.z, Camera.forward.x, Camera.forward.y, Camera.forward.z, 0);
 
 		if (not cull) then
 			-- Project to screen space --

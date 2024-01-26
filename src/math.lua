@@ -221,15 +221,6 @@ function Math.lerp(start, finish, t)
     return start * (1 - t) + finish * t
 end
 
-function Math.eulerToDirection(rx, ry, rz)
-    -- Calculate direction vector components
-    local vx = math.cos(ry) * math.cos(rz)
-    local vy = math.sin(rz)
-    local vz = math.sin(ry) * math.cos(rz)
-
-    return { vx, vy, vz }
-end
-
 function Math.pointOnSphere(yaw, pitch, roll, distance)
     -- Convert degrees to radians
     yaw = math.rad(yaw)

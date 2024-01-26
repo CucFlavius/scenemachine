@@ -222,15 +222,13 @@ function SM.LoadScene(index)
     PM.currentProject.lastOpenScene = index;
 
     -- set the camera position and rotation to the last
-    CameraController.Position.x = scene.lastCameraPositionX or 0;
-    CameraController.Position.y = scene.lastCameraPositionY or 0;
-    CameraController.Position.z = scene.lastCameraPositionZ or 0;
-    CameraController.Direction = deg(scene.lastCameraYaw or 0);
-    Camera.Yaw = scene.lastCameraYaw or 0;
-    Camera.Pitch = scene.lastCameraPitch or 0;
-    Camera.Roll = scene.lastCameraRoll or 0;
-
-    --scene.lastCameraPosition = Renderer.projectionFrame:GetCameraPosition();
+    if (scene.lastCameraPosition ~= nil) then
+        CameraController.position:Set(scene.lastCameraPosition[1], scene.lastCameraPosition[2], scene.lastCameraPosition[3]);
+    end
+    if (scene.lastCameraEuler ~= nil) then
+        Camera.eulerRotation:Set(scene.lastCameraEuler[1], scene.lastCameraEuler[2], scene.lastCameraEuler[3]);
+    end
+    CameraController.Direction = deg(Camera.eulerRotation.x);
 
     -- refresh the scene tabs
     SM.RefreshSceneTabs();
