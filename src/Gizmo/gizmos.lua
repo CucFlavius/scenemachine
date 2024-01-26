@@ -7,6 +7,7 @@ local Camera = SceneMachine.Camera;
 local Input = SceneMachine.Input;
 local Math = SceneMachine.Math;
 local CC = SceneMachine.CameraController;
+local Vector3 = SceneMachine.Vector3;
 
 Gizmos.isUsed = false;
 Gizmos.isHighlighted = false;
@@ -89,9 +90,7 @@ function Gizmos.Update()
         local planePoint = { x = 0, y = 0, z = 0 };
         local intersects = Math.intersectRayPlane(mouseRayOrigin, mouseRayDir, planeNormal, planePoint);
         if (intersects ~= nil) then
-            SceneMachine.Gizmos.DebugGizmo.position[1] = intersects.x;
-            SceneMachine.Gizmos.DebugGizmo.position[2] = intersects.y;
-            SceneMachine.Gizmos.DebugGizmo.position[3] = intersects.z;
+            SceneMachine.Gizmos.DebugGizmo.position:Set(intersects.x, intersects.y, intersects.z);
 
             -- Calculate yaw (rotation around the vertical axis)
             local yaw = math.atan2(mouseRayDir[1], mouseRayDir[3])
@@ -332,7 +331,6 @@ end
 function Gizmos.UpdateGizmoTransform()
 
     if (SceneMachine.Gizmos.DebugGizmo.active == true) then
-        --SceneMachine.Gizmos.DebugGizmo.scale = Math.manhattanDistance3D(px, py, pz, Camera.position.x, Camera.position.y, Camera.position.z) / 15;
         Gizmos.transformGizmo(SceneMachine.Gizmos.DebugGizmo, SceneMachine.Gizmos.DebugGizmo.position, SceneMachine.Gizmos.DebugGizmo.rotation, 1, {0, 0, 0}, 1, 0);
     end
 
@@ -341,28 +339,26 @@ function Gizmos.UpdateGizmoTransform()
     end
 
     local position = SM.selectedObject:GetPosition();
-    local px, py, pz = position.x, position.y, position.z;
     local rotation = SM.selectedObject:GetRotation();
-    local rx, ry, rz = rotation.x, rotation.y, rotation.z;
     local scale = SM.selectedObject:GetScale();
 
     local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObject:GetActiveBoundingBox();
     local bbCenter = {(xMax - xMin) / 2, (yMax - yMin) / 2, (zMax - zMin) / 2};
 
     Gizmos.transformToAABB(SceneMachine.Gizmos.WireBox, bbCenter);
-    Gizmos.transformGizmo(SceneMachine.Gizmos.WireBox, {px, py, pz}, {rx, ry, rz}, scale, bbCenter, 1, 0);
+    Gizmos.transformGizmo(SceneMachine.Gizmos.WireBox, position, rotation, scale, bbCenter, 1, 0);
 
     if (Gizmos.activeTransformGizmo == 1) then
         -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
-        SceneMachine.Gizmos.MoveGizmo.scale = Math.manhattanDistance3D(px, py, pz, Camera.position.x, Camera.position.y, Camera.position.z) / 15;
-        Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, {px, py, pz}, {rx, ry, rz}, 1, bbCenter, Gizmos.space, Gizmos.pivot);
+        SceneMachine.Gizmos.MoveGizmo.scale = Vector3.ManhattanDistance(position, Camera.position) / 15;
+        Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, position, rotation, 1, bbCenter, Gizmos.space, Gizmos.pivot);
     elseif (Gizmos.activeTransformGizmo == 2) then
         -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
-        SceneMachine.Gizmos.RotateGizmo.scale = Math.manhattanDistance3D(px, py, pz, Camera.position.x, Camera.position.y, Camera.position.z) / 10;
-        Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmo, {px, py, pz}, {rx, ry, rz}, 1, bbCenter, Gizmos.space, Gizmos.pivot);
+        SceneMachine.Gizmos.RotateGizmo.scale = Vector3.ManhattanDistance(position, Camera.position) / 10;
+        Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmo, position, rotation, 1, bbCenter, Gizmos.space, Gizmos.pivot);
     elseif (Gizmos.activeTransformGizmo == 3) then
-        SceneMachine.Gizmos.ScaleGizmo.scale = Math.manhattanDistance3D(px, py, pz, Camera.position.x, Camera.position.y, Camera.position.z) / 15;
-        Gizmos.transformGizmo(SceneMachine.Gizmos.ScaleGizmo, {px, py, pz}, {rx, ry, rz}, 1, bbCenter, Gizmos.space, Gizmos.pivot);
+        SceneMachine.Gizmos.ScaleGizmo.scale = Vector3.ManhattanDistance(position, Camera.position) / 15;
+        Gizmos.transformGizmo(SceneMachine.Gizmos.ScaleGizmo, position, rotation, 1, bbCenter, Gizmos.space, Gizmos.pivot);
     end
 end
 
@@ -683,26 +679,27 @@ function Gizmos.transformGizmo(gizmo, position, rotation, scale, boundsCenter, s
     local boundsCenterOffset = boundsCenter[3] * scale;
     if (pivot == 0) then
         -- center
-        pivotOffset = { 0, 0, 0 };
+        pivotOffset = Vector3:New( 0, 0, 0 );
     elseif (pivot == 1) then
         -- base
-        local point = Math.RotatePointAroundPivot({0, 0, -boundsCenterOffset}, {0, 0, 0}, {rotation[1], rotation[2], rotation[3]});
-        pivotOffset = { point[1], point[2], point[3] };
+        pivotOffset = Vector3:New(0, 0, -boundsCenterOffset);
+        pivotOffset:RotateAroundPivot(Vector3:New(0, 0, 0), rotation);
     end
 
     for q = 1, gizmo.lineCount, 1 do
         for v = 1, 2, 1 do
             if (space == 1) then
                 -- local space --
-                local rotated = Math.rotatePoint(gizmo.vertices[q][v], rotation, scale);
-                gizmo.transformedVertices[q][v][1] = rotated[1] * gizmo.scale * scale + position[1] + pivotOffset[1];
-                gizmo.transformedVertices[q][v][2] = rotated[2] * gizmo.scale * scale + position[2] + pivotOffset[2];
-                gizmo.transformedVertices[q][v][3] = rotated[3] * gizmo.scale * scale + position[3] + pivotOffset[3];
+                local rotated = Vector3:New(gizmo.vertices[q][v][1], gizmo.vertices[q][v][2], gizmo.vertices[q][v][3]);
+                rotated:RotateAroundPivot(Vector3:New(0, 0, 0), rotation);
+                gizmo.transformedVertices[q][v][1] = rotated.x * gizmo.scale * scale + position.x + pivotOffset.x;
+                gizmo.transformedVertices[q][v][2] = rotated.y * gizmo.scale * scale + position.y + pivotOffset.y;
+                gizmo.transformedVertices[q][v][3] = rotated.z * gizmo.scale * scale + position.z + pivotOffset.z;
             elseif (space == 0) then
                 -- world space --
-                gizmo.transformedVertices[q][v][1] = gizmo.vertices[q][v][1] * gizmo.scale * scale + position[1] + pivotOffset[1];
-                gizmo.transformedVertices[q][v][2] = gizmo.vertices[q][v][2] * gizmo.scale * scale + position[2] + pivotOffset[2];
-                gizmo.transformedVertices[q][v][3] = gizmo.vertices[q][v][3] * gizmo.scale * scale + position[3] + pivotOffset[3];
+                gizmo.transformedVertices[q][v][1] = gizmo.vertices[q][v][1] * gizmo.scale * scale + position.x + pivotOffset.x;
+                gizmo.transformedVertices[q][v][2] = gizmo.vertices[q][v][2] * gizmo.scale * scale + position.y + pivotOffset.y;
+                gizmo.transformedVertices[q][v][3] = gizmo.vertices[q][v][3] * gizmo.scale * scale + position.z + pivotOffset.z;
             end
         end
     end

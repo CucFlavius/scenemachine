@@ -1,4 +1,5 @@
 local Gizmos = SceneMachine.Gizmos;
+local Vector3 = SceneMachine.Vector3;
 
 function Gizmos.CreateSelectionGizmo()
     local ch = 0.5;

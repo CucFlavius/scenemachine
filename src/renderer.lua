@@ -8,6 +8,7 @@ local FX = SceneMachine.FX;
 local Input = SceneMachine.Input;
 local Math = SceneMachine.Math;
 local CC = SceneMachine.CameraController;
+local Vector3 = SceneMachine.Vector3;
 
 --- WTF ---
 local sqrt = math.sqrt;
@@ -229,7 +230,7 @@ function RenderGizmoLines(gizmo)
                 line:SetEndPoint("BOTTOMLEFT", bX, bY)   -- end bottomright
 
                 if (gizmo.dashedLine == true) then
-                    local dist = Math.manhattanDistance3D(vert[1][1],vert[1][2],vert[1][3],vert[2][1],vert[2][2],vert[2][3]);
+                    local dist = Vector3.ManhattanDistanceP(vert[1][1],vert[1][2],vert[1][3],vert[2][1],vert[2][2],vert[2][3]);
                     dist = max(dist, 1);
                     dist = min(dist, 100);
                     line:SetTexCoord(0, dist , 0, 1);

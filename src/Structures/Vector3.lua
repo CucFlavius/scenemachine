@@ -64,6 +64,48 @@ function Vector3.ManhattanDistance(a, b)
     return math.abs(a.x - b.x) + math.abs(a.y - b.y) + math.abs(a.z - b.z);
 end
 
+function Vector3.ManhattanDistanceP(aX, aY, aZ, bX, bY, bZ)
+    return math.abs(aX - bX) + math.abs(aY - bY) + math.abs(aZ - bZ);
+end
+
+function Vector3:RotateAroundPivot(pivot, rotation)
+    -- Translate the object and pivot to the origin
+    self.x = self.x - pivot.x;
+    self.y = self.y - pivot.y;
+    self.z = self.z - pivot.z;
+
+    -- Apply rotation around the x-axis
+    local rx = rotation.x;
+    local cos_rx = math.cos(rx);
+    local sin_rx = math.sin(rx);
+    local x_rotated = self.x;
+    local y_rotated = cos_rx * self.y - sin_rx * self.z;
+    local z_rotated = sin_rx * self.y + cos_rx * self.z;
+
+    -- Apply rotation around the y-axis
+    local ry = rotation.y;
+    local cos_ry = math.cos(ry);
+    local sin_ry = math.sin(ry);
+    local x_rotated_y = cos_ry * x_rotated + sin_ry * z_rotated;
+    local y_rotated_y = y_rotated;
+    local z_rotated_y = -sin_ry * x_rotated + cos_ry * z_rotated;
+
+    -- Apply rotation around the z-axis
+    local rz = rotation.z;
+    local cos_rz = math.cos(rz);
+    local sin_rz = math.sin(rz);
+    local x_rotated_z = cos_rz * x_rotated_y - sin_rz * y_rotated_y;
+    local y_rotated_z = sin_rz * x_rotated_y + cos_rz * y_rotated_y;
+    local z_rotated_z = z_rotated_y;
+
+    -- Translate the object back to its original position
+    self.x = x_rotated_z + pivot.x;
+    self.y = y_rotated_z + pivot.y;
+    self.z = z_rotated_z + pivot.z;
+
+    return self;
+end
+
 function Vector3:EulerToDirection()
     -- Calculate direction vector components
     local vx = math.cos(self.x) * math.cos(self.y)

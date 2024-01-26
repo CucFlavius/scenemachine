@@ -1,4 +1,5 @@
 local Gizmos = SceneMachine.Gizmos;
+local Vector3 = SceneMachine.Vector3;
 
 local function calculateCirclePoints(centerX, centerY, centerZ, radius, numPoints, axis)
     local points = {}

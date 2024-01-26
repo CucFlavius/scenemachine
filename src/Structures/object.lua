@@ -87,26 +87,23 @@ function Object:GetPosition()
 end
 
 function Object:SetRotation(x, y, z, pivot)
-    if (not pivot) then
-        pivot = 0;
-    end
+    pivot = pivot or 0;
 
     if (pivot == 1) then
-        local angleDiff = { x - object.rotation.x, y - object.rotation.y, z - object.rotation.z };
+        local angleDiff = Vector3:New( x - object.rotation.x, y - object.rotation.y, z - object.rotation.z );
         local xMin, yMin, zMin, xMax, yMax, zMax = self:GetActiveBoundingBox();
         local bbCenter = ((zMax - zMin) / 2) * self:GetScale();
-        local ppoint = Math.RotateObjectAroundPivot({0, 0, bbCenter}, {0, 0, 0}, angleDiff);
+        local ppoint = Vector3:New();
+        ppoint:RotateAroundPivot(Vector3:New(0, 0, 0), angleDiff);
         local position = self:GetPosition();
         local px, py, pz = position.x, position.y, position.z;
-        px = px + ppoint[1];
-        py = py + ppoint[2];
-        pz = (pz + ppoint[3]) - bbCenter;
+        px = px + ppoint.x;
+        py = py + ppoint.y;
+        pz = (pz + ppoint.z) - bbCenter;
         self:SetPosition(px, py, pz);
     end
 
-    self.rotation.x = x;
-    self.rotation.y = y;
-    self.rotation.z = z;
+    self.rotation:Set(x, y, z);
 
     -- apply to actor
     if (self.actor ~= nil) then

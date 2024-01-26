@@ -1,55 +1,5 @@
 local Math = SceneMachine.Math;
 
-function Math.manhattanDistance(aX, aY, bX, bY)
-    return math.abs(aX - bX) + math.abs(aY - bY)
-end
-
-function Math.manhattanDistance3D(aX, aY, aZ, bX, bY, bZ)
-    return math.abs(aX - bX) + math.abs(aY - bY) + math.abs(aZ - bZ)
-end
-
-function Math.RotateObjectAroundPivot(object, pivot, rotation)
-    -- Translate the object and pivot to the origin
-    local translated_object = {
-        object[1] - pivot[1],
-        object[2] - pivot[2],
-        object[3] - pivot[3]
-    }
-
-    -- Apply rotation around the x-axis
-    local rx = rotation[1]
-    local cos_rx = math.cos(rx)
-    local sin_rx = math.sin(rx)
-    local x_rotated = translated_object[1]
-    local y_rotated = cos_rx * translated_object[2] - sin_rx * translated_object[3]
-    local z_rotated = sin_rx * translated_object[2] + cos_rx * translated_object[3]
-
-    -- Apply rotation around the y-axis
-    local ry = rotation[2]
-    local cos_ry = math.cos(ry)
-    local sin_ry = math.sin(ry)
-    local x_rotated_y = cos_ry * x_rotated + sin_ry * z_rotated
-    local y_rotated_y = y_rotated
-    local z_rotated_y = -sin_ry * x_rotated + cos_ry * z_rotated
-
-    -- Apply rotation around the z-axis
-    local rz = rotation[3]
-    local cos_rz = math.cos(rz)
-    local sin_rz = math.sin(rz)
-    local x_rotated_z = cos_rz * x_rotated_y - sin_rz * y_rotated_y
-    local y_rotated_z = sin_rz * x_rotated_y + cos_rz * y_rotated_y
-    local z_rotated_z = z_rotated_y
-
-    -- Translate the object back to its original position
-    local rotated_object = {
-        x_rotated_z + pivot[1],
-        y_rotated_z + pivot[2],
-        z_rotated_z + pivot[3]
-    }
-
-    return rotated_object
-end
-
 function Math.sqr(x)
     return x * x;
 end
@@ -74,31 +24,6 @@ end
 
 function Math.dotProduct(aX, aY, bX, bY)
     return aX * bX + aY * bY
-end
-
-function Math.rotatePoint(point, angles)
-    local x, y, z = point[1], point[2], point[3]
-    local rx, ry, rz = angles[1], angles[2], angles[3]
-
-    -- Rotate around x-axis
-    local cosRx = math.cos(rx)
-    local sinRx = math.sin(rx)
-    local newY = y * cosRx - z * sinRx
-    local newZ = y * sinRx + z * cosRx
-
-    -- Rotate around y-axis
-    local cosRy = math.cos(ry)
-    local sinRy = math.sin(ry)
-    local newX = x * cosRy + newZ * sinRy
-    newZ = -x * sinRy + newZ * cosRy
-
-    -- Rotate around z-axis
-    local cosRz = math.cos(rz)
-    local sinRz = math.sin(rz)
-    local finalX = newX * cosRz - newY * sinRz
-    local finalY = newX * sinRz + newY * cosRz
-
-    return {finalX, finalY, newZ}
 end
 
 function Math.rotateVector(rx, ry, rz, vx, vy, vz)
@@ -183,14 +108,6 @@ function Math.multiplyVectorByQuaternion(vector, quaternion)
     }
 
     return scaledVector
-end
-
-function Math.RotatePointAroundPivot(point, pivot, angles)
-    local dir = { point[1] - pivot[1], point[2] - pivot[2], point[3] - pivot[3] }; -- get point direction relative to pivot
-    local qAngles = Math.vectorToQuaternion(angles);
-    local vDir = Math.multiplyVectorByQuaternion(dir, qAngles); -- rotate it
-    local transformedPoint = { vDir[1] + pivot[1], vDir[2] + pivot[2], vDir[3] + pivot[3] }; -- calculate rotated point
-    return transformedPoint; -- return it
 end
 
 function Math.normalize(vector)

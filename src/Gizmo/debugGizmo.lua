@@ -1,4 +1,5 @@
 local Gizmos = SceneMachine.Gizmos;
+local Vector3 = SceneMachine.Vector3;
 
 function Gizmos.CreateDebugGizmo()
     local coneDetail = 10;
@@ -9,8 +10,8 @@ function Gizmos.CreateDebugGizmo()
     {
         active = true;
         lineCount = 3;
-        position = { 0, 0, 0 };
-        rotation = { 0, 0, 0 };
+        position = Vector3:New();
+        rotation = Vector3:New();
         scale = 10;
         vertices = 
         {
