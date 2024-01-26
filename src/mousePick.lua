@@ -58,18 +58,22 @@ function MousePick.CompareSelectionLists(listA, listB)
     return same;
 end
 
-function MousePick.Pick__(x, y)
+function MousePick.Pick(x, y)
     -- x, y are relative coordinates to the viewport
     local idx = 1;
     MousePick.selectionList = {};
 
     -- go through each object and determine if the mouse is on top of the bounding box
     -- then add to the MousePick.selectionList table
+
+    -- temp
+    SM.selectedObject = nil
+
     for i in pairs(SM.loadedScene.objects) do
         local object = SM.loadedScene.objects[i];
 
         local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
-        
+
         if (xMax == nil) then
             return;
         end
@@ -80,9 +84,13 @@ function MousePick.Pick__(x, y)
         if (ray:IntersectsOBB(obb)) then
             MousePick.selectionList[idx] = object;
             idx = idx + 1;
+
+            ---- temp ---
+            SM.selectedObject = object;
+            return
         end
     end
-
+    --[[
     -- go through each selection list item and determine which one to select
     if (#MousePick.selectionList == 0) then
         SM.selectedObject = nil;
@@ -114,12 +122,12 @@ function MousePick.Pick__(x, y)
     for i = 1, #MousePick.selectionList, 1 do
         MousePick.previousSelectionList[i] = MousePick.selectionList[i];
     end
-
+    --]]
     SH.RefreshHierarchy();
     OP.Refresh();
 end
 
-function MousePick.Pick(x, y)
+function MousePick.Pick__(x, y)
     -- x, y are relative coordinates to the viewport
     local idx = 1;
     MousePick.selectionList = {};

@@ -88,20 +88,29 @@ function Ray:IntersectsOBB(obb)
         local tMax = obb:GetMax();
         tMax:Subtract(self.origin);
         tMax:Divide(self.direction);
-
         local t1 = Vector3:New(math.min(tMin.x, tMax.x), math.min(tMin.y, tMax.y), math.min(tMin.z, tMax.z));
         local t2 = Vector3:New(math.max(tMin.x, tMax.x), math.max(tMin.y, tMax.y), math.max(tMin.z, tMax.z));
+        
+        local dMin = obb:GetMin();
+        local dMax = obb:GetMax();
+        --[[
+        Debug.ClearLines();
+        Debug.DrawLine(Vector3:New(dMin.x, dMin.y, dMin.z), Vector3:New(dMin.x + 2, dMin.y, dMin.z), 1, 0, 0, 1);
+        Debug.DrawLine(Vector3:New(dMin.x, dMin.y, dMin.z), Vector3:New(dMin.x, dMin.y + 2, dMin.z), 0, 1, 0, 1);
+        Debug.DrawLine(Vector3:New(dMin.x, dMin.y, dMin.z), Vector3:New(dMin.x, dMin.y, dMin.z + 2), 0, 0, 1, 1);
 
+        Debug.DrawLine(Vector3:New(dMax.x, dMax.y, dMax.z), Vector3:New(dMax.x - 2, dMax.y, dMax.z), 1, 0, 0, 1);
+        Debug.DrawLine(Vector3:New(dMax.x, dMax.y, dMax.z), Vector3:New(dMax.x, dMax.y - 2, dMax.z), 0, 1, 0, 1);
+        Debug.DrawLine(Vector3:New(dMax.x, dMax.y, dMax.z), Vector3:New(dMax.x, dMax.y, dMax.z - 2), 0, 0, 1, 1);
+
+        Debug.DrawLine(Vector3:New(obb.center.x + 1, obb.center.y, obb.center.z), Vector3:New(obb.center.x - 1, obb.center.y, obb.center.z), 0, 0, 0, 1);
+        Debug.DrawLine(Vector3:New(obb.center.x, obb.center.y + 1, obb.center.z), Vector3:New(obb.center.x, obb.center.y - 1, obb.center.z), 0, 0, 0, 1);
+        Debug.DrawLine(Vector3:New(obb.center.x, obb.center.y, obb.center.z + 1), Vector3:New(obb.center.x, obb.center.y, obb.center.z - 1), 0, 0, 0, 1);
+        --]]
         local tNear = math.max(math.max(t1.x, t1.y), t1.z);
-        local tFar = math.min(math.min(t2.x, t2.y), t2.x);
+        local tFar = math.min(math.min(t2.x, t2.y), t2.z);
+        
         return tNear <= tFar;
-        --local tMin = (this.min - ray.origin) / ray.direction;
-        --local tMax = (this.max - ray.origin) / ray.direction;
-        --local t1 = new Vector3(math.min(tMin.X, tMax.X), math.min(tMin.Y, tMax.Y), math.min(tMin.Z, tMax.Z));
-        --local t2 = new Vector3(math.max(tMin.X, tMax.X), math.max(tMin.Y, tMax.Y), math.max(tMin.Z, tMax.Z));
-        --float tNear = math.max(math.max(t1.X, t1.Y), t1.Z);
-        --float tFar = math.min(math.min(t2.X, t2.Y), t2.Z);
-        --return new Vector2(tNear, tFar);
     else
         -- OBB
         --[[
@@ -125,6 +134,8 @@ function Ray:IntersectsOBB(obb)
         return new Vector2(tNear, tFar);
         --]]
     end
+
+    return true;
 end
 
 Ray.__tostring = function(self)

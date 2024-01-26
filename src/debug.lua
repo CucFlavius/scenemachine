@@ -115,6 +115,12 @@ function Debug.DrawRay(ray, length, R, G, B, A)
 		ray.origin.z + (ray.direction.z * length)), R, G, B, A);
 end
 
+function Debug.ClearLines()
+	for t = 1, linePoolSize, 1 do
+		Debug.linePool[t].visible = false;
+	end
+end
+
 function Debug.DrawLine(pointA, pointB, R, G, B, A)
 	R = R or 1;
 	G = G or 1;
@@ -136,8 +142,7 @@ end
 
 function Debug.GetAvailableLineFromPool()
 	for t = 1, linePoolSize, 1 do
-		if (Debug.linePool[t].available) then
-			Debug.linePool[t].available = false;
+		if (Debug.linePool[t].visible == false) then
 			return Debug.linePool[t];
 		end
 	end
@@ -160,8 +165,6 @@ function Debug.FlushLinePool()
 				line:SetStartPoint("BOTTOMLEFT", aX, aY) -- start topleft
 				line:SetEndPoint("BOTTOMLEFT", bX, bY)   -- end bottomright
 			end
-
-			Debug.linePool[t].visible = false;
 		end
 	end
 end

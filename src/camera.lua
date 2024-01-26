@@ -90,16 +90,12 @@ local function EyeToRayVector(ray_eye, view_matrix)
     return ray_wor;
 end
 
-local function UnprojectMouse(mouseX, mouseY, screenWidth, screenHeight, cameraProjection, cameraView)
-    local ndc = MouseToNormalizedDeviceCoords(mouseX, mouseY, screenWidth, screenHeight);
-    local clip = NDCToClipCoords(ndc);
-    local eye = ClipToEye(clip, cameraProjection);
-    local rayvec = EyeToRayVector(eye, cameraView);
-    return rayvec;
-end
-
 function Camera.GetMouseRay()
-    local direction = UnprojectMouse(Input.mouseX, Input.mouseY, Camera.width, Camera.height, Camera.projectionMatrix, Camera.viewMatrix);
+    local ndc = MouseToNormalizedDeviceCoords(Input.mouseX, Input.mouseY, Camera.width, Camera.height);
+    local clip = NDCToClipCoords(ndc);
+    local eye = ClipToEye(clip, Camera.projectionMatrix);
+    local direction = EyeToRayVector(eye, Camera.viewMatrix);
+
     local origin = Camera.position;
     local mouseRay = Ray:New(origin, direction);
 

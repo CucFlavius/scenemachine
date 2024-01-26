@@ -74,8 +74,8 @@ function Gizmos.Update()
         mouseRay.origin.x + (mouseRay.direction.x * 50),
         mouseRay.origin.y + (mouseRay.direction.y * 50),
         mouseRay.origin.z + (mouseRay.direction.z * 50));
-    Debug.DrawLine(Vector3:New(origin.x, origin.y, origin.z - 1), origin, 1, 0, 0, 1);
-    Debug.DrawLine(origin, destination);
+    --Debug.DrawLine(Vector3:New(origin.x, origin.y, origin.z - 1), origin, 1, 0, 0, 1);
+    --Debug.DrawLine(origin, destination);
     local intersectionPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.up);
     SceneMachine.Gizmos.DebugGizmo.position:SetVector3(intersectionPoint or Vector3.zero);
 end

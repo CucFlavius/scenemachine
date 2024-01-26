@@ -6,7 +6,9 @@ SceneMachine.OBB =
 {
     center = nil,
     rotation = nil,
-    size = nil
+    size = nil,
+    min = nil,
+    max = nil,
 }
 
 local OBB = SceneMachine.OBB;
@@ -43,9 +45,9 @@ function OBB:SetFromMinMaxAABB(xMin, yMin, zMin, xMax, yMax, zMax)
     self.size.x = xMax - xMin;
     self.size.y = yMax - yMin;
     self.size.z = zMax - zMin;
-    self.center.x = xMin + (self.size.x / 2.0);
-    self.center.y = yMin + (self.size.y / 2.0);
-    self.center.z = zMin + (self.size.z / 2.0);
+    self.center.x = (xMax - xMin) / 2.0 + xMin;
+    self.center.y = (yMax - yMin) / 2.0 + yMin;
+    self.center.z = 0;
 end
 
 function OBB:Get()
@@ -55,7 +57,7 @@ end
 function OBB:GetMin()
     -- center - (size / 2)
     local mx = self.center.x - (self.size.x / 2.0);
-    local my = self.center.y - (self.size.x / 2.0);
+    local my = self.center.y - (self.size.y / 2.0);
     local mz = self.center.z - (self.size.z / 2.0);
     return Vector3:New(mx, my, mz);
 end
@@ -63,7 +65,7 @@ end
 function OBB:GetMax()
     -- center + (size / 2)
     local mx = self.center.x + (self.size.x / 2.0);
-    local my = self.center.y + (self.size.x / 2.0);
+    local my = self.center.y + (self.size.y / 2.0);
     local mz = self.center.z + (self.size.z / 2.0);
     return Vector3:New(mx, my, mz);
 end
