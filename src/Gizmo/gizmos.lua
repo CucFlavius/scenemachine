@@ -20,7 +20,7 @@ Gizmos.frames = {};
 Gizmos.vectorX = {1,0,0};
 Gizmos.vectorY = {0,1,0};
 Gizmos.vectorZ = {0,0,1};
-Gizmos.savedRotation = {0, 0, 0};
+Gizmos.savedRotation = Vector3:New();
 Gizmos.rotationIncrement = 0;
 
 function Gizmos.Create()
@@ -550,10 +550,10 @@ function Gizmos.MotionToTransform()
                     if (Gizmos.space == 0) then
                         rx = rx + diff;
                     elseif (Gizmos.space == 1) then
-                        local rot = Math.multiplyRotations(Gizmos.savedRotation, {Gizmos.rotationIncrement, 0, 0});
-                        rx = rot[1];
-                        ry = rot[2];
-                        rz = rot[3];
+                        local rot = Math.multiplyRotations(Gizmos.savedRotation, Vector3:New(Gizmos.rotationIncrement, 0, 0));
+                        rx = rot.x;
+                        ry = rot.y;
+                        rz = rot.z;
                     end
                 elseif (Gizmos.selectedAxis == 2) then
                     if (Gizmos.space == 0) then
@@ -572,19 +572,19 @@ function Gizmos.MotionToTransform()
                         --]]
                         ---------------------------------------------------------
                     elseif (Gizmos.space == 1) then
-                        local rot = Math.multiplyRotations(Gizmos.savedRotation, {0, Gizmos.rotationIncrement, 0});
-                        rx = rot[1];
-                        ry = rot[2];
-                        rz = rot[3];
+                        local rot = Math.multiplyRotations(Gizmos.savedRotation, Vector3:New(0, Gizmos.rotationIncrement, 0));
+                        rx = rot.x;
+                        ry = rot.y;
+                        rz = rot.z;
                     end
                 elseif (Gizmos.selectedAxis == 3) then
                     if (Gizmos.space == 0) then
                         rz = rz + diff;
                     elseif (Gizmos.space == 1) then
-                        local rot = Math.multiplyRotations(Gizmos.savedRotation, {0, 0, Gizmos.rotationIncrement});
-                        rx = rot[1];
-                        ry = rot[2];
-                        rz = rot[3];
+                        local rot = Math.multiplyRotations(Gizmos.savedRotation, Vector3:New(0, 0, Gizmos.rotationIncrement));
+                        rx = rot.x;
+                        ry = rot.y;
+                        rz = rot.z;
                     end
                 end
 
@@ -617,12 +617,12 @@ function Gizmos.OnLMBDown(x, y)
         Gizmos.vectorX = Math.normalize(Math.rotateVector(rx, ry, rz, 1, 0, 0));
         Gizmos.vectorY = Math.normalize(Math.rotateVector(rx, ry, rz, 0, 1, 0));
         Gizmos.vectorZ = Math.normalize(Math.rotateVector(rx, ry, rz, 0, 0, 1));
-        Gizmos.savedRotation = {rx, ry, rz};
+        Gizmos.savedRotation:Set(rx, ry, rz);
     else
         Gizmos.vectorX = {1,0,0};
         Gizmos.vectorY = {0,1,0};
         Gizmos.vectorZ = {0,0,1};
-        Gizmos.savedRotation = {0, 0, 0};
+        Gizmos.savedRotation:Set(0, 0, 0);
     end
 end
 
