@@ -213,4 +213,6 @@ Vector3.__index = function(t,k)
 end
 
 Vector3.up = Vector3:New(0, 0, 1);
+Vector3.forward = Vector3:New(1, 0, 0);
+Vector3.right = Vector3:New(0, 1, 0);
 Vector3.zero = Vector3:New(0, 0, 0);

@@ -325,181 +325,43 @@ function Gizmos.MotionToTransform()
             local rotation = SM.selectedObject:GetRotation();
             local rx, ry, rz = rotation.x, rotation.y, rotation.z;
             local s = SM.selectedObject:GetScale();
-
+            local iPoint;
             if (Gizmos.activeTransformGizmo == 1) then
                 if (Gizmos.selectedAxis == 1) then
                     -- X --
-                    local dot = Math.dotProduct(
-                        xDiff,
-                        yDiff,
-                        Gizmos.MoveGizmo.screenSpaceVertices[1][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][1],
-                        Gizmos.MoveGizmo.screenSpaceVertices[1][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][2]
-                    );
-                    local gscale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
-                    if (Gizmos.space == 0) then
-                        px = px + gscale;
-                    elseif (Gizmos.space == 1) then
-                        px = px + (gscale * Gizmos.vectorX[1]);
-                        py = py + (gscale * Gizmos.vectorX[2]);
-                        pz = pz + (gscale * Gizmos.vectorX[3]);
-                    end
+                    iPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.up);
+                    iPoint.y = 0;
+                    iPoint.z = 0;
                 elseif (Gizmos.selectedAxis == 2) then
                     -- Y --
-                    local dot = Math.dotProduct(
-                        xDiff,
-                        yDiff,
-                        Gizmos.MoveGizmo.screenSpaceVertices[2][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][1],
-                        Gizmos.MoveGizmo.screenSpaceVertices[2][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][2]
-                    );
-                    local gscale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
-                    if (Gizmos.space == 0) then
-                        py = py + gscale;
-                    elseif (Gizmos.space == 1) then                    
-                        px = px + (gscale * Gizmos.vectorY[1]);
-                        py = py + (gscale * Gizmos.vectorY[2]);
-                        pz = pz + (gscale * Gizmos.vectorY[3]);
-                    end
+                    iPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.up);
+                    iPoint.x = 0;
+                    iPoint.z = 0;
                 elseif (Gizmos.selectedAxis == 3) then
                     -- Z --
-                    local dot = Math.dotProduct(
-                        xDiff,
-                        yDiff,
-                        Gizmos.MoveGizmo.screenSpaceVertices[3][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[3][1][1],
-                        Gizmos.MoveGizmo.screenSpaceVertices[3][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[3][1][2]
-                    );
-                    local gscale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
-                    if (Gizmos.space == 0) then
-                        pz = pz + gscale;
-                    elseif (Gizmos.space == 1) then
-                        px = px + (gscale * Gizmos.vectorZ[1]);
-                        py = py + (gscale * Gizmos.vectorZ[2]);
-                        pz = pz + (gscale * Gizmos.vectorZ[3]);
-                    end
+                    iPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.right);
+                    iPoint.x = 0;
+                    iPoint.y = 0;
                 elseif (Gizmos.selectedAxis == 4) then
                     -- XY --
-                    local intersectionPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.up);
-                    if (intersectionPoint ~= nil) then
-                        px = intersectionPoint.x;
-                        py = intersectionPoint.y;
-                        pz = intersectionPoint.z;
-                    end
-                    --[[
-                    local xVec = { Gizmos.MoveGizmo.screenSpaceVertices[1][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][1],
-                                    Gizmos.MoveGizmo.screenSpaceVertices[1][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][2] }
-                    local dot = Math.dotProduct(
-                        xDiff,
-                        yDiff,
-                        xVec[1],
-                        xVec[2]
-                    );
-                    local gscale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
-                    if (Gizmos.space == 0) then
-                        px = px + gscale;
-                    elseif (Gizmos.space == 1) then
-                        px = px + (gscale * Gizmos.vectorX[1]);
-                        py = py + (gscale * Gizmos.vectorX[2]);
-                        pz = pz + (gscale * Gizmos.vectorX[3]);
-                    end
-
-                    local yVec = { Gizmos.MoveGizmo.screenSpaceVertices[2][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][1],
-                                    Gizmos.MoveGizmo.screenSpaceVertices[2][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][2] }
-                    local dot = Math.dotProduct(
-                        xDiff,
-                        yDiff,
-                        yVec[1],
-                        yVec[2]
-                    );
-                    local gscale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
-                    if (Gizmos.space == 0) then
-                        py = py + gscale;
-                    elseif (Gizmos.space == 1) then                    
-                        px = px + (gscale * Gizmos.vectorY[1]);
-                        py = py + (gscale * Gizmos.vectorY[2]);
-                        pz = pz + (gscale * Gizmos.vectorY[3]);
-                    end
-
-                    local halfwayVec = { (Gizmos.MoveGizmo.screenSpaceVertices[2][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][1]) + (Gizmos.MoveGizmo.screenSpaceVertices[1][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][1]),
-                                            (Gizmos.MoveGizmo.screenSpaceVertices[2][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][2]) + (Gizmos.MoveGizmo.screenSpaceVertices[1][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][2]) }
-                    local dot = Math.dotProduct(
-                        xDiff,
-                        yDiff,
-                        halfwayVec[1],
-                        halfwayVec[2]
-                    );
-                    local gscale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
-                    if (Gizmos.space == 0) then
-                        px = px + gscale;
-                        py = py + gscale;
-                    elseif (Gizmos.space == 1) then    
-                        px = px + (gscale * Gizmos.vectorX[1]);
-                        py = py + (gscale * Gizmos.vectorX[2]);
-                        pz = pz + (gscale * Gizmos.vectorX[3]);                
-                        px = px + (gscale * Gizmos.vectorY[1]);
-                        py = py + (gscale * Gizmos.vectorY[2]);
-                        pz = pz + (gscale * Gizmos.vectorY[3]);
-                    end
-                    --]]
+                    iPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.up);
                 elseif (Gizmos.selectedAxis == 5) then
                     -- XZ --
-                    local dot = Math.dotProduct(
-                        xDiff,
-                        yDiff,
-                        Gizmos.MoveGizmo.screenSpaceVertices[1][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][1],
-                        Gizmos.MoveGizmo.screenSpaceVertices[1][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][2]
-                    );
-                    local gscale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
-                    if (Gizmos.space == 0) then
-                        px = px + gscale;
-                    elseif (Gizmos.space == 1) then
-                        px = px + (gscale * Gizmos.vectorX[1]);
-                        py = py + (gscale * Gizmos.vectorX[2]);
-                        pz = pz + (gscale * Gizmos.vectorX[3]);
-                    end
-                    local dot = Math.dotProduct(
-                        xDiff,
-                        yDiff,
-                        Gizmos.MoveGizmo.screenSpaceVertices[3][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[3][1][1],
-                        Gizmos.MoveGizmo.screenSpaceVertices[3][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[3][1][2]
-                    );
-                    local gscale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
-                    if (Gizmos.space == 0) then
-                        pz = pz + gscale;
-                    elseif (Gizmos.space == 1) then
-                        px = px + (gscale * Gizmos.vectorZ[1]);
-                        py = py + (gscale * Gizmos.vectorZ[2]);
-                        pz = pz + (gscale * Gizmos.vectorZ[3]);
-                    end
+                    iPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.right);
                 elseif (Gizmos.selectedAxis == 6) then
                     -- YZ --
-                    local dot = Math.dotProduct(
-                        xDiff,
-                        yDiff,
-                        Gizmos.MoveGizmo.screenSpaceVertices[2][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][1],
-                        Gizmos.MoveGizmo.screenSpaceVertices[2][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][2]
-                    );
-                    local gscale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
-                    if (Gizmos.space == 0) then
-                        py = py + gscale;
-                    elseif (Gizmos.space == 1) then                    
-                        px = px + (gscale * Gizmos.vectorY[1]);
-                        py = py + (gscale * Gizmos.vectorY[2]);
-                        pz = pz + (gscale * Gizmos.vectorY[3]);
-                    end
-                    local dot = Math.dotProduct(
-                        xDiff,
-                        yDiff,
-                        Gizmos.MoveGizmo.screenSpaceVertices[3][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[3][1][1],
-                        Gizmos.MoveGizmo.screenSpaceVertices[3][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[3][1][2]
-                    );
-                    local gscale = dot * 0.0001 * Gizmos.MoveGizmo.scale;
-                    if (Gizmos.space == 0) then
-                        pz = pz + gscale;
-                    elseif (Gizmos.space == 1) then
-                        px = px + (gscale * Gizmos.vectorZ[1]);
-                        py = py + (gscale * Gizmos.vectorZ[2]);
-                        pz = pz + (gscale * Gizmos.vectorZ[3]);
-                    end
+                    iPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.forward);
                 end
+
+                if (iPoint and Gizmos.previousIPoint) then
+                    px = px + (iPoint.x - Gizmos.previousIPoint.x);
+                    py = py + (iPoint.y - Gizmos.previousIPoint.y);
+                    pz = pz + (iPoint.z - Gizmos.previousIPoint.z);
+                    Gizmos.previousIPoint.x = iPoint.x;
+                    Gizmos.previousIPoint.y = iPoint.y;
+                    Gizmos.previousIPoint.z = iPoint.z;
+                end
+
                 SM.selectedObject:SetPosition(px, py, pz);
             elseif (Gizmos.activeTransformGizmo == 2) then
                 Gizmos.rotationIncrement = Gizmos.rotationIncrement + diff;
@@ -566,6 +428,41 @@ function Gizmos.OnLMBDown(x, y)
 	Gizmos.LMBPrevious.y = y;
     Gizmos.isUsed = true;
     Gizmos.rotationIncrement = 0;
+
+    -- Store initial values so they can be diffed during mouse movement
+    -- in order to get smooth transition
+
+    -- store initial ray intersection
+    if (SM.selectedObject ~= nil) then
+        local mouseRay = Camera.GetMouseRay();
+        if (Gizmos.activeTransformGizmo == 1) then
+            if (Gizmos.selectedAxis == 1) then
+                -- X --
+                Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.up);
+                Gizmos.previousIPoint.y = 0;
+                Gizmos.previousIPoint.z = 0;
+            elseif (Gizmos.selectedAxis == 2) then
+                -- Y --
+                Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.up);
+                Gizmos.previousIPoint.x = 0;
+                Gizmos.previousIPoint.z = 0;
+            elseif (Gizmos.selectedAxis == 3) then
+                -- Z --
+                Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.right);
+                Gizmos.previousIPoint.x = 0;
+                Gizmos.previousIPoint.y = 0;
+            elseif (Gizmos.selectedAxis == 4) then
+                -- XY --
+                Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.up);
+            elseif (Gizmos.selectedAxis == 5) then
+                -- XZ --
+                Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.right);
+            elseif (Gizmos.selectedAxis == 6) then
+                -- YZ --
+                Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.forward);
+            end
+        end
+    end
 
     -- store rotation vector
     if (SM.selectedObject ~= nil) then

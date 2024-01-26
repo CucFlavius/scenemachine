@@ -51,6 +51,32 @@ function Ray:Get()
     return self.origin, self.direction;
 end
 
+-- NOT TESTED --
+function Ray:NearestPointOnLine(linePoint, lineDirection)
+    local t = Vector3.DotProduct(lineDirection, self.direction)
+
+    -- Check if the line and ray are not parallel
+    if math.abs(t) > 1e-6 then
+        local lineToRay = Vector3:New();
+        lineToRay:SetVector3(self.origin);
+        lineToRay:Subtract(linePoint);
+        local u = Vector3.DotProduct(lineToRay, lineDirection) / t
+
+        -- Ensure that the point is along the ray (u >= 0)
+        if u >= 0 then
+            local intersectionPoint = Vector3:New();
+            intersectionPoint:SetVector3(lineDirection);
+            intersectionPoint:Scale(u);
+            intersectionPoint:Add(linePoint);
+
+            return intersectionPoint
+        end
+    end
+
+    -- If the line and ray are parallel or the intersection point is behind the ray origin, return the ray origin
+    return self.origin
+end
+
 function Ray:PlaneIntersection(planePoint, planeNormal)
     -- Ensure that the ray and plane are not parallel
     local dotProduct = Vector3.DotProduct(planeNormal, self.direction);
