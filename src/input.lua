@@ -138,7 +138,7 @@ function Input.Update()
         end
     end
 
-    local dragDiffMin = 3;  -- how many pixels does the mouse need to move to register as a drag
+    local dragDiffMin = 2;  -- how many pixels does the mouse need to move to register as a drag
     -- determine if draging
     if (Input.mouseState.isDragging == false) then
         if (LMB or RMB or MMB) then

@@ -6,6 +6,7 @@ local Renderer = SceneMachine.Renderer;
 local PM = Editor.ProjectManager;
 local Input = SceneMachine.Input;
 
+local Vector2 = SceneMachine.Vector2;
 local Vector3 = SceneMachine.Vector3;
 local Vector4 = SceneMachine.Vector4;
 local Matrix = SceneMachine.Matrix;
@@ -45,7 +46,7 @@ function Camera.Update()
     Camera.right:Set(Renderer.projectionFrame:GetCameraRight());
 
     Camera.projectionMatrix:CreatePerspectiveFieldOfView(Camera.fov, Camera.aspectRatio, 0.01, 1000);
-    Camera.viewMatrix:LookAt(Camera.position, Camera.forward, Vector3.up);
+    Camera.viewMatrix:LookAt(Camera.position, Camera.position + Camera.forward, Vector3.up);
 
     -- Calculate camera near plane -- 
     Camera.planePosition:SetVector3(Camera.forward);
@@ -65,25 +66,43 @@ function Camera.Update()
     end
 end
 
+-------------------------------------------------------
+-- Transform mouse coords from renderer relative to  --
+-- device coords (between -0.5 and +0.5) 0 at center --
+-------------------------------------------------------
+--  x+0.5            x-0.5         
+--  y+0.5            y+0.5
+--
+--          x=0.0
+--          y=0.0
+--
+--  x+0.5            x-0.5         
+--  y-0.5            y-0.5
+-------------------------------------------------------
 local function MouseToNormalizedDeviceCoords(mouseX, mouseY, width, height)
     local x = 0.5 - mouseX / width;
     local y = mouseY / height - 0.5;
-    return { x, y };
+    return Vector2:New(x, y);
 end
 
 local function NDCToClipCoords(ray_nds)
-    return Vector4:New(ray_nds[1], ray_nds[2], -1.0, 1.0 );
+    return Vector4:New(ray_nds.x, ray_nds.y, -1.0, 1.0 );
 end
 
 local function ClipToEye(ray_clip, projection_matrix)
-    projection_matrix:Invert();
-    local ray_eye = ray_clip:MultiplyMatrix(projection_matrix);
+    local projectionInv = Matrix:New();
+    projectionInv:SetMatrix(projection_matrix);
+    projectionInv:Invert();
+
+    local ray_eye = ray_clip:MultiplyMatrix(projectionInv);
     return Vector4:New( ray_eye.x, ray_eye.y, -1.0, 0.0 );
 end
 
 local function EyeToRayVector(ray_eye, view_matrix)
-    view_matrix:Invert();
-    ray_eye:MultiplyMatrix(view_matrix);
+    local viewInv = Matrix:New();
+    viewInv:SetMatrix(view_matrix);
+    viewInv:Invert();
+    ray_eye:MultiplyMatrix(viewInv);
     local ray_wor = Vector3:New();
     ray_wor:SetVector3(ray_eye);
     ray_wor:Normalize();

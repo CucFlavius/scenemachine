@@ -4,6 +4,7 @@ Structures
 
 <Ui>
 	<Script file="Color.lua"/>
+	<Script file="Vector2.lua"/>
 	<Script file="Vector3.lua"/>
 	<Script file="Vector4.lua"/>
 	<Script file="Quaternion.lua"/>

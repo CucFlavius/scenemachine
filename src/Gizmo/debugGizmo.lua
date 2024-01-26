@@ -8,7 +8,7 @@ function Gizmos.CreateDebugGizmo()
     local ch = 0.3;
     Gizmos.DebugGizmo = 
     {
-        active = true;
+        active = false;
         lineCount = 3;
         position = Vector3:New();
         rotation = Vector3:New();

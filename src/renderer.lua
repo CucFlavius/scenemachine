@@ -71,9 +71,6 @@ function Renderer.CreateRenderer(x, y, w, h, parent, point, relativePoint)
 	Renderer.CreateBackgroundFrame();
 	Renderer.GenerateFrameBuffer();
 	Renderer.active = false;
-
-    --Input.mouseInputFrame:SetWidth(w);
-	--Input.mouseInputFrame:SetHeight(h);
 end
 
 function Renderer.AddActor(fileID, X, Y, Z)
@@ -245,8 +242,6 @@ function RenderGizmoLines(gizmo)
 		end
 
 	end
-
-    --print(SceneMachine.Gizmos.DebugGizmo.lines[1]:IsVisible())
 end
 
 function ShadeSelectionGizmo(gizmo)

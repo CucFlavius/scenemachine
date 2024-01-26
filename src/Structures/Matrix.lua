@@ -29,7 +29,8 @@ function Matrix:New()
 end
 
 function Matrix:CreatePerspectiveFieldOfView(fov, aspectRatio, depthNear, depthFar)
-    local top = depthNear * math.tan(0.5 * fov);
+    local FOV_CORRECTION = 0.97;
+    local top = depthNear * math.tan(0.5 * fov * FOV_CORRECTION);
     local bottom = -top;
     local left = bottom * aspectRatio;
     local right = top * aspectRatio;
@@ -80,33 +81,37 @@ function Matrix:TRS(t, r, s)
     self.m33 = 1.0;
 end
 
-function Matrix:LookAt(position, target, up)
-    local forward = Vector3:New();
-    forward:SetVector3(target);
-    forward:Subtract(position);
-    forward:Normalize();
+function Matrix:LookAt(eye, target, up)
+    local z = Vector3:New();
+    z:SetVector3(eye);
+    z:Subtract(target);
+    z:Normalize();
 
-    local right = Vector3:New();
-    right:SetVector3(up);
-    right:CrossProduct(forward);
-    right:Normalize();
+    local x = Vector3:New();
+    x:SetVector3(up);
+    x:CrossProduct(z);
+    x:Normalize();
 
-    local newUp = Vector3:New();
-    newUp:SetVector3(forward);
-    newUp:CrossProduct(right);
+    local y = Vector3:New();
+    y:SetVector3(z);
+    y:CrossProduct(x);
+    y:Normalize();
 
-    self.m00 = right.x;
-    self.m01 = right.y;
-    self.m02 = right.z;
-    self.m03 = -Vector3.DotProduct(right, position);
-    self.m10 = newUp.x;
-    self.m11 = newUp.y;
-    self.m12 = newUp.z;
-    self.m13 = -Vector3.DotProduct(newUp, position);
-    self.m20 = -forward.x;
-    self.m21 = -forward.y;
-    self.m22 = -forward.z;
-    self.m23 = Vector3.DotProduct(forward, position);
+    self.m00 = -x.x;
+    self.m01 = -x.y;
+    self.m02 = -x.z;
+    self.m03 = Vector3.DotProduct(x, eye);
+
+    self.m10 = y.x;
+    self.m11 = y.y;
+    self.m12 = y.z;
+    self.m13 = -Vector3.DotProduct(y, eye);
+
+    self.m20 = z.x;
+    self.m21 = z.y;
+    self.m22 = z.z;
+    self.m23 = -Vector3.DotProduct(z, eye);
+    
     self.m30 = 0;
     self.m31 = 0;
     self.m32 = 0;
@@ -155,39 +160,27 @@ function Matrix:Invert()
     return self;
 end
 
---function Matrix:GetFileID()
---    return self.fileID;
---end
---
---function Matrix:SetPosition(x, y, z)
---    self.position.x = x;
---    self.position.y = y;
---    self.position.z = z;
---    
---    -- apply to actor
---    if (self.actor ~= nil) then
---        local s = self.scale;
---        self.actor:SetPosition(x / s, y / s, z / s);
---    end
---end
+function Matrix:SetMatrix(m)
+    self.m00 = m.m00;
+    self.m01 = m.m01;
+    self.m02 = m.m02;
+    self.m03 = m.m03;
 
---Matrix.__tostring = function(self)
---	return string.format("%s %i p(%f,%f,%f)", self.name, self.fileID, self.position.x, self.position.y, self.position.z);
---end
+    self.m10 = m.m10;
+    self.m11 = m.m11;
+    self.m12 = m.m12;
+    self.m13 = m.m13;
 
---Matrix.__eq = function(a,b)
---    return a.id == b.id;
---end
+    self.m20 = m.m20;
+    self.m21 = m.m21;
+    self.m22 = m.m22;
+    self.m23 = m.m23;
 
--- Set multiply "*" behaviour
---Matrix.__mul = function( m1,m2 )
---	if getmetatable( m1 ) ~= matrix_meta then
---		return matrix.mulnum( m2,m1 )
---	elseif getmetatable( m2 ) ~= matrix_meta then
---		return matrix.mulnum( m1,m2 )
---	end
---	return matrix.mul( m1,m2 )
---end
+    self.m30 = m.m30;
+    self.m31 = m.m31;
+    self.m32 = m.m32;
+    self.m33 = m.m33;
+end
 
 Matrix.__index = function(t,k)
 	local var = rawget(Matrix, k)

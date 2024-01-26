@@ -127,11 +127,11 @@ function Vector4:Lerp(a, b, t)
 end
 
 Vector4.__tostring = function(self)
-	return string.format("Vector4( %.3f, %.3f, %.3f )", self.x, self.y, self.z);
+	return string.format("Vector4( %.3f, %.3f, %.3f, %.3f )", self.x, self.y, self.z, self.w);
 end
 
 Vector4.__eq = function(a,b)
-    return a.x == b.x and a.y == b.x and a.z == b.z and a.w == b.w;
+    return a.x == b.x and a.y == b.y and a.z == b.z and a.w == b.w;
 end
 
 Vector4.__index = function(t,k)

@@ -190,18 +190,13 @@ Vector3.__tostring = function(self)
 end
 
 Vector3.__eq = function(a,b)
-    return a.x == b.x and a.y == b.x and a.z == b.z;
+    return a.x == b.x and a.y == b.y and a.z == b.z;
 end
 
 -- Set multiply "*" behaviour
---Vector3.__mul = function( m1,m2 )
---	if getmetatable( m1 ) ~= matrix_meta then
---		return matrix.mulnum( m2,m1 )
---	elseif getmetatable( m2 ) ~= matrix_meta then
---		return matrix.mulnum( m1,m2 )
---	end
---	return matrix.mul( m1,m2 )
---end
+Vector3.__add = function( v1,v2 )
+	return Vector3:New(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
+end
 
 Vector3.__index = function(t,k)
 	local var = rawget(Vector3, k)
