@@ -61,10 +61,11 @@ function Input.Update()
     
     -- need to verify that the click was done in the editor render frame
     -- otherwise any ui click will deselect whatever object is selected
-    local frameXMin = Renderer.projectionFrame:GetLeft();
-    local frameYMin = Renderer.projectionFrame:GetBottom();
-    local frameXMax = Renderer.projectionFrame:GetRight();
-    local frameYMax = Renderer.projectionFrame:GetTop();
+    local scale = Renderer.projectionFrame:GetEffectiveScale();
+    local frameXMin = Renderer.projectionFrame:GetLeft() * scale;
+    local frameYMin = Renderer.projectionFrame:GetBottom() * scale;
+    local frameXMax = Renderer.projectionFrame:GetRight() * scale;
+    local frameYMax = Renderer.projectionFrame:GetTop() * scale;
     local relativeX, relativeY = x - frameXMin, y - frameYMin;
 
     Input.mouseX = relativeX
@@ -184,6 +185,7 @@ function Input.Update()
 end
 
 function Input.OnDragStart(LMB, RMB, MMB)
+    if (not Editor.isOpen) then return end
     if LMB and RMB then return end
 
     if RMB then
@@ -208,6 +210,7 @@ function Input.OnDragStop()
 end
 
 function Input.OnClick(LMB, RMB, MMB, x, y)
+    if (not Editor.isOpen) then return end
     if (LMB) then
         -- mouse pick --
         if (not Gizmos.isHighlighted) or (SM.selectedObject == nil) then
@@ -219,11 +222,16 @@ function Input.OnClick(LMB, RMB, MMB, x, y)
 end
 
 function Input.OnClickUp(LMB, RMB, MMB, x, y)
+    if (not Editor.isOpen) then return end
     if (LMB) then
     elseif (RMB) then
         -- open RMB context menu --
-        local rx = Input.mouseXRaw - SceneMachine.mainWindow:GetLeft();
-        local ry = Input.mouseYRaw - SceneMachine.mainWindow:GetHeight() - 10;
+        local scale = SceneMachine.mainWindow:GetEffectiveScale();
+        --local rx = Input.mouseX - SceneMachine.mainWindow:GetLeft() - Renderer.projectionFrame:GetLeft()) * scale;
+        --local ry = Input.mouseY - SceneMachine.mainWindow:GetTop() * scale;
+        print(Renderer.projectionFrame:GetBottom() .. " " .. SceneMachine.mainWindow:GetBottom())
+        local rx = (Input.mouseX * Renderer.scale) + (Renderer.projectionFrame:GetLeft() - SceneMachine.mainWindow:GetLeft());--SceneMachine.mainWindow:GetWidth();
+        local ry = (Input.mouseY * Renderer.scale) - 485;--SceneMachine.mainWindow:GetWidth();
         Editor.OpenContextMenu(rx, ry);
     elseif (MMB) then
     end

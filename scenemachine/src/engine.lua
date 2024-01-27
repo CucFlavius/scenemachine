@@ -71,25 +71,19 @@ local function SG_UpdateLoop ()
 	if (SceneMachine.StatsFrame ~= nil and SceneMachine.StatsFrame.text ~= nil)
 	then
 		fps = GetFramerate();
-		if (fps < 15) then		-- if the fps dips below 15, deactivate renderer
-			Renderer.active = false
-		else
-			Renderer.active = true
-		end
-
 		UpdateCumulativeMovingAverageFPS(fps);
 		SceneMachine.StatsFrame.text:SetText(
-			"FrameBuffer : " .. SceneMachine.UsedFrames .. "/" .. SceneMachine.Renderer.FrameBufferSize .. ", Culled : " .. SceneMachine.CulledFrames .. "\n" ..
-			"FPS : " .. floor(fps) .. " Avg. " .. floor(currentAvgFPS) .. "\n" ..
-			"Time : " .. floor(SceneMachine.time) .. "\n" ..
-			"Renderer : " .. tostring(Renderer.active)
+			--"FrameBuffer : " .. SceneMachine.UsedFrames .. "/" .. SceneMachine.Renderer.FrameBufferSize .. ", Culled : " .. SceneMachine.CulledFrames .. "\n" ..
+			"FPS : " .. floor(fps) .. " Avg. " .. floor(currentAvgFPS) .. "\n"
+			--"Time : " .. floor(SceneMachine.time) .. "\n" ..
+			--"Renderer : " .. tostring(Renderer.active)
 		);
 	end
 	
 	if SceneMachine.preRenderUpdateAction ~= nil then
 		SceneMachine.preRenderUpdateAction();
 	end
-	
+
 	Camera.Update();
     CameraController.Update();
 	Input.Update();

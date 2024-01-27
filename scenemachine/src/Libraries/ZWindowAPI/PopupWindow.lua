@@ -17,7 +17,6 @@ local Win = ZWindowAPI;
 ---@return table windowFrame Wow Frame that contains all of the window elements
 function Win.CreatePopupWindow(posX, posY, sizeX, sizeY, parent, windowPoint, parentPoint, title)
 	local win = Win.CreateWindow(posX, posY, sizeX, sizeY, parent, windowPoint, parentPoint, title);
-	win:SetFrameStrata("HIGH");
 	win.TitleBar.text:SetText(title);
 	return win;
 end

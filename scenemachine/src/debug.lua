@@ -24,7 +24,6 @@ end
 
 function Debug.CreateLineProjectionFrame()
 	local lineProjectionFrame = CreateFrame("Frame", "lineProjectionFrame", Renderer.projectionFrame)
-	lineProjectionFrame:SetFrameStrata("BACKGROUND");
 	lineProjectionFrame:SetWidth(Renderer.w);
 	lineProjectionFrame:SetHeight(Renderer.h);
 	lineProjectionFrame:SetPoint("TOPRIGHT", Renderer.projectionFrame, "TOPRIGHT", 0, 0);

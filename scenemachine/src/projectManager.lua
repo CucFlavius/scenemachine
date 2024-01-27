@@ -17,9 +17,10 @@ PM.projectListIDs = {};
 
 function PM.CreateWindow()
     PM.window = Win.CreatePopupWindow(0, 0, managerWindowWidth, managerWindowHeight, SceneMachine.mainWindow, "CENTER", "CENTER", "ProjectManager");
+    PM.window:SetFrameStrata(Editor.SUB_FRAME_STRATA);
     local dropShadow = Win.CreateImageBox(0, 10, managerWindowWidth * 1.20, managerWindowHeight * 1.29, PM.window, "CENTER", "CENTER",
 	"Interface\\Addons\\scenemachine\\static\\textures\\dropShadowSquare.png");
-    dropShadow:SetFrameStrata("MEDIUM");
+    dropShadow:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
     PM.window.texture:SetColorTexture(c4[1], c4[2], c4[3],1);
     PM.window.TitleBar.texture:SetColorTexture(c1[1], c1[2], c1[3], 1);
     PM.window.CloseButton.ntex:SetColorTexture(c1[1], c1[2], c1[3], 1);
@@ -249,7 +250,7 @@ function PM.ButtonDeleteProject()
     Win.OpenMessageBox(PM.window, 
     "Remove Project", "Removing the project will also remove all its scenes and data, continue?",
     true, true, function() PM.DeleteProject(PM.selectedProjectID) end, function() end);
-    Win.messageBox:SetFrameStrata("DIALOG");
+    Win.messageBox:SetFrameStrata(Editor.MESSAGE_BOX_FRAME_STRATA);
 end
 
 function PM.DeleteProject(ID)

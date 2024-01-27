@@ -165,7 +165,7 @@ function SM.Button_DeleteScene(index)
     true, true, function() 
         SM.DeleteScene(index);
     end, function() end);
-    Win.messageBox:SetFrameStrata("DIALOG");
+    Win.messageBox:SetFrameStrata(Editor.MESSAGE_BOX_FRAME_STRATA);
 end
 
 function SM.CreateScene(sceneName)

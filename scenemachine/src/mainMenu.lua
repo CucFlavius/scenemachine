@@ -32,5 +32,5 @@ function MainMenu.Create()
             },
         },
     };
-	Win.WindowCreateMenuBar(SceneMachine.mainWindow, menu);
+	Win.WindowCreateMenuBar(SceneMachine.mainWindow, menu, Editor.MAIN_FRAME_STRATA);
 end

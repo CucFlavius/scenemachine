@@ -76,7 +76,7 @@ function Win.CreateWindow(posX, posY, sizeX, sizeY, parent, windowPoint, parentP
 	return WindowFrame;
 end
 
-function Win.WindowCreateMenuBar(window, menu)
+function Win.WindowCreateMenuBar(window, menu, frameStrata)
 	local menubar = Win.CreateRectangle(0, 0, window:GetWidth(), 15, window, "TOP", "TOP", c1[1], c1[2], c1[3], 1);
 	menubar.buttons = {};
 
@@ -94,18 +94,18 @@ function Win.WindowCreateMenuBar(window, menu)
 	end
 
 	if (popup == nil) then
-		popup = Win.CreateMenu(window, parent);
+		popup = Win.CreateMenu(window, parent, frameStrata);
 	end
 
 	window.menuIsOpen = false;
 end
 
-function Win.CreateMenu(window, parent)
+function Win.CreateMenu(window, parent, frameStrata)
 	local popup = CreateFrame("Button", "Zee.WindowAPI.Button", parent)
 	popup:SetPoint("CENTER", window, "CENTER", 0, 0);
 	popup:SetWidth(window:GetWidth());
 	popup:SetHeight(window:GetHeight() - 30);
-	popup:SetFrameStrata("DIALOG");
+	popup:SetFrameStrata("FULLSCREEN_DIALOG");
 	popup.ntex = popup:CreateTexture()
 	popup.ntex:SetColorTexture(0,0,0,0.0);
 	popup.ntex:SetAllPoints()	
@@ -115,7 +115,7 @@ function Win.CreateMenu(window, parent)
 		popup:Hide();
 	end)
 	popup:Hide();
-	popup:SetFrameStrata("HIGH");
+	popup:SetFrameStrata("FULLSCREEN");
 
 	popup.menu = Win.CreateRectangle(0, 0, 200, 1000, popup, "TOPLEFT", "TOPLEFT", c1[1], c1[2], c1[3], 1)
 	popup.menu.buttons = {}
@@ -132,7 +132,7 @@ end
 
 function Win.PopupWindowMenu(x, y, window, menuOptions)
 	window.menuIsOpen = true;
-
+	popup:SetScale(window:GetEffectiveScale());
 	if (menuOptions == nil) then return end
 	local optionCount = #menuOptions;
 	if (optionCount == 0) then return end

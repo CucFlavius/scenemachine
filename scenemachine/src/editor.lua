@@ -8,6 +8,7 @@ local OP = Editor.ObjectProperties;
 local Gizmos = SceneMachine.Gizmos;
 local SM = Editor.SceneManager;
 local CC = SceneMachine.CameraController;
+local PM = Editor.ProjectManager;
 
 Editor.width = 1280;
 Editor.height = 720;
@@ -15,13 +16,25 @@ Editor.toolbarHeight = 15 + 30;
 local rightPanelWidth = 300;
 local leftPanelWidth = 300;
 local bottomPanelHeight = 200;
+Editor.isOpen = false;
+Editor.isInitialized = false;
 
 local c1 = { 0.1757, 0.1757, 0.1875 };
 local c2 = { 0.242, 0.242, 0.25 };
 local c3 = { 0, 0.4765, 0.7968 };
 local c4 = { 0.1171, 0.1171, 0.1171 };
 
+-- Need to start at high so that the editor window displays on top of the spellbar
+-- This is a tool not a game so it's fine
+Editor.MAIN_FRAME_STRATA = "HIGH";              -- Main window
+Editor.SUB_FRAME_STRATA = "DIALOG";             -- Child windows like "Project Manager"
+Editor.MESSAGE_BOX_FRAME_STRATA = "FULLSCREEN"; -- Dialogs like "Are you sure you wanna?""
+
 function Editor.Initialize()
+    if (Editor.isInitialized) then
+        return;
+    end
+
     -- Create all of the UI --
     Win.Initialize("Interface\\AddOns\\scenemachine\\src\\Libraries\\ZWindowAPI");
     Editor.CreateMainWindow();
@@ -67,14 +80,39 @@ function Editor.Initialize()
 
     -- load saved variables (this is safe to do because Editor.Initialize() is done on ADDON_LOADED)
     Editor.ProjectManager.LoadSavedData();
+
+    SceneMachine.mainWindow:Hide();
+    Editor.isInitialized = true;
+end
+
+function Editor.Show()
+    SceneMachine.mainWindow:Show();
+    local screenHeight = GetScreenHeight();
+
+    if (SceneMachine.mainWindow:GetTop() + 20 > screenHeight) then
+        Editor.ResetWindow();
+    end
+
+    Editor.isOpen = true;
+end
+
+function Editor.Hide()
+    SceneMachine.mainWindow:Hide();
+    Editor.isOpen = false;
+end
+
+function Editor.ResetWindow()
+    SceneMachine.mainWindow:ClearAllPoints();
+    SceneMachine.mainWindow:SetPoint("CENTER", nil, "CENTER", 0, 0);
 end
 
 function Editor.CreateMainWindow()
 	SceneMachine.mainWindow = Win.CreateWindow(0, 0, Editor.width, Editor.height, nil, nil, nil, true, "Editor");
-	SceneMachine.mainWindow:SetFrameStrata("BACKGROUND");
+    SceneMachine.mainWindow.CloseButton:SetScript("OnClick", function (self, button, down) Editor.Hide(); end)
+	SceneMachine.mainWindow:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
 	SceneMachine.WINDOW_WIDTH = Editor.width;
 	SceneMachine.WINDOW_HEIGHT = Editor.height;
-	SceneMachine.mainWindow:SetIgnoreParentScale(true);		-- This way the camera doesn't get offset when the wow window or UI changes size/aspect
+	--SceneMachine.mainWindow:SetIgnoreParentScale(true);		-- This way the camera doesn't get offset when the wow window or UI changes size/aspect
     SceneMachine.mainWindow.texture:SetColorTexture(c4[1], c4[2], c4[3],1);
     SceneMachine.mainWindow.TitleBar.texture:SetColorTexture(c1[1], c1[2], c1[3], 1);
     SceneMachine.mainWindow.CloseButton.ntex:SetColorTexture(c1[1], c1[2], c1[3], 1);
@@ -114,7 +152,6 @@ function SceneMachine.CreateStatsFrame()
 	SceneMachine.StatsFrame:SetPoint("TOPRIGHT", Renderer.projectionFrame, "TOPRIGHT", 0, 0);
 	SceneMachine.StatsFrame:SetWidth(200);
 	SceneMachine.StatsFrame:SetHeight(200);
-	SceneMachine.StatsFrame:SetFrameStrata("LOW");
 	SceneMachine.StatsFrame.text = SceneMachine.StatsFrame:CreateFontString(nil, "BACKGROUND", "GameTooltipText");
 	SceneMachine.StatsFrame.text:SetFont(Win.defaultFont, 9, "NORMAL");
 
@@ -131,7 +168,7 @@ function Editor.Save()
     Win.OpenMessageBox(SceneMachine.mainWindow, 
     "Save", "Saving requires a UI reload, continue?",
     true, true, function() ReloadUI(); end, function() end);
-    Win.messageBox:SetFrameStrata("DIALOG");
+    Win.messageBox:SetFrameStrata(Editor.MESSAGE_BOX_FRAME_STRATA);
 end
 
 function Editor.ShowProjectManager()

@@ -16,19 +16,17 @@ local floor = math.floor;
 
 Renderer.FrameBufferSize = 400;
 Renderer.FrameBufferFrames = {};
-Renderer.FrameBufferLines = {};
 Renderer.actors = {};
 SceneMachine.UsedFrames = 1;
 SceneMachine.CulledFrames = 1;
 SceneMachine.lineThickness = 2;
-
 
 function Renderer.GenerateFrameBuffer()
 
     -- Frames --
 	for t = 1, Renderer.FrameBufferSize, 1 do
 		Renderer.FrameBufferFrames[t] = CreateFrame("Frame", "Renderer.FramebufferFrame_" .. t, Renderer.projectionFrame)
-		Renderer.FrameBufferFrames[t]:SetFrameStrata("BACKGROUND");
+		Renderer.FrameBufferFrames[t]:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
         Renderer.FrameBufferFrames[t]:SetFrameLevel(100);
 		Renderer.FrameBufferFrames[t]:SetWidth(SceneMachine.WINDOW_WIDTH)
 		Renderer.FrameBufferFrames[t]:SetHeight(SceneMachine.WINDOW_HEIGHT)
@@ -48,7 +46,7 @@ end
 
 function Renderer.CreateBackgroundFrame()
 	Renderer.backgroundFrame = CreateFrame("Frame", "Renderer.backgroundFrame", Renderer.projectionFrame)
-	Renderer.backgroundFrame:SetFrameStrata("BACKGROUND");
+	Renderer.backgroundFrame:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
 	Renderer.backgroundFrame:SetWidth(Renderer.w);
 	Renderer.backgroundFrame:SetHeight(Renderer.h);
 	Renderer.backgroundFrame:SetPoint("TOPRIGHT", Renderer.projectionFrame, "TOPRIGHT", 0, 0);
@@ -151,6 +149,7 @@ end
 
 function Renderer.RenderGizmos()
     if (Renderer.active == true) then
+        Renderer.scale = 1.0 / Renderer.projectionFrame:GetEffectiveScale();
         SceneMachine.usedFramesLastFrame = SceneMachine.UsedFrames;
         SceneMachine.UsedFrames = 1;
         SceneMachine.CulledFrames = 1;
@@ -208,8 +207,8 @@ function RenderGizmoLines(gizmo)
 			if (aX ~= nil and aY ~= nil and bX ~= nil and bY ~= nil) then
                 line:Show();
                 line:SetVertexColor(faceColor[1], faceColor[2], faceColor[3], faceColor[4] or 1);
-                line:SetStartPoint("BOTTOMLEFT", aX, aY) -- start topleft
-                line:SetEndPoint("BOTTOMLEFT", bX, bY)   -- end bottomright
+                line:SetStartPoint("BOTTOMLEFT", aX * Renderer.scale, aY * Renderer.scale) -- start topleft
+                line:SetEndPoint("BOTTOMLEFT", bX * Renderer.scale, bY * Renderer.scale)   -- end bottomright
 
                 if (gizmo.dashedLine == true) then
                     local dist = Vector3.ManhattanDistanceP(vert[1][1],vert[1][2],vert[1][3],vert[2][1],vert[2][2],vert[2][3]);

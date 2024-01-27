@@ -1,15 +1,16 @@
-<!-- Engine -->
-
 <Ui>
+    <!-- Libs -->
+    <Include file="Libraries\ZWindowAPI\ZWindowAPI.xml"/>
+
+    <!-- Scene Machine -->
     <Script file="header.lua"/>
 
     <Script file="Data\creature.lua"/>
     <Script file="Data\data.lua"/>
 
     <Include file="Structures\Structures.xml"/>
-    <Include file="Libraries\ZWindowAPI\ZWindowAPI.xml"/>
 
-    <Script file="debug.lua"/>
+    <!-- <Script file="debug.lua"/> -->
 
     <Script file="camera.lua"/>
     <Script file="input.lua"/>

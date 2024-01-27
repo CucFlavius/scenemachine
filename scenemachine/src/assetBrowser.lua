@@ -30,9 +30,9 @@ function AssetBrowser.Create(parent, w, h)
     AssetBrowser.Refresh();
 
     -- DEBUG --
-    AssetBrowser.OnThumbnailClick("World");
-    AssetBrowser.OnThumbnailClick("Arttest");
-    AssetBrowser.OnThumbnailClick("Shader");
+    --AssetBrowser.OnThumbnailClick("World");
+    --AssetBrowser.OnThumbnailClick("Arttest");
+    --AssetBrowser.OnThumbnailClick("Shader");
 end
 
 function AssetBrowser.OnChangeTab(idx)
@@ -306,7 +306,7 @@ function AssetBrowser.OnThumbnailDrag(name)
             if fileName == name then
                 local fileID = AssetBrowser.currentDirectory["FI"][i];
                 local mouseRay = Camera.GetMouseRay();
-                local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up);
+                local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
                 local object = SM.CreateObject(fileID, fileName, initialPosition.x, initialPosition.y, initialPosition.z);
                 SM.selectedObject = object;
                 Input.mouseState.LMB = true;

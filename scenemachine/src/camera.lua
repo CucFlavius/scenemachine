@@ -110,7 +110,7 @@ local function EyeToRayVector(ray_eye, view_matrix)
 end
 
 function Camera.GetMouseRay()
-    local ndc = MouseToNormalizedDeviceCoords(Input.mouseX, Input.mouseY, Camera.width, Camera.height);
+    local ndc = MouseToNormalizedDeviceCoords(Input.mouseX * Renderer.scale, Input.mouseY * Renderer.scale, Camera.width, Camera.height);
     local clip = NDCToClipCoords(ndc);
     local eye = ClipToEye(clip, Camera.projectionMatrix);
     local direction = EyeToRayVector(eye, Camera.viewMatrix);
