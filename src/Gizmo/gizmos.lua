@@ -382,21 +382,27 @@ function Gizmos.MotionToTransform()
                 elseif (Gizmos.selectedAxis == 4) then
                     -- XY --
                     iPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up);
-                    px = px + (iPoint.x - Gizmos.previousIPoint.x)
-                    py = py + (iPoint.y - Gizmos.previousIPoint.y)
-                    pz = pz + (iPoint.z - Gizmos.previousIPoint.z)
+                    if (iPoint ~= nil) then
+                        px = px + (iPoint.x - Gizmos.previousIPoint.x)
+                        py = py + (iPoint.y - Gizmos.previousIPoint.y)
+                        pz = pz + (iPoint.z - Gizmos.previousIPoint.z)
+                    end
                 elseif (Gizmos.selectedAxis == 5) then
                     -- XZ --
                     iPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.right);
-                    px = px + (iPoint.x - Gizmos.previousIPoint.x)
-                    py = py + (iPoint.y - Gizmos.previousIPoint.y)
-                    pz = pz + (iPoint.z - Gizmos.previousIPoint.z)
+                    if (iPoint ~= nil) then
+                        px = px + (iPoint.x - Gizmos.previousIPoint.x)
+                        py = py + (iPoint.y - Gizmos.previousIPoint.y)
+                        pz = pz + (iPoint.z - Gizmos.previousIPoint.z)
+                    end
                 elseif (Gizmos.selectedAxis == 6) then
                     -- YZ --
                     iPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.forward);
-                    px = px + (iPoint.x - Gizmos.previousIPoint.x)
-                    py = py + (iPoint.y - Gizmos.previousIPoint.y)
-                    pz = pz + (iPoint.z - Gizmos.previousIPoint.z)
+                    if (iPoint ~= nil) then
+                        px = px + (iPoint.x - Gizmos.previousIPoint.x)
+                        py = py + (iPoint.y - Gizmos.previousIPoint.y)
+                        pz = pz + (iPoint.z - Gizmos.previousIPoint.z)
+                    end
                 end
 
                 if (iPoint and Gizmos.previousIPoint) then
