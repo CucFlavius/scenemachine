@@ -25,19 +25,23 @@ function MousePick.Pick(x, y)
     for i in pairs(SM.loadedScene.objects) do
         local object = SM.loadedScene.objects[i];
 
-        local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
+        -- Can't select invisible/frozen, only in the hierarchy
+        if (object.visible) and (not object.frozen) then
 
-        if (xMax == nil) then
-            return;
-        end
+            local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
+            
+            if (xMax == nil) then
+                return;
+            end
 
-        local ray = Camera.GetMouseRay();
-        local bb = BoundingBox:New();
-        bb:SetFromMinMaxAABB(xMin, yMin, zMin, xMax, yMax, zMax);
+            local ray = Camera.GetMouseRay();
+            local bb = BoundingBox:New();
+            bb:SetFromMinMaxAABB(xMin, yMin, zMin, xMax, yMax, zMax);
 
-        if (ray:IntersectsBoundingBox(bb, object:GetPosition(), object:GetRotation(), object:GetScale())) then
-            MousePick.selectionList[idx] = object;
-            idx = idx + 1;
+            if (ray:IntersectsBoundingBox(bb, object:GetPosition(), object:GetRotation(), object:GetScale())) then
+                MousePick.selectionList[idx] = object;
+                idx = idx + 1;
+            end
         end
     end
 

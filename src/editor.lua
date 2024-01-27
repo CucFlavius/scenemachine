@@ -145,7 +145,16 @@ function Editor.OpenContextMenu(x, y)
         { ["Name"] = "Rotate", ["Action"] = function() Gizmos.activeTransformGizmo = 2; end },
         { ["Name"] = "Scale", ["Action"] = function() Gizmos.activeTransformGizmo = 3; end },
         { ["Name"] = nil },
-        { ["Name"] = "Delete Selected", ["Action"] = function() SM.DeleteObject(SM.selectedObject); end },
+        { ["Name"] = "Delete", ["Action"] = function() SM.DeleteObject(SM.selectedObject); end },
+        { ["Name"] = "Hide/Show", ["Action"] = function() SM.selectedObject:ToggleVisibility(); end },
+        { ["Name"] = "Freeze/Unfreeze", ["Action"] = function()
+            SM.selectedObject:ToggleFrozen();
+            if (SM.selectedObject.frozen) then
+                SM.selectedObject = nil;
+                SH.RefreshHierarchy();
+                OP.Refresh();
+            end
+         end },
 	};
 
     Win.PopupWindowMenu(x, y, SceneMachine.mainWindow, menuOptions);

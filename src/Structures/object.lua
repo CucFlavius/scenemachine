@@ -11,6 +11,8 @@ SceneMachine.Object =
 	actor = nil,
 	class = "Object",
     id = 0,
+    visible = true,
+    frozen = false,
 }
 
 local Object = SceneMachine.Object;
@@ -30,6 +32,8 @@ function Object:New(name, fileID, position, rotation, scale)
         actor = nil,
         class = "Object",
         id = math.random(99999999);
+        visible = true,
+        frozen = false, -- could check here if path is skybox and freeze automagically
     };
 
 	setmetatable(v, Object)
@@ -131,6 +135,19 @@ function Object:GetScale()
     return self.scale;
 end
 
+function Object:ToggleVisibility()
+    self.visible = not self.visible;
+    if (self.visible) then
+        self.actor:Show();
+    else
+        self.actor:Hide();
+    end
+end
+
+function Object:ToggleFrozen()
+    self.frozen = not self.frozen;
+end
+
 function Object:ExportData()
     local data = {
         fileID = self.fileID;
@@ -139,6 +156,8 @@ function Object:ExportData()
         rotation = self.rotation;
         scale = self.scale;
         id = self.id;
+        visible = self.visible;
+        frozen = self.frozen;
     };
 
     return data;
@@ -186,6 +205,9 @@ function Object:ImportData(data)
     if (data.scale ~= nil and data.scale ~= 0) then
         self.scale = data.scale;
     end
+
+    self.visible = data.visible or true;
+    self.frozen = data.frozen or false;
 
     self.id = data.id or math.random(99999999);
 end
