@@ -12,6 +12,7 @@ local PM = Editor.ProjectManager;
 
 Editor.width = 1280;
 Editor.height = 720;
+Editor.scale = 1.0;
 Editor.toolbarHeight = 15 + 30;
 local rightPanelWidth = 300;
 local leftPanelWidth = 300;
@@ -88,7 +89,7 @@ end
 function Editor.Show()
     SceneMachine.mainWindow:Show();
     local screenHeight = GetScreenHeight();
-
+    Editor.ResetWindow();
     if (SceneMachine.mainWindow:GetTop() + 20 > screenHeight) then
         Editor.ResetWindow();
     end
@@ -101,15 +102,24 @@ function Editor.Hide()
     Editor.isOpen = false;
 end
 
+function Editor.SetScale(percent)
+    local n = percent / 100;
+    Editor.scale = n * (1 / UIParent:GetScale());
+    SceneMachine.mainWindow:SetScale(Editor.scale);
+end
+
 function Editor.ResetWindow()
     SceneMachine.mainWindow:ClearAllPoints();
     SceneMachine.mainWindow:SetPoint("CENTER", nil, "CENTER", 0, 0);
+    SceneMachine.mainWindow:SetSize(Editor.width, Editor.height);
+    Editor.SetScale(90);
 end
 
 function Editor.CreateMainWindow()
 	SceneMachine.mainWindow = Win.CreateWindow(0, 0, Editor.width, Editor.height, nil, nil, nil, true, "Editor");
     SceneMachine.mainWindow.CloseButton:SetScript("OnClick", function (self, button, down) Editor.Hide(); end)
 	SceneMachine.mainWindow:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
+    SceneMachine.mainWindow:SetScale(Editor.scale);
 	SceneMachine.WINDOW_WIDTH = Editor.width;
 	SceneMachine.WINDOW_HEIGHT = Editor.height;
 	--SceneMachine.mainWindow:SetIgnoreParentScale(true);		-- This way the camera doesn't get offset when the wow window or UI changes size/aspect
@@ -118,6 +128,14 @@ function Editor.CreateMainWindow()
     SceneMachine.mainWindow.CloseButton.ntex:SetColorTexture(c1[1], c1[2], c1[3], 1);
     SceneMachine.mainWindow.CloseButton.htex:SetColorTexture(c2[1], c2[2], c2[3], 1);
     SceneMachine.mainWindow.CloseButton.ptex:SetColorTexture(c3[1], c3[2], c3[3], 1);
+
+    --SceneMachine.mainWindow.ResizeFrame = Win.CreateRectangle(10, -10, 20, 20, SceneMachine.mainWindow, "BOTTOMRIGHT", "BOTTOMRIGHT", 1, 1, 1, 1);
+    --SceneMachine.mainWindow.ResizeFrame = Win.CreateButton(10, -10, 20, 20, SceneMachine.mainWindow, "BOTTOMRIGHT", "BOTTOMRIGHT", "", nil, nil, nil)
+    --SceneMachine.mainWindow.ResizeFrame:EnableMouse(true);
+    --SceneMachine.mainWindow:SetResizable(true)
+    --SceneMachine.mainWindow.ResizeFrame:RegisterForDrag("LeftButton");
+    --SceneMachine.mainWindow.ResizeFrame:SetScript("OnDragStart", function() SceneMachine.mainWindow:StartSizing("BOTTOMRIGHT"); end);
+	--SceneMachine.mainWindow.ResizeFrame:SetScript("OnDragStop", function() SceneMachine.mainWindow:StopMovingOrSizing(); end);
 end
 
 function Editor.CreateRightPanel()

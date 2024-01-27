@@ -21,8 +21,13 @@ function MainMenu.Create()
             },
         },
         {
-            ["Name"] = "Tools",
+            ["Name"] = "Options",
             ["Options"] = {
+                { ["Name"] = "Set Scale 80%", ["Action"] = function() Editor.SetScale(80); end },
+                { ["Name"] = "Set Scale 90%", ["Action"] = function() Editor.SetScale(90); end },
+                { ["Name"] = "Set Scale 100%", ["Action"] = function() Editor.SetScale(100); end },
+                { ["Name"] = "Set Scale 110%", ["Action"] = function() Editor.SetScale(110); end },
+                { ["Name"] = "Set Scale 120%", ["Action"] = function() Editor.SetScale(120); end },
             },
         },
         {

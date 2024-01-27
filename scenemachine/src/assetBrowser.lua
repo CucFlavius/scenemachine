@@ -239,8 +239,6 @@ function AssetBrowser.CreateThumbnail(x, y, w, h, parent, name)
             AssetBrowser.OnThumbnailDrag(self.textBox.text:GetText());
         end);
 
-
-
     thumbnail.imageBox = Win.CreateImageBox(0, -w / 4, w / 2, w / 2, thumbnail, "TOP", "TOP", "Interface\\Addons\\scenemachine\\static\\textures\\folderIcon.png");
     thumbnail.textBox = Win.CreateTextBoxSimple(5, 0, w, 20, thumbnail, "BOTTOMLEFT", "BOTTOMLEFT", name, 9);
 
