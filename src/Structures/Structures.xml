@@ -10,6 +10,6 @@ Structures
 	<Script file="Quaternion.lua"/>
 	<Script file="Matrix.lua"/>
 	<Script file="Ray.lua"/>
-	<Script file="OBB.lua"/>
+	<Script file="BoundingBox.lua"/>
 	<Script file="Object.lua"/>
 </Ui>

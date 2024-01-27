@@ -62,10 +62,10 @@ function Quaternion:SetFromEuler(euler)
     local cy = math.cos(euler.y / 2.0);
     local cz = math.cos(euler.z / 2.0);
 
-    self.x = cx * cy * cz + sx * sy * sz;
-    self.y = sx * cy * cz - cx * sy * sz;
-    self.z = cx * sy * cz + sx * cy * sz;
-    self.w = cx * cy * sz - sx * sy * cz;
+    self.w = cx * cy * cz + sx * sy * sz;
+    self.x = sx * cy * cz - cx * sy * sz;
+    self.y = cx * sy * cz + sx * cy * sz;
+    self.z = cx * cy * sz - sx * sy * cz;
 end
 
 function Quaternion:Lerp(a, b, t)
@@ -75,11 +75,27 @@ function Quaternion:Lerp(a, b, t)
     self.w = a.w * (1 - t) + b.w * t;
 end
 
+function Quaternion:Invert()
+    -- Calculate the norm squared
+    local norm_squared = self.w^2 + self.x^2 + self.y^2 + self.z^2
+
+    -- Check if the quaternion is non-zero before computing the inverse
+    if (norm_squared == 0) then
+        return;
+    end
+
+    -- Calculate the inverse quaternion
+    self.w = self.w / norm_squared;
+    self.x = -self.x / norm_squared;
+    self.y = -self.y / norm_squared;
+    self.z = -self.z / norm_squared;
+end
+
 function Quaternion:Multiply(q2)
-    local w = self.x*q2.x - self.y*q2.y - self.z*q2.z - self.w*q2.w;
-    local x = self.x*q2.y + self.y*q2.x + self.z*q2.w - self.w*q2.z;
-    local y = self.x*q2.z - self.y*q2.w + self.z*q2.x + self.w*q2.y;
-    local z = self.x*q2.w + self.y*q2.z - self.z*q2.y + self.w*q2.x;
+    local w = self.w * q2.w - self.x * q2.x - self.y * q2.y - self.z * q2.z;
+    local x = self.w * q2.x + self.x * q2.w + self.y * q2.z - self.z * q2.y;
+    local y = self.w * q2.y - self.x * q2.z + self.y * q2.w + self.z * q2.x;
+    local z = self.w * q2.z + self.x * q2.y - self.y * q2.x + self.z * q2.w;
 
     self.x = x;
     self.y = y;

@@ -193,7 +193,7 @@ end
 function Input.OnClick(LMB, RMB, MMB, x, y)
     if (LMB) then
         -- mouse pick --
-        if not Gizmos.isHighlighted then
+        if (not Gizmos.isHighlighted) or (SM.selectedObject == nil) then
             MousePick.Pick(x, y);
         end
     elseif (RMB) then

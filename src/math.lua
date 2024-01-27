@@ -24,10 +24,6 @@ function Math.distToSegment(p, v, w)
     return math.sqrt(Math.distToSegmentSquared(p, v, w));
 end
 
-function Math.dotProduct(aX, aY, bX, bY)
-    return aX * bX + aY * bY
-end
-
 function Math.rotateVector(rx, ry, rz, vx, vy, vz)
     -- Rotation around the x-axis
     local rotatedX = vx

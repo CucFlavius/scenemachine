@@ -333,7 +333,7 @@ function Gizmos.MotionToTransform()
                 if (Gizmos.selectedAxis == 1) then
                     -- X --
                     iPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up);
-                    if (Gizmos.space == 0) then
+                    if (Gizmos.space == 0 or rotation == Vector3.zero) then
                         px = px + (iPoint.x - Gizmos.previousIPoint.x)
                     elseif (Gizmos.space == 1) then
                         local gscale = iPoint.y - Gizmos.previousIPoint.y;
@@ -344,7 +344,7 @@ function Gizmos.MotionToTransform()
                 elseif (Gizmos.selectedAxis == 2) then
                     -- Y --
                     iPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up);
-                    if (Gizmos.space == 0) then
+                    if (Gizmos.space == 0 or rotation == Vector3.zero) then
                         py = py + (iPoint.y - Gizmos.previousIPoint.y)
                     elseif (Gizmos.space == 1) then
                         local gscale = iPoint.x - Gizmos.previousIPoint.x;
@@ -355,7 +355,7 @@ function Gizmos.MotionToTransform()
                 elseif (Gizmos.selectedAxis == 3) then
                     -- Z --
                     iPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.right);
-                    if (Gizmos.space == 0) then
+                    if (Gizmos.space == 0 or rotation == Vector3.zero) then
                         pz = pz + (iPoint.z - Gizmos.previousIPoint.z)
                     elseif (Gizmos.space == 1) then
                         local gscale = iPoint.z - Gizmos.previousIPoint.z;

@@ -46,30 +46,52 @@ function Vector3:Scale(f)
     self.x = self.x * f;
     self.y = self.y * f;
     self.z = self.z * f;
+    return self;
 end
 
 function Vector3:Add(v)
     self.x = self.x + v.x;
     self.y = self.y + v.y;
     self.z = self.z + v.z;
+    return self
 end
 
 function Vector3:Subtract(v)
     self.x = self.x - v.x;
     self.y = self.y - v.y;
     self.z = self.z - v.z;
+    return self;
 end
 
 function Vector3:Multiply(v)
     self.x = self.x * v.x;
     self.y = self.y * v.y;
     self.z = self.z * v.z;
+    return self;
 end
 
 function Vector3:Divide(v)
     self.x = self.x / v.x;
     self.y = self.y / v.y;
     self.z = self.z / v.z;
+    return self;
+end
+
+function Vector3:MultiplyQuaternion(q)
+    local ix = q.w * self.x + q.y * self.z - q.z * self.y;
+    local iy = q.w * self.y + q.z * self.x - q.x * self.z;
+    local iz = q.w * self.z + q.x * self.y - q.y * self.x;
+    local iw = -q.x * self.x - q.y * self.y - q.z * self.z;
+
+    local x = ix * q.w + iw * -q.x + iy * -q.z - iz * -q.y;
+    local y = iy * q.w + iw * -q.y + iz * -q.x - ix * -q.z;
+    local z = iz * q.w + iw * -q.z + ix * -q.y - iy * -q.x;
+    
+    self.x = x;
+    self.y = y;
+    self.z = z;
+
+    return self;
 end
 
 function Vector3:MultiplyMatrix(mat)

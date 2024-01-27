@@ -104,47 +104,36 @@ function Ray:PlaneIntersection(planePoint, planeNormal)
     return intersectionPoint;
 end
 
-function Ray:IntersectsOBB(obb)
-    if (obb.rotation == Quaternion.identity) then
-        -- AABB
-        local tMin = obb:GetMin();
-        tMin:Subtract(self.origin);
-        tMin:Divide(self.direction);
+function Ray:IntersectsBoundingBox(bb, position, rotation, scale)
+    -- Transform ray to local space
+    local inverseOrientation = Quaternion:New();
+    inverseOrientation:SetFromEuler(rotation);
+    inverseOrientation:Invert();
 
-        local tMax = obb:GetMax();
-        tMax:Subtract(self.origin);
-        tMax:Divide(self.direction);
-        local t1 = Vector3:New(math.min(tMin.x, tMax.x), math.min(tMin.y, tMax.y), math.min(tMin.z, tMax.z));
-        local t2 = Vector3:New(math.max(tMin.x, tMax.x), math.max(tMin.y, tMax.y), math.max(tMin.z, tMax.z));
-        local tNear = math.max(math.max(t1.x, t1.y), t1.z);
-        local tFar = math.min(math.min(t2.x, t2.y), t2.z);
-        
-        return tNear <= tFar;
-    else
-        -- OBB
-        --[[
-        -- Transform the ray into the local space of the OBB
-        Vector3 rayOrigin = ray.origin - worldPosition;
-        Vector3 rayDirection = ray.direction;
-        Quaternion inverseOrientation = Quaternion.Invert(this.orientation);
-        rayOrigin = inverseOrientation * rayOrigin;
-        rayDirection = inverseOrientation * rayDirection;
-        rayOrigin /= scale;
+    local rayOrigin = Vector3:New();
+    rayOrigin:SetVector3(self.origin);
+    rayOrigin:Subtract(position);
+    rayOrigin:MultiplyQuaternion(inverseOrientation);
+    rayOrigin:Scale(1.0/scale);
 
-        var min = (this.center - ((this.size) * 0.5f));
-        var max = (this.center + ((this.size) * 0.5f));
+    local rayDirection = Vector3:New();
+    rayDirection:SetVector3(self.direction);
+    rayDirection:MultiplyQuaternion(inverseOrientation);
 
-        Vector3 tMin = (min - rayOrigin) / rayDirection;
-        Vector3 tMax = (max - rayOrigin) / rayDirection;
-        Vector3 t1 = new Vector3(math.min(tMin.X, tMax.X), math.min(tMin.Y, tMax.Y), math.min(tMin.Z, tMax.Z));
-        Vector3 t2 = new Vector3(math.max(tMin.X, tMax.X), math.max(tMin.Y, tMax.Y), math.max(tMin.Z, tMax.Z));
-        float tNear = math.max(math.max(t1.X, t1.Y), t1.Z);
-        float tFar = math.min(math.min(t2.X, t2.Y), t2.Z);
-        return new Vector2(tNear, tFar);
-        --]]
-    end
+    -- Check for regular AABB intersection
+    local tMin = bb:GetMin();
+    tMin:Subtract(rayOrigin);
+    tMin:Divide(rayDirection);
 
-    return true;
+    local tMax = bb:GetMax();
+    tMax:Subtract(rayOrigin);
+    tMax:Divide(rayDirection);
+    local t1 = Vector3:New(math.min(tMin.x, tMax.x), math.min(tMin.y, tMax.y), math.min(tMin.z, tMax.z));
+    local t2 = Vector3:New(math.max(tMin.x, tMax.x), math.max(tMin.y, tMax.y), math.max(tMin.z, tMax.z));
+    local tNear = math.max(math.max(t1.x, t1.y), t1.z);
+    local tFar = math.min(math.min(t2.x, t2.y), t2.z);
+
+    return tNear <= tFar;
 end
 
 Ray.__tostring = function(self)

@@ -7,40 +7,74 @@ local Renderer = SceneMachine.Renderer;
 local PM = Editor.ProjectManager;
 local OP = Editor.ObjectProperties;
 local Camera = SceneMachine.Camera;
-local OBB = SceneMachine.OBB;
+local BoundingBox = SceneMachine.BoundingBox;
 local Ray = SceneMachine.Ray;
+local Vector3 = SceneMachine.Vector3;
+local Quaternion = SceneMachine.Quaternion;
 
 function MousePick.Initialize()
-    local ch = 0.5;
-    MousePick.bbVertices = 
-    {
-        {-ch, -ch, -ch},
-        {ch, -ch, -ch},
-        {ch, -ch, ch},
-        {-ch, -ch, ch},
-        {-ch, ch, -ch},
-        {ch, ch, -ch},
-        {ch, ch, ch},
-        {-ch, ch, ch},
-    };
-    MousePick.bbTransVerts = 
-    {
-        {-ch, -ch, -ch},
-        {ch, -ch, -ch},
-        {ch, -ch, ch},
-        {-ch, -ch, ch},
-        {-ch, ch, -ch},
-        {ch, ch, -ch},
-        {ch, ch, ch},
-        {-ch, ch, ch},
-    };
-    MousePick.ssbbVertices = 
-    {
-        {0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}
-    };
-
     MousePick.previousSelectionList = {};
     MousePick.selectionList = {};
+end
+
+function MousePick.Pick(x, y)
+    -- x, y are relative coordinates to the viewport
+    local idx = 1;
+    MousePick.selectionList = {};
+
+    for i in pairs(SM.loadedScene.objects) do
+        local object = SM.loadedScene.objects[i];
+
+        local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
+
+        if (xMax == nil) then
+            return;
+        end
+
+        local ray = Camera.GetMouseRay();
+        local bb = BoundingBox:New();
+        bb:SetFromMinMaxAABB(xMin, yMin, zMin, xMax, yMax, zMax);
+
+        if (ray:IntersectsBoundingBox(bb, object:GetPosition(), object:GetRotation(), object:GetScale())) then
+            MousePick.selectionList[idx] = object;
+            idx = idx + 1;
+        end
+    end
+
+    -- go through each selection list item and determine which one to select
+    if (#MousePick.selectionList == 0) then
+        SM.selectedObject = nil;
+    elseif (#MousePick.selectionList == 1) then
+        SM.selectedObject = MousePick.selectionList[1];
+    else
+        if (MousePick.CompareSelectionLists(MousePick.previousSelectionList, MousePick.selectionList)) then
+            -- same selection list, so loop through to determine which one to select next
+            for i = 1, #MousePick.selectionList, 1 do
+                if (SM.selectedObject == MousePick.selectionList[i]) then
+                    local currentIndex = i;
+                    if (currentIndex >= #MousePick.selectionList) then
+                        -- loop back
+                        currentIndex = 0;
+                    end
+                    -- select next
+                    SM.selectedObject = MousePick.selectionList[currentIndex + 1];
+                    break;
+                end
+            end
+        else
+            -- different selection list, so just select first object
+            SM.selectedObject = MousePick.selectionList[1];
+        end
+    end
+
+    -- store previous selection list
+    MousePick.previousSelectionList = {};
+    for i = 1, #MousePick.selectionList, 1 do
+        MousePick.previousSelectionList[i] = MousePick.selectionList[i];
+    end
+
+    SH.RefreshHierarchy();
+    OP.Refresh();
 end
 
 function MousePick.CompareSelectionLists(listA, listB)
@@ -56,232 +90,4 @@ function MousePick.CompareSelectionLists(listA, listB)
     end
 
     return same;
-end
-
--- Mouse Pick that uses mouse ray bounding box intersection
-function MousePick.Pick(x, y)
-    -- x, y are relative coordinates to the viewport
-    local idx = 1;
-    MousePick.selectionList = {};
-
-    -- go through each object and determine if the mouse is on top of the bounding box
-    -- then add to the MousePick.selectionList table
-    for i in pairs(SM.loadedScene.objects) do
-        local object = SM.loadedScene.objects[i];
-
-        local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
-
-        if (xMax == nil) then
-            return;
-        end
-
-        local ray = Camera.GetMouseRay();
-        local obb = OBB:New();
-        obb:SetFromMinMaxAABB(xMin, yMin, zMin, xMax, yMax, zMax);
-        if (ray:IntersectsOBB(obb)) then
-            MousePick.selectionList[idx] = object;
-            idx = idx + 1;
-        end
-    end
-
-    -- go through each selection list item and determine which one to select
-    if (#MousePick.selectionList == 0) then
-        SM.selectedObject = nil;
-    elseif (#MousePick.selectionList == 1) then
-        SM.selectedObject = MousePick.selectionList[1];
-    else
-        if (MousePick.CompareSelectionLists(MousePick.previousSelectionList, MousePick.selectionList)) then
-            -- same selection list, so loop through to determine which one to select next
-            for i = 1, #MousePick.selectionList, 1 do
-                if (SM.selectedObject == MousePick.selectionList[i]) then
-                    local currentIndex = i;
-                    if (currentIndex >= #MousePick.selectionList) then
-                        -- loop back
-                        currentIndex = 0;
-                    end
-                    -- select next
-                    SM.selectedObject = MousePick.selectionList[currentIndex + 1];
-                    break;
-                end
-            end
-        else
-            -- different selection list, so just select first object
-            SM.selectedObject = MousePick.selectionList[1];
-        end
-    end
-
-    -- store previous selection list
-    MousePick.previousSelectionList = {};
-    for i = 1, #MousePick.selectionList, 1 do
-        MousePick.previousSelectionList[i] = MousePick.selectionList[i];
-    end
-
-    SH.RefreshHierarchy();
-    OP.Refresh();
-end
-
--- Old MousePick that uses screen space vertices
-function MousePick.PickOld(x, y)
-    -- x, y are relative coordinates to the viewport
-    local idx = 1;
-    MousePick.selectionList = {};
-
-    -- go through each object and determine if the mouse is on top of the bounding box
-    -- then add to the MousePick.selectionList table
-    for i in pairs(SM.loadedScene.objects) do
-        local object = SM.loadedScene.objects[i];
-
-        local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
-
-        if (xMax == nil) then
-            return;
-        end
-    
-        local chX = (xMax - xMin) / 2;
-        local chY = (yMax - yMin) / 2;
-        local chZ = (zMax - zMin) / 2;
-
-        MousePick.bbTransVerts = 
-        {
-            {-chX, -chY, -chZ},
-            {chX, -chY, -chZ},
-            {chX, -chY, chZ},
-            {-chX, -chY, chZ},
-            {-chX, chY, -chZ},
-            {chX, chY, -chZ},
-            {chX, chY, chZ},
-            {-chX, chY, chZ},
-        };
-    
-        local position = object:GetPosition();
-        local scale = object:GetScale();
-
-        for q = 1, 8, 1 do
-            MousePick.bbTransVerts[q][1] = MousePick.bbTransVerts[q][1] * scale + position.x;
-            MousePick.bbTransVerts[q][2] = MousePick.bbTransVerts[q][2] * scale + position.y;
-            MousePick.bbTransVerts[q][3] = MousePick.bbTransVerts[q][3] * scale + position.z;-- + (chZ * scale);
-        end
-
-        for q = 1, 8, 1 do
-            local X, Y = Renderer.projectionFrame:Project3DPointTo2D(MousePick.bbTransVerts[q][1], MousePick.bbTransVerts[q][2], MousePick.bbTransVerts[q][3]);
-            MousePick.ssbbVertices[q][1] = X;
-            MousePick.ssbbVertices[q][2] = Y;
-        end
-
-        local convexVerts = MousePick.FindConvexHull(MousePick.ssbbVertices);
-        local isInside = MousePick.IsPointInsidePolygon(x, y, convexVerts);
-
-        if (isInside) then
-            MousePick.selectionList[idx] = object;
-            idx = idx + 1;
-        end
-    end
-
-    -- go through each selection list item and determine which one to select
-    if (#MousePick.selectionList == 0) then
-        SM.selectedObject = nil;
-    elseif (#MousePick.selectionList == 1) then
-        SM.selectedObject = MousePick.selectionList[1];
-    else
-        if (MousePick.CompareSelectionLists(MousePick.previousSelectionList, MousePick.selectionList)) then
-            -- same selection list, so loop through to determine which one to select next
-            for i = 1, #MousePick.selectionList, 1 do
-                if (SM.selectedObject == MousePick.selectionList[i]) then
-                    local currentIndex = i;
-                    if (currentIndex >= #MousePick.selectionList) then
-                        -- loop back
-                        currentIndex = 0;
-                    end
-                    -- select next
-                    SM.selectedObject = MousePick.selectionList[currentIndex + 1];
-                    break;
-                end
-            end
-        else
-            -- different selection list, so just select first object
-            SM.selectedObject = MousePick.selectionList[1];
-        end
-    end
-
-    -- store previous selection list
-    MousePick.previousSelectionList = {};
-    for i = 1, #MousePick.selectionList, 1 do
-        MousePick.previousSelectionList[i] = MousePick.selectionList[i];
-    end
-
-    SH.RefreshHierarchy();
-    OP.Refresh();
-end
-
-function MousePick.IsPointInsidePolygon(x, y, polygon)
-    local oddNodes = false
-    local j = #polygon
-
-    for i = 1, #polygon do
-        local xi, yi = polygon[i][1], polygon[i][2]
-        local xj, yj = polygon[j][1], polygon[j][2]
-
-        if ((yi < y and yj >= y or yj < y and yi >= y) and (xi <= x or xj <= x)) then
-            if (xi + (y - yi) / (yj - yi) * (xj - xi) < x) then
-                oddNodes = not oddNodes
-            end
-        end
-
-        j = i
-    end
-
-    return oddNodes
-end
-
-function MousePick.FindConvexHull(points)
-    local function orientation(p, q, r)
-        local val = (q[2] - p[2]) * (r[1] - q[1]) - (q[1] - p[1]) * (r[2] - q[2])
-        if val == 0 then return 0 end
-        return (val > 0) and 1 or 2
-    end
-
-    local function distance(p1, p2)
-        return (p1[1] - p2[1])^2 + (p1[2] - p2[2])^2
-    end
-
-    local function compare(p1, p2)
-        local o = orientation(points[1], p1, p2)
-        if o == 0 then
-            return (distance(points[1], p2) >= distance(points[1], p1)) and -1 or 1
-        end
-        return (o == 2) and -1 or 1
-    end
-
-    local convexHull = {}
-    local n = #points
-    local minY = math.huge
-    local minIdx
-
-    for i = 1, n do
-        if points[i][2] < minY or (points[i][2] == minY and points[i][1] < points[minIdx][1]) then
-            minY = points[i][2]
-            minIdx = i
-        end
-    end
-
-    -- Put the pivot point at the beginning
-    points[1], points[minIdx] = points[minIdx], points[1]
-
-    table.sort(points, function(p1, p2)
-        if (p1 ~= nil and p2 ~= nil) then
-            return compare(p1, p2) == -1
-        end
-    end)
-
-    table.insert(convexHull, points[1])
-    table.insert(convexHull, points[2])
-
-    for i = 3, n do
-        while (#convexHull >= 2 and orientation(convexHull[#convexHull - 1], convexHull[#convexHull], points[i]) ~= 2) do
-            table.remove(convexHull, #convexHull)
-        end
-        table.insert(convexHull, points[i])
-    end
-
-    return convexHull
 end

@@ -2,46 +2,40 @@ local Math = SceneMachine.Math;
 local Vector3 = SceneMachine.Vector3;
 local Quaternion = SceneMachine.Quaternion;
 
-SceneMachine.OBB = 
+SceneMachine.BoundingBox = 
 {
     center = nil,
-    rotation = nil,
     size = nil,
-    min = nil,
-    max = nil,
 }
 
-local OBB = SceneMachine.OBB;
+local BoundingBox = SceneMachine.BoundingBox;
 
-setmetatable(OBB, OBB)
+setmetatable(BoundingBox, BoundingBox)
 
 local fields = {}
 
-function OBB:New(center, rotation, size)
+function BoundingBox:New(center, size)
 	local v = 
     {
         center = center or Vector3:New(),
-        rotation = rotation or Quaternion:New(),
         size = size or Vector3:New(),
     };
 
-	setmetatable(v, OBB)
+	setmetatable(v, BoundingBox)
 	return v
 end
 
-function OBB:Set(center, rotation, size)
+function BoundingBox:Set(center, rotation, size)
     self.center = center or Vector3:New();
-    self.rotation = rotation or Quaternion:New();
     self.size = size or Vector3:New();
 end
 
-function OBB:SetOBB(v)
+function BoundingBox:SetBoundingBox(v)
     self.center = v.center;
-    self.rotation = v.rotation;
     self.size = v.size;
 end
 
-function OBB:SetFromMinMaxAABB(xMin, yMin, zMin, xMax, yMax, zMax)
+function BoundingBox:SetFromMinMaxAABB(xMin, yMin, zMin, xMax, yMax, zMax)
     self.size.x = xMax - xMin;
     self.size.y = yMax - yMin;
     self.size.z = zMax - zMin;
@@ -50,11 +44,11 @@ function OBB:SetFromMinMaxAABB(xMin, yMin, zMin, xMax, yMax, zMax)
     self.center.z = 0;
 end
 
-function OBB:Get()
-    return self.center, self.rotation, self.size;
+function BoundingBox:Get()
+    return self.center, self.size;
 end
 
-function OBB:GetMin()
+function BoundingBox:GetMin()
     -- center - (size / 2)
     local mx = self.center.x - (self.size.x / 2.0);
     local my = self.center.y - (self.size.y / 2.0);
@@ -62,7 +56,7 @@ function OBB:GetMin()
     return Vector3:New(mx, my, mz);
 end
 
-function OBB:GetMax()
+function BoundingBox:GetMax()
     -- center + (size / 2)
     local mx = self.center.x + (self.size.x / 2.0);
     local my = self.center.y + (self.size.y / 2.0);
@@ -70,19 +64,18 @@ function OBB:GetMax()
     return Vector3:New(mx, my, mz);
 end
 
-OBB.__tostring = function(self)
-	return string.format("OBB( C(%.3f, %.3f, %.3f) R(%.3f, %.3f, %.3f, %.3f) S(%.3f, %.3f, %.3f)",
+BoundingBox.__tostring = function(self)
+	return string.format("BoundingBox( C(%.3f, %.3f, %.3f) S(%.3f, %.3f, %.3f)",
         self.center.x, self.center.y, self.center.z,
-        self.rotation.x, self.rotation.y, self.rotation.z, self.rotation.w,
         self.size.x, self.size.y, self.size.z);
 end
 
-OBB.__eq = function(a,b)
-    return a.center == b.center and a.rotation == b.rotation and a.size == a.size
+BoundingBox.__eq = function(a,b)
+    return a.center == b.center and a.size == a.size
 end
 
-OBB.__index = function(t,k)
-	local var = rawget(OBB, k)
+BoundingBox.__index = function(t,k)
+	local var = rawget(BoundingBox, k)
 		
 	if var == nil then							
 		var = rawget(fields, k)
