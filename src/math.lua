@@ -43,6 +43,10 @@ function Math.rotateVector(rx, ry, rz, vx, vy, vz)
     return {finalX, finalY, finalZ}
 end
 
+function Math.dotProduct(aX, aY, bX, bY)
+    return aX * bX + aY * bY
+end
+
 -- Function to multiply two rotation vectors
 function Math.multiplyRotations(rotation1, rotation2)
     
