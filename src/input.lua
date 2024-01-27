@@ -7,6 +7,7 @@ local Renderer = SceneMachine.Renderer;
 local Gizmos = SceneMachine.Gizmos;
 local Camera = SceneMachine.Camera;
 local MousePick = Editor.MousePick;
+local AssetBrowser = SceneMachine.Editor.AssetBrowser;
 
 Input.Keys = {}
 
@@ -20,6 +21,7 @@ Input.mouseState =
     MMB = false,
     RMB = false,
     isDragging = false,
+    isDraggingAssetFromUI = false,
 };
 
 function Input.AddKeyBind(key, downAction, upAction)
@@ -77,6 +79,21 @@ function Input.Update()
             -- LMB UP
             if (not Input.mouseState.isDragging) then
                 Input.OnClickUp(true, false, false, relativeX, relativeY);
+            end
+
+            if (Input.mouseState.isDraggingAssetFromUI) then
+                Input.mouseState.LMB = false;
+                Input.mouseState.isDraggingAssetFromUI = false;
+                
+                -- Check if mouse is over asset browser, then delete object instead of placing it
+                local frameXMin = AssetBrowser.tabs[1]:GetLeft();
+                local frameYMin = AssetBrowser.tabs[1]:GetBottom();
+                local frameXMax = AssetBrowser.tabs[1]:GetRight();
+                local frameYMax = AssetBrowser.tabs[1]:GetTop();
+                if (Input.mouseXRaw > frameXMin and Input.mouseXRaw < frameXMax and Input.mouseYRaw > frameYMin and Input.mouseYRaw < frameYMax) then
+                    SM.DeleteObject(SM.selectedObject);
+                end
+
             end
 
             Input.mouseState.isDragging = false;

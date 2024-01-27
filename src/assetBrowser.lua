@@ -3,6 +3,10 @@ local Editor = SceneMachine.Editor;
 local Win = ZWindowAPI;
 local Renderer = SceneMachine.Renderer;
 local SM = Editor.SceneManager;
+local Gizmos = SceneMachine.Gizmos;
+local Input = SceneMachine.Input;
+local Camera = SceneMachine.Camera;
+local Vector3 = SceneMachine.Vector3;
 
 local thumbSize = 95;
 local thumbSpacing = 1.5;
@@ -26,11 +30,9 @@ function AssetBrowser.Create(parent, w, h)
     AssetBrowser.Refresh();
 
     -- DEBUG --
-    --AssetBrowser.OnThumbnailClick("World");
-    --AssetBrowser.OnThumbnailClick("Dungeon");
-    --AssetBrowser.OnThumbnailClick("Cave");
-    --AssetBrowser.OnThumbnailClick("Passivedoodads");
-    --AssetBrowser.OnThumbnailClick("Crystals");
+    AssetBrowser.OnThumbnailClick("World");
+    AssetBrowser.OnThumbnailClick("Arttest");
+    AssetBrowser.OnThumbnailClick("Shader");
 end
 
 function AssetBrowser.OnChangeTab(idx)
@@ -228,10 +230,16 @@ end
 
 function AssetBrowser.CreateThumbnail(x, y, w, h, parent, name)
     local thumbnail = Win.CreateButton(x, y, w, h, parent, "TOPLEFT", "TOPLEFT", "", nil, Win.BUTTON_VS);
-
+    thumbnail:RegisterForDrag("LeftButton");
     thumbnail:SetScript("OnDoubleClick", function (self, button, down)
             AssetBrowser.OnThumbnailClick(self.textBox.text:GetText());
        end);
+
+    thumbnail:SetScript("OnDragStart", function (self, button, down)
+            AssetBrowser.OnThumbnailDrag(self.textBox.text:GetText());
+        end);
+
+
 
     thumbnail.imageBox = Win.CreateImageBox(0, -w / 4, w / 2, w / 2, thumbnail, "TOP", "TOP", "Interface\\Addons\\scenemachine\\static\\textures\\folderIcon.png");
     thumbnail.textBox = Win.CreateTextBoxSimple(5, 0, w, 20, thumbnail, "BOTTOMLEFT", "BOTTOMLEFT", name, 9);
@@ -272,8 +280,45 @@ function AssetBrowser.OnThumbnailClick(name)
             end
         end
     end
+end
 
-    -- Renderer.AddActor
+function AssetBrowser.OnThumbnailDrag(name)
+    -- Directory scan
+    if (AssetBrowser.currentDirectory["D"] ~= nil) then
+        local directoryCount = table.getn(AssetBrowser.currentDirectory["D"]);
+        for i = 1, directoryCount, 1 do
+            local dirName = AssetBrowser.currentDirectory["D"][i]["N"];
+            if dirName == name then
+                --AssetBrowser.currentPage = 1;
+                --AssetBrowser.currentDirectory = AssetBrowser.currentDirectory["D"][i];
+                --table.insert(AssetBrowser.breadcrumb, AssetBrowser.currentDirectory);
+                --AssetBrowser.Refresh();
+                --return;
+            end
+        end
+    end
+
+    -- File Scan
+    if (AssetBrowser.currentDirectory["FN"] ~= nil) then
+        local fileCount = table.getn(AssetBrowser.currentDirectory["FN"]);
+        for i = 1, fileCount, 1 do
+            local fileName = AssetBrowser.currentDirectory["FN"][i];
+            if fileName == name then
+                local fileID = AssetBrowser.currentDirectory["FI"][i];
+                local mouseRay = Camera.GetMouseRay();
+                local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up);
+                local object = SM.CreateObject(fileID, fileName, initialPosition.x, initialPosition.y, initialPosition.z);
+                SM.selectedObject = object;
+                Input.mouseState.LMB = true;
+                Input.mouseState.isDraggingAssetFromUI = true;
+                Gizmos.activeTransformGizmo = 1;
+                Gizmos.highlightedAxis = 4;
+                Gizmos.selectedAxis = 4;
+                Gizmos.OnLMBDown(Input.mouseX, Input.mouseY);
+                return;
+            end
+        end
+    end
 end
 
 function AssetBrowser.OnNextPageClick()
