@@ -77,6 +77,7 @@ function Ray:NearestPointOnLine(linePoint, lineDirection)
     return self.origin
 end
 
+-- NOT TESTED --
 function Ray:PlaneIntersection(planePoint, planeNormal)
     -- Ensure that the ray and plane are not parallel
     local dotProduct = Vector3.DotProduct(planeNormal, self.direction);

@@ -7,8 +7,10 @@ local Camera = SceneMachine.Camera;
 local Input = SceneMachine.Input;
 local Math = SceneMachine.Math;
 local CC = SceneMachine.CameraController;
+
 local Vector3 = SceneMachine.Vector3;
 local Quaternion = SceneMachine.Quaternion;
+local Ray = SceneMachine.Ray;
 
 Gizmos.isUsed = false;
 Gizmos.isHighlighted = false;
@@ -18,10 +20,10 @@ Gizmos.space = 1;                   -- world = 0, local = 1
 Gizmos.pivot = 0;                   -- center = 0, base(original) = 1 (Only really affects rotation)
 Gizmos.LMBPrevious = {};
 Gizmos.frames = {};
-Gizmos.vectorX = {1,0,0};
-Gizmos.vectorY = {0,1,0};
-Gizmos.vectorZ = {0,0,1};
-Gizmos.savedRotation = Vector3:New();
+Gizmos.forward = Vector3:New(1, 0, 0);
+Gizmos.right = Vector3:New(0, 1, 0);
+Gizmos.up = Vector3:New(0, 0, 1);
+Gizmos.previousRotation = Vector3:New();
 Gizmos.rotationIncrement = 0;
 
 function Gizmos.Create()
@@ -326,37 +328,62 @@ function Gizmos.MotionToTransform()
             local rx, ry, rz = rotation.x, rotation.y, rotation.z;
             local s = SM.selectedObject:GetScale();
             local iPoint;
+            local axis = Vector3:New(1,1,1);
             if (Gizmos.activeTransformGizmo == 1) then
                 if (Gizmos.selectedAxis == 1) then
                     -- X --
-                    iPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.up);
-                    iPoint.y = 0;
-                    iPoint.z = 0;
+                    iPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up);
+                    if (Gizmos.space == 0) then
+                        px = px + (iPoint.x - Gizmos.previousIPoint.x)
+                    elseif (Gizmos.space == 1) then
+                        local gscale = iPoint.y - Gizmos.previousIPoint.y;
+                        px = px + (gscale * Gizmos.forward.x);
+                        py = py + (gscale * Gizmos.forward.y);
+                        pz = pz + (gscale * Gizmos.forward.z);
+                    end
                 elseif (Gizmos.selectedAxis == 2) then
                     -- Y --
-                    iPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.up);
-                    iPoint.x = 0;
-                    iPoint.z = 0;
+                    iPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up);
+                    if (Gizmos.space == 0) then
+                        py = py + (iPoint.y - Gizmos.previousIPoint.y)
+                    elseif (Gizmos.space == 1) then
+                        local gscale = iPoint.x - Gizmos.previousIPoint.x;
+                        px = px + (gscale * Gizmos.right.x);
+                        py = py + (gscale * Gizmos.right.y);
+                        pz = pz + (gscale * Gizmos.right.z);
+                    end
                 elseif (Gizmos.selectedAxis == 3) then
                     -- Z --
-                    iPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.right);
-                    iPoint.x = 0;
-                    iPoint.y = 0;
+                    iPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.right);
+                    if (Gizmos.space == 0) then
+                        pz = pz + (iPoint.z - Gizmos.previousIPoint.z)
+                    elseif (Gizmos.space == 1) then
+                        local gscale = iPoint.z - Gizmos.previousIPoint.z;
+                        px = px + (gscale * Gizmos.up.x);
+                        py = py + (gscale * Gizmos.up.y);
+                        pz = pz + (gscale * Gizmos.up.z);
+                    end
                 elseif (Gizmos.selectedAxis == 4) then
                     -- XY --
-                    iPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.up);
+                    iPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up);
+                    px = px + (iPoint.x - Gizmos.previousIPoint.x)
+                    py = py + (iPoint.y - Gizmos.previousIPoint.y)
+                    pz = pz + (iPoint.z - Gizmos.previousIPoint.z)
                 elseif (Gizmos.selectedAxis == 5) then
                     -- XZ --
-                    iPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.right);
+                    iPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.right);
+                    px = px + (iPoint.x - Gizmos.previousIPoint.x)
+                    py = py + (iPoint.y - Gizmos.previousIPoint.y)
+                    pz = pz + (iPoint.z - Gizmos.previousIPoint.z)
                 elseif (Gizmos.selectedAxis == 6) then
                     -- YZ --
-                    iPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.forward);
+                    iPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.forward);
+                    px = px + (iPoint.x - Gizmos.previousIPoint.x)
+                    py = py + (iPoint.y - Gizmos.previousIPoint.y)
+                    pz = pz + (iPoint.z - Gizmos.previousIPoint.z)
                 end
 
                 if (iPoint and Gizmos.previousIPoint) then
-                    px = px + (iPoint.x - Gizmos.previousIPoint.x);
-                    py = py + (iPoint.y - Gizmos.previousIPoint.y);
-                    pz = pz + (iPoint.z - Gizmos.previousIPoint.z);
                     Gizmos.previousIPoint.x = iPoint.x;
                     Gizmos.previousIPoint.y = iPoint.y;
                     Gizmos.previousIPoint.z = iPoint.z;
@@ -369,7 +396,7 @@ function Gizmos.MotionToTransform()
                     if (Gizmos.space == 0) then
                         rx = rx + diff;
                     elseif (Gizmos.space == 1) then
-                        local rot = Math.multiplyRotations(Gizmos.savedRotation, Vector3:New(Gizmos.rotationIncrement, 0, 0));
+                        local rot = Math.multiplyRotations(Gizmos.previousRotation, Vector3:New(Gizmos.rotationIncrement, 0, 0));
                         rx = rot.x;
                         ry = rot.y;
                         rz = rot.z;
@@ -391,7 +418,7 @@ function Gizmos.MotionToTransform()
                         --]]
                         ---------------------------------------------------------
                     elseif (Gizmos.space == 1) then
-                        local rot = Math.multiplyRotations(Gizmos.savedRotation, Vector3:New(0, Gizmos.rotationIncrement, 0));
+                        local rot = Math.multiplyRotations(Gizmos.previousRotation, Vector3:New(0, Gizmos.rotationIncrement, 0));
                         rx = rot.x;
                         ry = rot.y;
                         rz = rot.z;
@@ -400,7 +427,7 @@ function Gizmos.MotionToTransform()
                     if (Gizmos.space == 0) then
                         rz = rz + diff;
                     elseif (Gizmos.space == 1) then
-                        local rot = Math.multiplyRotations(Gizmos.savedRotation, Vector3:New(0, 0, Gizmos.rotationIncrement));
+                        local rot = Math.multiplyRotations(Gizmos.previousRotation, Vector3:New(0, 0, Gizmos.rotationIncrement));
                         rx = rot.x;
                         ry = rot.y;
                         rz = rot.z;
@@ -432,51 +459,49 @@ function Gizmos.OnLMBDown(x, y)
     -- Store initial values so they can be diffed during mouse movement
     -- in order to get smooth transition
 
-    -- store initial ray intersection
-    if (SM.selectedObject ~= nil) then
-        local mouseRay = Camera.GetMouseRay();
-        if (Gizmos.activeTransformGizmo == 1) then
-            if (Gizmos.selectedAxis == 1) then
-                -- X --
-                Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.up);
-                Gizmos.previousIPoint.y = 0;
-                Gizmos.previousIPoint.z = 0;
-            elseif (Gizmos.selectedAxis == 2) then
-                -- Y --
-                Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.up);
-                Gizmos.previousIPoint.x = 0;
-                Gizmos.previousIPoint.z = 0;
-            elseif (Gizmos.selectedAxis == 3) then
-                -- Z --
-                Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.right);
-                Gizmos.previousIPoint.x = 0;
-                Gizmos.previousIPoint.y = 0;
-            elseif (Gizmos.selectedAxis == 4) then
-                -- XY --
-                Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.up);
-            elseif (Gizmos.selectedAxis == 5) then
-                -- XZ --
-                Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.right);
-            elseif (Gizmos.selectedAxis == 6) then
-                -- YZ --
-                Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Vector3.forward);
-            end
-        end
-    end
-
     -- store rotation vector
     if (SM.selectedObject ~= nil) then
         local rotation = SM.selectedObject:GetRotation();
         local rx, ry, rz = rotation.x, rotation.y, rotation.z;
-        Gizmos.vectorX = Math.normalize(Math.rotateVector(rx, ry, rz, 1, 0, 0));
-        Gizmos.vectorY = Math.normalize(Math.rotateVector(rx, ry, rz, 0, 1, 0));
-        Gizmos.vectorZ = Math.normalize(Math.rotateVector(rx, ry, rz, 0, 0, 1));
-        Gizmos.savedRotation:Set(rx, ry, rz);
+        local forward = Math.normalize(Math.rotateVector(rx, ry, rz, 1, 0, 0));
+        local right = Math.normalize(Math.rotateVector(rx, ry, rz, 0, 1, 0));
+        local up = Math.normalize(Math.rotateVector(rx, ry, rz, 0, 0, 1));
+        Gizmos.forward:Set(forward[1], forward[2], forward[3]);
+        Gizmos.right:Set(right[1], right[2], right[3]);
+        Gizmos.up:Set(up[1], up[2], up[3]);
+        Gizmos.previousRotation:Set(rx, ry, rz);
     else
-        Gizmos.vectorX = {1,0,0};
-        Gizmos.vectorY = {0,1,0};
-        Gizmos.vectorZ = {0,0,1};
-        Gizmos.savedRotation:Set(0, 0, 0);
+        Gizmos.forward:SetVector3(Vector3.forward);
+        Gizmos.right:SetVector3(Vector3.right);
+        Gizmos.up:SetVector3(Vector3.up);
+        Gizmos.previousRotation:Set(0, 0, 0);
+    end
+
+    -- store initial ray intersection
+    if (SM.selectedObject ~= nil) then
+        local position = SM.selectedObject:GetPosition();
+        local mouseRay = Camera.GetMouseRay();
+        if (Gizmos.activeTransformGizmo == 1) then
+            if (Gizmos.selectedAxis == 1) then
+                -- X --
+                Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up);
+            elseif (Gizmos.selectedAxis == 2) then
+                -- Y --
+                Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up);
+            elseif (Gizmos.selectedAxis == 3) then
+                -- Z --
+                Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.right);
+            elseif (Gizmos.selectedAxis == 4) then
+                -- XY --
+                Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up);
+            elseif (Gizmos.selectedAxis == 5) then
+                -- XZ --
+                Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.right);
+            elseif (Gizmos.selectedAxis == 6) then
+                -- YZ --
+                Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.forward);
+            end
+        end
     end
 end
 

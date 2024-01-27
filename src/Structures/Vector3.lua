@@ -193,7 +193,7 @@ Vector3.__eq = function(a,b)
     return a.x == b.x and a.y == b.y and a.z == b.z;
 end
 
--- Set multiply "*" behaviour
+-- Set add "+" behaviour
 Vector3.__add = function( v1,v2 )
 	return Vector3:New(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
 end
