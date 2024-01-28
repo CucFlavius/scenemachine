@@ -43,6 +43,7 @@ function Editor.Initialize()
             hide = hide or false;
             lock = lock or true;
         };
+        editor_is_open = editor_is_open or false;
     };
 
     -- Create all of the UI --
@@ -111,23 +112,28 @@ function Editor.Initialize()
 
     SceneMachine.mainWindow:Hide();
     Editor.isInitialized = true;
+
+    if (scenemachine_settings.editor_is_open) then
+        Editor.Show();
+    end
 end
 
 function Editor.Show()
     SceneMachine.mainWindow:Show();
     local screenHeight = GetScreenHeight();
-    Input.KeyboardListener:SetPropagateKeyboardInput(false);
+    --Input.KeyboardListener:SetPropagateKeyboardInput(false);
     Editor.ResetWindow();
     if (SceneMachine.mainWindow:GetTop() + 20 > screenHeight) then
         Editor.ResetWindow();
     end
-
+    scenemachine_settings.editor_is_open = true;
     Editor.isOpen = true;
 end
 
 function Editor.Hide()
     SceneMachine.mainWindow:Hide();
-    Input.KeyboardListener:SetPropagateKeyboardInput(true);
+    --Input.KeyboardListener:SetPropagateKeyboardInput(true);
+    scenemachine_settings.editor_is_open = false;
     Editor.isOpen = false;
 end
 

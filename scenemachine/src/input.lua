@@ -39,6 +39,7 @@ function Input.Initialize()
                 if Input.Keys[key].OnKeyDown ~= nil then
                     if (Editor.isOpen) then
 				        Input.Keys[key].OnKeyDown();
+                        self:SetPropagateKeyboardInput(false);
                     end
                 end
 			end
@@ -48,6 +49,7 @@ function Input.Initialize()
                 if Input.Keys[key].OnKeyUp ~= nil then
                     if (Editor.isOpen) then
 				        Input.Keys[key].OnKeyUp();
+                        self:SetPropagateKeyboardInput(true);
                     end
                 end
             end
