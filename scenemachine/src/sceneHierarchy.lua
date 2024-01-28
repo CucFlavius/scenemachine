@@ -100,7 +100,7 @@ end
 
 function SH.VisibilityButton_OnClick(index)
 	local object = SM.loadedScene.objects[index];
-print(object)
+
 	if (object) then
 		SM.ToggleObjectVisibility(object);
 	end

@@ -5,8 +5,8 @@
     <!-- Scene Machine -->
     <Script file="header.lua"/>
 
-    <Script file="Data\creature.lua"/>
-    <Script file="Data\data.lua"/>
+    <Script file="..\static\data\creature.lua"/>
+    <Script file="..\static\data\data.lua"/>
 
     <Include file="Structures\Structures.xml"/>
 
