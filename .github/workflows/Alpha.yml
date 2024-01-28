@@ -1,0 +1,15 @@
+name: Package (Release)
+on:
+  push:
+    tags:
+      - '*'
+      - '!**-dev**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Create Package
+        uses: BigWigsMods/packager@v2
