@@ -5,6 +5,7 @@ local CameraController = SceneMachine.CameraController;
 local Player = SceneMachine.Player;
 local Gizmos = SceneMachine.Gizmos;
 local Input = SceneMachine.Input;
+local Editor = SceneMachine.Editor;
 
 print ("Running SceneMachine")
 
@@ -15,20 +16,11 @@ SceneMachine.time = 0;
 --	 	  Start  	  --
 ------------------------
 function SceneMachine.Start()
-	--MinimapStart();
     SceneMachine.Editor.Initialize();
     CameraController.Initialize();
     SceneMachine.CreateStatsFrame();
 	Gizmos.Create();
 	if (Debug) then Debug.Init(); end
-
-	-- tests ---
-	--[[
-	for idx in pairs(SceneMachine.Data.Creatures) do
-        local creatureFileID = SceneMachine.Data.Creatures[idx];
-        Renderer.AddActor(creatureFileID, -6, (idx * 1.5) - 3, 0);
-    end
-	--]]
 end
 
 local f = CreateFrame("Frame")
@@ -84,12 +76,14 @@ local function SG_UpdateLoop ()
 		SceneMachine.preRenderUpdateAction();
 	end
 
-	Camera.Update();
-    CameraController.Update();
-	Input.Update();
-    Gizmos.Update();
-    Renderer.RenderGizmos();
-	if (Debug) then Debug.FlushLinePool(); end
+	if (Editor.isOpen) then
+		Camera.Update();
+		CameraController.Update();
+		Input.Update();
+		Gizmos.Update();
+		Renderer.RenderGizmos();
+		if (Debug) then Debug.FlushLinePool(); end
+	end
 end
 
 

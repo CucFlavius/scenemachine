@@ -37,24 +37,26 @@ function Input.Initialize()
     Input.KeyboardListener:SetScript("OnKeyDown", function(self, key)
 			if Input.Keys[key] ~= nil then
                 if Input.Keys[key].OnKeyDown ~= nil then
-				    Input.Keys[key].OnKeyDown();
+                    if (Editor.isOpen) then
+				        Input.Keys[key].OnKeyDown();
+                    end
                 end
-                self:SetPropagateKeyboardInput(false);
 			end
         end);
 		Input.KeyboardListener:SetScript("OnKeyUp", function(self, key)
 			if Input.Keys[key] ~= nil then
                 if Input.Keys[key].OnKeyUp ~= nil then
-				    Input.Keys[key].OnKeyUp();
+                    if (Editor.isOpen) then
+				        Input.Keys[key].OnKeyUp();
+                    end
                 end
-                self:SetPropagateKeyboardInput(true);
             end
         end);
 end
 
 function Input.Update()
     if (Renderer.projectionFrame == nil) then return end
-    
+
     local LMB = IsMouseButtonDown("LeftButton");
     local MMB = IsMouseButtonDown("MiddleButton");
     local RMB = IsMouseButtonDown("RightButton");

@@ -9,6 +9,7 @@ local Gizmos = SceneMachine.Gizmos;
 local SM = Editor.SceneManager;
 local CC = SceneMachine.CameraController;
 local PM = Editor.ProjectManager;
+local Input = SceneMachine.Input;
 
 Editor.width = 1280;
 Editor.height = 720;
@@ -115,6 +116,7 @@ end
 function Editor.Show()
     SceneMachine.mainWindow:Show();
     local screenHeight = GetScreenHeight();
+    Input.KeyboardListener:SetPropagateKeyboardInput(false);
     Editor.ResetWindow();
     if (SceneMachine.mainWindow:GetTop() + 20 > screenHeight) then
         Editor.ResetWindow();
@@ -125,6 +127,7 @@ end
 
 function Editor.Hide()
     SceneMachine.mainWindow:Hide();
+    Input.KeyboardListener:SetPropagateKeyboardInput(true);
     Editor.isOpen = false;
 end
 
