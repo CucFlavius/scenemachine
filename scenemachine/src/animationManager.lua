@@ -4,6 +4,7 @@ local SM = SceneMachine.Editor.SceneManager;
 local Renderer = SceneMachine.Renderer;
 local Editor = SceneMachine.Editor;
 local Input = SceneMachine.Input;
+local Toolbar = Editor.Toolbar;
 
 local tabButtonHeight = 20;
 local tabPool = {};
@@ -140,15 +141,18 @@ function AM.CreateAnimationManager(x, y, w, h, parent)
     AM.addTimelineEditBox:Hide();
 
     local bottomPad = 4;
+    local toolbarH = 25;
+    local toolbarY = -timelineTabH
     local timebarH = 25;
-    local timebarY = -timelineTabH;
+    local timebarY = -timelineTabH - toolbarH;
     local cropperBarH = 12;
     local cropperBarY = bottomPad;
     local workAreaX = 10;
-    local workAreaY = -(timebarH + timelineTabH);
+    local workAreaY = -(timebarH + timelineTabH + toolbarH);
     local workAreaW = w - 20;
-    local workAreaH = h - (timelineTabH + timebarH + cropperBarH + bottomPad);
+    local workAreaH = h - (timelineTabH + timebarH + cropperBarH + bottomPad + toolbarH);
     AM.CreateTimebar(0, timebarY, w, timebarH, AM.groupBG);
+    AM.CreateToolbar(0, toolbarY, w, toolbarH, AM.groupBG);
     AM.CreateWorkArea(workAreaX, workAreaY, workAreaW, workAreaH, AM.groupBG);
     AM.CreateCropperBar(0, cropperBarY, w, cropperBarH, AM.groupBG);
 
@@ -190,6 +194,31 @@ function AM.GetNeedle()
         AM.needles[i] = needle;
         return needle;
     end
+end
+
+function AM.CreateToolbar(x, y, w, h, parent)
+    local toolbar = Toolbar.Create(x, y, w, h, parent);
+--[[
+    AM.ToolbarTransformGroup = AM.ToolbarCreateGroup(x, y, w, h, toolbar,
+        {
+            { type = "DragHandle" },
+            { type = "Button", name = "Project", icon = getIcon("projects"), action = function(self) Editor.ProjectManager.OpenWindow() end },
+            { type = "Dropdown", name = "ProjectList", width = 200, options = {}, action = function(index) Editor.ProjectManager.LoadProjectByIndex(index); end },
+            { type = "Separator" },
+            { type = "Button", name = "Select", icon = getIcon("select"), action = function(self) Gizmos.activeTransformGizmo = 0; end },
+            { type = "Button", name = "Move", icon = getIcon("move"), action = function(self) Gizmos.activeTransformGizmo = 1; end },
+            { type = "Button", name = "Rotate", icon = getIcon("rotate"), action = function(self) Gizmos.activeTransformGizmo = 2; end },
+            { type = "Button", name = "Scale", icon = getIcon("scale"), action = function(self) Gizmos.activeTransformGizmo = 3; end },
+            { type = "Separator" },
+            { type = "Button", name = "L", icon = getIcon("localpivot"), action = function(self) Gizmos.space = 1; print("Local Space"); end },
+            { type = "Button", name = "W", icon = getIcon("worldpivot"), action = function(self) Gizmos.space = 0; print("World Space"); end },
+            { type = "Separator" },
+            { type = "Button", name = "Center", icon = getIcon("centerpivot"), action = function(self) Gizmos.pivot = 0; print("Pivot Center"); end },
+            { type = "Button", name = "Base", icon = getIcon("basepivot"), action = function(self) Gizmos.pivot = 1; print("Pivot Base"); end },
+            { type = "Separator" },
+        }
+    );
+--]]
 end
 
 function AM.CreateWorkArea(x, y, w, h, parent)

@@ -81,7 +81,7 @@ function PM.LoadSavedData()
     -- load last project
     PM.LoadLastProject();
 
-    Editor.Toolbar.RefreshProjectsDropdown();
+    Editor.RefreshProjectsDropdown();
 end
 
 function PM.CreateProject(name)
@@ -92,7 +92,7 @@ function PM.CreateProject(name)
     PM.projects[ID].name = name;
     PM.projects[ID].scenes = {};
 
-    Editor.Toolbar.RefreshProjectsDropdown();
+    Editor.RefreshProjectsDropdown();
     PM.projectListIDs = {}
     local index = 1;
     for ID in pairs(PM.projects) do
@@ -142,7 +142,7 @@ function PM.LoadProject(ID)
     -- update scene tabs with available scenes
     SM.RefreshSceneTabs();
 
-    Editor.Toolbar.RefreshProjectsDropdown();
+    Editor.RefreshProjectsDropdown();
 end
 
 function PM.LoadLastProject()
@@ -273,7 +273,7 @@ function PM.DeleteProject(ID)
     end
     
     PM.RefreshProjectWindow();
-    Editor.Toolbar.RefreshProjectsDropdown();
+    Editor.RefreshProjectsDropdown();
 end
 
 function PM.GetProjectCount()
