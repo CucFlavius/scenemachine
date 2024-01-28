@@ -210,7 +210,13 @@ function SM.LoadScene(index)
             object:ImportData(scene.objects[i]);
 
             -- Create actor
-            local actor = Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z);
+            local id = 0;
+            if (object.type == SceneMachine.ObjectType.Model) then
+                id = object.fileID;
+            elseif(object.type == SceneMachine.ObjectType.Creature) then
+                id = object.displayID;
+            end
+            local actor = Renderer.AddActor(id, object.position.x, object.position.y, object.position.z, object.type);
             object:SetActor(actor);
 
             if (not object.visible) then
@@ -281,7 +287,26 @@ function SM.CreateObject(_fileID, _name, _x, _y, _z)
 
     -- Create actor
     if (object.fileID ~= nil) then
-        local actor = Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z);
+        local actor = Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z, SceneMachine.ObjectType.Model);
+        object:SetActor(actor);
+    end
+
+    -- Refresh
+    SH.RefreshHierarchy();
+    OP.Refresh();
+
+    return object;
+end
+
+function SM.CreateCreature(_displayID, _name, _x, _y, _z)
+    local object = SceneMachine.Object:NewCreature(_name, _displayID, { x = _x, y = _y, z = _z });
+
+    local scene = SM.loadedScene;
+    scene.objects[#scene.objects + 1] = object;
+
+    -- Create actor
+    if (object.fileID ~= nil) then
+        local actor = Renderer.AddActor(object.displayID, object.position.x, object.position.y, object.position.z, SceneMachine.ObjectType.Creature);
         object:SetActor(actor);
     end
 

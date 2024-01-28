@@ -71,12 +71,12 @@ function Renderer.CreateRenderer(x, y, w, h, parent, point, relativePoint)
 	Renderer.active = false;
 end
 
-function Renderer.AddActor(fileID, X, Y, Z)
+function Renderer.AddActor(fileID, X, Y, Z, type)
     if (X == nil) then X = 0 end
     if (Y == nil) then Y = 0 end
     if (Z == nil) then Z = 0 end
 
-    --print("Renderer.AddActor(" .. fileID .. ", " .. X .. ", " .. Y .. ", " .. Z .. ")");
+    type = type or SceneMachine.ObjectType.Model;
 
     if (Renderer.projectionFrame == nil) then
         print("Renderer: AddActor() - called before CreateRenderer()");
@@ -101,7 +101,11 @@ function Renderer.AddActor(fileID, X, Y, Z)
     end
 
     actor:Show();
-    actor:SetModelByFileID(fileID);
+    if (type == SceneMachine.ObjectType.Model) then
+        actor:SetModelByFileID(fileID);
+    elseif (type == SceneMachine.ObjectType.Creature) then
+        actor:SetModelByCreatureDisplayID(fileID);
+    end
     actor:SetPosition(X, Y, Z);
 
     -- forcing center as origin so that the bounding boxes stay consistent

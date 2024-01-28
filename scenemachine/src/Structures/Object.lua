@@ -1,15 +1,22 @@
 local Math = SceneMachine.Math;
 local Vector3 = SceneMachine.Vector3;
 
+SceneMachine.ObjectType = {};
+SceneMachine.ObjectType.Group = 0;
+SceneMachine.ObjectType.Model = 1;
+SceneMachine.ObjectType.Creature = 2;
+
 SceneMachine.Object = 
 {
     fileID = 0,
+    displayID = 0,
     name = "",
     position = Vector3:New(),
     rotation = Vector3:New(),
     scale = 1,	
 	actor = nil,
 	class = "Object",
+    type = SceneMachine.ObjectType.Model,
     id = 0,
     visible = true,
     frozen = false,
@@ -34,6 +41,28 @@ function Object:New(name, fileID, position, rotation, scale)
         id = math.random(99999999);
         visible = true,
         frozen = false, -- could check here if path is skybox and freeze automagically
+        type = SceneMachine.ObjectType.Model,
+    };
+
+	setmetatable(v, Object)
+	return v
+end
+
+function Object:NewCreature(name, displayID, position, rotation, scale)
+	local v = 
+    {
+        fileID = 0,
+        displayID = displayID or 0,
+        name = name or "NewObject",
+        position = position or Vector3:New(),
+        rotation = rotation or Vector3:New(),
+        scale = scale or 1,	
+        actor = nil,
+        class = "Object",
+        id = math.random(99999999);
+        visible = true,
+        frozen = false, -- could check here if path is skybox and freeze automagically
+        type = SceneMachine.ObjectType.Creature,
     };
 
 	setmetatable(v, Object)
@@ -153,6 +182,8 @@ end
 function Object:ExportData()
     local data = {
         fileID = self.fileID;
+        displayID = self.displayID;
+        type = self.type;
         name = self.name;
         position = self.position;
         rotation = self.rotation;
@@ -174,6 +205,18 @@ function Object:ImportData(data)
     -- verifying all elements upon import because sometimes the saved variables get corrupted --
     if (data.fileID ~= nil) then
         self.fileID = data.fileID;
+    end
+
+    if (data.displayID ~= nil) then
+        self.displayID = data.displayID;
+    else
+        self.displayID = 0;
+    end
+
+    if (data.type ~= nil) then
+        self.type = data.type;
+    else
+        self.type = SceneMachine.ObjectType.Model;
     end
 
     if (data.name ~= nil and data.name ~= "") then

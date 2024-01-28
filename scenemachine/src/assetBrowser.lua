@@ -29,6 +29,9 @@ function AssetBrowser.Create(parent, w, h)
     AssetBrowser.CreateModelListTab(AssetBrowser.tabs[1], w, h -tabbarHeight);
     AssetBrowser.Refresh();
 
+
+    AssetBrowser.CreateCreatureListTab(AssetBrowser.tabs[2], w, h -tabbarHeight);
+
     -- DEBUG --
     --AssetBrowser.OnThumbnailClick("World");
     --AssetBrowser.OnThumbnailClick("Arttest");
@@ -58,6 +61,24 @@ function AssetBrowser.CreateModelListTab(parent, w, h)
     AssetBrowser.CreateThumbnails(AssetBrowser.thumbnailGroup);
     
     AssetBrowser.CreatePagination(parent);
+end
+
+function AssetBrowser.CreateCreatureListTab(parent, w, h)
+    local testInputField = Win.CreateEditBox(0, 0, w, 20, parent, "TOPLEFT", "TOPLEFT", "41918");
+    testInputField:SetScript('OnEnterPressed', function(self1)
+        -- set value
+        local valText = self1:GetText();
+        if (valText == nil or valText == "") then
+            return;
+        end
+        local val = tonumber(valText);
+        if (val ~= nil) then
+            --self1.value = val;
+            SM.CreateCreature(val, "Creature", 0, 0, 0);
+        end
+        self1:ClearFocus();
+        Win.focused = false;
+    end);
 end
 
 function AssetBrowser.CreateToolbar(parent, y, w)
