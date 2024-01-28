@@ -8,11 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Libraries\" />
+    <ProjectReference Include="..\Lib\CascLib\CascLib\CascLib.csproj" />
+    <ProjectReference Include="..\Lib\DBCD\DBCD\DBCD.csproj" />
+    <ProjectReference Include="..\Lib\DBCD\DBFileReaderLib\DBFileReaderLib.csproj" />
   </ItemGroup>
 
 </Project>

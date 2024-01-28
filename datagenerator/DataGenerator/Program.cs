@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 //using Newtonsoft.Json;
+using CASCLib;
 
 namespace DataGenerator
 {
@@ -24,7 +25,16 @@ namespace DataGenerator
         static void Main(string[] args)
         {
             //DownloadLatestListfile();
-            GenerateAddonData();
+            //GenerateAddonModelData();
+            //GenerateAddonCreatureData();
+
+            string installPath = @"D:\Games\World of Warcraft\";
+            string product = "wow"; // wow (release), wowt (ptr)
+
+            GameData data = new GameData(installPath, product, LISTFILE_PATH);
+            data.BuildM2FileIDList();
+            data.GetCreatureModelData();
+            data.GetCreatureDisplayInfo();
         }
 
         static void DownloadLatestListfile()
@@ -35,7 +45,7 @@ namespace DataGenerator
             }
         }
         
-        static void GenerateAddonData()
+        static void GenerateAddonModelData()
         {
             DirEntry root = new DirEntry();
 
@@ -72,7 +82,12 @@ namespace DataGenerator
             }
         }
 
-        private static void GenerateLuaTable(StreamWriter sw, DirEntry currentDir, string breadCrumb, string depth)
+        static void GenerateAddonCreatureData()
+        {
+
+        }
+
+        static void GenerateLuaTable(StreamWriter sw, DirEntry currentDir, string breadCrumb, string depth)
         {
             sw.WriteLine($"{depth}{{");
 
@@ -157,12 +172,7 @@ namespace DataGenerator
             }
         }
 
-        static string RemoveInvalidChars(string filename)
-        {
-            return string.Concat(filename.Split(Path.GetInvalidFileNameChars()));
-        }
-
-        public static string FirstCharToUpper(string input) =>
+        static string FirstCharToUpper(string input) =>
             input switch
             {
                 null => throw new ArgumentNullException(nameof(input)),
