@@ -36,6 +36,14 @@ function Editor.Initialize()
         return;
     end
 
+    scenemachine_settings = scenemachine_settings or {
+        minimap_button = minimap_button or {
+            minimapPos = minimapPos or 90;
+            hide = hide or false;
+            lock = lock or true;
+        };
+    };
+
     -- Create all of the UI --
     Win.Initialize("Interface\\AddOns\\scenemachine\\src\\Libraries\\ZWindowAPI");
     Editor.CreateMainWindow();
@@ -52,6 +60,24 @@ function Editor.Initialize()
     local sceneW = Editor.width - (rightPanelWidth + leftPanelWidth);
     local sceneH = Editor.height - (Editor.toolbarHeight + bottomPanelHeight + 6 + 20);
     Editor.SceneManager.Create(sceneX, sceneY, sceneW, sceneH, SceneMachine.mainWindow);
+
+    -- Create minimap icon --
+    local LDB = LibStub("LibDataBroker-1.1", true)
+    local ldbIcon = LibStub("LibDBIcon-1.0", true)
+
+    local SceneMachineMinimapBtn = LDB:NewDataObject("SceneMachine", {
+        type = "launcher",
+        text = "SceneMachine",
+        icon = "Interface\\AddOns\\scenemachine\\static\\textures\\icon32.png",
+        OnClick = function(_, button)
+            if button == "LeftButton" then Editor.Toggle() end
+        end,
+        OnTooltipShow = function(tt)
+            tt:AddLine("SceneMachine")
+        end,
+    });
+
+    ldbIcon:Register("SceneMachine", SceneMachineMinimapBtn, scenemachine_settings)
 
     -- Keybinds --
     SceneMachine.Input.AddKeyBind("W", function() CC.Action.MoveForward = true end, function() CC.Action.MoveForward = false end);
@@ -102,6 +128,14 @@ function Editor.Hide()
     Editor.isOpen = false;
 end
 
+function Editor.Toggle()
+    if (Editor.isOpen) then
+        Editor:Hide();
+    else
+        Editor:Show();
+    end
+end
+
 function Editor.SetScale(percent)
     local n = percent / 100;
     Editor.scale = n * (1 / UIParent:GetScale());
@@ -128,6 +162,9 @@ function Editor.CreateMainWindow()
     SceneMachine.mainWindow.CloseButton.ntex:SetColorTexture(c1[1], c1[2], c1[3], 1);
     SceneMachine.mainWindow.CloseButton.htex:SetColorTexture(c2[1], c2[2], c2[3], 1);
     SceneMachine.mainWindow.CloseButton.ptex:SetColorTexture(c3[1], c3[2], c3[3], 1);
+
+    SceneMachine.mainWindow.TitleBarIcon = Win.CreateImageBox(5/2, -5/2, 15, 15, SceneMachine.mainWindow.TitleBar, "TOPLEFT", "TOPLEFT",
+	"Interface\\Addons\\scenemachine\\static\\textures\\icon32.png");
 
     --SceneMachine.mainWindow.ResizeFrame = Win.CreateRectangle(10, -10, 20, 20, SceneMachine.mainWindow, "BOTTOMRIGHT", "BOTTOMRIGHT", 1, 1, 1, 1);
     --SceneMachine.mainWindow.ResizeFrame = Win.CreateButton(10, -10, 20, 20, SceneMachine.mainWindow, "BOTTOMRIGHT", "BOTTOMRIGHT", "", nil, nil, nil)

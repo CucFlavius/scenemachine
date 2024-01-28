@@ -53,6 +53,8 @@ function Input.Initialize()
 end
 
 function Input.Update()
+    if (Renderer.projectionFrame == nil) then return end
+    
     local LMB = IsMouseButtonDown("LeftButton");
     local MMB = IsMouseButtonDown("MiddleButton");
     local RMB = IsMouseButtonDown("RightButton");

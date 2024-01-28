@@ -49,6 +49,8 @@ function Gizmos.CreateLineProjectionFrame()
 end
 
 function Gizmos.Update()
+    if (Gizmos.MoveGizmo == nil) then return end
+
     local mouseX, mouseY = Input.mouseX, Input.mouseY;
 
     Gizmos.highlightedAxis = 0;

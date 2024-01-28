@@ -148,6 +148,7 @@ local function NearPlaneFaceCullingLine(vert, planePositionX, planePositionY, pl
 end
 
 function Renderer.RenderGizmos()
+    if (Renderer.projectionFrame == nil) then return end
     if (Renderer.active == true) then
         Renderer.scale = 1.0 / Renderer.projectionFrame:GetEffectiveScale();
         SceneMachine.usedFramesLastFrame = SceneMachine.UsedFrames;
