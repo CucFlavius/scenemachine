@@ -213,6 +213,10 @@ function SM.LoadScene(index)
             local actor = Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z);
             object:SetActor(actor);
 
+            if (not object.visible) then
+                actor:SetAlpha(0);
+            end
+
             -- assigning the new object so that we have access to the class functions (which get stripped when exporting to savedata)
             SM.loadedScene.objects[i] = object;
         end
@@ -339,6 +343,7 @@ function SM.ToggleObjectVisibility(object)
     end
 
     SM.selectedObject:ToggleVisibility();
+    SH.RefreshHierarchy();
 end
 
 function SM.ToggleObjectFreezeState(object)
@@ -347,6 +352,7 @@ function SM.ToggleObjectFreezeState(object)
     end
 
     SM.selectedObject:ToggleFrozen();
+    SH.RefreshHierarchy();
 end
 
 function SM.CreateNewSceneTab(x, y, w, h, parent)

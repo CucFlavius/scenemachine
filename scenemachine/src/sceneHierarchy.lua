@@ -86,6 +86,12 @@ function SH.ItemList_CreateNewItem(x, y, w, h, parent)
 	item.text:SetPoint("LEFT", item, "LEFT", 10, 0);
 	item.text:SetText(name);
 
+	-- visibility icon --
+	SH.eyeIconVisibleTexCoord = { 0, 1, 0, 0.5 }
+	SH.eyeIconInvisibleTexCoord = { 0, 1, 0.5, 1 }
+	item.visibilityIcon = Win.CreateImageBox(-2.5, 0, h - 5, h - 5, item, "RIGHT", "RIGHT", "Interface\\Addons\\scenemachine\\static\\textures\\eyeIcon.png", SH.eyeIconVisibleTexCoord);
+	item.visibilityIcon:SetAlpha(0.6)
+	
 	return item;
 end
 
@@ -100,14 +106,23 @@ function SH.RefreshHierarchy()
     for i in pairs(SM.loadedScene.objects) do
         local object = SM.loadedScene.objects[i];
         SH.list:SetItem(index, object.name);
+
         if (object == SM.selectedObject) then
             SH.list.pool[index].ntex:SetColorTexture(0, 0.4765, 0.7968,1);
         end
+
 		if (object.frozen) then
 			SH.list.pool[index].text:SetTextColor(1, 1, 1, 0.5);
 		else
 			SH.list.pool[index].text:SetTextColor(1, 1, 1, 1);
 		end
+
+		if (object.visible) then
+			SH.list.pool[index].visibilityIcon.texture:SetTexCoord(SH.eyeIconVisibleTexCoord[1], SH.eyeIconVisibleTexCoord[2], SH.eyeIconVisibleTexCoord[3], SH.eyeIconVisibleTexCoord[4]);
+		else
+			SH.list.pool[index].visibilityIcon.texture:SetTexCoord(SH.eyeIconInvisibleTexCoord[1], SH.eyeIconInvisibleTexCoord[2], SH.eyeIconInvisibleTexCoord[3], SH.eyeIconInvisibleTexCoord[4]);
+		end
+
         index = index + 1;
     end
 

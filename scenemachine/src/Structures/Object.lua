@@ -138,9 +138,11 @@ end
 function Object:ToggleVisibility()
     self.visible = not self.visible;
     if (self.visible) then
-        self.actor:Show();
+        --self.actor:Show();
+        self.actor:SetAlpha(1);
     else
-        self.actor:Hide();
+        --self.actor:Hide();
+        self.actor:SetAlpha(0);
     end
 end
 
@@ -205,9 +207,18 @@ function Object:ImportData(data)
     if (data.scale ~= nil and data.scale ~= 0) then
         self.scale = data.scale;
     end
-
-    self.visible = data.visible or true;
-    self.frozen = data.frozen or false;
+    
+    if (data.visible ~= nil) then
+        self.visible = data.visible;
+    else
+        self.visible = true;
+    end
+    
+    if (data.frozen ~= nil) then
+        self.frozen = data.frozen;
+    else
+        self.frozen = false;
+    end
 
     self.id = data.id or math.random(99999999);
 end
