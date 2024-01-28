@@ -10,6 +10,7 @@ local SM = Editor.SceneManager;
 local CC = SceneMachine.CameraController;
 local PM = Editor.ProjectManager;
 local Input = SceneMachine.Input;
+local AM = Editor.AnimationManager;
 
 Editor.width = 1280;
 Editor.height = 720;
@@ -59,6 +60,7 @@ function Editor.Initialize()
     Editor.ProjectManager.CreateWindow();
     MousePick.Initialize();
 
+    -- Create Scene manager
     local sceneX = leftPanelWidth;
     local sceneY = -(Editor.toolbarHeight + 6);
     local sceneW = Editor.width - (rightPanelWidth + leftPanelWidth);
@@ -207,6 +209,11 @@ end
 function Editor.CreateBottomPanel()
     local bottomPanel = Win.CreateRectangle(leftPanelWidth, 0, Editor.width - (rightPanelWidth + leftPanelWidth),
         bottomPanelHeight, SceneMachine.mainWindow, "BOTTOMLEFT", "BOTTOMLEFT", c4[1], c4[2], c4[3], 1);
+
+    -- Create Animation manager
+    --local animX = leftPanelWidth;
+    --local animY = -(Editor.toolbarHeight + 6) - Renderer.h;
+    AM.CreateAnimationManager(0, 0, Editor.width - (rightPanelWidth + leftPanelWidth), bottomPanelHeight, bottomPanel);
 end
 
 function Editor.CreateGroup(name, groupHeight, groupParent)

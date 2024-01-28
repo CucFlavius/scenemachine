@@ -12,4 +12,5 @@ Structures
 	<Script file="Ray.lua"/>
 	<Script file="BoundingBox.lua"/>
 	<Script file="Object.lua"/>
+	<Script file="Track.lua"/>
 </Ui>

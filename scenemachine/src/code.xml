@@ -20,6 +20,7 @@
     <Script file="assetBrowser.lua"/>
     <Script file="projectManager.lua"/>
     <Script file="sceneManager.lua"/>
+    <Script file="animationManager.lua"/>
     <Script file="sceneHierarchy.lua"/>
     <Script file="mousePick.lua"/>
     <Script file="objectProperties.lua"/>

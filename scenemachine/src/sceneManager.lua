@@ -10,6 +10,7 @@ local SH = Editor.SceneHierarchy;
 local OP = Editor.ObjectProperties;
 local Gizmos = SceneMachine.Gizmos;
 local Math = SceneMachine.Math;
+local AM = Editor.AnimationManager;
 
 local tabButtonHeight = 20;
 local tabPool = {};
@@ -176,6 +177,7 @@ function SM.CreateScene(sceneName)
     return {
         name = sceneName,
         objects = {},
+        timelines = {},
     }
 end
 
@@ -198,6 +200,10 @@ function SM.LoadScene(index)
 
     if (scene.objects == nil) then
         scene.objects = {};
+    end
+
+    if (scene.timelines == nil) then
+        scene.timelines = {};
     end
 
     -- create loaded scene (so that objects get loaded from data not referenced) --
@@ -227,6 +233,12 @@ function SM.LoadScene(index)
             SM.loadedScene.objects[i] = object;
         end
     end
+
+    if (#scene.timelines == 0) then
+        SM.loadedScene.timelines[1] = AM.CreateDefaultTimeline();
+    end
+
+    AM.RefreshTimelineTabs();
 
     -- remember this scene was opened last
     PM.currentProject.lastOpenScene = index;
