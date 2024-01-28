@@ -63,14 +63,16 @@ function Toolbar.RefreshProjectsDropdown()
     local projectNames = {}
     local selectedName = "";
     
-    for v in pairs(Editor.ProjectManager.projects) do
-        projectNames[#projectNames + 1] = Editor.ProjectManager.projects[v].name;
+    if (Editor.ProjectManager.currentProject) then
+        for v in pairs(Editor.ProjectManager.projects) do
+            projectNames[#projectNames + 1] = Editor.ProjectManager.projects[v].name;
 
-        if (Editor.ProjectManager.currentProject.ID == v) then
-            selectedName = Editor.ProjectManager.projects[v].name;
+            if (Editor.ProjectManager.currentProject.ID == v) then
+                selectedName = Editor.ProjectManager.projects[v].name;
+            end
         end
     end
-
+    
     for c = 1, #Toolbar.transformGroup.components, 1 do
         local component = Toolbar.transformGroup.components[c];
 
