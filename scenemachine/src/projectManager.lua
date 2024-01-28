@@ -130,7 +130,7 @@ function PM.LoadProject(ID)
         return;
     end
 
-    SceneMachine.mainWindow.TitleBar.text:SetText("Editor " .. PM.currentProject.name);
+    SceneMachine.mainWindow.TitleBar.text:SetText("Scene Machine " .. Editor.version .. " - " .. PM.currentProject.name);
 
     -- Load last scene
     if (PM.currentProject.lastOpenScene ~= nil) then

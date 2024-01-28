@@ -157,11 +157,12 @@ function Renderer.RenderGizmos()
 
         -- Render gizmos --
 
-        if (SceneMachine.Gizmos.DebugGizmo.active == true) then
-            RenderGizmoLines(SceneMachine.Gizmos.DebugGizmo);
-            --ShadeScaleGizmo(SceneMachine.Gizmos.DebugGizmo);
+        if (SceneMachine.Gizmos.DebugGizmo) then
+            if (SceneMachine.Gizmos.DebugGizmo.active == true) then
+                RenderGizmoLines(SceneMachine.Gizmos.DebugGizmo);
+                --ShadeScaleGizmo(SceneMachine.Gizmos.DebugGizmo);
+            end
         end
-
         if SM.selectedObject ~= nil then
             RenderGizmoLines(SceneMachine.Gizmos.WireBox);
             ShadeSelectionGizmo(SceneMachine.Gizmos.WireBox);
@@ -181,6 +182,7 @@ function Renderer.RenderGizmos()
 end
 
 function RenderGizmoLines(gizmo)
+    if (not gizmo) then return end
 	local vertices = gizmo.transformedVertices;
 	local faceColors = gizmo.faceColors;
 
@@ -232,6 +234,7 @@ function RenderGizmoLines(gizmo)
 end
 
 function ShadeSelectionGizmo(gizmo)
+    if (not gizmo) then return end
     -- Create an array of indices
     local indices = {}
     for i = 1, #gizmo.lineDepths do
@@ -263,6 +266,7 @@ function ShadeSelectionGizmo(gizmo)
 end
 
 function ShadeMovementGizmo(gizmo)
+    if (not gizmo) then return end
     for t = 1, 3, 1 do
         if (gizmo.lines[t].axis == Gizmos.highlightedAxis) then
             gizmo.faceColors[t][4] = 1.0;
@@ -287,6 +291,7 @@ function ShadeMovementGizmo(gizmo)
 end
 
 function ShadeRotationGizmo(gizmo)
+    if (not gizmo) then return end
     local function normalize(value, min, max)
         return (value - min) / (max - min)
     end
@@ -331,6 +336,7 @@ function ShadeRotationGizmo(gizmo)
 end
 
 function ShadeScaleGizmo(gizmo)
+    if (not gizmo) then return end
     for t = 1, gizmo.lineCount, 1 do
         if (Gizmos.highlightedAxis ~= 0) then
             gizmo.faceColors[t][4] = 1.0;

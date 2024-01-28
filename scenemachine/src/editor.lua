@@ -33,6 +33,8 @@ Editor.SUB_FRAME_STRATA = "DIALOG";             -- Child windows like "Project M
 Editor.MESSAGE_BOX_FRAME_STRATA = "FULLSCREEN"; -- Dialogs like "Are you sure you wanna?""
 
 function Editor.Initialize()
+    Editor.version = GetAddOnMetadata("scenemachine", "Version");
+
     if (Editor.isInitialized) then
         return;
     end
@@ -113,6 +115,7 @@ function Editor.Initialize()
     SceneMachine.mainWindow:Hide();
     Editor.isInitialized = true;
 
+    -- open if it was left open
     if (scenemachine_settings.editor_is_open) then
         Editor.Show();
     end
@@ -159,12 +162,15 @@ function Editor.ResetWindow()
 end
 
 function Editor.CreateMainWindow()
-	SceneMachine.mainWindow = Win.CreateWindow(0, 0, Editor.width, Editor.height, nil, nil, nil, true, "Editor");
+	SceneMachine.mainWindow = Win.CreateWindow(0, 0, Editor.width, Editor.height, nil, nil, nil, true, "Scene Machine " .. Editor.version);
     SceneMachine.mainWindow.CloseButton:SetScript("OnClick", function (self, button, down) Editor.Hide(); end)
 	SceneMachine.mainWindow:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
     SceneMachine.mainWindow:SetScale(Editor.scale);
 	SceneMachine.WINDOW_WIDTH = Editor.width;
 	SceneMachine.WINDOW_HEIGHT = Editor.height;
+    SceneMachine.mainWindow.TitleBar.text:SetJustifyH("LEFT");
+    SceneMachine.mainWindow.TitleBar.text:ClearAllPoints();
+    SceneMachine.mainWindow.TitleBar.text:SetPoint("LEFT", 25, 0);
 	--SceneMachine.mainWindow:SetIgnoreParentScale(true);		-- This way the camera doesn't get offset when the wow window or UI changes size/aspect
     SceneMachine.mainWindow.texture:SetColorTexture(c4[1], c4[2], c4[3],1);
     SceneMachine.mainWindow.TitleBar.texture:SetColorTexture(c1[1], c1[2], c1[3], 1);
