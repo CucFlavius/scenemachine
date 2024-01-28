@@ -10,7 +10,10 @@ function Win.Initialize(rootPath)
     
     Win.textureResourcePath = Win.resourcePath .. "\\image";
     Win.textureResources = {}
-    Win.textureResources["SliderThumb"] = Win.textureResourcePath .. "\\SliderThumb";
+    Win.textureResources["SliderThumb"] = Win.textureResourcePath .. "\\SliderThumb.png";
 
     Win.defaultFont = Win.fontResources["Segoe"];
+
+    Win.closeWindowText = nil;
+    Win.closeWindowIcon = Win.textureResourcePath .. "\\closeButton.png"
 end
