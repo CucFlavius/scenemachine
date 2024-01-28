@@ -1,0 +1,15 @@
+package-as: scenemachine
+enable-nolib-creation: no
+
+license-output: LICENSE
+
+externals:
+  scenemachine/src/Libraries/libdatabroker-1-1: https://github.com/tekkub/libdatabroker-1-1
+  scenemachine/src/Libraries/LibDBIcon-1.0: https://repos.wowace.com/wow/libdbicon-1-0/trunk
+  scenemachine/src/Libraries/LibStub: https://repos.wowace.com/wow/libstub/trunk
+
+ignore:
+  - README.md
+
+move-folders:
+  scenemachine/scenemachine: scenemachine
