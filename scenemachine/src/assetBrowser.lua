@@ -64,8 +64,9 @@ function AssetBrowser.CreateModelListTab(parent, w, h)
 end
 
 function AssetBrowser.CreateCreatureListTab(parent, w, h)
-    local testInputField = Win.CreateEditBox(0, 0, w, 20, parent, "TOPLEFT", "TOPLEFT", "41918");
-    testInputField:SetScript('OnEnterPressed', function(self1)
+    local creatureDisplayIDText = Win.CreateTextBoxSimple(0, 0, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "CreatureDisplayID", 9);
+    local creatureDisplayIDEditBox = Win.CreateEditBox(w * 0.3, 0, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "41918");
+    creatureDisplayIDEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
         local valText = self1:GetText();
         if (valText == nil or valText == "") then
@@ -73,8 +74,45 @@ function AssetBrowser.CreateCreatureListTab(parent, w, h)
         end
         local val = tonumber(valText);
         if (val ~= nil) then
-            --self1.value = val;
             SM.CreateCreature(val, "Creature", 0, 0, 0);
+        end
+        self1:ClearFocus();
+        Win.focused = false;
+    end);
+
+    local creatureAnimationText = Win.CreateTextBoxSimple(0, -22, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimID", 9);
+    local creatureAnimationEditBox = Win.CreateEditBox(w * 0.3, -22, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    creatureAnimationEditBox:SetScript('OnEnterPressed', function(self1)
+        -- set value
+        local valText = self1:GetText();
+        if (valText == nil or valText == "") then
+            return;
+        end
+        local val = tonumber(valText);
+        if (val ~= nil) then
+            --SM.CreateCreature(val, "Creature", 0, 0, 0);
+            if (SM.selectedObject) then
+                SM.selectedObject:PlayAnimID(val);
+            end
+        end
+        self1:ClearFocus();
+        Win.focused = false;
+    end);
+
+    local creatureAnimationKitText = Win.CreateTextBoxSimple(0, -44, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimKitID", 9);
+    local creatureAnimationKitEditBox = Win.CreateEditBox(w * 0.3, -44, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    creatureAnimationKitEditBox:SetScript('OnEnterPressed', function(self1)
+        -- set value
+        local valText = self1:GetText();
+        if (valText == nil or valText == "") then
+            return;
+        end
+        local val = tonumber(valText);
+        if (val ~= nil) then
+            --SM.CreateCreature(val, "Creature", 0, 0, 0);
+            if (SM.selectedObject) then
+                SM.selectedObject:PlayAnimKitID(val);
+            end
         end
         self1:ClearFocus();
         Win.focused = false;
@@ -293,7 +331,6 @@ function AssetBrowser.OnThumbnailClick(name)
             local fileName = AssetBrowser.currentDirectory["FN"][i];
             if fileName == name then
                 local fileID = AssetBrowser.currentDirectory["FI"][i];
-                --Renderer.AddActor(fileID, 0, 0, 0);
                 SM.CreateObject(fileID, fileName, 0, 0, 0)
                 return;
             end
@@ -302,21 +339,6 @@ function AssetBrowser.OnThumbnailClick(name)
 end
 
 function AssetBrowser.OnThumbnailDrag(name)
-    -- Directory scan
-    if (AssetBrowser.currentDirectory["D"] ~= nil) then
-        local directoryCount = table.getn(AssetBrowser.currentDirectory["D"]);
-        for i = 1, directoryCount, 1 do
-            local dirName = AssetBrowser.currentDirectory["D"][i]["N"];
-            if dirName == name then
-                --AssetBrowser.currentPage = 1;
-                --AssetBrowser.currentDirectory = AssetBrowser.currentDirectory["D"][i];
-                --table.insert(AssetBrowser.breadcrumb, AssetBrowser.currentDirectory);
-                --AssetBrowser.Refresh();
-                --return;
-            end
-        end
-    end
-
     -- File Scan
     if (AssetBrowser.currentDirectory["FN"] ~= nil) then
         local fileCount = table.getn(AssetBrowser.currentDirectory["FN"]);

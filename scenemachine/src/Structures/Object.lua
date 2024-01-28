@@ -179,6 +179,14 @@ function Object:ToggleFrozen()
     self.frozen = not self.frozen;
 end
 
+function Object:PlayAnimID(id)
+    self.actor:SetAnimation(id);
+end
+
+function Object:PlayAnimKitID(id)
+    self.actor:PlayAnimationKit(id)
+end
+
 function Object:ExportData()
     local data = {
         fileID = self.fileID;
