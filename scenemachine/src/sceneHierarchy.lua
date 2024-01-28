@@ -23,7 +23,7 @@ function SH.ItemList(itemSizeX, itemSizeY, parent)
 		pool = {},
 		SetItem = function(self, index, text)
 			if (self.pool[index] == nil) then
-				self.pool[index] = SH.ItemList_CreateNewItem(0, -(index - 1) * (itemSizeY + 1.0001), itemSizeX, itemSizeY, parent);
+				self.pool[index] = SH.ItemList_CreateNewItem(0, -(index - 1) * (itemSizeY + 1.0001), itemSizeX, itemSizeY, parent, #self.pool + 1);
 				self.pool[index].text:SetText(text);
                 self.pool[index]:SetScript("OnClick", function(self2)
                     SH.SelectObject(index);
@@ -58,7 +58,7 @@ function SH.ItemList(itemSizeX, itemSizeY, parent)
 	return itemList;
 end
 
-function SH.ItemList_CreateNewItem(x, y, w, h, parent)
+function SH.ItemList_CreateNewItem(x, y, w, h, parent, index)
 	local ButtonFont = Win.defaultFont;
 	local ButtonFontSize = 9;
 
@@ -87,12 +87,23 @@ function SH.ItemList_CreateNewItem(x, y, w, h, parent)
 	item.text:SetText(name);
 
 	-- visibility icon --
-	SH.eyeIconVisibleTexCoord = { 0, 1, 0, 0.5 }
-	SH.eyeIconInvisibleTexCoord = { 0, 1, 0.5, 1 }
-	item.visibilityIcon = Win.CreateImageBox(-2.5, 0, h - 5, h - 5, item, "RIGHT", "RIGHT", "Interface\\Addons\\scenemachine\\static\\textures\\eyeIcon.png", SH.eyeIconVisibleTexCoord);
-	item.visibilityIcon:SetAlpha(0.6)
-	
+	SH.eyeIconVisibleTexCoord = { 0, 1, 0, 0.5 };
+	SH.eyeIconInvisibleTexCoord = { 0, 1, 0.5, 1 };
+	item.visibilityButton = Win.CreateButton(0, 0, h, h, item, "RIGHT", "RIGHT", nil,
+		"Interface\\Addons\\scenemachine\\static\\textures\\eyeIcon.png", nil, SH.eyeIconVisibleTexCoord);
+	item.visibilityButton.ntex:SetColorTexture(0, 0, 0, 0);
+	--item.visibilityButton = Win.CreateImageBox(-2.5, 0, h - 5, h - 5, item, "RIGHT", "RIGHT", "Interface\\Addons\\scenemachine\\static\\textures\\eyeIcon.png", SH.eyeIconVisibleTexCoord);
+	item.visibilityButton:SetAlpha(0.6);
+	item.visibilityButton:SetScript("OnClick", function (self, button, down) SH.VisibilityButton_OnClick(index) end);
 	return item;
+end
+
+function SH.VisibilityButton_OnClick(index)
+	local object = SM.loadedScene.objects[index];
+print(object)
+	if (object) then
+		SM.ToggleObjectVisibility(object);
+	end
 end
 
 function SH.RefreshHierarchy()
@@ -118,9 +129,9 @@ function SH.RefreshHierarchy()
 		end
 
 		if (object.visible) then
-			SH.list.pool[index].visibilityIcon.texture:SetTexCoord(SH.eyeIconVisibleTexCoord[1], SH.eyeIconVisibleTexCoord[2], SH.eyeIconVisibleTexCoord[3], SH.eyeIconVisibleTexCoord[4]);
+			SH.list.pool[index].visibilityButton.icon.texture:SetTexCoord(SH.eyeIconVisibleTexCoord[1], SH.eyeIconVisibleTexCoord[2], SH.eyeIconVisibleTexCoord[3], SH.eyeIconVisibleTexCoord[4]);
 		else
-			SH.list.pool[index].visibilityIcon.texture:SetTexCoord(SH.eyeIconInvisibleTexCoord[1], SH.eyeIconInvisibleTexCoord[2], SH.eyeIconInvisibleTexCoord[3], SH.eyeIconInvisibleTexCoord[4]);
+			SH.list.pool[index].visibilityButton.icon.texture:SetTexCoord(SH.eyeIconInvisibleTexCoord[1], SH.eyeIconInvisibleTexCoord[2], SH.eyeIconInvisibleTexCoord[3], SH.eyeIconInvisibleTexCoord[4]);
 		end
 
         index = index + 1;

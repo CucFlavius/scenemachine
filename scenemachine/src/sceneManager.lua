@@ -338,20 +338,20 @@ function SM.DeleteObject(object)
 end
 
 function SM.ToggleObjectVisibility(object)
-    if (SM.selectedObject == nil) then
+    if (object == nil) then
         return;
     end
 
-    SM.selectedObject:ToggleVisibility();
+    object:ToggleVisibility();
     SH.RefreshHierarchy();
 end
 
 function SM.ToggleObjectFreezeState(object)
-    if (SM.selectedObject == nil) then
+    if (object == nil) then
         return;
     end
 
-    SM.selectedObject:ToggleFrozen();
+    object:ToggleFrozen();
     SH.RefreshHierarchy();
 end
 
