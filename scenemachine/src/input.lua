@@ -233,11 +233,8 @@ function Input.OnClickUp(LMB, RMB, MMB, x, y)
     elseif (RMB) then
         -- open RMB context menu --
         local scale = SceneMachine.mainWindow:GetEffectiveScale();
-        --local rx = Input.mouseX - SceneMachine.mainWindow:GetLeft() - Renderer.projectionFrame:GetLeft()) * scale;
-        --local ry = Input.mouseY - SceneMachine.mainWindow:GetTop() * scale;
-        print(Renderer.projectionFrame:GetBottom() .. " " .. SceneMachine.mainWindow:GetBottom())
-        local rx = (Input.mouseX * Renderer.scale) + (Renderer.projectionFrame:GetLeft() - SceneMachine.mainWindow:GetLeft());--SceneMachine.mainWindow:GetWidth();
-        local ry = (Input.mouseY * Renderer.scale) - 485;--SceneMachine.mainWindow:GetWidth();
+        local rx = (Input.mouseX * Renderer.scale) + (Renderer.projectionFrame:GetLeft() - SceneMachine.mainWindow:GetLeft());
+        local ry = (Input.mouseY * Renderer.scale) - 485;
         Editor.OpenContextMenu(rx, ry);
     elseif (MMB) then
     end

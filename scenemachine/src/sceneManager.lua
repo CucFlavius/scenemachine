@@ -245,6 +245,30 @@ function SM.UnloadScene()
     Renderer.Clear();
 end
 
+function SM.DeleteScene(index)
+    -- switch to a different scene because the currently loaded is being deleted
+    -- load first that isn't this one
+    for i in pairs(PM.currentProject.scenes) do
+        local scene = PM.currentProject.scenes[i];
+        if (i ~= index) then
+            SM.LoadScene(i);
+            break;
+        end
+    end
+
+    -- delete it
+    table.remove(PM.currentProject.scenes, index);
+
+    -- if this was the only scene then create a new default one
+    if (#PM.currentProject.scenes == 1) then
+        SM.CreateDefaultScene();
+        SM.LoadScene(1);
+    end
+
+    -- refresh ui
+    SM.RefreshSceneTabs();
+end
+
 function SM.CreateObject(_fileID, _name, _x, _y, _z)
     local object = SceneMachine.Object:New(_name, _fileID, { x = _x, y = _y, z = _z });
 
@@ -309,28 +333,20 @@ function SM.DeleteObject(object)
     OP.Refresh();
 end
 
-function SM.DeleteScene(index)
-    -- switch to a different scene because the currently loaded is being deleted
-    -- load first that isn't this one
-    for i in pairs(PM.currentProject.scenes) do
-        local scene = PM.currentProject.scenes[i];
-        if (i ~= index) then
-            SM.LoadScene(i);
-            break;
-        end
+function SM.ToggleObjectVisibility(object)
+    if (SM.selectedObject == nil) then
+        return;
     end
 
-    -- delete it
-    table.remove(PM.currentProject.scenes, index);
+    SM.selectedObject:ToggleVisibility();
+end
 
-    -- if this was the only scene then create a new default one
-    if (#PM.currentProject.scenes == 1) then
-        SM.CreateDefaultScene();
-        SM.LoadScene(1);
+function SM.ToggleObjectFreezeState(object)
+    if (SM.selectedObject == nil) then
+        return;
     end
 
-    -- refresh ui
-    SM.RefreshSceneTabs();
+    SM.selectedObject:ToggleFrozen();
 end
 
 function SM.CreateNewSceneTab(x, y, w, h, parent)
