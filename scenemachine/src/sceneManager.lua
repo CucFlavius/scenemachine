@@ -239,6 +239,8 @@ function SM.LoadScene(index)
     end
 
     AM.RefreshTimelineTabs();
+    -- load the first timeline
+    AM.LoadTimeline(1);
 
     -- remember this scene was opened last
     PM.currentProject.lastOpenScene = index;

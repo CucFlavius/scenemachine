@@ -6,6 +6,7 @@ local Player = SceneMachine.Player;
 local Gizmos = SceneMachine.Gizmos;
 local Input = SceneMachine.Input;
 local Editor = SceneMachine.Editor;
+local AM = SceneMachine.Editor.AnimationManager;
 
 print ("Running SceneMachine")
 
@@ -82,6 +83,7 @@ local function SG_UpdateLoop ()
 		Input.Update();
 		Gizmos.Update();
 		Renderer.RenderGizmos();
+		AM.Update();
 		if (Debug) then Debug.FlushLinePool(); end
 	end
 end

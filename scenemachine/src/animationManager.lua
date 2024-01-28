@@ -3,18 +3,134 @@ local AM = SceneMachine.Editor.AnimationManager;
 local SM = SceneMachine.Editor.SceneManager;
 local Renderer = SceneMachine.Renderer;
 local Editor = SceneMachine.Editor;
+local Input = SceneMachine.Input;
 
 local tabButtonHeight = 20;
 local tabPool = {};
 
+AM.needlePoolSize = 10;
+AM.usedNeedles = 0;
+AM.minShownNeedles = 10;
+AM.maxShownNeedles = 25;
+AM.needles = {};
+AM.currentCrop = {
+    min = 0;
+    max = 0.3;
+};
+AM.inputState = {
+    minFramePosStart = 0;
+    maxFramePosStart = 0;
+    centerFramePosStart = 0;
+    mousePosStartX = 0;
+    movingMin = false;
+    movingMax = false;
+    movingCenter = false;
+};
 AM.loadedTimelineIndex = 1;
 AM.loadedTimeline = nil;
 
+function AM.Update()
+
+    if (AM.inputState.movingMin) then
+        local mouseDiff = (AM.inputState.mousePosStartX - Input.mouseXRaw) * Renderer.scale;
+        local nextPoint = AM.inputState.minFramePosStart - mouseDiff;
+        local newPoint = 0;
+        if (nextPoint >= 0 and nextPoint < AM.inputState.maxFramePosStart - 20) then
+            AM.cropperLeftDrag:ClearAllPoints();
+            newPoint = nextPoint;
+            AM.cropperLeftDrag:SetPoint("LEFT", nextPoint, 0);
+        else
+            if (nextPoint <= 0) then
+                AM.cropperLeftDrag:ClearAllPoints();
+                newPoint = 0;
+                AM.cropperLeftDrag:SetPoint("LEFT", 0, 0);
+            end
+            if (nextPoint >= AM.inputState.maxFramePosStart - 20) then
+                AM.cropperLeftDrag:ClearAllPoints();
+                newPoint = AM.inputState.maxFramePosStart - 20;
+                AM.cropperLeftDrag:SetPoint("LEFT", AM.inputState.maxFramePosStart - 20, 0);
+            end
+        end
+
+        AM.cropperSlider:ClearAllPoints();
+        AM.cropperSlider:SetPoint("LEFT", AM.cropperBg, "LEFT", newPoint, 0);
+        AM.cropperSlider:SetPoint("RIGHT", AM.cropperBg, "LEFT", AM.inputState.maxFramePosStart, 0);
+        local newPointNormalized = newPoint / (AM.groupBG:GetWidth() - 10);
+        AM.currentCrop.min = newPointNormalized;
+        AM.RefreshTimebar();
+    end
+
+    if (AM.inputState.movingMax) then
+        local mouseDiff = (AM.inputState.mousePosStartX - Input.mouseXRaw) * Renderer.scale;
+        local nextPoint = AM.inputState.maxFramePosStart - mouseDiff;
+        local newPoint = 0;
+        if (nextPoint > AM.inputState.minFramePosStart + 20 and nextPoint < AM.groupBG:GetWidth() - 10) then
+            AM.cropperRightDrag:ClearAllPoints();
+            newPoint = nextPoint;
+            AM.cropperRightDrag:SetPoint("LEFT", nextPoint, 0);
+        else
+            if (nextPoint <= AM.inputState.minFramePosStart + 20) then
+                AM.cropperRightDrag:ClearAllPoints();
+                newPoint = AM.inputState.minFramePosStart + 20;
+                AM.cropperRightDrag:SetPoint("LEFT", AM.inputState.minFramePosStart + 20, 0);
+            end
+            if (nextPoint > AM.groupBG:GetWidth() - 10) then
+                AM.cropperRightDrag:ClearAllPoints();
+                newPoint = AM.groupBG:GetWidth() - 10;
+                AM.cropperRightDrag:SetPoint("LEFT", AM.groupBG:GetWidth() - 10, 0);
+            end
+        end
+
+        AM.cropperSlider:ClearAllPoints();
+        AM.cropperSlider:SetPoint("RIGHT", AM.cropperBg, "LEFT", newPoint, 0);
+        AM.cropperSlider:SetPoint("LEFT", AM.cropperBg, "LEFT", AM.inputState.minFramePosStart, 0);
+        local newPointNormalized = newPoint / (AM.groupBG:GetWidth() - 10);
+        AM.currentCrop.max = newPointNormalized;
+        AM.RefreshTimebar();
+    end
+
+    if (AM.inputState.movingCenter) then
+        local sliderSize = AM.inputState.maxFramePosStart - AM.inputState.minFramePosStart;
+        local mouseDiff = (AM.inputState.mousePosStartX - Input.mouseXRaw) * Renderer.scale;
+        local nextPoint = AM.inputState.centerFramePosStart - mouseDiff;
+        local newPoint = 0;
+        if (nextPoint > 0 and nextPoint < (AM.groupBG:GetWidth() - 10) - sliderSize) then
+            newPoint = nextPoint;
+        else
+            if (nextPoint <= 0) then
+                newPoint = 0;
+            end
+            if (nextPoint > (AM.groupBG:GetWidth() - 10) - sliderSize) then
+                newPoint = (AM.groupBG:GetWidth() - 10) - sliderSize;
+            end
+        end
+
+        AM.cropperSlider:ClearAllPoints();
+        AM.cropperSlider:SetPoint("RIGHT", AM.cropperBg, "LEFT", newPoint + sliderSize, 0);
+        AM.cropperSlider:SetPoint("LEFT", AM.cropperBg, "LEFT", newPoint, 0);
+        
+        AM.cropperRightDrag:ClearAllPoints();
+        AM.cropperRightDrag:SetPoint("LEFT", newPoint + sliderSize, 0);
+        
+        AM.cropperLeftDrag:ClearAllPoints();
+        AM.cropperLeftDrag:SetPoint("LEFT", newPoint, 0);
+
+        local newPointMinNormalized = newPoint / (AM.groupBG:GetWidth() - 10);
+        local newPointMaxNormalized = (newPoint + sliderSize) / (AM.groupBG:GetWidth() - 10);
+        AM.currentCrop.max = newPointMaxNormalized;
+        AM.currentCrop.min = newPointMinNormalized;
+        AM.RefreshTimebar();
+    end
+end
+
 function AM.CreateAnimationManager(x, y, w, h, parent)
+
+    local timelineTabH = 20;
+
     AM.groupBG = Win.CreateRectangle(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 0);
     AM.parentFrame = parent;
     AM.groupBGy = y;
-    AM.addTimelineButtonTab = AM.CreateNewTimelineTab(0, 0, 20, tabButtonHeight, AM.groupBG);
+    AM.addTimelineButtonTab = AM.CreateNewTimelineTab(0, 0, timelineTabH, tabButtonHeight, AM.groupBG);
     AM.addTimelineButtonTab.text:SetText("+");
     AM.addTimelineButtonTab.ntex:SetColorTexture(0, 0, 0 ,0);
     AM.addTimelineButtonTab.text:SetAllPoints(AM.addTimelineButtonTab);
@@ -23,58 +139,114 @@ function AM.CreateAnimationManager(x, y, w, h, parent)
     AM.addTimelineEditBox = Win.CreateEditBox(0, 0, 100, tabButtonHeight, AM.groupBG, "TOPLEFT", "TOPLEFT", "Timeline Name");
     AM.addTimelineEditBox:Hide();
 
+    local bottomPad = 4;
+    local timebarH = 25;
+    local timebarY = -timelineTabH;
+    local cropperBarH = 12;
+    local cropperBarY = bottomPad;
+    local workAreaX = 10;
+    local workAreaY = -(timebarH + timelineTabH);
+    local workAreaW = w - 20;
+    local workAreaH = h - (timelineTabH + timebarH + cropperBarH + bottomPad);
+    AM.CreateTimebar(0, timebarY, w, timebarH, AM.groupBG);
+    AM.CreateWorkArea(workAreaX, workAreaY, workAreaW, workAreaH, AM.groupBG);
+    AM.CreateCropperBar(0, cropperBarY, w, cropperBarH, AM.groupBG);
+
     AM.RefreshTimelineTabs();
+    AM.RefreshTimebar();
 end
 
-function AM.RefreshTimelineTabs()
-    -- clear --
-    for idx in pairs(tabPool) do
-        tabPool[idx]:Hide();
+function AM.CreateTimebar(x, y, w, h, parent)
+    AM.timebarGroup = Win.CreateRectangle(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 0.2);
+    for i = 1, AM.needlePoolSize, 1 do
+        local needle = AM.CreateNeedle();
+        AM.needles[i] = needle;
     end
+end
 
-    -- add available timelines --
-    local x = 0;
-    if (SM.loadedScene ~= nil) then
-        for i in pairs(SM.loadedScene.timelines) do
-            local timeline = SM.loadedScene.timelines[i];
-            if (tabPool[i] == nil) then
-                tabPool[i] = AM.CreateNewTimelineTab(x, 0, 50, tabButtonHeight, AM.groupBG);
-                tabPool[i].text:SetText(timeline.name);
-                tabPool[i]:SetWidth(tabPool[i].text:GetStringWidth() + 20);
-                tabPool[i]:RegisterForClicks("LeftButtonUp", "RightButtonUp");
-                tabPool[i]:SetScript("OnClick", function(self, button, down)
-                    if (button == "LeftButton") then
-                        AM.TimelineTabButton_OnClick(i);
-                    elseif (button == "RightButton") then
-                        local point, relativeTo, relativePoint, xOfs, yOfs = tabPool[i]:GetPoint(1);
-                        AM.TimelineTabButton_OnClick(i);
-                        AM.TimelineTabButton_OnRightClick(i, xOfs, -5);
-                    end
-                end);
-            else
-                tabPool[i].text:SetText(timeline.name);
-                tabPool[i]:SetWidth(tabPool[i].text:GetStringWidth() + 20);
-            end
+function AM.CreateNeedle()
+    local needle = Win.CreateRectangle(0, 0, 1, 4, AM.timebarGroup, "TOPLEFT", "TOPLEFT",  1, 1, 1, 0.5);
+    needle.text = needle:CreateFontString("needle text");
+	needle.text:SetFont(Win.defaultFont, 8, "NORMAL");
+	needle.text:SetPoint("TOP", needle, "TOP", 0, 12);
+    needle.text:SetSize(30, 10);
+    needle.text:SetTextColor(1,1,1,0.5);
+	needle.text:SetJustifyV("CENTER");
+	needle.text:SetJustifyH("CENTER");
+    needle:Hide();
+    return needle;
+end
 
-            tabPool[i]:Show();
+function AM.GetNeedle()
+    local i = AM.usedNeedles + 1;
+    AM.usedNeedles = AM.usedNeedles + 1;
 
-            if (AM.loadedTimelineIndex == i) then
-                tabPool[i].ntex:SetColorTexture(0.1757, 0.1757, 0.1875 ,1);
-            else
-                tabPool[i].ntex:SetColorTexture(0, 0, 0 ,0);
-            end
-
-            x = x + tabPool[i]:GetWidth() + 1;
-        end
+    if i < #AM.needles then
+        local needle = AM.needles[i];
+        return needle;
+    else
+        -- create new needle
+        local needle = AM.CreateNeedle();
+        AM.needles[i] = needle;
+        return needle;
     end
+end
 
-    -- add new scene button --
-    AM.addTimelineButtonTab:Show();
-    AM.addTimelineEditBox:Hide();
-    AM.addTimelineButtonTab:SetPoint("TOPLEFT", AM.groupBG, "TOPLEFT", x, 0);
-    AM.addTimelineButtonTab:SetScript("OnClick", function(self) 
-        AM.Button_RenameTimeline(-1, x);
+function AM.CreateWorkArea(x, y, w, h, parent)
+    AM.workAreaBG = Win.CreateRectangle(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  1, 0, 0, 0.1);
+end
+
+function AM.CreateCropperBar(x, y, w, h, parent)
+    AM.cropperBg = Win.CreateRectangle(x, y, w, h, parent, "BOTTOMLEFT", "BOTTOMLEFT",  0, 0, 0, 0.4);
+
+    local initialSliderLength = w * (AM.currentCrop.max - AM.currentCrop.min) - 10;
+
+    AM.cropperLeftDrag = Win.CreateButton(0, 0, h, h, AM.cropperBg, "LEFT", "LEFT");
+    AM.cropperLeftDrag.ntex:SetColorTexture(1,1,1,1);
+    AM.cropperLeftDrag.htex:SetColorTexture(1,1,1,1);
+    AM.cropperLeftDrag.ptex:SetColorTexture(1,1,1,1);
+    AM.cropperLeftDrag:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
+    AM.cropperLeftDrag:SetScript("OnMouseDown", function(self, button)
+        AM.inputState.movingMin = true;
+        local gpointL, grelativeToL, grelativePointL, gxOfsL, gyOfsL = AM.cropperLeftDrag:GetPoint(1);
+        AM.inputState.minFramePosStart = gxOfsL;
+        local gpointR, grelativeToR, grelativePointR, gxOfsR, gyOfsR = AM.cropperRightDrag:GetPoint(1);
+        AM.inputState.maxFramePosStart = gxOfsR;
+        AM.inputState.mousePosStartX = Input.mouseXRaw;
     end);
+    AM.cropperLeftDrag:SetScript("OnMouseUp", function(self, button) AM.inputState.movingMin = false; end);
+    
+    AM.cropperRightDrag = Win.CreateButton(initialSliderLength, 0, h, h, AM.cropperBg, "LEFT", "LEFT");
+    AM.cropperRightDrag.ntex:SetColorTexture(1,1,1,1);
+    AM.cropperRightDrag.htex:SetColorTexture(1,1,1,1);
+    AM.cropperRightDrag.ptex:SetColorTexture(1,1,1,1);
+    AM.cropperRightDrag:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
+    AM.cropperRightDrag:SetScript("OnMouseDown", function(self, button)
+        AM.inputState.movingMax = true;
+        local gpointL, grelativeToL, grelativePointL, gxOfsL, gyOfsL = AM.cropperLeftDrag:GetPoint(1);
+        AM.inputState.minFramePosStart = gxOfsL;
+        local gpointR, grelativeToR, grelativePointR, gxOfsR, gyOfsR = AM.cropperRightDrag:GetPoint(1);
+        AM.inputState.maxFramePosStart = gxOfsR;
+        AM.inputState.mousePosStartX = Input.mouseXRaw;
+    end);
+    AM.cropperRightDrag:SetScript("OnMouseUp", function(self, button) AM.inputState.movingMax = false; end);
+
+    AM.cropperSlider = Win.CreateButton(0, 0, initialSliderLength, 5, AM.cropperBg, "LEFT", "LEFT");
+    AM.cropperSlider.ntex:SetColorTexture(0.5,0.5,0.5,1);
+    AM.cropperSlider.htex:SetColorTexture(0.5,0.5,0.5,0);
+    AM.cropperSlider.ptex:SetColorTexture(0.5,0.5,0.5,1);
+    AM.cropperSlider:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
+    AM.cropperSlider:SetScript("OnMouseDown", function(self, button)
+        AM.inputState.movingCenter = true;
+        local gpointC, grelativeToC, grelativePointC, gxOfsC, gyOfsC = self:GetPoint(1);
+        AM.inputState.centerFramePosStart = gxOfsC;
+        local gpointL, grelativeToL, grelativePointL, gxOfsL, gyOfsL = AM.cropperLeftDrag:GetPoint(1);
+        AM.inputState.minFramePosStart = gxOfsL;
+        local gpointR, grelativeToR, grelativePointR, gxOfsR, gyOfsR = AM.cropperRightDrag:GetPoint(1);
+        AM.inputState.maxFramePosStart = gxOfsR;
+        AM.inputState.mousePosStartX = Input.mouseXRaw;
+    end);
+    AM.cropperSlider:SetScript("OnMouseUp", function(self, button) AM.inputState.movingCenter = false; end);
 end
 
 function AM.CreateDefaultTimeline()
@@ -166,6 +338,7 @@ function AM.CreateTimeline(timelineName)
 
     return {
         name = timelineName,
+        length = 30000, -- 30000 miliseconds, 30 seconds
     }
 end
 
@@ -184,6 +357,8 @@ function AM.LoadTimeline(index)
     -- load new --
     local timeline = SM.loadedScene.timelines[index];
     AM.loadedTimeline = timeline;
+
+    AM.RefreshTimebar();
 
     -- refresh the scene tabs
     AM.RefreshTimelineTabs();
@@ -220,11 +395,11 @@ function AM.DeleteTimeline()
 end
 
 function AM.AddSelectedObject()
-
+    --
 end
 
 function AM.RemoveSelectedObject()
-
+    --
 end
 
 function AM.CreateNewTimelineTab(x, y, w, h, parent)
@@ -257,4 +432,145 @@ function AM.CreateNewTimelineTab(x, y, w, h, parent)
 	item.text:SetText(name);
 
 	return item;
+end
+
+function AM.RefreshTimelineTabs()
+    -- clear --
+    for idx in pairs(tabPool) do
+        tabPool[idx]:Hide();
+    end
+
+    -- add available timelines --
+    local x = 0;
+    if (SM.loadedScene ~= nil) then
+        for i in pairs(SM.loadedScene.timelines) do
+            local timeline = SM.loadedScene.timelines[i];
+            if (tabPool[i] == nil) then
+                tabPool[i] = AM.CreateNewTimelineTab(x, 0, 50, tabButtonHeight, AM.groupBG);
+                tabPool[i].text:SetText(timeline.name);
+                tabPool[i]:SetWidth(tabPool[i].text:GetStringWidth() + 20);
+                tabPool[i]:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+                tabPool[i]:SetScript("OnClick", function(self, button, down)
+                    if (button == "LeftButton") then
+                        AM.TimelineTabButton_OnClick(i);
+                    elseif (button == "RightButton") then
+                        local point, relativeTo, relativePoint, xOfs, yOfs = tabPool[i]:GetPoint(1);
+                        AM.TimelineTabButton_OnClick(i);
+                        AM.TimelineTabButton_OnRightClick(i, xOfs, -5);
+                    end
+                end);
+            else
+                tabPool[i].text:SetText(timeline.name);
+                tabPool[i]:SetWidth(tabPool[i].text:GetStringWidth() + 20);
+            end
+
+            tabPool[i]:Show();
+
+            if (AM.loadedTimelineIndex == i) then
+                tabPool[i].ntex:SetColorTexture(0.1757, 0.1757, 0.1875 ,1);
+            else
+                tabPool[i].ntex:SetColorTexture(0, 0, 0 ,0);
+            end
+
+            x = x + tabPool[i]:GetWidth() + 1;
+        end
+    end
+
+    -- add new scene button --
+    AM.addTimelineButtonTab:Show();
+    AM.addTimelineEditBox:Hide();
+    AM.addTimelineButtonTab:SetPoint("TOPLEFT", AM.groupBG, "TOPLEFT", x, 0);
+    AM.addTimelineButtonTab:SetScript("OnClick", function(self) 
+        AM.Button_RenameTimeline(-1, x);
+    end);
+end
+
+function AM.RefreshTimebar()
+    if (not AM.loadedTimeline) then return; end
+
+    -- Clear needles
+    AM.usedNeedles = 0;
+    for i = 1, #AM.needles, 1 do
+        AM.needles[i]:Hide();
+    end
+
+    -- Refresh needles
+    local timeBarW = AM.timebarGroup:GetWidth();
+    local workAreaW = AM.workAreaBG:GetWidth();
+    local totalTimeMs = AM.loadedTimeline.length;
+    
+    local startTimeMs = AM.currentCrop.min * totalTimeMs;
+    local startTimeS = startTimeMs / 1000;
+    local endTimeMs = AM.currentCrop.max * totalTimeMs;
+    local endTimeS = endTimeMs / 1000;
+    local croppedTimeMs = endTimeMs - startTimeMs;
+    local croppedTimeS = croppedTimeMs / 1000;
+
+    local needlesNeededF = croppedTimeS + 1;
+    local needleSpacing = workAreaW / (needlesNeededF - 1);
+    
+    local needleTimeSpacing = 1;    -- 1 second
+    while (needlesNeededF < AM.minShownNeedles) do
+        needlesNeededF = needlesNeededF * 2;
+        needleTimeSpacing = needleTimeSpacing / 2;
+    end
+    while (needlesNeededF > AM.maxShownNeedles) do
+        needlesNeededF = needlesNeededF / 2;
+        needleTimeSpacing = needleTimeSpacing * 2;
+    end
+
+    local needleStartOffs = 0;
+    local numberOffs = 0;
+    local dif = (math.ceil(startTimeS, 1) - startTimeS);
+    if (needleTimeSpacing > 1) then
+        dif = (math.ceil(startTimeS, (1 / needleTimeSpacing)) - startTimeS);
+    end
+
+    if (dif ~= 0) then
+        needleStartOffs = -needleSpacing * (1.0 - dif);
+        numberOffs = 1;
+        if (needleTimeSpacing > 1) then
+            needleStartOffs = -needleSpacing * (1.0 - dif);
+        end
+        --print(dif)
+        --print(needleStartOffs)
+    end
+
+    local needlesNeededCount = math.ceil(needlesNeededF);
+    if (needleTimeSpacing < 1) then
+        needlesNeededCount = needlesNeededCount - (1 / needleTimeSpacing);
+    end
+
+    if (needleStartOffs ~= 0 and needleTimeSpacing < 1) then
+        needlesNeededCount = needlesNeededCount + (1 / needleTimeSpacing);
+    end
+
+    needleSpacing = needleSpacing * needleTimeSpacing;
+
+    if (needleTimeSpacing > 1) then
+        --needleStartOffs = needleStartOffs * needleTimeSpacing;
+        --startTimeS = startTimeS + 1.0
+    end
+
+    for i = 1, needlesNeededCount, 1 do
+        local pos = needleStartOffs + ((i - 1) * needleSpacing) + 10;
+        local text = math.ceil(startTimeS) + ((i - 1) * needleTimeSpacing) - numberOffs .. "s";
+        local needle = AM.GetNeedle();
+        needle:ClearAllPoints();
+        needle:SetPoint("BOTTOMLEFT", pos, 0);
+        needle.text:SetText(text);
+        needle:Show();
+
+        -- hide last one if out of bounds
+        if (pos > timeBarW) then
+            needle:Hide();
+        end
+
+        -- hide first one if out of bounds
+        if (i == 1) then
+            if (pos < 0) then
+                needle:Hide();
+            end
+        end
+    end
 end

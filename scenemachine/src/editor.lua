@@ -18,7 +18,7 @@ Editor.scale = 1.0;
 Editor.toolbarHeight = 15 + 30;
 local rightPanelWidth = 300;
 local leftPanelWidth = 300;
-local bottomPanelHeight = 200;
+local bottomPanelHeight = 220;
 Editor.isOpen = false;
 Editor.isInitialized = false;
 
@@ -64,7 +64,7 @@ function Editor.Initialize()
     local sceneX = leftPanelWidth;
     local sceneY = -(Editor.toolbarHeight + 6);
     local sceneW = Editor.width - (rightPanelWidth + leftPanelWidth);
-    local sceneH = Editor.height - (Editor.toolbarHeight + bottomPanelHeight + 6 + 20);
+    local sceneH = Editor.height - (Editor.toolbarHeight + bottomPanelHeight + 6);
     Editor.SceneManager.Create(sceneX, sceneY, sceneW, sceneH, SceneMachine.mainWindow);
 
     -- Create minimap icon --
