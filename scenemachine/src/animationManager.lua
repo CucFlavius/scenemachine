@@ -1,6 +1,7 @@
 local Win = ZWindowAPI;
 local AM = SceneMachine.Editor.AnimationManager;
 local SM = SceneMachine.Editor.SceneManager;
+local Renderer = SceneMachine.Renderer;
 
 local tabButtonHeight = 20;
 local tabPool = {};
@@ -10,7 +11,8 @@ AM.loadedTimeline = nil;
 
 function AM.CreateAnimationManager(x, y, w, h, parent)
     AM.groupBG = Win.CreateRectangle(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 0);
-
+    AM.parentFrame = parent;
+    AM.groupBGy = y;
     AM.addTimelineButtonTab = AM.CreateNewTimelineTab(0, 0, 20, tabButtonHeight, AM.groupBG);
     AM.addTimelineButtonTab.text:SetText("+");
     AM.addTimelineButtonTab.ntex:SetColorTexture(0, 0, 0 ,0);
@@ -84,8 +86,8 @@ function AM.TimelineTabButton_OnClick(index)
 end
 
 function AM.TimelineTabButton_OnRightClick(index, x, y)
-    -- open rmb menu with option to delete, edit, rename the scene
-    local gpoint, grelativeTo, grelativePoint, gxOfs, gyOfs = AM.groupBG:GetPoint(1);
+    local gpoint, grelativeTo, grelativePoint, gxOfs, gyOfs = AM.parentFrame:GetPoint(1);   -- point is at bottom left of SceneMachine.mainWindow
+    gyOfs = gyOfs - (SceneMachine.mainWindow:GetHeight() - AM.parentFrame:GetHeight());
 
 	local menuOptions = {
         [1] = { ["Name"] = "Rename", ["Action"] = function() AM.Button_RenameTimeline(index, x) end },
@@ -167,7 +169,6 @@ function AM.CreateTimeline(timelineName)
 end
 
 function AM.LoadTimeline(index)
-    print(index)
     AM.loadedTimelineIndex = index;
 
     if (#SM.loadedScene.timelines == 0) then
