@@ -2,6 +2,7 @@ local Win = ZWindowAPI;
 local AM = SceneMachine.Editor.AnimationManager;
 local SM = SceneMachine.Editor.SceneManager;
 local Renderer = SceneMachine.Renderer;
+local Editor = SceneMachine.Editor;
 
 local tabButtonHeight = 20;
 local tabPool = {};
@@ -215,7 +216,7 @@ function AM.DeleteTimeline()
     end
 
     -- refresh ui
-    SM.RefreshTimelineTabs();
+    AM.RefreshTimelineTabs();
 end
 
 function AM.AddSelectedObject()
