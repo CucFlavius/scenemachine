@@ -160,13 +160,13 @@ function OP.CreateSceneProperties(x, y, w, h, parent)
     local lightDifColorG = OP.CreateTransformField(editBoxTitleW + 10 + 55 + 2, y, 45, h, parent, "g", OP.SetDiffuseColorG, 0);
     local lightDifColorB = OP.CreateTransformField(editBoxTitleW + 10 + (55 * 2) + (2 * 2), y, 45, h, parent, "b", OP.SetDiffuseColorB, 0);
     y = y - hPad;
-    local testPosButton = Win.CreateButton(10, y, 100, h, parent, "TOPLEFT", "TOPLEFT", "Test", nil, "BUTTON_VS");
+    --local testPosButton = Win.CreateButton(10, y, 100, h, parent, "TOPLEFT", "TOPLEFT", "Test", nil, "BUTTON_VS");
     --testPosButton:SetScript("OnClick", function(self) Renderer.projectionFrame:SetLightType(1); Renderer.projectionFrame:SetLightPosition(0, 0, 0); Renderer.projectionFrame:SetLightDirection(1, 1, 1); end);
     --{ Name = "Directional", Type = "ModelLightType", EnumValue = 0 },
     --{ Name = "Point", Type = "ModelLightType", EnumValue = 1 },
     --testPosButton:SetScript("OnClick", function(self) SM.selectedObject:GetActor():SetSpellVisualKit(174103); end);
     --testPosButton:SetScript("OnClick", function(self) Renderer.projectionFrame:SetLightAmbientColor(0, 0, 0); Renderer.projectionFrame:SetLightDiffuseColor(0, 0, 0); end);
-    testPosButton:SetScript("OnClick", function(self) Renderer.projectionFrame:SetLightType(1) end);
+    --testPosButton:SetScript("OnClick", function(self) Renderer.projectionFrame:SetLightType(1) end);
     
 end
 

@@ -103,6 +103,11 @@ function SH.RefreshHierarchy()
         if (object == SM.selectedObject) then
             SH.list.pool[index].ntex:SetColorTexture(0, 0.4765, 0.7968,1);
         end
+		if (object.frozen) then
+			SH.list.pool[index].text:SetTextColor(1, 1, 1, 0.5);
+		else
+			SH.list.pool[index].text:SetTextColor(1, 1, 1, 1);
+		end
         index = index + 1;
     end
 
@@ -112,7 +117,6 @@ function SH.RefreshHierarchy()
 end
 
 function SH.SelectObject(index)
-    --print(index);
     SM.selectedObject = SM.loadedScene.objects[index];
     SH.RefreshHierarchy();
 	OP.Refresh();
