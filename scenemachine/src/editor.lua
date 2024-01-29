@@ -55,7 +55,7 @@ function Editor.Initialize()
     Editor.MainMenu.Create();
     local toolbar = Editor.Toolbar.Create(0, -15, Editor.width, 30, SceneMachine.mainWindow);
     Editor.mainToolbar = toolbar;
-    toolbar.transformGroup = toolbar.CreateGroup(0, 0, Editor.width, 30, toolbar,
+    toolbar.CreateGroup(0, 0, Editor.width, 30, toolbar,
         {
             { type = "DragHandle" },
             { type = "Button", name = "Project", icon = toolbar.getIcon("projects"), action = function(self) Editor.ProjectManager.OpenWindow() end },
@@ -74,7 +74,6 @@ function Editor.Initialize()
             { type = "Separator" },
         }
     );
-
 
     Editor.CreateRightPanel();
     Editor.CreateLeftPanel();

@@ -8,7 +8,8 @@ local c2 = { 0.242, 0.242, 0.25 };
 local c3 = { 0, 0.4765, 0.7968 };
 local c4 = { 0.1171, 0.1171, 0.1171 };
 
-function Toolbar.Create(x, y, w, h, parent)
+function Toolbar.Create(x, y, w, h, parent, iconCrop)
+    iconCrop = iconCrop or 0;
     local toolbar = Win.CreateRectangle(x, y, w, h, parent, "TOP", "TOP", c1[1], c1[2], c1[3], 1);
 
     local iconsTexture = "Interface\\Addons\\scenemachine\\static\\textures\\toolbar.png";
@@ -21,20 +22,24 @@ function Toolbar.Create(x, y, w, h, parent)
         { "", "", "", "", "", "", "", "" },
         { "", "", "", "", "", "", "", "" },
         { "", "", "", "", "", "", "", "" },
-        { "", "", "", "", "", "", "", "" },
+        { "timesettings", "addobj", "removeobj", "play", "pause", "fastforward", "skiponeframe", "skiptoend" },
     };
 
     local iconCoordLookup = {};
 
     local div = 1 / 8;
+    iconCrop = iconCrop * div;
     for x = 1, 8, 1 do
         for y = 1, 8, 1 do
-            iconCoordLookup[iconCoordMap[y][x]] = { div * (x - 1), div * x, div * (y - 1), div * y };
+            iconCoordLookup[iconCoordMap[y][x]] = { div * (x - 1) + iconCrop, div * x - iconCrop, div * (y - 1) + iconCrop, div * y - iconCrop };
         end
     end
 
-    function toolbar.getIcon(name)
+    function toolbar.getIcon(name, mirrorX)
         local iconCoords = iconCoordLookup[name];
+        if (mirrorX) then
+            return { iconsTexture, { iconCoords[2], iconCoords[1], iconCoords[3], iconCoords[4] } };
+        end
         return { iconsTexture, iconCoords };
     end
 
@@ -73,7 +78,7 @@ function Toolbar.Create(x, y, w, h, parent)
             group.components[c].name = component.name;
         end
     
-        return group;
+        toolbar.transformGroup = group;
     end
 
     return toolbar;
