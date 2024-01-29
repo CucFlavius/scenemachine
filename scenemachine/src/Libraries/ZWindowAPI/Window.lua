@@ -37,8 +37,8 @@ function Win.CreateWindow(posX, posY, sizeX, sizeY, parent, windowPoint, parentP
 	if sizeX == nil or sizeX == 0 then sizeX = 50; end
 	if sizeY == nil or sizeY == 0 then sizeY = 50; end	
 	if parent == nil then parent = UIParent; end
-	if windowPoint == nil then windowPoint = "CENTER"; end
-	if parentPoint == nil then parentPoint = "CENTER"; end
+	if windowPoint == nil then windowPoint = "TOPLEFT"; end
+	if parentPoint == nil then parentPoint = "TOPLEFT"; end
 	if resizable == nil then resizable = Win.RESIZABLE_NONE; end
 	if title == nil then title = ""; end
 
@@ -66,12 +66,23 @@ function Win.CreateWindow(posX, posY, sizeX, sizeY, parent, windowPoint, parentP
 	WindowFrame.TitleBar.text:SetText(title);
 	WindowFrame.TitleBar:EnableMouse(true);
 	WindowFrame.TitleBar:RegisterForDrag("LeftButton");
-	WindowFrame.TitleBar:SetScript("OnDragStart", function()  WindowFrame:StartMoving(); end);
-	WindowFrame.TitleBar:SetScript("OnDragStop", function() WindowFrame:StopMovingOrSizing(); end);
+	WindowFrame.TitleBar:SetScript("OnDragStart", function() WindowFrame:StartMoving(); end);
+	WindowFrame.TitleBar:SetScript("OnDragStop", function()
+		WindowFrame:StopMovingOrSizing();
+		--local pmult = 1.0;
+		--local res = GetCVar("gxWindowedResolution")
+		--if res then
+		--	local w,h = string.match(res, "(%d+)x(%d+)")
+		--	pmult = (768 / h)
+		--end
+		--local gpoint, grelativeTo, grelativePoint, gxOfs, gyOfs = WindowFrame:GetPoint(1);
+		--WindowFrame:ClearAllPoints();
+		--WindowFrame:SetPoint(gpoint, grelativeTo, grelativePoint, gxOfs, gyOfs);
+	 end);
 
 	-- Close Button --
 	WindowFrame.CloseButton = Win.CreateButton(-1, -1, TitleBarHeight - 1, TitleBarHeight - 1, WindowFrame.TitleBar, "TOPRIGHT", "TOPRIGHT",
-	 Win.closeWindowText, Win.closeWindowIcon, Win.BUTTON_DEFAULT, font)
+		Win.closeWindowText, Win.closeWindowIcon, Win.BUTTON_DEFAULT, font)
 	WindowFrame.CloseButton:SetScript("OnClick", function (self, button, down) WindowFrame:Hide(); end)
 	
 	return WindowFrame;

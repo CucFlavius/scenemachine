@@ -1,10 +1,13 @@
 local Win = ZWindowAPI;
 local AM = SceneMachine.Editor.AnimationManager;
 local SM = SceneMachine.Editor.SceneManager;
+local SH = SceneMachine.Editor.SceneHierarchy;
+local OP = SceneMachine.Editor.ObjectProperties;
 local Renderer = SceneMachine.Renderer;
 local Editor = SceneMachine.Editor;
 local Input = SceneMachine.Input;
 local Toolbar = Editor.Toolbar;
+local Track = SceneMachine.Track;
 
 local tabButtonHeight = 20;
 local tabPool = {};
@@ -23,16 +26,26 @@ AM.inputState = {
     maxFramePosStart = 0;
     centerFramePosStart = 0;
     mousePosStartX = 0;
+    mousePosStartY = 0;
     movingMin = false;
     movingMax = false;
     movingCenter = false;
+
+    movingScrollbar = false;
+    scrollbarFramePosStart = 0;
 };
 AM.loadedTimelineIndex = 1;
 AM.loadedTimeline = nil;
+AM.selectedTrack = nil;
+
+AM.TrackPoolSize = 10;
+AM.usedTracks = 0;
+AM.trackElementH = 30;
 
 function AM.Update()
 
     if (AM.inputState.movingMin) then
+        local groupBgW = AM.groupBG:GetWidth() - 30;
         local mouseDiff = (AM.inputState.mousePosStartX - Input.mouseXRaw) * Renderer.scale;
         local nextPoint = AM.inputState.minFramePosStart - mouseDiff;
         local newPoint = 0;
@@ -56,16 +69,17 @@ function AM.Update()
         AM.cropperSlider:ClearAllPoints();
         AM.cropperSlider:SetPoint("LEFT", AM.cropperBg, "LEFT", newPoint + 16, 0);
         AM.cropperSlider:SetPoint("RIGHT", AM.cropperBg, "LEFT", AM.inputState.maxFramePosStart, 0);
-        local newPointNormalized = newPoint / (AM.groupBG:GetWidth() - 16);
+        local newPointNormalized = newPoint / groupBgW;
         AM.currentCrop.min = newPointNormalized;
         AM.RefreshTimebar();
     end
 
     if (AM.inputState.movingMax) then
+        local groupBgW = AM.groupBG:GetWidth() - 30;
         local mouseDiff = (AM.inputState.mousePosStartX - Input.mouseXRaw) * Renderer.scale;
         local nextPoint = AM.inputState.maxFramePosStart - mouseDiff;
         local newPoint = 0;
-        if (nextPoint > AM.inputState.minFramePosStart + 32 and nextPoint < AM.groupBG:GetWidth() - 16) then
+        if (nextPoint > AM.inputState.minFramePosStart + 32 and nextPoint < groupBgW) then
             AM.cropperRightDrag:ClearAllPoints();
             newPoint = nextPoint;
             AM.cropperRightDrag:SetPoint("LEFT", nextPoint, 0);
@@ -75,34 +89,35 @@ function AM.Update()
                 newPoint = AM.inputState.minFramePosStart + 32;
                 AM.cropperRightDrag:SetPoint("LEFT", AM.inputState.minFramePosStart + 32, 0);
             end
-            if (nextPoint > AM.groupBG:GetWidth() - 16) then
+            if (nextPoint > groupBgW) then
                 AM.cropperRightDrag:ClearAllPoints();
-                newPoint = AM.groupBG:GetWidth() - 16;
-                AM.cropperRightDrag:SetPoint("LEFT", AM.groupBG:GetWidth() - 16, 0);
+                newPoint = groupBgW;
+                AM.cropperRightDrag:SetPoint("LEFT", groupBgW, 0);
             end
         end
 
         AM.cropperSlider:ClearAllPoints();
         AM.cropperSlider:SetPoint("RIGHT", AM.cropperBg, "LEFT", newPoint, 0);
         AM.cropperSlider:SetPoint("LEFT", AM.cropperBg, "LEFT", AM.inputState.minFramePosStart + 16, 0);
-        local newPointNormalized = newPoint / (AM.groupBG:GetWidth() - 10);
+        local newPointNormalized = newPoint / groupBgW;
         AM.currentCrop.max = newPointNormalized;
         AM.RefreshTimebar();
     end
 
     if (AM.inputState.movingCenter) then
+        local groupBgW = AM.groupBG:GetWidth() - 30;
         local sliderSize = AM.inputState.maxFramePosStart - AM.inputState.minFramePosStart;
         local mouseDiff = (AM.inputState.mousePosStartX - Input.mouseXRaw) * Renderer.scale;
         local nextPoint = AM.inputState.centerFramePosStart - mouseDiff;
         local newPoint = 0;
-        if (nextPoint > 0 and nextPoint < (AM.groupBG:GetWidth() - 16) - sliderSize) then
+        if (nextPoint > 0 and nextPoint < (groupBgW) - sliderSize) then
             newPoint = nextPoint;
         else
             if (nextPoint <= 0) then
                 newPoint = 0;
             end
-            if (nextPoint > (AM.groupBG:GetWidth() - 16) - sliderSize) then
-                newPoint = (AM.groupBG:GetWidth() - 16) - sliderSize;
+            if (nextPoint > groupBgW - sliderSize) then
+                newPoint = groupBgW - sliderSize;
             end
         end
 
@@ -116,11 +131,40 @@ function AM.Update()
         AM.cropperLeftDrag:ClearAllPoints();
         AM.cropperLeftDrag:SetPoint("LEFT", newPoint, 0);
 
-        local newPointMinNormalized = newPoint / (AM.groupBG:GetWidth() - 16);
-        local newPointMaxNormalized = (newPoint + sliderSize) / (AM.groupBG:GetWidth() - 16);
+        local newPointMinNormalized = newPoint / groupBgW;
+        local newPointMaxNormalized = (newPoint + sliderSize) / groupBgW;
         AM.currentCrop.max = newPointMaxNormalized;
         AM.currentCrop.min = newPointMinNormalized;
         AM.RefreshTimebar();
+    end
+
+    if (AM.inputState.movingScrollbar) then
+        local groupBgH = AM.scrollbarBg:GetHeight();
+        local sliderSize = AM.scrollbarSlider:GetHeight();
+        local mouseDiff = (AM.inputState.mousePosStartY - Input.mouseYRaw) * Renderer.scale;
+        local nextPoint = AM.inputState.scrollbarFramePosStart - mouseDiff;
+        local newPoint = 0;
+
+        if (nextPoint < 0 and nextPoint > -(groupBgH - sliderSize)) then
+            newPoint = nextPoint;
+        else
+            if (nextPoint >= 0) then
+                newPoint = 0;
+            end
+            if (nextPoint < -(groupBgH - sliderSize)) then
+                newPoint = -(groupBgH - sliderSize);
+            end
+        end
+
+        AM.scrollbarSlider:ClearAllPoints();
+        AM.scrollbarSlider:SetPoint("TOP", AM.scrollbarBg, "TOP", 0, newPoint);
+        
+        -- Scroll the items list --
+        local newPointNormalized = math.abs(newPoint) / (groupBgH - sliderSize);
+        AM.workAreaList:ClearAllPoints();
+        local height = AM.workAreaList:GetHeight() - AM.workAreaBG:GetHeight();
+        local pos = newPointNormalized * height;
+        AM.workAreaList:SetPoint("TOPLEFT", AM.workAreaBG, "TOPLEFT", 0, math.floor(pos));
     end
 end
 
@@ -153,15 +197,24 @@ function AM.CreateAnimationManager(x, y, w, h, parent)
     local workAreaH = h - (timelineTabH + timebarH + cropperBarH + bottomPad + toolbarH);
     AM.CreateTimebar(0, timebarY, w, timebarH, AM.groupBG);
     AM.CreateToolbar(0, toolbarY, w, toolbarH, AM.groupBG);
-    AM.CreateWorkArea(workAreaX, workAreaY, workAreaW, workAreaH, AM.groupBG);
-    AM.CreateCropperBar(0, cropperBarY, w, cropperBarH, AM.groupBG);
+    AM.CreateToolbarTimer(toolbarH, AM.mainToolbar);
+    AM.CreateScrollBar(0, workAreaY, cropperBarH, workAreaH, AM.groupBG);
+    AM.CreateWorkArea(workAreaX - 6, workAreaY, workAreaW, workAreaH, AM.groupBG);
+    AM.CreateCropperBar(0, cropperBarY, w - 14, cropperBarH, AM.groupBG);
 
     AM.RefreshTimelineTabs();
     AM.RefreshTimebar();
+    AM.RefreshWorkspace();
 end
 
 function AM.CreateTimebar(x, y, w, h, parent)
-    AM.timebarGroup = Win.CreateRectangle(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 0.2);
+    local c1 = { 0.1757, 0.1757, 0.1875 };
+    local c2 = { 0.242, 0.242, 0.25 };
+    local c3 = { 0, 0.4765, 0.7968 };
+    local c4 = { 0.1171, 0.1171, 0.1171 };
+
+
+    AM.timebarGroup = Win.CreateRectangle(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  c4[1], c4[2], c4[3], c4[4]);
     for i = 1, AM.needlePoolSize, 1 do
         local needle = AM.CreateNeedle();
         AM.needles[i] = needle;
@@ -204,11 +257,11 @@ function AM.CreateToolbar(x, y, w, h, parent)
         { type = "Button", name = "TimeSettings", icon = toolbar.getIcon("timesettings"), action = function(self) end },
         --{ type = "Dropdown", name = "ProjectList", width = 200, options = {}, action = function(index) Editor.ProjectManager.LoadProjectByIndex(index); end },
         { type = "Separator" },
-        { type = "Button", name = "AddObject", icon = toolbar.getIcon("addobj"), action = function(self) end },
-        { type = "Button", name = "RemoveObject", icon = toolbar.getIcon("removeobj"), action = function(self)  end },
+        { type = "Button", name = "AddObject", icon = toolbar.getIcon("addobj"), action = function(self) AM.AddTrack(SM.selectedObject); end },
+        { type = "Button", name = "RemoveObject", icon = toolbar.getIcon("removeobj"), action = function(self) AM.RemoveTrack(AM.selectedTrack) end },
         { type = "Separator" },
-        { type = "Button", name = "AddTrack", icon = toolbar.getIcon("addobj"), action = function(self) end },
-        { type = "Button", name = "RemoveTrack", icon = toolbar.getIcon("removeobj"), action = function(self)  end },
+        { type = "Button", name = "AddAnim", icon = toolbar.getIcon("addanim"), action = function(self) end },
+        { type = "Button", name = "RemoveAnim", icon = toolbar.getIcon("removeanim"), action = function(self)  end },
         { type = "Separator" },
         { type = "Button", name = "SkipToStart", icon = toolbar.getIcon("skiptoend", true), action = function(self)  end },
         { type = "Button", name = "SkipOneFrameBack", icon = toolbar.getIcon("skiponeframe", true), action = function(self)  end },
@@ -220,8 +273,60 @@ function AM.CreateToolbar(x, y, w, h, parent)
     AM.mainToolbar = toolbar;
 end
 
+function AM.CreateToolbarTimer(h, parent)
+    local font = "Interface\\Addons\\scenemachine\\static\\font\\digital-7.ttf"
+    AM.timerTextBox = Win.CreateTextBoxSimple(0, 0, 90, h, parent, "RIGHT", "RIGHT", "00:00 / 00:00", 16, font);
+end
+
 function AM.CreateWorkArea(x, y, w, h, parent)
-    AM.workAreaBG = Win.CreateRectangle(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  1, 0, 0, 0.1);
+    local c1 = { 0.1757, 0.1757, 0.1875 };
+    local c2 = { 0.242, 0.242, 0.25 };
+    local c3 = { 0, 0.4765, 0.7968 };
+    local c4 = { 0.1171, 0.1171, 0.1171 };
+    
+    AM.workAreaBG = Win.CreateRectangle(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 0);
+    AM.workAreaBG:SetClipsChildren(true);
+
+    AM.workAreaViewport = Win.CreateRectangle(6, 0, w, h, AM.workAreaBG, "TOPLEFT", "TOPLEFT",  c1[1], c1[2], c1[3], c1[4]);
+
+    AM.workAreaList = Win.CreateRectangle(0, 0, w, h, AM.workAreaViewport, "TOPLEFT", "TOPLEFT",  c1[1], c1[2], c1[3], c1[4]);
+    AM.TrackPool = {};
+
+    for i = 1, AM.TrackPoolSize, 1 do
+        AM.TrackPool[i] = AM.GenerateTrackElement(i, 0, -((AM.trackElementH + Editor.pmult) * (i - 1)), w, AM.trackElementH, AM.workAreaList, c2[1], c2[2], c2[3], c2[4]);
+    end
+
+    -- track selection box thing
+    AM.trackSelectionBox = Win.CreateRectangle(-6, 0, 5, AM.trackElementH, AM.workAreaList, "TOPLEFT", "TOPLEFT",  c3[1], c3[2], c3[3], c3[4]);
+    AM.trackSelectionBox:Hide();
+
+    AM.RefreshWorkspace();
+end
+
+function AM.GenerateTrackElement(index, x, y, w, h, parent, R, G, B, A)
+    local element = Win.CreateButton(x, y, w, h, parent, "TOPLEFT", "TOPLEFT");--Win.CreateRectangle(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  R, G, B, A);
+    element:SetAlpha(0.6);
+    element.name = Win.CreateTextBoxSimple(2, 0, 200, 10, element, "TOPLEFT", "TOPLEFT", index, 8);
+    element.name:SetAlpha(0.7);
+    element:SetScript("OnClick", function (self, button, down)
+        if (AM.loadedTimeline) then
+            AM.SelectTrack(index);
+        end
+    end)
+    element:Hide();
+
+    return element;
+end
+
+function AM.GetAvailableTrack()
+    local i = AM.usedTracks + 1;
+    AM.usedTracks = AM.usedTracks + 1;
+
+    if (i >= #AM.TrackPool) then
+        AM.TrackPool[i] = AM.GenerateTrackElement(i, 0, -((AM.trackElementH + Editor.pmult) * (i - 1)), w, AM.trackElementH, AM.workAreaList);
+    end
+
+    return AM.TrackPool[i];
 end
 
 function AM.CreateCropperBar(x, y, w, h, parent)
@@ -313,13 +418,64 @@ function AM.CreateCropperBar(x, y, w, h, parent)
     AM.cropperSlider:SetScript("OnMouseUp", function(self, button) AM.inputState.movingCenter = false; end);
 end
 
+function AM.CreateScrollBar(x, y, w, h, parent)
+    AM.scrollbarBg = Win.CreateRectangle(x, y, w, h, parent, "TOPRIGHT", "TOPRIGHT",  0, 0, 0, 0);
+    
+    AM.scrollbarBgCenter = Win.CreateImageBox(0, 0, w, h - w, AM.scrollbarBg, "CENTER", "CENTER",
+        "Interface\\Addons\\scenemachine\\static\\textures\\scrollBar.png", { 0, 1, 0.4, 0.6 });
+    AM.scrollbarBgCenter.texture:SetVertexColor(0.18,0.18,0.18,1);
+    
+    AM.scrollbarBgTop = Win.CreateImageBox(0, 0, w, w / 2, AM.scrollbarBg, "TOP", "TOP",
+        "Interface\\Addons\\scenemachine\\static\\textures\\scrollBar.png", { 0, 1, 0, 0.5 });
+    AM.scrollbarBgTop.texture:SetVertexColor(0.18,0.18,0.18,1);
+
+    AM.scrollbarBgBottom = Win.CreateImageBox(0, 0, w, w / 2, AM.scrollbarBg, "BOTTOM", "BOTTOM",
+        "Interface\\Addons\\scenemachine\\static\\textures\\scrollBar.png", { 0, 1, 0.5, 1 });
+    AM.scrollbarBgBottom.texture:SetVertexColor(0.18,0.18,0.18,1);
+
+    -- Scrollbar
+    AM.scrollbarSlider = CreateFrame("Button", "AM.scrollbarSlider", AM.scrollbarBg)
+	AM.scrollbarSlider:SetPoint("TOP", AM.scrollbarBg, "TOP", 0, 0);
+	AM.scrollbarSlider:SetSize(w, 50);
+    AM.scrollbarSlider.ntex = AM.scrollbarSlider:CreateTexture();
+    AM.scrollbarSlider.ntex:SetColorTexture(0,0,0,0);
+    AM.scrollbarSlider.ntex:SetAllPoints();
+    AM.scrollbarSlider:SetNormalTexture(AM.scrollbarSlider.ntex);
+    AM.scrollbarSlider:SetScript("OnMouseDown", function(self, button)
+        if (math.ceil(self:GetHeight()) == AM.workAreaBG:GetHeight()) then
+            return;
+        end
+        AM.inputState.movingScrollbar = true;
+        AM.inputState.mousePosStartY = Input.mouseYRaw;
+        local gpointC, grelativeToC, grelativePointC, gxOfsC, gyOfsC = AM.scrollbarSlider:GetPoint(1);
+        AM.inputState.scrollbarFramePosStart = gyOfsC;
+    end);
+    AM.scrollbarSlider:SetScript("OnMouseUp", function(self, button) AM.inputState.movingScrollbar = false; end);
+
+    AM.scrollbarSliderCenter = Win.CreateImageBox(0, 0, w, h, AM.scrollbarSlider, "CENTER", "CENTER",
+        "Interface\\Addons\\scenemachine\\static\\textures\\scrollBar.png", { 0, 1, 0.4, 0.6 });
+        AM.scrollbarSliderCenter:ClearAllPoints();
+        AM.scrollbarSliderCenter:SetPoint("TOP", AM.scrollbarSlider, "TOP", 0, -w / 2);
+        AM.scrollbarSliderCenter:SetPoint("BOTTOM", AM.scrollbarSlider, "BOTTOM", 0, w / 2);
+    AM.scrollbarSliderCenter.texture:SetVertexColor(0.3,0.3,0.3,1);
+
+    AM.scrollbarSliderTop = Win.CreateImageBox(0, 0, w, w / 2, AM.scrollbarSlider, "TOP", "TOP",
+        "Interface\\Addons\\scenemachine\\static\\textures\\scrollBar.png", { 0, 1, 0, 0.5 });
+    AM.scrollbarSliderTop.texture:SetVertexColor(0.3,0.3,0.3,1);
+
+    AM.scrollbarSliderBottom = Win.CreateImageBox(0, 0, w, w / 2, AM.scrollbarSlider, "BOTTOM", "BOTTOM",
+        "Interface\\Addons\\scenemachine\\static\\textures\\scrollBar.png", { 0, 1, 0.5, 1 });
+    AM.scrollbarSliderBottom.texture:SetVertexColor(0.3,0.3,0.3,1);
+
+    AM.scrollbarSlider:SetHeight(50);
+end
+
 function AM.CreateDefaultTimeline()
     return AM.CreateTimeline();
 end
 
 function AM.TimelineTabButton_OnClick(index)
     AM.LoadTimeline(index);
-    AM.RefreshTimelineTabs();
 end
 
 function AM.TimelineTabButton_OnRightClick(index, x, y)
@@ -402,8 +558,79 @@ function AM.CreateTimeline(timelineName)
 
     return {
         name = timelineName,
-        length = 30000, -- 30000 miliseconds, 30 seconds
+        currentTime = 0,
+        duration = 30000, -- 30000 miliseconds, 30 seconds
+        tracks = {},
     }
+end
+
+function AM.AddTrack(object)
+    if (not object) then
+        return;
+    end
+
+    if (not AM.loadedTimeline) then
+        return;
+    end
+
+    if (not AM.loadedTimeline.tracks) then
+        AM.loadedTimeline.tracks = {};
+    end
+
+    local track = Track:New(object);
+
+    AM.loadedTimeline.tracks[#AM.loadedTimeline.tracks + 1] = track;
+
+    AM.RefreshWorkspace();
+end
+
+function AM.RemoveTrack(track)
+    if (not AM.loadedTimeline) then
+        return;
+    end
+
+    if (AM.selectedTrack == nil) then
+        return;
+    end
+
+    if (AM.selectedTrack == track) then
+        AM.selectedTrack = nil;
+    end
+
+    if (#AM.loadedTimeline.tracks > 0) then
+        for i in pairs(AM.loadedTimeline.tracks) do
+            if (AM.loadedTimeline.tracks[i] == track) then
+                table.remove(AM.loadedTimeline.tracks, i);
+            end
+        end
+    end
+
+    AM.RefreshWorkspace();
+end
+
+function AM.SelectTrack(index)
+    if (not AM.loadedTimeline.tracks[index]) then
+        return;
+    end
+
+    AM.selectedTrack = AM.loadedTimeline.tracks[index];
+
+    -- also select object
+    if (AM.selectedTrack.objectID) then
+        if (not SM.loadedScene.objects) then
+            return;
+        end
+    
+        for i in pairs(SM.loadedScene.objects) do
+            if (SM.loadedScene.objects[i].id == AM.selectedTrack.objectID) then
+                SM.selectedObject = SM.loadedScene.objects[i];
+                SH.RefreshHierarchy();
+                OP.Refresh();
+            end
+        end
+    end
+
+    AM.RefreshSelectedTrack(index);
 end
 
 function AM.LoadTimeline(index)
@@ -422,10 +649,10 @@ function AM.LoadTimeline(index)
     local timeline = SM.loadedScene.timelines[index];
     AM.loadedTimeline = timeline;
 
+    -- refresh the ui
     AM.RefreshTimebar();
-
-    -- refresh the scene tabs
     AM.RefreshTimelineTabs();
+    AM.RefreshWorkspace();
 
     SM.selectedObject = nil;
 end
@@ -456,14 +683,7 @@ function AM.DeleteTimeline()
 
     -- refresh ui
     AM.RefreshTimelineTabs();
-end
-
-function AM.AddSelectedObject()
-    --
-end
-
-function AM.RemoveSelectedObject()
-    --
+    AM.RefreshWorkspace();
 end
 
 function AM.CreateNewTimelineTab(x, y, w, h, parent)
@@ -561,7 +781,7 @@ function AM.RefreshTimebar()
     -- Refresh needles
     local timeBarW = AM.timebarGroup:GetWidth();
     local workAreaW = AM.workAreaBG:GetWidth();
-    local totalTimeMs = AM.loadedTimeline.length;
+    local totalTimeMs = AM.loadedTimeline.duration;
     
     local startTimeMs = AM.currentCrop.min * totalTimeMs;
     local startTimeS = startTimeMs / 1000;
@@ -637,4 +857,65 @@ function AM.RefreshTimebar()
             end
         end
     end
+end
+
+function AM.RefreshWorkspace()
+    -- reset used
+    AM.usedTracks = 0;
+
+    -- load tracks
+    local usedTracks = 0;
+    if (AM.loadedTimeline) then
+        print(#AM.loadedTimeline.tracks)
+        usedTracks = #AM.loadedTimeline.tracks;
+        for i = 1, #AM.loadedTimeline.tracks, 1 do
+            local track = AM.loadedTimeline.tracks[i];
+            local trackElement = AM.GetAvailableTrack();
+            trackElement:Show();
+
+            -- TODO : populate element with track data
+            trackElement.name.text:SetText(track.name);
+        end
+        -- hide the rest
+        for i = usedTracks + 1, #AM.TrackPool, 1 do
+            if (AM.TrackPool[i]) then
+                AM.TrackPool[i]:Hide();
+            end
+        end
+
+    end
+    
+    -- make list fit elements
+    local workAreaListHeight = usedTracks * (AM.trackElementH + Editor.pmult);
+    AM.workAreaList:SetHeight(workAreaListHeight);
+    
+    -- resize scrollbar
+    if (AM.scrollbarSlider) then
+        local workAreaHeight = AM.workAreaBG:GetHeight();
+        local minScrollbar = 20;
+        local maxScrollbar = workAreaHeight;
+        local desiredScrollbar = (workAreaHeight / workAreaListHeight) * workAreaHeight;
+        local newScrollbarHeight = max(minScrollbar, min(maxScrollbar, desiredScrollbar));
+        AM.scrollbarSlider:SetHeight(newScrollbarHeight);
+    end
+
+    -- update timer
+    if (AM.loadedTimeline) then
+        local totalTime = AM.TimeValueToString(AM.loadedTimeline.duration);
+        local currentTime = AM.TimeValueToString(AM.loadedTimeline.currentTime or 0);
+        AM.timerTextBox.text:SetText(currentTime .. "-" .. totalTime);
+    end
+end
+
+function AM.RefreshSelectedTrack(index)
+    AM.trackSelectionBox:Show();
+    AM.trackSelectionBox:ClearAllPoints();
+    AM.trackSelectionBox:SetPoint("TOPLEFT", AM.workAreaList, "TOPLEFT", -6, (index - 1) * -(AM.trackElementH + Editor.pmult));
+end
+
+function AM.TimeValueToString(duration)
+    local durationS = duration / 1000;
+    local durationM = math.floor(durationS / 60);
+    durationS = durationS - (60 * durationM);
+    return string.format("%02d:%02d", durationM, durationS);
 end

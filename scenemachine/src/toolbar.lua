@@ -21,7 +21,7 @@ function Toolbar.Create(x, y, w, h, parent, iconCrop)
         { "", "", "", "", "", "", "", "" },
         { "", "", "", "", "", "", "", "" },
         { "", "", "", "", "", "", "", "" },
-        { "", "", "", "", "", "", "", "" },
+        { "", "addanim", "removeanim", "", "", "", "", "" },
         { "timesettings", "addobj", "removeobj", "play", "pause", "fastforward", "skiponeframe", "skiptoend" },
     };
 

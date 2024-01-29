@@ -11,7 +11,7 @@ function Win.ItemList(itemSizeX, itemSizeY, parent, onSelect)
 		pool = {},
 		SetItem = function(self, index, text)
 			if (self.pool[index] == nil) then
-				self.pool[index] = Win.ItemList_CreateNewItem(0, -(index - 1) * (itemSizeY + 1.0001), itemSizeX, itemSizeY, parent);
+				self.pool[index] = Win.ItemList_CreateNewItem(0, -(index - 1) * (itemSizeY + Editor.pmult), itemSizeX, itemSizeY, parent);
 				self.pool[index].text:SetText(text);
 				self.pool[index]:SetScript("OnClick", function(self2) 
 				    -- deselect all other --

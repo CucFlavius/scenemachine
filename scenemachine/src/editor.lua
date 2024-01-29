@@ -40,6 +40,14 @@ function Editor.Initialize()
         return;
     end
 
+    -- pixel perfect multiplier
+    Editor.pmult = 1.0;
+    local res = GetCVar("gxWindowedResolution")
+    if res then
+        local w,h = string.match(res, "(%d+)x(%d+)")
+        Editor.pmult = (768 / h)
+    end
+
     scenemachine_settings = scenemachine_settings or {
         minimap_button = minimap_button or {
             minimapPos = minimapPos or 90;
@@ -208,11 +216,12 @@ function Editor.ResetWindow()
     SceneMachine.mainWindow:ClearAllPoints();
     SceneMachine.mainWindow:SetPoint("CENTER", nil, "CENTER", 0, 0);
     SceneMachine.mainWindow:SetSize(Editor.width, Editor.height);
+
     Editor.SetScale(90);
 end
 
 function Editor.CreateMainWindow()
-	SceneMachine.mainWindow = Win.CreateWindow(0, 0, Editor.width, Editor.height, nil, nil, nil, true, "Scene Machine " .. Editor.version);
+	SceneMachine.mainWindow = Win.CreateWindow(math.floor(Editor.width / 2), math.floor(Editor.height / 2), Editor.width, Editor.height, nil, "TOPLEFT", "TOPLEFT", true, "Scene Machine " .. Editor.version);
     SceneMachine.mainWindow.CloseButton:SetScript("OnClick", function (self, button, down) Editor.Hide(); end)
 	SceneMachine.mainWindow:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
     SceneMachine.mainWindow:SetScale(Editor.scale);

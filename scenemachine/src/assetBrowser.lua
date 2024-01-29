@@ -9,7 +9,6 @@ local Camera = SceneMachine.Camera;
 local Vector3 = SceneMachine.Vector3;
 
 local thumbSize = 95;
-local thumbSpacing = 1.5;
 local thumbCountX = 3;
 local thumbCountY = 5;
 local tabbarHeight = 20;
@@ -44,11 +43,11 @@ end
 
 function AssetBrowser.CreateModelListTab(parent, w, h)
 
-    AssetBrowser.CreateToolbar(parent, -thumbSpacing, w);
+    AssetBrowser.CreateToolbar(parent, -Editor.pmult, w);
 
     AssetBrowser.thumbnailGroup = Win.CreateRectangle(
-        0, -((Editor.toolbarHeight - 15) + (thumbSpacing * 2)),
-        w, h -(((Editor.toolbarHeight - 15) * 2) + (thumbSpacing)),
+        0, -((Editor.toolbarHeight - 15) + (Editor.pmult * 2)),
+        w, h -(((Editor.toolbarHeight - 15) * 2) + (Editor.pmult)),
         parent, "TOPLEFT", "TOPLEFT", 0, 0, 0, 0.41);
 
     local data = SceneMachine.modelData[1];
@@ -163,8 +162,8 @@ function AssetBrowser.OnIncreaseThumbnailColumns()
     local idx = 1;
     for y=0, 7 - 1, 1 do
         for x=0, 5 - 1, 1 do
-            local X = (x * (thumbSize + thumbSpacing));
-            local Y = -(y * (thumbSize + thumbSpacing + 20));
+            local X = (x * (thumbSize + Editor.pmult));
+            local Y = -(y * (thumbSize + Editor.pmult + 20));
             local W = thumbSize;
             local H = (thumbSize + 20);
 
@@ -195,12 +194,20 @@ function AssetBrowser.UpOneFolder()
 end
 
 function AssetBrowser.CreateThumbnails(parent)
+
+    Editor.pmult = 1.0;
+    local res = GetCVar("gxWindowedResolution")
+    if res then
+        local w,h = string.match(res, "(%d+)x(%d+)")
+        Editor.pmult = (768 / h)
+    end
+
     local idx = 1;
     AssetBrowser.thumbnails = {};
     for y=0, 5 - 1, 1 do
         for x=0, 3 - 1, 1 do
-            local X = (x * (thumbSize + thumbSpacing));
-            local Y = -(y * (thumbSize + thumbSpacing + 15));
+            local X = (x * (thumbSize + Editor.pmult));
+            local Y = -(y * (thumbSize + Editor.pmult + 15));
             local W = thumbSize;
             local H = (thumbSize + 15);
             AssetBrowser.thumbnails[idx] = AssetBrowser.CreateThumbnail(X, Y, W, H, parent, "");

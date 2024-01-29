@@ -6,6 +6,7 @@ local SH = Editor.SceneHierarchy;
 local Gizmos = SceneMachine.Gizmos;
 local CC = SceneMachine.CameraController;
 local OP = Editor.ObjectProperties;
+local AM = SceneMachine.Editor.AnimationManager;
 
 function SH.CreatePanel(x, y, w, h, c4)
     local leftPanel = Win.CreateRectangle(x, y, w, h, SceneMachine.mainWindow, "TOPLEFT", "TOPLEFT", c4[1], c4[2], c4[3], 1);
@@ -23,7 +24,7 @@ function SH.ItemList(itemSizeX, itemSizeY, parent)
 		pool = {},
 		SetItem = function(self, index, text)
 			if (self.pool[index] == nil) then
-				self.pool[index] = SH.ItemList_CreateNewItem(0, -(index - 1) * (itemSizeY + 1.0001), itemSizeX, itemSizeY, parent, #self.pool + 1);
+				self.pool[index] = SH.ItemList_CreateNewItem(0, -(index - 1) * (itemSizeY + Editor.pmult), itemSizeX, itemSizeY, parent, #self.pool + 1);
 				self.pool[index].text:SetText(text);
                 self.pool[index]:SetScript("OnClick", function(self2)
                     SH.SelectObject(index);
@@ -146,4 +147,17 @@ function SH.SelectObject(index)
     SM.selectedObject = SM.loadedScene.objects[index];
     SH.RefreshHierarchy();
 	OP.Refresh();
+
+	-- this func is only called from hierarchy list
+	-- Also select track, if available
+	--[[
+	if (AM.loadedTimeline) then
+		for i in pairs(AM.loadedTimeline.tracks) do
+			if (AM.loadedTimeline.tracks[i].objectID == SM.selectedObject.id) then
+				AM.SelectTrack(i);
+				return;
+			end
+		end
+	end
+	--]]
 end

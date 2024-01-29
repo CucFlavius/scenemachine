@@ -238,6 +238,21 @@ function SM.LoadScene(index)
         SM.loadedScene.timelines[1] = AM.CreateDefaultTimeline();
     end
 
+    if (#scene.timelines > 0) then
+        for i in pairs(scene.timelines) do
+            local timeline = scene.timelines[i];
+            if (#timeline.tracks > 0) then
+                for j in pairs(timeline.tracks) do
+                    local track = SceneMachine.Track:New();
+                    track:ImportData(timeline.tracks[j]);
+        
+                    -- assigning the new track so that we have access to the class functions (which get stripped when exporting to savedata)
+                    SM.loadedScene.timelines[i].tracks[j] = track;
+                end
+            end
+        end
+    end
+
     AM.RefreshTimelineTabs();
     -- load the first timeline
     AM.LoadTimeline(1);

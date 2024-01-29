@@ -1,10 +1,10 @@
 local Math = SceneMachine.Math;
 local Vector3 = SceneMachine.Vector3;
 
-
 SceneMachine.Track = 
 {
-
+    objectID = nil, -- keeping a reference for when loading saved data
+    name = "New Track",
 }
 
 local Track = SceneMachine.Track;
@@ -13,11 +13,17 @@ setmetatable(Track, Track)
 
 local fields = {}
 
-function Track:New(_)
+function Track:New(object)
 	local v = 
     {
-        _ = _ or 0
+        -- Don't store an object reference, no reason for duplicates in saved data
+        --object = object or nil,
     };
+    
+    if (object) then
+        v.objectID = object.id;
+        v.name = object.name;
+    end
 
 	setmetatable(v, Track)
 	return v
@@ -25,7 +31,7 @@ end
 
 function Track:ExportData()
     local data = {
-        _ = self.MAIN_FRAME_STRATA;
+        objectID = self.object.id;
     };
 
     return data;
@@ -38,8 +44,12 @@ function Track:ImportData(data)
     end
 
     -- verifying all elements upon import because sometimes the saved variables get corrupted --
-    if (data._ ~= nil) then
-        self._ = data._;
+    if (data.objectID ~= nil) then
+        self.objectID = data.objectID;
+    end
+
+    if (data.name ~= nil) then
+        self.name = data.name;
     end
 end
 

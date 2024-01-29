@@ -8,7 +8,7 @@ local Input = SceneMachine.Input;
 local Editor = SceneMachine.Editor;
 local AM = SceneMachine.Editor.AnimationManager;
 
-print ("Running SceneMachine")
+print("Running SceneMachine")
 
 local TimeSinceLastUpdate = 0;
 SceneMachine.time = 0;
