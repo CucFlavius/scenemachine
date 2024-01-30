@@ -48,6 +48,9 @@ AM.trackElementH = 30;
 AM.AnimationPoolSize = 10;
 AM.usedAnimations = 0;
 
+AM.selectedAnimID = -1;
+AM.animListIDs = {};
+
 AM.colors = {
     {242, 240, 161},
     {252, 174, 187},
@@ -64,6 +67,11 @@ AM.colors = {
     {255, 62, 181},
     {234, 39, 194}
 }
+
+local c1 = { 0.1757, 0.1757, 0.1875 };
+local c2 = { 0.242, 0.242, 0.25 };
+local c3 = { 0, 0.4765, 0.7968 };
+local c4 = { 0.1171, 0.1171, 0.1171 };
 
 function AM.Update()
 
@@ -262,18 +270,42 @@ function AM.CreateAnimationManager(x, y, w, h, parent)
     AM.CreateWorkArea(workAreaX - 6, workAreaY, workAreaW, workAreaH, AM.groupBG);
     AM.CreateCropperBar(0, cropperBarY, w - 14, cropperBarH, AM.groupBG);
 
+    AM.CreateAnimationSelectWindow(0, 0, 300, 500);
+
     AM.RefreshTimelineTabs();
     AM.RefreshTimebar();
     AM.RefreshWorkspace();
     AM.SetTime(0);
 end
 
-function AM.CreateTimebar(x, y, w, h, parent)
-    local c1 = { 0.1757, 0.1757, 0.1875 };
-    local c2 = { 0.242, 0.242, 0.25 };
-    local c3 = { 0, 0.4765, 0.7968 };
-    local c4 = { 0.1171, 0.1171, 0.1171 };
+function AM.CreateAnimationSelectWindow(x, y, w, h)
+    AM.animSelectWindow = Win.CreatePopupWindow(x, y, w, h, SceneMachine.mainWindow, "CENTER", "CENTER", "AnimationList");
+    AM.animSelectWindow:SetFrameStrata(Editor.SUB_FRAME_STRATA);
+    local dropShadow = Win.CreateImageBox(0, 10, w * 1.20, h * 1.20, AM.animSelectWindow, "CENTER", "CENTER",
+	"Interface\\Addons\\scenemachine\\static\\textures\\dropShadowSquare.png");
+    dropShadow:SetFrameLevel(100);
+    dropShadow:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
+    AM.animSelectWindow.texture:SetColorTexture(c4[1], c4[2], c4[3],1);
+    AM.animSelectWindow.TitleBar.texture:SetColorTexture(c1[1], c1[2], c1[3], 1);
+    AM.animSelectWindow.CloseButton.ntex:SetColorTexture(c1[1], c1[2], c1[3], 1);
+    AM.animSelectWindow.CloseButton.htex:SetColorTexture(c2[1], c2[2], c2[3], 1);
+    AM.animSelectWindow.CloseButton.ptex:SetColorTexture(c3[1], c3[2], c3[3], 1);
 
+    -- project list frame --
+    AM.animListFrame = Win.CreateRectangle(0, 0, w, h, AM.animSelectWindow, "TOPLEFT", "TOPLEFT", 0, 0, 0, 0);
+    AM.animScrollList = Win.CreateScrollList(10, -10, w - 20, h - 60, AM.animListFrame, "TOPLEFT", "TOPLEFT");
+    AM.animationList = Win.ItemList(AM.animScrollList:GetWidth() - 30, 20, AM.animScrollList.ContentFrame, function(index) 
+        if (index > 0) then
+            AM.selectedAnimID = AM.animListIDs[index];
+        end
+     end);
+    AM.animSelectWindow:Hide();
+
+    AM.animSelectWindow.loadAnimBtn = Win.CreateButton(10, 10, 60, 40, AM.animListFrame, "BOTTOMLEFT", "BOTTOMLEFT", "Add Anim", nil, Win.BUTTON_VS);
+    AM.animSelectWindow.loadAnimBtn:SetScript("OnClick", function(self) AM.AddAnim(AM.selectedTrack, AM.selectedAnimID); AM.animSelectWindow:Hide(); end);
+end
+
+function AM.CreateTimebar(x, y, w, h, parent)
     AM.timebarGroup = CreateFrame("Button", "AM.TimebarGroup", parent)
 	AM.timebarGroup:SetPoint("TOPLEFT", parent, "TOPLEFT", x, y);
 	AM.timebarGroup:SetSize(w, h);
@@ -344,7 +376,7 @@ function AM.CreateToolbar(x, y, w, h, parent)
         { type = "Button", name = "AddObject", icon = toolbar.getIcon("addobj"), action = function(self) AM.AddTrack(SM.selectedObject); end },
         { type = "Button", name = "RemoveObject", icon = toolbar.getIcon("removeobj"), action = function(self) AM.RemoveTrack(AM.selectedTrack) end },
         { type = "Separator" },
-        { type = "Button", name = "AddAnim", icon = toolbar.getIcon("addanim"), action = function(self) AM.AddAnim(AM.selectedTrack, 4); end },
+        { type = "Button", name = "AddAnim", icon = toolbar.getIcon("addanim"), action = function(self) AM.OpenAddAnimationWindow(AM.selectedTrack); end },
         { type = "Button", name = "RemoveAnim", icon = toolbar.getIcon("removeanim"), action = function(self) AM.RemoveAnim(AM.selectedTrack, AM.selectedAnim); end },
         { type = "Separator" },
         { type = "Button", name = "SkipToStart", icon = toolbar.getIcon("skiptoend", true), action = function(self)  end },
@@ -363,11 +395,6 @@ function AM.CreateToolbarTimer(h, parent)
 end
 
 function AM.CreateWorkArea(x, y, w, h, parent)
-    local c1 = { 0.1757, 0.1757, 0.1875 };
-    local c2 = { 0.242, 0.242, 0.25 };
-    local c3 = { 0, 0.4765, 0.7968 };
-    local c4 = { 0.1171, 0.1171, 0.1171 };
-    
     AM.workAreaBG = Win.CreateRectangle(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 0);
     AM.workAreaBG:SetClipsChildren(true);
     AM.workAreaViewport = Win.CreateRectangle(6, 0, w, h, AM.workAreaBG, "TOPLEFT", "TOPLEFT",  c4[1], c4[2], c4[3], 1);
@@ -1101,7 +1128,7 @@ function AM.RefreshWorkspace()
                             animElement.ntex:SetVertexColor(R, G, B, alpha);
                             animElement:Show();
             
-                            animElement.name.text:SetText("Walk");
+                            animElement.name.text:SetText(track.animations[a].name);
 
                             -- store some information for lookup
                             animElement.animIdx = a;
@@ -1209,6 +1236,9 @@ function AM.AddAnim(track, animID, variation)
         endT = startT + animLength;
     end
 
+    local name = SceneMachine.animationNames[animID];
+    name = name or "Anim_" .. animID;
+
     track.animations[#track.animations + 1] = {
         id = animID,
         variation = variation,
@@ -1216,6 +1246,7 @@ function AM.AddAnim(track, animID, variation)
         startT = startT,
         endT = endT,
         colorId = colorId,
+        name = name,
     };
 
     AM.RefreshWorkspace();
@@ -1274,11 +1305,9 @@ function AM.SetTime(timeMS)
     -- move ze slider
     local groupBgH = AM.timebarGroup:GetWidth() - 26;
     local timeNorm = AM.GetTimeNormalized(timeMS);
-    --if (timeNorm)
     local pos = timeNorm * groupBgH + 10;
     AM.TimeSlider:ClearAllPoints();
     AM.TimeSlider:SetPoint("CENTER", AM.timebarGroup, "LEFT", pos, 0);
-    
     --print(AM.Round(timeMS / 1000, 3));
     
     -- update timer
@@ -1302,7 +1331,6 @@ function AM.SetTime(timeMS)
                 local track = timeline.tracks[t];
                 -- also get object
                 local obj = AM.GetObjectOfTrack(track);
-                --print(obj.actor:GetModelPath())
                 if (obj) then
                     -- animate object :)
                     local animID, animMS = track:SampleAnimation(timeMS);
@@ -1345,4 +1373,46 @@ function AM.GetTimeNormalized(timeMS)
     local endMS = AM.currentCrop.max * totalTimeMS;
     local timeNorm = (timeMS - startMS) / (endMS - startMS);
     return timeNorm;
+end
+
+function AM.OpenAddAnimationWindow(track)
+
+    if (not track) then
+        return;
+    end
+
+    -- find available animations
+    local obj = AM.GetObjectOfTrack(track);
+    if (not obj) then
+        return;
+    end
+
+    if (obj.fileID == nil or obj.fileID <= 0) then
+        local ignore, ignore2, idString = strsplit(" ", obj.actor:GetModelPath());
+        obj.fileID = tonumber(idString);
+    end
+
+    
+    AM.animationList:Clear();
+    local animData = SceneMachine.animationData[obj.fileID];
+    local index = 1;
+    AM.animListIDs = {};
+    if (animData) then
+        for i in pairs(animData) do
+            local entry = animData[i];
+            local animID = entry[1];
+            local animVariant = entry[2];
+            local name = SceneMachine.animationNames[animID];
+            name = name or "Anim_" .. animID;
+            AM.animationList:SetItem(index, name);
+            AM.animListIDs[index] = animID;
+            index = index + 1;
+        end
+    end
+
+    -- resize --
+    AM.animScrollList.Scrollbar:SetMinMaxValues(0, max((index * 20) - (150), 1));
+    AM.animScrollList.Scrollbar:SetValueStep(1);
+
+    AM.animSelectWindow:Show();
 end
