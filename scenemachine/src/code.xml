@@ -7,6 +7,7 @@
 
     <Script file="..\static\data\creature.lua"/>
     <Script file="..\static\data\data.lua"/>
+    <Script file="..\static\data\animdata.lua"/>
 
     <Include file="Structures\Structures.xml"/>
 

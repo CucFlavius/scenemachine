@@ -1078,7 +1078,6 @@ function AM.RefreshWorkspace()
                         if (xMS >= startMS and xMS <= endMS) or (yMS >= startMS and yMS <= endMS) or (xMS <= startMS and yMS >= endMS ) then
                             local xNorm = (xMS - startMS) / (endMS - startMS);
                             local yNorm = (yMS - startMS) / (endMS - startMS);
-                            -- saturate so the bar isn't out of bounds
                             xNorm = max(0, xNorm);
                             yNorm = min(1, yNorm);
             
@@ -1171,7 +1170,7 @@ function AM.TimeValueToString(duration)
     return string.format("%02d:%02d", durationM, durationS);
 end
 
-function AM.AddAnim(track, animID)
+function AM.AddAnim(track, animID, variation)
     if (not track) then
         return;
     end
@@ -1180,17 +1179,40 @@ function AM.AddAnim(track, animID)
         track.animations = {};
     end
 
+    variation = variation or 0;
+
     -- place after last in time
     local colorId = math.random(1, #AM.colors);
-    local defaultLen = 3000;
+
+    -- get length
+    local obj = AM.GetObjectOfTrack(track);
+    if (obj.fileID == nil or obj.fileID <= 0) then
+        local ignore, ignore2, idString = strsplit(" ", obj.actor:GetModelPath());
+        obj.fileID = tonumber(idString);
+    end
+    
+    local animData = SceneMachine.animationData[obj.fileID];
+    local animLength = 3000;
+    if (animData) then
+        for i in pairs(animData) do
+            local entry = animData[i];
+            if (entry[1] == animID) then
+                animLength = entry[3];
+            end
+        end
+    end
+
     local startT = 0;
-    local endT = startT + defaultLen;
+    local endT = startT + animLength;
     if (#track.animations > 0) then
         startT = track.animations[#track.animations].endT;
-        endT = startT + defaultLen;
+        endT = startT + animLength;
     end
+
     track.animations[#track.animations + 1] = {
         id = animID,
+        variation = variation,
+        animLength = animLength,
         startT = startT,
         endT = endT,
         colorId = colorId,
@@ -1280,13 +1302,13 @@ function AM.SetTime(timeMS)
                 local track = timeline.tracks[t];
                 -- also get object
                 local obj = AM.GetObjectOfTrack(track);
+                --print(obj.actor:GetModelPath())
                 if (obj) then
                     -- animate object :)
                     local animID, animMS = track:SampleAnimation(timeMS);
                     local variation = 0;
                     local animSpeed = 0;
                     if (animID ~= -1) then
-                        print(obj.actor:GetAnimationVariation());
                         obj.actor:SetAnimation(animID, variation, animSpeed, animMS / 1000);
                     else
                         -- stop playback

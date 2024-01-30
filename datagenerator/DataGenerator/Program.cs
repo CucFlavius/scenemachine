@@ -7,8 +7,9 @@ namespace DataGenerator
 {
     internal class Program
     {
-        const string ADDON_DATA_PATH = "..\\..\\..\\..\\scenemachine\\static\\data\\";
+        const string ADDON_DATA_PATH = "..\\..\\..\\..\\..\\scenemachine\\static\\data\\";
         const string DATA_FILE_NAME = "data.lua";
+        const string ANIMATION_DATA_FILE_NAME = "animdata.lua";
         const string LISTFILE_URL = "https://github.com/wowdev/wow-listfile/releases/latest/download/community-listfile-withcapitals.csv";
         const string LISTFILE_PATH = "community-listfile-withcapitals.csv";
 
@@ -26,15 +27,15 @@ namespace DataGenerator
         {
             //DownloadLatestListfile();
             //GenerateAddonModelData();
-            //GenerateAddonCreatureData();
 
             string installPath = @"D:\Games\World of Warcraft\";
             string product = "wow"; // wow (release), wowt (ptr)
 
             GameData data = new GameData(installPath, product, LISTFILE_PATH);
             data.BuildM2FileIDList();
-            data.GetCreatureModelData();
-            data.GetCreatureDisplayInfo();
+            //data.GetCreatureModelData();
+            //data.GetCreatureDisplayInfo();
+            data.GenerateAnimationData($"{ADDON_DATA_PATH}\\{ANIMATION_DATA_FILE_NAME}");
         }
 
         static void DownloadLatestListfile()
@@ -82,11 +83,6 @@ namespace DataGenerator
             }
         }
 
-        static void GenerateAddonCreatureData()
-        {
-
-        }
-
         static void GenerateLuaTable(StreamWriter sw, DirEntry currentDir, string breadCrumb, string depth)
         {
             sw.WriteLine($"{depth}{{");
@@ -96,8 +92,6 @@ namespace DataGenerator
 
             if (currentDir.files != null && currentDir.files.Count > 0)
             {
-
-
                 sw.Write($"{depth}[\"FN\"]={{");
                 int idx = 0;
                 int tot = currentDir.files.Count;

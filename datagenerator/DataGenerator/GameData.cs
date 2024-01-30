@@ -103,5 +103,79 @@ namespace DataGenerator
             }
             Console.WriteLine("{0} completed in {1}", "Load CreatureDisplayInfo.db2", _sw.Elapsed);
         }
+
+        public void GenerateAnimationData(string outputPath)
+        {
+            if (m2FileIDs == null)
+            {
+                BuildM2FileIDList();
+            }
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Generate Animation Data");
+            Console.ResetColor();
+            using var sw = new StreamWriter(outputPath);
+
+            sw.WriteLine("SceneMachine.animationData={");
+
+            for (int i = 0; i < m2FileIDs.Count; i++)
+            {
+                var fileID = m2FileIDs[i];
+                var animData = GetAnimDataFromM2(fileID);
+
+                if (animData == null || animData.Count == 0)
+                {
+                    continue;
+                }
+
+                sw.Write($"[{fileID}]={{");
+
+                for (int a = 0; a < animData?.Count; a++)
+                {
+                    bool last = a == animData?.Count - 1;
+                    sw.Write($"{{{animData[a].Item1},{animData[a].Item2},{animData[a].Item3}}}");
+                    if (!last)
+                        sw.Write(',');
+                }
+
+                sw.WriteLine("},");
+            }
+
+            sw.WriteLine("}");
+        }
+
+        List<(ushort, ushort, uint)>? GetAnimDataFromM2(int fileID)
+        {
+            try
+            {
+                using var str = cascHandler.OpenFile(fileID);
+                using var br = new BinaryReader(str);
+
+                var list = new List<(ushort, ushort, uint)>();
+
+                br.BaseStream.Position = 36;
+                uint nAnimations = br.ReadUInt32();
+                uint ofsAnimations = br.ReadUInt32() + 8;
+
+                br.BaseStream.Position = ofsAnimations;
+                for (int i = 0; i < nAnimations; i++)
+                {
+                    ushort animID = br.ReadUInt16();
+                    ushort subAnimID = br.ReadUInt16();
+                    uint lengthMS = br.ReadUInt32();
+
+                    // skip rest
+                    br.BaseStream.Position += 56;
+
+                    list.Add((animID, subAnimID, lengthMS));
+                }
+
+                return list;
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 }
