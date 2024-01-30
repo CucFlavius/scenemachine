@@ -241,13 +241,15 @@ function SM.LoadScene(index)
     if (#scene.timelines > 0) then
         for i in pairs(scene.timelines) do
             local timeline = scene.timelines[i];
-            if (#timeline.tracks > 0) then
-                for j in pairs(timeline.tracks) do
-                    local track = SceneMachine.Track:New();
-                    track:ImportData(timeline.tracks[j]);
-        
-                    -- assigning the new track so that we have access to the class functions (which get stripped when exporting to savedata)
-                    SM.loadedScene.timelines[i].tracks[j] = track;
+            if (timeline.tracks) then
+                if (#timeline.tracks > 0) then
+                    for j in pairs(timeline.tracks) do
+                        local track = SceneMachine.Track:New();
+                        track:ImportData(timeline.tracks[j]);
+            
+                        -- assigning the new track so that we have access to the class functions (which get stripped when exporting to savedata)
+                        SM.loadedScene.timelines[i].tracks[j] = track;
+                    end
                 end
             end
         end
@@ -381,10 +383,18 @@ function SM.DeleteObject(object)
                 table.remove(SM.loadedScene.objects, i);
             end
         end
-        
     end
 
     Renderer.RemoveActor(object.actor);
+
+    -- also delete track if it exists
+    if (AM.loadedTimeline) then
+		for i in pairs(AM.loadedTimeline.tracks) do
+			if (AM.loadedTimeline.tracks[i].objectID == object.id) then
+				AM.RemoveTrack(AM.loadedTimeline.tracks[i]);
+			end
+		end
+	end
 
     -- refresh hierarchy
     SH.RefreshHierarchy();

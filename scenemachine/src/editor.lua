@@ -152,7 +152,6 @@ function Editor.Initialize()
     end
 end
 
-
 function Editor.RefreshProjectsDropdown()
     local projectNames = {}
     local selectedName = "";

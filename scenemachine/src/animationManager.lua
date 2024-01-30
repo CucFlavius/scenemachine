@@ -25,11 +25,13 @@ AM.inputState = {
     minFramePosStart = 0;
     maxFramePosStart = 0;
     centerFramePosStart = 0;
+    timebarFramePosStart = 0;
     mousePosStartX = 0;
     mousePosStartY = 0;
     movingMin = false;
     movingMax = false;
     movingCenter = false;
+    movingTime = false;
 
     movingScrollbar = false;
     scrollbarFramePosStart = 0;
@@ -37,10 +39,31 @@ AM.inputState = {
 AM.loadedTimelineIndex = 1;
 AM.loadedTimeline = nil;
 AM.selectedTrack = nil;
+AM.selectedAnim = nil;
 
 AM.TrackPoolSize = 10;
 AM.usedTracks = 0;
 AM.trackElementH = 30;
+
+AM.AnimationPoolSize = 10;
+AM.usedAnimations = 0;
+
+AM.colors = {
+    {242, 240, 161},
+    {252, 174, 187},
+    {241, 178, 220},
+    {191, 155, 222},
+    {116, 209, 234},
+    {157, 231, 215},
+    {158, 151, 142},
+    {0, 154, 206},
+    {68, 214, 44},
+    {255, 233, 0},
+    {255, 170, 77},
+    {255, 114, 118},
+    {255, 62, 181},
+    {234, 39, 194}
+}
 
 function AM.Update()
 
@@ -72,6 +95,7 @@ function AM.Update()
         local newPointNormalized = newPoint / groupBgW;
         AM.currentCrop.min = newPointNormalized;
         AM.RefreshTimebar();
+        AM.RefreshWorkspace();
     end
 
     if (AM.inputState.movingMax) then
@@ -102,6 +126,7 @@ function AM.Update()
         local newPointNormalized = newPoint / groupBgW;
         AM.currentCrop.max = newPointNormalized;
         AM.RefreshTimebar();
+        AM.RefreshWorkspace();
     end
 
     if (AM.inputState.movingCenter) then
@@ -136,6 +161,7 @@ function AM.Update()
         AM.currentCrop.max = newPointMaxNormalized;
         AM.currentCrop.min = newPointMinNormalized;
         AM.RefreshTimebar();
+        AM.RefreshWorkspace();
     end
 
     if (AM.inputState.movingScrollbar) then
@@ -166,6 +192,39 @@ function AM.Update()
         local pos = newPointNormalized * height;
         AM.workAreaList:SetPoint("TOPLEFT", AM.workAreaBG, "TOPLEFT", 0, math.floor(pos));
     end
+
+    if (AM.inputState.movingTime) then
+        
+        local groupBgH = AM.timebarGroup:GetWidth() - 26;
+        local mouseDiff = (AM.inputState.timebarFramePosStart + 10) - Input.mouseXRaw * Renderer.scale;
+        local newPoint = -mouseDiff;
+
+        -- Scroll the items list --
+        local newPointNormalized = newPoint / groupBgH;
+        local totalTimeMS = AM.loadedTimeline.duration;
+        local startMS = AM.currentCrop.min * totalTimeMS;
+        local endMS = AM.currentCrop.max * totalTimeMS;
+        local lengthMS = endMS - startMS;
+
+        local timeMS = startMS + (newPointNormalized * lengthMS);
+        timeMS = max(startMS, min(endMS, timeMS));  -- clamp
+
+        AM.SetTime(math.floor(timeMS));
+    end
+end
+
+function AM.Round(num, dp)
+    --[[
+    round a number to so-many decimal of places, which can be negative, 
+    e.g. -1 places rounds to 10's,  
+    
+    examples
+        173.2562 rounded to 0 dps is 173.0
+        173.2562 rounded to 2 dps is 173.26
+        173.2562 rounded to -1 dps is 170.0
+    ]]--
+    local mult = 10^(dp or 0)
+    return math.floor(num * mult + 0.5)/mult
 end
 
 function AM.CreateAnimationManager(x, y, w, h, parent)
@@ -196,6 +255,7 @@ function AM.CreateAnimationManager(x, y, w, h, parent)
     local workAreaW = w - 20;
     local workAreaH = h - (timelineTabH + timebarH + cropperBarH + bottomPad + toolbarH);
     AM.CreateTimebar(0, timebarY, w, timebarH, AM.groupBG);
+    AM.CreateTimeSlider(workAreaH);
     AM.CreateToolbar(0, toolbarY, w, toolbarH, AM.groupBG);
     AM.CreateToolbarTimer(toolbarH, AM.mainToolbar);
     AM.CreateScrollBar(0, workAreaY, cropperBarH, workAreaH, AM.groupBG);
@@ -205,6 +265,7 @@ function AM.CreateAnimationManager(x, y, w, h, parent)
     AM.RefreshTimelineTabs();
     AM.RefreshTimebar();
     AM.RefreshWorkspace();
+    AM.SetTime(0);
 end
 
 function AM.CreateTimebar(x, y, w, h, parent)
@@ -213,12 +274,35 @@ function AM.CreateTimebar(x, y, w, h, parent)
     local c3 = { 0, 0.4765, 0.7968 };
     local c4 = { 0.1171, 0.1171, 0.1171 };
 
+    AM.timebarGroup = CreateFrame("Button", "AM.TimebarGroup", parent)
+	AM.timebarGroup:SetPoint("TOPLEFT", parent, "TOPLEFT", x, y);
+	AM.timebarGroup:SetSize(w, h);
+    AM.timebarGroup.ntex = AM.timebarGroup:CreateTexture();
+    AM.timebarGroup.ntex:SetColorTexture(c4[1], c4[2], c4[3], 1)
+    --element.ntex:SetTexCoord(0, 0.5, 0, 0.5);    -- (left,right,top,bottom)
+    AM.timebarGroup.ntex:SetAllPoints();
+    AM.timebarGroup:SetNormalTexture(AM.timebarGroup.ntex);
+    AM.timebarGroup:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
+    AM.timebarGroup:SetScript("OnMouseDown", function(self, button)
+        AM.inputState.movingTime = true;
+        --local gpointL, grelativeToL, grelativePointL, gxOfsL, gyOfsL = AM.timebarGroup:GetPoint(1);
+        AM.inputState.timebarFramePosStart = AM.timebarGroup:GetLeft();--gxOfsL;
+        AM.inputState.mousePosStartX = Input.mouseXRaw;
+    end);
+    AM.timebarGroup:SetScript("OnMouseUp", function(self, button) AM.inputState.movingTime = false; end);
 
-    AM.timebarGroup = Win.CreateRectangle(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  c4[1], c4[2], c4[3], c4[4]);
     for i = 1, AM.needlePoolSize, 1 do
         local needle = AM.CreateNeedle();
         AM.needles[i] = needle;
     end
+end
+
+function AM.CreateTimeSlider(workAreaH)
+    local c = { 0.9, 0.2, 0.2 };
+    AM.TimeSlider = Win.CreateImageBox(20, 0, 20, 20, AM.timebarGroup, "CENTER", "LEFT", "Interface\\Addons\\scenemachine\\static\\textures\\timeSlider.png");
+    AM.TimeSlider.texture:SetVertexColor(c[1], c[2], c[3], 1);
+    
+    AM.TimeSliderBar = Win.CreateRectangle(0, 0, 1, workAreaH + 10, AM.TimeSlider, "TOP", "CENTER",  c[1], c[2], c[3], 1);
 end
 
 function AM.CreateNeedle()
@@ -260,8 +344,8 @@ function AM.CreateToolbar(x, y, w, h, parent)
         { type = "Button", name = "AddObject", icon = toolbar.getIcon("addobj"), action = function(self) AM.AddTrack(SM.selectedObject); end },
         { type = "Button", name = "RemoveObject", icon = toolbar.getIcon("removeobj"), action = function(self) AM.RemoveTrack(AM.selectedTrack) end },
         { type = "Separator" },
-        { type = "Button", name = "AddAnim", icon = toolbar.getIcon("addanim"), action = function(self) end },
-        { type = "Button", name = "RemoveAnim", icon = toolbar.getIcon("removeanim"), action = function(self)  end },
+        { type = "Button", name = "AddAnim", icon = toolbar.getIcon("addanim"), action = function(self) AM.AddAnim(AM.selectedTrack, 4); end },
+        { type = "Button", name = "RemoveAnim", icon = toolbar.getIcon("removeanim"), action = function(self) AM.RemoveAnim(AM.selectedTrack, AM.selectedAnim); end },
         { type = "Separator" },
         { type = "Button", name = "SkipToStart", icon = toolbar.getIcon("skiptoend", true), action = function(self)  end },
         { type = "Button", name = "SkipOneFrameBack", icon = toolbar.getIcon("skiponeframe", true), action = function(self)  end },
@@ -286,39 +370,99 @@ function AM.CreateWorkArea(x, y, w, h, parent)
     
     AM.workAreaBG = Win.CreateRectangle(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 0);
     AM.workAreaBG:SetClipsChildren(true);
-
-    AM.workAreaViewport = Win.CreateRectangle(6, 0, w, h, AM.workAreaBG, "TOPLEFT", "TOPLEFT",  c1[1], c1[2], c1[3], c1[4]);
-
-    AM.workAreaList = Win.CreateRectangle(0, 0, w, h, AM.workAreaViewport, "TOPLEFT", "TOPLEFT",  c1[1], c1[2], c1[3], c1[4]);
+    AM.workAreaViewport = Win.CreateRectangle(6, 0, w, h, AM.workAreaBG, "TOPLEFT", "TOPLEFT",  c4[1], c4[2], c4[3], 1);
+    AM.workAreaList = Win.CreateRectangle(0, 0, w, h, AM.workAreaViewport, "TOPLEFT", "TOPLEFT",  c4[1], c4[2], c4[3], 1);
+    
     AM.TrackPool = {};
-
     for i = 1, AM.TrackPoolSize, 1 do
         AM.TrackPool[i] = AM.GenerateTrackElement(i, 0, -((AM.trackElementH + Editor.pmult) * (i - 1)), w, AM.trackElementH, AM.workAreaList, c2[1], c2[2], c2[3], c2[4]);
+    end
+
+    AM.AnimationPool = {};
+    for i = 1, AM.AnimationPoolSize, 1 do
+        AM.AnimationPool[i] = AM.GenerateAnimationElement(i, 0, 0, AM.trackElementH, AM.trackElementH, AM.workAreaList, c2[1], c2[2], c2[3], c2[4]);
     end
 
     -- track selection box thing
     AM.trackSelectionBox = Win.CreateRectangle(-6, 0, 5, AM.trackElementH, AM.workAreaList, "TOPLEFT", "TOPLEFT",  c3[1], c3[2], c3[3], c3[4]);
     AM.trackSelectionBox:Hide();
 
+    -- animation selection box thing
+    AM.animationSelectionBox = Win.CreateRectangle(0, 0, AM.trackElementH, AM.trackElementH, AM.workAreaList, "TOPLEFT", "TOPLEFT",  1, 1, 1, 0);
+    
+    local thickness = 2 + Editor.pmult;
+
+    local lineTop = AM.animationSelectionBox:CreateLine(nil, nil, nil);
+    local c = { 1, 1, 1, 0.5 };
+    lineTop:SetThickness(thickness);
+    lineTop:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\dashedLine.png", "REPEAT", "REPEAT", "NEAREST");
+    lineTop:Show();
+    lineTop:SetVertexColor(c[1], c[2], c[3], c[4]);
+    lineTop:SetStartPoint("TOPLEFT", 0, -thickness / 2) -- start topleft
+    lineTop:SetEndPoint("TOPRIGHT", 0, -thickness / 2)   -- end bottomright
+    lineTop:SetTexCoord(0, 10, 0, 1);
+
+    local lineBottom = AM.animationSelectionBox:CreateLine(nil, nil, nil);
+    lineBottom:SetThickness(thickness);
+    lineBottom:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\dashedLine.png", "REPEAT", "REPEAT", "NEAREST");
+    lineBottom:Show();
+    lineBottom:SetVertexColor(c[1], c[2], c[3], c[4]);
+    lineBottom:SetStartPoint("BOTTOMLEFT", 0, thickness / 2) -- start topleft
+    lineBottom:SetEndPoint("BOTTOMRIGHT", 0, thickness / 2)   -- end bottomright
+    lineBottom:SetTexCoord(0, 10, 0, 1);
+
+    local lineLeft = AM.animationSelectionBox:CreateLine(nil, nil, nil);
+    lineLeft:SetThickness(thickness);
+    lineLeft:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\dashedLine.png", "REPEAT", "REPEAT", "NEAREST");
+    lineLeft:Show();
+    lineLeft:SetVertexColor(c[1], c[2], c[3], c[4]);
+    lineLeft:SetStartPoint("BOTTOMLEFT", thickness / 2, 0) -- start topleft
+    lineLeft:SetEndPoint("TOPLEFT", thickness / 2, 0)   -- end bottomright
+    lineLeft:SetTexCoord(0, 2.5, 0, 1);
+
+    local lineRight = AM.animationSelectionBox:CreateLine(nil, nil, nil);
+    lineRight:SetThickness(thickness);
+    lineRight:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\dashedLine.png", "REPEAT", "REPEAT", "NEAREST");
+    lineRight:Show();
+    lineRight:SetVertexColor(c[1], c[2], c[3], c[4]);
+    lineRight:SetStartPoint("BOTTOMRIGHT", -thickness / 2, 0) -- start topleft
+    lineRight:SetEndPoint("TOPRIGHT", -thickness / 2, 0)   -- end bottomright
+    lineRight:SetTexCoord(0, 2.5, 0, 1);
+
+    AM.animationSelectionBox.lineTop = lineTop;
+    AM.animationSelectionBox.lineBottom = lineBottom;
+    AM.animationSelectionBox.lineLeft = lineLeft;
+    AM.animationSelectionBox.lineRight = lineRight;
+    AM.animationSelectionBox:Hide();
+
     AM.RefreshWorkspace();
 end
 
 function AM.GenerateTrackElement(index, x, y, w, h, parent, R, G, B, A)
-    local element = Win.CreateButton(x, y, w, h, parent, "TOPLEFT", "TOPLEFT");--Win.CreateRectangle(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  R, G, B, A);
-    element:SetAlpha(0.6);
-    element.name = Win.CreateTextBoxSimple(2, 0, 200, 10, element, "TOPLEFT", "TOPLEFT", index, 8);
-    element.name:SetAlpha(0.7);
+    local element = CreateFrame("Button", "AM.TrackElement"..index, parent)
+	element:SetPoint("TOPLEFT", parent, "TOPLEFT", x, y);
+	element:SetSize(w, h);
+    element:SetFrameLevel(8);
+    element.ntex = element:CreateTexture();
+    element.ntex:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\animation.png")
+    element.ntex:SetTexCoord(0, 0.5, 0, 0.5);    -- (left,right,top,bottom)
+    element.ntex:SetAllPoints();
+    element.ntex:SetVertexColor(0.2, 0.2, 0.2, 1);
+    element:SetNormalTexture(element.ntex);
     element:SetScript("OnClick", function (self, button, down)
         if (AM.loadedTimeline) then
             AM.SelectTrack(index);
         end
     end)
+
+    element.name = Win.CreateTextBoxSimple(2, 0, 200, 10, element, "TOPLEFT", "TOPLEFT", index, 8);
+
     element:Hide();
 
     return element;
 end
 
-function AM.GetAvailableTrack()
+function AM.GetAvailableTrackElement()
     local i = AM.usedTracks + 1;
     AM.usedTracks = AM.usedTracks + 1;
 
@@ -327,6 +471,55 @@ function AM.GetAvailableTrack()
     end
 
     return AM.TrackPool[i];
+end
+
+function AM.GenerateAnimationElement(index, x, y, w, h, parent, R, G, B, A)
+    -- Left handle
+    local colIdx = 10;
+    local element = CreateFrame("Button", "AM.AnimationElement"..index, parent)
+	element:SetPoint("TOPLEFT", parent, "TOPLEFT", x, y);
+	element:SetSize(w, h);
+    --element:SetAlpha(0.5);
+    element:SetFrameLevel(10);
+    element.ntex = element:CreateTexture();
+    element.ntex:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\animation.png")
+    element.ntex:SetTexCoord(0, 0.5, 0, 0.5);    -- (left,right,top,bottom)
+    element.ntex:SetAllPoints();
+    element.ntex:SetVertexColor(AM.colors[colIdx][1] / 255, AM.colors[colIdx][2] / 255, AM.colors[colIdx][3] / 255,1);
+    element:SetNormalTexture(element.ntex);
+    element:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
+    element:SetScript("OnMouseDown", function(self, button)
+
+    end);
+    element:SetScript("OnMouseUp", function(self, button)
+
+    end);
+
+    element.name = Win.CreateTextBoxSimple(2, 0, 100, 10, element, "CENTER", "CENTER", index, 8);
+    element.name:ClearAllPoints();
+    element.name:SetPoint("LEFT", element, "LEFT", 10, 0);
+    element.name:SetPoint("RIGHT", element);
+    element.name:SetAlpha(0.7);
+    element.name.text:SetTextColor(0, 0, 0, 1);
+    element:SetScript("OnClick", function (self, button, down)
+        if (button == "LeftButton" and down) then
+            AM.SelectAnimation(index);
+        end
+    end)
+    element:Hide();
+
+    return element;
+end
+
+function AM.GetAvailableAnimationElement()
+    local i = AM.usedAnimations + 1;
+    AM.usedAnimations = AM.usedAnimations + 1;
+
+    if (i >= #AM.AnimationPool) then
+        AM.AnimationPool[i] = AM.GenerateAnimationElement(i, 0, 0, AM.trackElementH, AM.trackElementH, AM.workAreaList, 0, 0, 0, 1);
+    end
+
+    return AM.AnimationPool[i];
 end
 
 function AM.CreateCropperBar(x, y, w, h, parent)
@@ -588,15 +781,9 @@ function AM.RemoveTrack(track)
     if (not AM.loadedTimeline) then
         return;
     end
-
-    if (AM.selectedTrack == nil) then
-        return;
-    end
-
     if (AM.selectedTrack == track) then
         AM.selectedTrack = nil;
     end
-
     if (#AM.loadedTimeline.tracks > 0) then
         for i in pairs(AM.loadedTimeline.tracks) do
             if (AM.loadedTimeline.tracks[i] == track) then
@@ -616,20 +803,14 @@ function AM.SelectTrack(index)
     AM.selectedTrack = AM.loadedTimeline.tracks[index];
 
     -- also select object
-    if (AM.selectedTrack.objectID) then
-        if (not SM.loadedScene.objects) then
-            return;
-        end
-    
-        for i in pairs(SM.loadedScene.objects) do
-            if (SM.loadedScene.objects[i].id == AM.selectedTrack.objectID) then
-                SM.selectedObject = SM.loadedScene.objects[i];
-                SH.RefreshHierarchy();
-                OP.Refresh();
-            end
-        end
+    local obj = AM.GetObjectOfTrack(AM.selectedTrack);
+    if (obj) then
+        SM.selectedObject = obj;
+        SH.RefreshHierarchy();
+        OP.Refresh();
     end
 
+    AM.SelectAnimation(-1);
     AM.RefreshSelectedTrack(index);
 end
 
@@ -780,8 +961,8 @@ function AM.RefreshTimebar()
 
     -- Refresh needles
     local timeBarW = AM.timebarGroup:GetWidth();
-    local workAreaW = AM.workAreaBG:GetWidth();
-    local totalTimeMs = AM.loadedTimeline.duration;
+    local workAreaW = AM.workAreaBG:GetWidth() - 8;
+    local totalTimeMs = AM.loadedTimeline.duration or 0;
     
     local startTimeMs = AM.currentCrop.min * totalTimeMs;
     local startTimeS = startTimeMs / 1000;
@@ -829,7 +1010,7 @@ function AM.RefreshTimebar()
         needlesNeededCount = needlesNeededCount + (1 / needleTimeSpacing);
     end
 
-    needleSpacing = needleSpacing * needleTimeSpacing;
+    needleSpacing = needleSpacing * needleTimeSpacing * 1.003;
 
     if (needleTimeSpacing > 1) then
         --needleStartOffs = needleStartOffs * needleTimeSpacing;
@@ -837,7 +1018,7 @@ function AM.RefreshTimebar()
     end
 
     for i = 1, needlesNeededCount, 1 do
-        local pos = needleStartOffs + ((i - 1) * needleSpacing) + 10;
+        local pos = needleStartOffs + ((i - 1) * needleSpacing) + 9.5;
         local text = math.ceil(startTimeS) + ((i - 1) * needleTimeSpacing) - numberOffs .. "s";
         local needle = AM.GetNeedle();
         needle:ClearAllPoints();
@@ -862,27 +1043,96 @@ end
 function AM.RefreshWorkspace()
     -- reset used
     AM.usedTracks = 0;
+    AM.usedAnimations = 0;
 
     -- load tracks
     local usedTracks = 0;
+    local usedAnimations = 0;
     if (AM.loadedTimeline) then
-        print(#AM.loadedTimeline.tracks)
-        usedTracks = #AM.loadedTimeline.tracks;
-        for i = 1, #AM.loadedTimeline.tracks, 1 do
-            local track = AM.loadedTimeline.tracks[i];
-            local trackElement = AM.GetAvailableTrack();
-            trackElement:Show();
-
-            -- TODO : populate element with track data
-            trackElement.name.text:SetText(track.name);
+        if (not AM.loadedTimeline.tracks) then
+            AM.loadedTimeline.tracks = {};
         end
-        -- hide the rest
-        for i = usedTracks + 1, #AM.TrackPool, 1 do
-            if (AM.TrackPool[i]) then
-                AM.TrackPool[i]:Hide();
+        if (AM.loadedTimeline.tracks) then
+            usedTracks = #AM.loadedTimeline.tracks;
+            for t = 1, #AM.loadedTimeline.tracks, 1 do
+                local track = AM.loadedTimeline.tracks[t];
+                local trackElement = AM.GetAvailableTrackElement();
+                trackElement.name.text:SetText(track.name);
+                trackElement:Show();
+
+                --AM.BuildTrackElement(trackElement);
+                local trackElementW = trackElement:GetWidth() - 6;
+
+                if (track.animations) then
+                    for a = 1, #track.animations, 1 do
+                        local animElement = AM.GetAvailableAnimationElement();
+                        usedAnimations = usedAnimations + 1;
+                        local startMS = AM.currentCrop.min * AM.loadedTimeline.duration;
+                        local endMS = AM.currentCrop.max * AM.loadedTimeline.duration;
+                        local xMS = track.animations[a].startT;
+                        local yMS = track.animations[a].endT;
+                        local colorID = track.animations[a].colorId;
+            
+                        -- check if on screen or cropped out
+                        -- check if any of the points are on screen, or if both points are larger than screen else hide
+                        if (xMS >= startMS and xMS <= endMS) or (yMS >= startMS and yMS <= endMS) or (xMS <= startMS and yMS >= endMS ) then
+                            local xNorm = (xMS - startMS) / (endMS - startMS);
+                            local yNorm = (yMS - startMS) / (endMS - startMS);
+                            -- saturate so the bar isn't out of bounds
+                            xNorm = max(0, xNorm);
+                            yNorm = min(1, yNorm);
+            
+                            local startP = math.floor(trackElementW * xNorm);
+                            local endP = math.floor(trackElementW * yNorm);
+                            local width = endP - startP;
+            
+                            animElement:ClearAllPoints();
+                            animElement:SetPoint("TOPLEFT", trackElement, "TOPLEFT", startP, 0);
+                            animElement:SetSize(width, AM.trackElementH);
+
+                            -- use alpha to desaturate the animation bars
+                            -- so that they don't draw more attention than the scene
+                            -- calculate an alpha value based on percieved R,G,B
+                            local R = AM.colors[colorID][1] / 255;
+                            local G = AM.colors[colorID][2] / 255;
+                            local B = AM.colors[colorID][3] / 255;
+                            local alpha = 1.0 - ((R + G + (B / 2)) / 3);
+                            alpha = max(0, min(1, alpha));
+
+                            animElement.ntex:SetVertexColor(R, G, B, alpha);
+                            animElement:Show();
+            
+                            animElement.name.text:SetText("Walk");
+
+                            -- store some information for lookup
+                            animElement.animIdx = a;
+                            animElement.trackIdx = t;
+
+                            if (track.animations[a] == AM.selectedAnim) then
+                                AM.animationSelectionBox.lineTop:SetTexCoord(0, width / 20, 0, 1);
+                                AM.animationSelectionBox.lineBottom:SetTexCoord(0, width / 20, 0, 1);
+                                local alphaH = max(0, min(1, alpha + 0.3));
+                                animElement.ntex:SetVertexColor(R, G, B, alphaH);
+                            end
+                        else
+                            animElement:Hide();
+                        end
+                    end
+                end
+                -- hide the rest
+                for i = usedAnimations + 1, #AM.AnimationPool, 1 do
+                    if (AM.AnimationPool[i]) then
+                        AM.AnimationPool[i]:Hide();
+                    end
+                end
+            end
+            -- hide the rest
+            for i = usedTracks + 1, #AM.TrackPool, 1 do
+                if (AM.TrackPool[i]) then
+                    AM.TrackPool[i]:Hide();
+                end
             end
         end
-
     end
     
     -- make list fit elements
@@ -914,8 +1164,163 @@ function AM.RefreshSelectedTrack(index)
 end
 
 function AM.TimeValueToString(duration)
+    duration = duration or 0;
     local durationS = duration / 1000;
     local durationM = math.floor(durationS / 60);
     durationS = durationS - (60 * durationM);
     return string.format("%02d:%02d", durationM, durationS);
+end
+
+function AM.AddAnim(track, animID)
+    if (not track) then
+        return;
+    end
+
+    if (not track.animations) then
+        track.animations = {};
+    end
+
+    -- place after last in time
+    local colorId = math.random(1, #AM.colors);
+    local defaultLen = 3000;
+    local startT = 0;
+    local endT = startT + defaultLen;
+    if (#track.animations > 0) then
+        startT = track.animations[#track.animations].endT;
+        endT = startT + defaultLen;
+    end
+    track.animations[#track.animations + 1] = {
+        id = animID,
+        startT = startT,
+        endT = endT,
+        colorId = colorId,
+    };
+
+    AM.RefreshWorkspace();
+end
+
+function AM.RemoveAnim(track, anim)
+    if (not anim or not track) then
+        return;
+    end
+
+    if (track == AM.SelectedTrack and anim == AM.SelectAnimation) then
+        -- deselect
+        AM.SelectAnimation(-1);
+    end
+
+    for i in pairs(track.animations) do
+        if (track.animations[i] == anim) then
+            table.remove(track.animations, i);
+        end
+    end
+
+    AM.RefreshWorkspace();
+end
+
+function AM.SelectAnimation(index)
+    if (index <= 0) then
+        AM.selectedAnim = nil;
+        AM.animationSelectionBox:Hide();
+        AM.RefreshWorkspace();
+        return;
+    end
+
+    -- find which animation, track and elements were just selected
+    local animElement = AM.AnimationPool[index];
+    local trackElement = animElement.trackIdx;
+    local track = AM.loadedTimeline.tracks[animElement.trackIdx];
+    local anim = track.animations[animElement.animIdx];
+    
+    AM.SelectTrack(animElement.trackIdx);
+    AM.selectedAnim = anim;
+
+    AM.animationSelectionBox:ClearAllPoints();
+    AM.animationSelectionBox:SetParent(animElement);
+    AM.animationSelectionBox:SetPoint("LEFT", animElement, "LEFT", 0, 0);
+    AM.animationSelectionBox:SetPoint("RIGHT", animElement);
+    local width = animElement:GetWidth();
+    AM.animationSelectionBox.lineTop:SetTexCoord(0, width / 20, 0, 1);
+    AM.animationSelectionBox.lineBottom:SetTexCoord(0, width / 20, 0, 1);
+    AM.animationSelectionBox:Show();
+
+    AM.RefreshWorkspace();
+end
+
+function AM.SetTime(timeMS)
+
+    -- move ze slider
+    local groupBgH = AM.timebarGroup:GetWidth() - 26;
+    local timeNorm = AM.GetTimeNormalized(timeMS);
+    --if (timeNorm)
+    local pos = timeNorm * groupBgH + 10;
+    AM.TimeSlider:ClearAllPoints();
+    AM.TimeSlider:SetPoint("CENTER", AM.timebarGroup, "LEFT", pos, 0);
+    
+    --print(AM.Round(timeMS / 1000, 3));
+    
+    -- update timer
+    if (AM.loadedTimeline) then
+        AM.loadedTimeline.currentTime = timeMS;
+
+        local totalTime = AM.TimeValueToString(AM.loadedTimeline.duration);
+        local currentTime = AM.TimeValueToString(AM.loadedTimeline.currentTime or 0);
+        AM.timerTextBox.text:SetText(currentTime .. "-" .. totalTime);
+    end
+
+    if (not SM.loadedScene) then
+        return;
+    end
+
+    -- go through the timeline tracks
+    for i in pairs(SM.loadedScene.timelines) do
+        local timeline = SM.loadedScene.timelines[i];
+        if (timeline and timeline.tracks) then
+            for t in pairs(timeline.tracks) do
+                local track = timeline.tracks[t];
+                -- also get object
+                local obj = AM.GetObjectOfTrack(track);
+                if (obj) then
+                    -- animate object :)
+                    local animID, animMS = track:SampleAnimation(timeMS);
+                    local variation = 0;
+                    local animSpeed = 0;
+                    if (animID ~= -1) then
+                        print(obj.actor:GetAnimationVariation());
+                        obj.actor:SetAnimation(animID, variation, animSpeed, animMS / 1000);
+                    else
+                        -- stop playback
+                    end
+                end
+            end
+        end
+    end
+
+end
+
+function AM.GetObjectOfTrack(track)
+    if (track.objectID) then
+        if (not SM.loadedScene.objects) then
+            return nil;
+        end
+    
+        for i in pairs(SM.loadedScene.objects) do
+            if (SM.loadedScene.objects[i].id == track.objectID) then
+                return SM.loadedScene.objects[i];
+            end
+        end
+    end
+
+    return nil;
+end
+
+function AM.GetTimeNormalized(timeMS)
+    if (not AM.loadedTimeline) then
+        return 0;
+    end
+    local totalTimeMS = AM.loadedTimeline.duration;
+    local startMS = AM.currentCrop.min * totalTimeMS;
+    local endMS = AM.currentCrop.max * totalTimeMS;
+    local timeNorm = (timeMS - startMS) / (endMS - startMS);
+    return timeNorm;
 end

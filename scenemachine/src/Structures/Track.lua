@@ -5,6 +5,7 @@ SceneMachine.Track =
 {
     objectID = nil, -- keeping a reference for when loading saved data
     name = "New Track",
+    animations = {},
 }
 
 local Track = SceneMachine.Track;
@@ -18,6 +19,7 @@ function Track:New(object)
     {
         -- Don't store an object reference, no reason for duplicates in saved data
         --object = object or nil,
+        animations = {},
     };
     
     if (object) then
@@ -32,6 +34,7 @@ end
 function Track:ExportData()
     local data = {
         objectID = self.object.id;
+        animations = self.animations;
     };
 
     return data;
@@ -51,6 +54,29 @@ function Track:ImportData(data)
     if (data.name ~= nil) then
         self.name = data.name;
     end
+
+    if (data.animations ~= nil) then
+        self.animations = data.animations;
+    end
+end
+
+function Track:SampleAnimation(timeMS)
+    -- find anim in range
+    if (self.animations) then
+        for a in pairs(self.animations) do
+            local animation = self.animations[a];
+            --{ id, startT, endT, colorId }
+            if (animation.startT <= timeMS and animation.endT > timeMS) then
+                -- anim is in range
+                local animMS = timeMS - animation.startT;
+                local animID = animation.id;
+
+                return animID, animMS;
+            end
+        end
+    end
+
+    return -1, -1
 end
 
 --Track.__tostring = function(self)
