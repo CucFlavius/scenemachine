@@ -1,0 +1,6 @@
+[submodule "DataGenerator/Lib/CascLib"]
+	path = DataGenerator/Lib/CascLib
+	url = https://github.com/WoW-Tools/CascLib
+[submodule "DataGenerator/Lib/DBCD"]
+	path = DataGenerator/Lib/DBCD
+	url = https://github.com/wowdev/DBCD
