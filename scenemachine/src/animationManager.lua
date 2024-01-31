@@ -244,7 +244,6 @@ function AM.Update()
             local trackElement = animElement.trackIdx;
             local track = AM.loadedTimeline.tracks[animElement.trackIdx];
             local anim = track.animations[animElement.animIdx];
-            -- { id, startT, endT, colorId }
             local desiredStartT = math.floor(anim.startT + diffTimeMS);
             local desiredEndT = math.floor(anim.endT + diffTimeMS);
 
@@ -262,8 +261,26 @@ function AM.Update()
                     anim.endT = desiredEndT;
                     AM.inputState.mousePosStartX = Input.mouseXRaw;
                 else
-                    anim.startT = animL.endT;
-                    anim.endT = anim.startT + length;
+                    -- check if mouse past whole of animR, and swap them
+                    -- sL     eL s          e
+                    -- sL          eL s     e
+                    if (desiredStartT < animL.startT) then
+                        -- swap
+                        local startT = anim.startT;
+                        local endT = anim.endT;
+                        local lStartT = animL.startT;
+                        local lEndT = animL.endT;
+                        animL.endT = lStartT + (endT - startT);
+                        anim.startT = animL.endT;
+                        AM.SwapAnimData(anim, animL);
+                        -- select the other
+                        AM.inputState.movingAnim = AM.inputState.movingAnim - 1;
+                        AM.SelectAnimation(AM.inputState.movingAnim);
+                        AM.inputState.mousePosStartX = Input.mouseXRaw;
+                    else
+                        anim.startT = animL.endT;
+                        anim.endT = anim.startT + length;
+                    end
                 end
             elseif (animR and not animL) then
                 if (desiredEndT < animR.startT) then
@@ -271,8 +288,26 @@ function AM.Update()
                     anim.endT = desiredEndT;
                     AM.inputState.mousePosStartX = Input.mouseXRaw;
                 else
-                    anim.endT = animR.startT;
-                    anim.startT = anim.endT - length;
+                    -- check if mouse past whole of animR, and swap them
+                    -- s     e sR          eR
+                    -- s          e sR     eR
+                    if (desiredEndT > animR.endT) then
+                        -- swap
+                        local startT = anim.startT;
+                        local endT = anim.endT;
+                        local rStartT = animR.startT;
+                        local rEndT = animR.endT;
+                        anim.endT = startT + (rEndT - rStartT);
+                        animR.startT = anim.endT;
+                        AM.SwapAnimData(anim, animR);
+                        -- select the other
+                        AM.inputState.movingAnim = AM.inputState.movingAnim + 1;
+                        AM.SelectAnimation(AM.inputState.movingAnim);
+                        AM.inputState.mousePosStartX = Input.mouseXRaw;
+                    else
+                        anim.endT = animR.startT;
+                        anim.startT = anim.endT - length;
+                    end
                 end
             elseif (animL and animR) then
                 if (desiredStartT > animL.endT) and (desiredEndT < animR.startT) then
@@ -281,13 +316,53 @@ function AM.Update()
                     AM.inputState.mousePosStartX = Input.mouseXRaw;
                 else
                     if (desiredStartT <= animL.endT) then
-                        anim.startT = animL.endT;
-                        anim.endT = anim.startT + length;
+                        -- check if mouse past whole of animR, and swap them
+                        -- sL     eL s          e
+                        -- sL          eL s     e
+                        if (desiredStartT < animL.startT) then
+                            -- swap
+                            local startT = anim.startT;
+                            local endT = anim.endT;
+                            local lStartT = animL.startT;
+                            local lEndT = animL.endT;
+                            animL.endT = lStartT + (endT - startT);
+                            anim.startT = animL.endT;
+                            AM.SwapAnimData(anim, animL);
+                            -- select the other
+                            AM.inputState.movingAnim = AM.inputState.movingAnim - 1;
+                            AM.SelectAnimation(AM.inputState.movingAnim);
+                            AM.inputState.mousePosStartX = Input.mouseXRaw;
+                        else
+                            anim.startT = animL.endT;
+                            anim.endT = anim.startT + length;
+                        end
                     elseif (desiredEndT >= animR.startT) then
-                        anim.endT = animR.startT;
-                        anim.startT = anim.endT - length;
+                        -- check if mouse past whole of animR, and swap them
+                        -- s     e sR          eR
+                        -- s          e sR     eR
+                        if (desiredEndT > animR.endT) then
+                            -- swap
+                            local startT = anim.startT;
+                            local endT = anim.endT;
+                            local rStartT = animR.startT;
+                            local rEndT = animR.endT;
+                            anim.endT = startT + (rEndT - rStartT);
+                            animR.startT = anim.endT;
+                            AM.SwapAnimData(anim, animR);
+                            -- select the other
+                            AM.inputState.movingAnim = AM.inputState.movingAnim + 1;
+                            AM.SelectAnimation(AM.inputState.movingAnim);
+                            AM.inputState.mousePosStartX = Input.mouseXRaw;
+                        else
+                            anim.endT = animR.startT;
+                            anim.startT = anim.endT - length;
+                        end
                     end
                 end
+            elseif (not animL and not animR) then
+                anim.startT = desiredStartT;
+                anim.endT = desiredEndT;
+                AM.inputState.mousePosStartX = Input.mouseXRaw;
             end
 
             if (anim.startT < 0) then
@@ -303,6 +378,27 @@ function AM.Update()
             AM.RefreshWorkspace();
         end
     end
+end
+
+function AM.SwapAnimData(A, B)
+    local id = A.id;
+    local name = A.name;
+    local colorId = A.colorId;
+    local variation = A.variation;
+    local animLength = A.animLength
+
+    A.id = B.id;
+    A.name = B.name;
+    A.colorId = B.colorId;
+    A.variation = B.variation;
+    A.animLength = B.animLength;
+
+
+    B.id = id;
+    B.name = name;
+    B.colorId = colorId;
+    B.variation = variation;
+    B.animLength = animLength;
 end
 
 function AM.Round(num, dp)
