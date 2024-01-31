@@ -43,6 +43,7 @@ AM.loadedTimelineIndex = 1;
 AM.loadedTimeline = nil;
 AM.selectedTrack = nil;
 AM.selectedAnim = nil;
+AM.selectedKey = nil;
 
 AM.TrackPoolSize = 10;
 AM.usedTracks = 0;
@@ -50,6 +51,10 @@ AM.trackElementH = 30;
 
 AM.AnimationPoolSize = 10;
 AM.usedAnimations = 0;
+
+AM.keyframeElementH = 14;
+AM.KeyframePoolSize = 20;
+AM.usedKeyframes = 0;
 
 AM.selectedAnimID = -1;
 AM.animListIDs = {};
@@ -402,6 +407,7 @@ function AM.Update()
                 AM.inputState.mousePosStartX = savePrevMouse;
             end
 
+            AM.SetTime(AM.loadedTimeline.currentTime);
             AM.RefreshWorkspace();
         end
     end
@@ -459,6 +465,7 @@ function AM.Update()
                 AM.inputState.mousePosStartX = savePrevMouse;
             end
 
+            AM.SetTime(AM.loadedTimeline.currentTime);
             AM.RefreshWorkspace();
         end
     end
@@ -516,6 +523,7 @@ function AM.Update()
                 AM.inputState.mousePosStartX = savePrevMouse;
             end
 
+            AM.SetTime(AM.loadedTimeline.currentTime);
             AM.RefreshWorkspace();
         end
     end
@@ -602,15 +610,20 @@ function AM.CreateAnimationManager(x, y, w, h, parent)
     local timebarY = -timelineTabH - toolbarH;
     local cropperBarH = 16;
     local cropperBarY = bottomPad;
+    local keyframeBarX = 10;
+    local keyframeBarY = -(timebarH + timelineTabH + toolbarH);
+    local keyframeBarW = w - 20;
+    local keyframeBarH = 15;
     local workAreaX = 10;
-    local workAreaY = -(timebarH + timelineTabH + toolbarH);
+    local workAreaY = -(timebarH + timelineTabH + toolbarH + keyframeBarH);
     local workAreaW = w - 20;
-    local workAreaH = h - (timelineTabH + timebarH + cropperBarH + bottomPad + toolbarH);
+    local workAreaH = h - (timelineTabH + timebarH + cropperBarH + bottomPad + toolbarH + keyframeBarH);
     AM.CreateTimebar(0, timebarY, w, timebarH, AM.groupBG);
     AM.CreateTimeSlider(workAreaH);
     AM.CreateToolbar(0, toolbarY, w, toolbarH, AM.groupBG);
     AM.CreateToolbarTimer(toolbarH, AM.mainToolbar);
     AM.CreateScrollBar(0, workAreaY, cropperBarH, workAreaH, AM.groupBG);
+    AM.CreateKeyframeBar(keyframeBarX, keyframeBarY, keyframeBarW, keyframeBarH, AM.groupBG)
     AM.CreateWorkArea(workAreaX - 6, workAreaY, workAreaW, workAreaH, AM.groupBG);
     AM.CreateCropperBar(0, cropperBarY, w - 14, cropperBarH, AM.groupBG);
 
@@ -672,6 +685,55 @@ function AM.CreateTimebar(x, y, w, h, parent)
     end
 end
 
+function AM.CreateKeyframeBar(x, y, w, h, parent)
+    AM.KeyframeBar = Win.CreateRectangle(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 1);
+
+    AM.KeyframePool = {};
+    for i = 1, AM.KeyframePoolSize, 1 do
+        AM.KeyframePool[i] = AM.GenerateKeyframeElement(i, 0, 0, AM.keyframeElementH, AM.keyframeElementH, AM.KeyframeBar, 0.5, 0.5, 0.5, 1);
+        AM.KeyframePool[i]:Hide();
+    end
+end
+
+function AM.GenerateKeyframeElement(index, x, y, w, h, parent, R, G, B, A)
+    local element = CreateFrame("Button", "AM.KeyframeElement"..index, parent)
+	element:SetPoint("LEFT", parent, "LEFT", x, y);
+	element:SetSize(w, h);
+    element:SetFrameLevel(10);
+    element.ntex = element:CreateTexture();
+    element.ntex:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\keyframe.png")
+    element.ntex:SetTexCoord(0, 1, 0, 1);
+    element.ntex:SetAllPoints();
+    element.ntex:SetVertexColor(R, G, B, A);
+    element:SetNormalTexture(element.ntex);
+    element:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
+    element:SetScript("OnMouseDown", function(self, button)
+        --AM.inputState.movingAnim = index;
+        --AM.inputState.mousePosStartX = Input.mouseXRaw;
+    end);
+    element:SetScript("OnMouseUp", function(self, button)
+        --AM.inputState.movingAnim = -1;
+    end);
+    element:SetScript("OnClick", function (self, button, down)
+        if (button == "LeftButton" and down) then
+            AM.SelectKeyframe(index);
+        end
+    end)
+
+    return element;
+end
+
+function AM.GetAvailableKeyframeElement()
+    local i = AM.usedKeyframes + 1;
+    AM.usedKeyframes = AM.usedKeyframes + 1;
+
+    if (i >= #AM.KeyframePool) then
+        AM.KeyframePool[i] = AM.GenerateKeyframeElement(i, 0, 0, AM.keyframeElementH, AM.keyframeElementH, AM.KeyframeBar, 0.5, 0.5, 0.5, 1);
+    end
+
+    return AM.KeyframePool[i];
+end
+
 function AM.CreateTimeSlider(workAreaH)
     local c = { 0.9, 0.2, 0.2 };
     AM.TimeSlider = Win.CreateImageBox(20, 0, 20, 20, AM.timebarGroup, "CENTER", "LEFT", "Interface\\Addons\\scenemachine\\static\\textures\\timeSlider.png");
@@ -714,13 +776,15 @@ function AM.CreateToolbar(x, y, w, h, parent)
     {
         { type = "DragHandle" },
         { type = "Button", name = "TimeSettings", icon = toolbar.getIcon("timesettings"), action = function(self) end },
-        --{ type = "Dropdown", name = "ProjectList", width = 200, options = {}, action = function(index) Editor.ProjectManager.LoadProjectByIndex(index); end },
         { type = "Separator" },
         { type = "Button", name = "AddObject", icon = toolbar.getIcon("addobj"), action = function(self) AM.AddTrack(SM.selectedObject); end },
         { type = "Button", name = "RemoveObject", icon = toolbar.getIcon("removeobj"), action = function(self) AM.RemoveTrack(AM.selectedTrack) end },
         { type = "Separator" },
         { type = "Button", name = "AddAnim", icon = toolbar.getIcon("addanim"), action = function(self) AM.OpenAddAnimationWindow(AM.selectedTrack); end },
         { type = "Button", name = "RemoveAnim", icon = toolbar.getIcon("removeanim"), action = function(self) AM.RemoveAnim(AM.selectedTrack, AM.selectedAnim); end },
+        { type = "Separator" },
+        { type = "Button", name = "AddKey", icon = toolbar.getIcon("addkey"), action = function(self) AM.AddKey(AM.selectedTrack); end },
+        { type = "Button", name = "RemoveKey", icon = toolbar.getIcon("removekey"), action = function(self) AM.RemoveKey(AM.selectedTrack, AM.selectedKey); end },
         { type = "Separator" },
         { type = "Button", name = "SkipToStart", icon = toolbar.getIcon("skiptoend", true), action = function(self)  end },
         { type = "Button", name = "SkipOneFrameBack", icon = toolbar.getIcon("skiponeframe", true), action = function(self)  end },
@@ -860,7 +924,6 @@ function AM.GetAvailableTrackElement()
 end
 
 function AM.GenerateAnimationElement(index, x, y, w, h, parent, R, G, B, A)
-    -- Left handle
     local colIdx = 10;
     local element = CreateFrame("Button", "AM.AnimationElement"..index, parent)
 	element:SetPoint("TOPLEFT", parent, "TOPLEFT", x, y);
@@ -1241,7 +1304,7 @@ end
 
 function AM.SelectTrack(index)
     if (index == -1) then
-        AM.selectedTrack = -1;
+        AM.selectedTrack = nil;
         AM.SelectAnimation(-1);
         AM.RefreshSelectedTrack(index);
         return;
@@ -1495,10 +1558,12 @@ function AM.RefreshWorkspace()
     -- reset used
     AM.usedTracks = 0;
     AM.usedAnimations = 0;
+    AM.usedKeyframes = 0;
 
     -- load tracks
     local usedTracks = 0;
     local usedAnimations = 0;
+    local usedKeyframes = 0;
     if (AM.loadedTimeline) then
         if (not AM.loadedTimeline.tracks) then
             AM.loadedTimeline.tracks = {};
@@ -1569,10 +1634,57 @@ function AM.RefreshWorkspace()
                         end
                     end
                 end
+
                 -- hide the rest
                 for i = usedAnimations + 1, #AM.AnimationPool, 1 do
                     if (AM.AnimationPool[i]) then
                         AM.AnimationPool[i]:Hide();
+                    end
+                end
+
+                if (track.keyframes) then
+                    --print(track.name .. " " .. #track.keyframes)
+                    for k = 1, #track.keyframes, 1 do
+                        local keyframeElement = AM.GetAvailableKeyframeElement();
+                        usedKeyframes = usedKeyframes + 1;
+                        local startMS = AM.currentCrop.min * AM.loadedTimeline.duration;
+                        local endMS = AM.currentCrop.max * AM.loadedTimeline.duration;
+                        local xMS = track.keyframes[k].time;
+
+                        -- check if on screen or cropped out
+                        -- check if the point are on screen
+                        if (xMS >= startMS and xMS <= endMS) then
+                            local xNorm = (xMS - startMS) / (endMS - startMS);
+                            xNorm = max(0, xNorm);
+                            xNorm = min(1, xNorm);
+            
+                            local startP = math.floor(trackElementW * xNorm);
+
+                            keyframeElement:ClearAllPoints();
+                            keyframeElement:SetPoint("CENTER", AM.KeyframeBar, "LEFT", startP, 0);
+                            keyframeElement.ntex:SetVertexColor(0.5, 0.5, 0.5, 1);
+                            -- use alpha to desaturate the animation bars
+                            -- so that they don't draw more attention than the scene
+                            -- calculate an alpha value based on percieved R,G,B
+                          
+                            keyframeElement:Show();
+            
+                            -- store some information for lookup
+                            keyframeElement.trackIdx = t;
+
+                            if (track.keyframes[k] == AM.selectedKey) then
+                                keyframeElement.ntex:SetVertexColor(1, 1, 1, 1);
+                            end
+                        else
+                            keyframeElement:Hide();
+                        end
+                    end
+                end
+
+                -- hide the rest
+                for i = usedKeyframes + 1, #AM.KeyframePool, 1 do
+                    if (AM.KeyframePool[i]) then
+                        AM.KeyframePool[i]:Hide();
                     end
                 end
             end
@@ -1748,28 +1860,30 @@ function AM.SetTime(timeMS)
     end
 
     -- go through the timeline tracks
-    for i in pairs(SM.loadedScene.timelines) do
-        local timeline = SM.loadedScene.timelines[i];
-        if (timeline and timeline.tracks) then
-            for t in pairs(timeline.tracks) do
-                local track = timeline.tracks[t];
-                -- also get object
-                local obj = AM.GetObjectOfTrack(track);
-                if (obj) then
-                    -- animate object :)
-                    local animID, animMS = track:SampleAnimation(timeMS);
-                    local variation = 0;
-                    local animSpeed = 0;
-                    if (animID ~= -1) then
-                        obj.actor:SetAnimation(animID, variation, animSpeed, animMS / 1000);
-                    else
-                        -- stop playback
-                    end
+    local timeline = AM.loadedTimeline;
+    if (timeline and timeline.tracks) then
+        for t in pairs(timeline.tracks) do
+            local track = timeline.tracks[t];
+            -- also get object
+            local obj = AM.GetObjectOfTrack(track);
+            if (obj) then
+                -- animate object
+                local animID, animMS = track:SampleAnimation(timeMS);
+                local variation = 0;
+                local animSpeed = 0;
+                if (animID ~= -1) then
+                    obj.actor:SetAnimation(animID, variation, animSpeed, animMS / 1000);
+                else
+                    -- stop playback
                 end
+                -- animate keyframes
+                --print(track.name .. " " .. #track.keyframes)
+                local pos, rot, scale = track:SampleKeyframes(timeMS);
+
+                obj:SetPositionVector3(pos);
             end
         end
     end
-
 end
 
 function AM.GetObjectOfTrack(track)
@@ -1839,4 +1953,58 @@ function AM.OpenAddAnimationWindow(track)
     AM.animScrollList.Scrollbar:SetValueStep(1);
 
     AM.animSelectWindow:Show();
+end
+
+function AM.AddKey(track)
+    if (not track) then
+        return;
+    end
+
+    if (not track.keyframes) then
+        track.keyframes = {};
+    end
+
+    local timeMS = AM.loadedTimeline.currentTime;
+    local obj = AM.GetObjectOfTrack(track);
+    if (obj) then
+        track:AddKeyframe(timeMS, obj:GetPosition(), obj:GetRotation(), obj:GetScale());
+    end
+
+    AM.RefreshWorkspace();
+end
+
+function AM.RemoveKey(track, key)
+    if (not track) then
+        return;
+    end
+
+    if (not key) then
+        return;
+    end
+
+    if (not track.keyframes) then
+        track.keyframes = {};
+        return;
+    end
+
+    for i in pairs(track.keyframes) do
+        if (track.keyframes[i] == key) then
+            table.remove(track.keyframes, i);
+        end
+    end
+
+    AM.RefreshWorkspace();
+end
+
+function AM.SelectKeyframe(index)
+    if (index < 0) then
+        AM.selectedKey = nil;
+        AM.RefreshWorkspace();
+    end
+
+    -- find which track and elements were just selected
+    local keyframeElement = AM.KeyframePool[index];
+    local track = AM.loadedTimeline.tracks[keyframeElement.trackIdx];
+
+    AM.selectedKey = track.keyframes[index];
 end

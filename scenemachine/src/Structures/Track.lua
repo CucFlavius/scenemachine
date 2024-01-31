@@ -1,11 +1,13 @@
 local Math = SceneMachine.Math;
 local Vector3 = SceneMachine.Vector3;
+local Quaternion = SceneMachine.Quaternion;
 
 SceneMachine.Track = 
 {
     objectID = nil, -- keeping a reference for when loading saved data
     name = "New Track",
     animations = {},
+    keyframes = {},
 }
 
 local Track = SceneMachine.Track;
@@ -20,6 +22,7 @@ function Track:New(object)
         -- Don't store an object reference, no reason for duplicates in saved data
         --object = object or nil,
         animations = {},
+        keyframes = {},
     };
     
     if (object) then
@@ -35,6 +38,7 @@ function Track:ExportData()
     local data = {
         objectID = self.object.id;
         animations = self.animations;
+        keyframes = self.keyframes;
     };
 
     return data;
@@ -58,6 +62,10 @@ function Track:ImportData(data)
     if (data.animations ~= nil) then
         self.animations = data.animations;
     end
+
+    if (data.keyframes ~= nil) then
+        self.keyframes = data.keyframes;
+    end
 end
 
 function Track:SampleAnimation(timeMS)
@@ -79,13 +87,78 @@ function Track:SampleAnimation(timeMS)
     return -1, -1
 end
 
---Track.__tostring = function(self)
---	return string.format("%s %i p(%f,%f,%f)", self.name, self.fileID, self.position.x, self.position.y, self.position.z);
---end
+function Track:AddKeyframe(time, position, rotation, scale)
+    if (not self.keyframes) then
+        self.keyframes = {};
+    end
 
---Track.__eq = function(a,b)
---    return a.id == b.id;
---end
+    local pos = Vector3:New(position.x, position.y, position.z);
+    local rot = Quaternion:New();
+    rot:SetFromEuler(rotation);
+    self.keyframes[#self.keyframes + 1] = {
+        time = time,
+        position = pos,
+        rotation = rot,
+        scale = scale,
+    };
+    self:SortKeyframes();
+end
+
+function Track:SortKeyframes()
+    if (self.keyframes) then
+        table.sort(self.keyframes, function(a,b) return a.time < b.time end)
+    end
+end
+
+function Track:SampleKeyframes(timeMS)
+
+    local pos = self:SamplePositionKey(timeMS);
+    return pos, Quaternion.identity, Vector3.one;
+end
+
+function Track:SamplePositionKey(timeMS)
+    if (not self.keyframes) then
+        return Vector3.zero;
+    end
+
+    if (#self.keyframes == 0) then
+        return Vector3.zero;
+    end
+
+    if (#self.keyframes == 1) then
+        return self.keyframes[1].position;
+    end
+
+    local idx = 1;
+    local numTimes = #self.keyframes;
+
+    for i = 1, numTimes, 1 do
+        if (i + 1 <= numTimes) then
+            if (timeMS >= self.keyframes[i].time and timeMS < self.keyframes[i + 1].time) then
+                idx = i;
+                break;
+            end
+        else
+            idx = 1;
+            break;
+        end
+    end
+
+    local t1 = self.keyframes[idx].time;
+    local t2 = self.keyframes[idx + 1].time;
+
+    if (t1 ~= t2) then
+        r = (timeMS - t1) / (t2 - t1);
+    end
+    if (r >= 1) then
+        return self.keyframes[#self.keyframes].position;
+    end
+    return Vector3.Interpolate(self.keyframes[idx].position, self.keyframes[idx + 1].position, r);
+end
+
+Track.__tostring = function(self)
+	return string.format("Track: %s Anims: %i Keys: %i", self.name, #self.animations, #self.keyframes);
+end
 
 Track.__index = function(t,k)
 	local var = rawget(Track, k)

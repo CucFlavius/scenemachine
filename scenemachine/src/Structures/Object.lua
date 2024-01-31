@@ -115,6 +115,18 @@ function Object:SetPosition(x, y, z)
     end
 end
 
+function Object:SetPositionVector3(pos)
+    self.position.x = pos.x;
+    self.position.y = pos.y;
+    self.position.z = pos.z;
+
+    -- apply to actor
+    if (self.actor ~= nil) then
+        local s = self.scale;
+        self.actor:SetPosition(pos.x / s, pos.y / s, pos.z / s);
+    end
+end
+
 function Object:GetPosition()
     return self.position;
 end

@@ -119,6 +119,17 @@ function Vector3.DotProduct(a, b)
     return a.x * b.x + a.y * b.y + a.z * b.z;
 end
 
+function Vector3.Interpolate(a, b, t)
+    local output = Vector3:New();
+    local ax = a.x;
+    local ay = a.y;
+    local az = a.z;
+    output.x = ax + t * (b.x - ax);
+    output.y = ay + t * (b.y - ay);
+    output.z = az + t * (b.z - az);
+    return output;
+end
+
 function Vector3:RotateAroundPivot(pivot, rotation)
     -- Translate the object and pivot to the origin
     self.x = self.x - pivot.x;

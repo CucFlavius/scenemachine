@@ -251,6 +251,8 @@ function Input.OnClickUp(LMB, RMB, MMB, x, y)
         AM.inputState.movingScrollbar = false;
         AM.inputState.movingTime = false;
         AM.inputState.movingAnim = -1;
+        AM.inputState.movingAnimHandleL = -1;
+        AM.inputState.movingAnimHandleR = -1;
     elseif (RMB) then
         -- open RMB context menu --
         local scale = SceneMachine.mainWindow:GetEffectiveScale();
