@@ -65,10 +65,10 @@ function Track:SampleAnimation(timeMS)
     if (self.animations) then
         for a in pairs(self.animations) do
             local animation = self.animations[a];
-            --{ id, startT, endT, colorId }
+            --{ id, variation, animLength, startT, endT, colorId, name }
             if (animation.startT <= timeMS and animation.endT > timeMS) then
                 -- anim is in range
-                local animMS = timeMS - animation.startT;
+                local animMS = mod(timeMS - animation.startT, animation.animLength);
                 local animID = animation.id;
 
                 return animID, animMS;

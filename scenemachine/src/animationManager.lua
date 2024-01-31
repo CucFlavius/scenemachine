@@ -26,7 +26,6 @@ AM.inputState = {
     maxFramePosStart = 0;
     centerFramePosStart = 0;
     timebarFramePosStart = 0;
-    animFramePosStart = 0;
     mousePosStartX = 0;
     mousePosStartY = 0;
     movingMin = false;
@@ -34,6 +33,8 @@ AM.inputState = {
     movingCenter = false;
     movingTime = false;
     movingAnim = -1;
+    movingAnimHandleL = -1;
+    movingAnimHandleR = -1;
 
     movingScrollbar = false;
     scrollbarFramePosStart = 0;
@@ -405,10 +406,124 @@ function AM.Update()
         end
     end
 
+    if (AM.inputState.movingAnimHandleL ~= -1) then
+        local groupBgH = AM.timebarGroup:GetWidth() - 26;
+        local mouseDiff = (AM.inputState.mousePosStartX - Input.mouseXRaw) * Renderer.scale;
+        local newPoint = -mouseDiff;
+
+        -- Scroll the items list --
+        local newPointNormalized = newPoint / groupBgH;
+        local totalTimeMS = AM.loadedTimeline.duration;
+        local startMS = AM.currentCrop.min * totalTimeMS;
+        local endMS = AM.currentCrop.max * totalTimeMS;
+        local lengthMS = endMS - startMS;
+
+        local diffTimeMS = (newPointNormalized * lengthMS);
+
+        if (diffTimeMS ~= 0) then
+            local animElement = AM.AnimationPool[AM.inputState.movingAnimHandleL];
+            local trackElement = animElement.trackIdx;
+            local track = AM.loadedTimeline.tracks[animElement.trackIdx];
+            local anim = track.animations[animElement.animIdx];
+            local desiredStartT = math.floor(anim.startT + diffTimeMS);
+
+            -- check left
+            local animL = track.animations[animElement.animIdx - 1];
+            local length = anim.endT - anim.startT;
+            local savePrevMouse = AM.inputState.mousePosStartX;
+
+            if (animL) then
+                if (desiredStartT > animL.endT) then
+                    anim.startT = desiredStartT;
+                    AM.inputState.mousePosStartX = Input.mouseXRaw;
+                else
+                    anim.startT = animL.endT;
+                end
+            else
+                anim.startT = desiredStartT;
+                AM.inputState.mousePosStartX = Input.mouseXRaw;
+            end
+
+            -- limit anim to start and end of track
+            if (anim.startT < 0) then
+                anim.startT = 0;
+                AM.inputState.mousePosStartX = savePrevMouse;
+            elseif(anim.endT > totalTimeMS) then
+                anim.startT = totalTimeMS - length;
+                AM.inputState.mousePosStartX = savePrevMouse;
+            end
+
+            -- limit anim min size to 100 miliseconds
+            if (anim.startT > anim.endT - 100) then
+                anim.startT = anim.endT - 100;
+                AM.inputState.mousePosStartX = savePrevMouse;
+            end
+
+            AM.RefreshWorkspace();
+        end
+    end
+
+    if (AM.inputState.movingAnimHandleR ~= -1) then
+        local groupBgH = AM.timebarGroup:GetWidth() - 26;
+        local mouseDiff = (AM.inputState.mousePosStartX - Input.mouseXRaw) * Renderer.scale;
+        local newPoint = -mouseDiff;
+
+        -- Scroll the items list --
+        local newPointNormalized = newPoint / groupBgH;
+        local totalTimeMS = AM.loadedTimeline.duration;
+        local startMS = AM.currentCrop.min * totalTimeMS;
+        local endMS = AM.currentCrop.max * totalTimeMS;
+        local lengthMS = endMS - startMS;
+
+        local diffTimeMS = (newPointNormalized * lengthMS);
+
+        if (diffTimeMS ~= 0) then
+            local animElement = AM.AnimationPool[AM.inputState.movingAnimHandleR];
+            local trackElement = animElement.trackIdx;
+            local track = AM.loadedTimeline.tracks[animElement.trackIdx];
+            local anim = track.animations[animElement.animIdx];
+            local desiredEndT = math.floor(anim.endT + diffTimeMS);
+
+            -- check right
+            local animR = track.animations[animElement.animIdx + 1];
+            local length = anim.endT - anim.startT;
+            local savePrevMouse = AM.inputState.mousePosStartX;
+
+            if (animR) then
+                if (desiredEndT < animR.startT) then
+                    anim.endT = desiredEndT;
+                    AM.inputState.mousePosStartX = Input.mouseXRaw;
+                else
+                    anim.endT = animR.startT;
+                end
+            else
+                anim.endT = desiredEndT;
+                AM.inputState.mousePosStartX = Input.mouseXRaw;
+            end
+
+            -- limit anim to start and end of track
+            if (anim.startT < 0) then
+                anim.endT = length;
+                AM.inputState.mousePosStartX = savePrevMouse;
+            elseif(anim.endT > totalTimeMS) then
+                anim.endT = totalTimeMS;
+                AM.inputState.mousePosStartX = savePrevMouse;
+            end
+
+            -- limit anim min size to 100 miliseconds
+            if (anim.startT > anim.endT - 100) then
+                anim.endT = anim.startT + 100;
+                AM.inputState.mousePosStartX = savePrevMouse;
+            end
+
+            AM.RefreshWorkspace();
+        end
+    end
+
     -- desquash
     if (not isSquashing) then
         if (squash > 0) then
-            squash = squash - (squashStrength * 3);
+            squash = squash - (squashStrength * 4);
             if (squash <= 0) then
                 squash = 0;
                 squashIndex = -1;
@@ -417,8 +532,8 @@ function AM.Update()
     end
 
     if (squash ~= 0 and squashIndex ~= -1) then
-        if (squash > 1) then
-            squash = 1;
+        if (squash > 0.5) then
+            squash = 0.5;
         end
         local animElement = AM.AnimationPool[squashIndex];
         --animElement:SetScale(1 + squash);
@@ -546,8 +661,7 @@ function AM.CreateTimebar(x, y, w, h, parent)
     AM.timebarGroup:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
     AM.timebarGroup:SetScript("OnMouseDown", function(self, button)
         AM.inputState.movingTime = true;
-        --local gpointL, grelativeToL, grelativePointL, gxOfsL, gyOfsL = AM.timebarGroup:GetPoint(1);
-        AM.inputState.timebarFramePosStart = AM.timebarGroup:GetLeft();--gxOfsL;
+        AM.inputState.timebarFramePosStart = AM.timebarGroup:GetLeft();
         AM.inputState.mousePosStartX = Input.mouseXRaw;
     end);
     AM.timebarGroup:SetScript("OnMouseUp", function(self, button) AM.inputState.movingTime = false; end);
@@ -626,9 +740,25 @@ end
 function AM.CreateWorkArea(x, y, w, h, parent)
     AM.workAreaBG = Win.CreateRectangle(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 0);
     AM.workAreaBG:SetClipsChildren(true);
-    AM.workAreaViewport = Win.CreateRectangle(6, 0, w, h, AM.workAreaBG, "TOPLEFT", "TOPLEFT",  c4[1], c4[2], c4[3], 1);
-    AM.workAreaList = Win.CreateRectangle(0, 0, w, h, AM.workAreaViewport, "TOPLEFT", "TOPLEFT",  c4[1], c4[2], c4[3], 1);
     
+    --AM.workAreaViewport = Win.CreateRectangle(6, 0, w, h, AM.workAreaBG, "TOPLEFT", "TOPLEFT",  c4[1], c4[2], c4[3], 1);
+    AM.workAreaViewport = CreateFrame("Button", "AM.workAreaViewport", AM.workAreaBG)
+	AM.workAreaViewport:SetPoint("TOPLEFT", AM.workAreaBG, "TOPLEFT", 6, 0);
+	AM.workAreaViewport:SetSize(w, h);
+    AM.workAreaViewport.ntex = AM.workAreaViewport:CreateTexture();
+    AM.workAreaViewport.ntex:SetColorTexture(c4[1], c4[2], c4[3], 1);
+    AM.workAreaViewport.ntex:SetAllPoints();
+    AM.workAreaViewport:SetNormalTexture(AM.workAreaViewport.ntex);
+    AM.workAreaViewport:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
+    AM.workAreaViewport:SetScript("OnClick", function (self, button, down)
+        if (button == "LeftButton" and down) then
+            AM.SelectAnimation(-1);
+            AM.SelectTrack(-1);
+        end
+    end)
+
+    AM.workAreaList = Win.CreateRectangle(0, 0, w, h, AM.workAreaViewport, "TOPLEFT", "TOPLEFT",  c4[1], c4[2], c4[3], 1);
+
     AM.TrackPool = {};
     for i = 1, AM.TrackPoolSize, 1 do
         AM.TrackPool[i] = AM.GenerateTrackElement(i, 0, -((AM.trackElementH + Editor.pmult) * (i - 1)), w, AM.trackElementH, AM.workAreaList, c2[1], c2[2], c2[3], c2[4]);
@@ -746,16 +876,66 @@ function AM.GenerateAnimationElement(index, x, y, w, h, parent, R, G, B, A)
     element:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
     element:SetScript("OnMouseDown", function(self, button)
         AM.inputState.movingAnim = index;
-        --AM.inputState.animFramePosStart = element:GetLeft();
-        local gpointL, grelativeToL, grelativePointL, gxOfsL, gyOfsL = element:GetPoint(1);
-        AM.inputState.animFramePosStart = gxOfsL;
-        AM.inputState.timebarFramePosStart = AM.timebarGroup:GetLeft()
         AM.inputState.mousePosStartX = Input.mouseXRaw;
     end);
     element:SetScript("OnMouseUp", function(self, button)
         AM.inputState.movingAnim = -1;
     end);
     element:SetScript("OnClick", function (self, button, down)
+        if (button == "LeftButton" and down) then
+            AM.SelectAnimation(index);
+        end
+    end)
+
+    -- Left handle
+    element.handleL = CreateFrame("Button", "AM.AnimationElement.HandleL"..index, element)
+	element.handleL:SetPoint("TOPLEFT", element, "TOPLEFT", 0, 0);
+    element.handleL:SetPoint("BOTTOMLEFT", element, "BOTTOMLEFT", 0, 0);
+	element.handleL:SetSize(6, h);
+    element.handleL:SetFrameLevel(11);
+    element.handleL.ntex = element.handleL:CreateTexture();
+    element.handleL.ntex:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\animation.png")
+    --element.handleL.ntex:SetTexCoord(0.125, 0.27, 0.5, 1);    -- (left,right,top,bottom)
+    element.handleL.ntex:SetTexCoord(0, 0.5, 0, 0.5);
+    element.handleL.ntex:SetAllPoints();
+    element.handleL.ntex:SetVertexColor(1, 1, 1, 0.1);
+    element.handleL:SetHighlightTexture(element.handleL.ntex);
+    element.handleL:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
+    element.handleL:SetScript("OnMouseDown", function(self, button)
+        AM.inputState.movingAnimHandleL = index;
+        AM.inputState.mousePosStartX = Input.mouseXRaw;
+    end);
+    element.handleL:SetScript("OnMouseUp", function(self, button)
+        AM.inputState.movingAnimHandleL = -1;
+    end);
+    element.handleL:SetScript("OnClick", function (self, button, down)
+        if (button == "LeftButton" and down) then
+            --AM.SelectAnimation(index);
+        end
+    end)
+
+    -- Right handle
+    element.handleR = CreateFrame("Button", "AM.AnimationElement.HandleR"..index, element)
+	element.handleR:SetPoint("TOPRIGHT", element, "TOPRIGHT", 0, 0);
+    element.handleR:SetPoint("BOTTOMRIGHT", element, "BOTTOMRIGHT", 0, 0);
+    element.handleR:SetSize(6, h);
+    element.handleR:SetFrameLevel(11);
+    element.handleR.ntex = element.handleR:CreateTexture();
+    element.handleR.ntex:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\animation.png")
+    --element.handleR.ntex:SetTexCoord(0.0, 0.125, 0.5, 1);    -- (left,right,top,bottom)
+    element.handleR.ntex:SetTexCoord(0, 0.5, 0, 0.5);
+    element.handleR.ntex:SetAllPoints();
+    element.handleR.ntex:SetVertexColor(1, 1, 1, 0.1);
+    element.handleR:SetHighlightTexture(element.handleR.ntex);
+    element.handleR:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
+    element.handleR:SetScript("OnMouseDown", function(self, button)
+        AM.inputState.movingAnimHandleR = index;
+        AM.inputState.mousePosStartX = Input.mouseXRaw;
+    end);
+    element.handleR:SetScript("OnMouseUp", function(self, button)
+        AM.inputState.movingAnimHandleR = -1;
+    end);
+    element.handleR:SetScript("OnClick", function (self, button, down)
         if (button == "LeftButton" and down) then
             AM.SelectAnimation(index);
         end
@@ -1060,6 +1240,13 @@ function AM.RemoveTrack(track)
 end
 
 function AM.SelectTrack(index)
+    if (index == -1) then
+        AM.selectedTrack = -1;
+        AM.SelectAnimation(-1);
+        AM.RefreshSelectedTrack(index);
+        return;
+    end
+
     if (not AM.loadedTimeline.tracks[index]) then
         return;
     end
