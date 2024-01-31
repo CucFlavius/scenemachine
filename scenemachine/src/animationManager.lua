@@ -75,7 +75,13 @@ local c2 = { 0.242, 0.242, 0.25 };
 local c3 = { 0, 0.4765, 0.7968 };
 local c4 = { 0.1171, 0.1171, 0.1171 };
 
+local squash = 0;
+local squashStrength = 0.01;
+local isSquashing = false;
+local squashIndex = -1;
+
 function AM.Update()
+    isSquashing = false;
 
     if (AM.inputState.movingMin) then
         local groupBgW = AM.groupBG:GetWidth() - 30;
@@ -261,7 +267,7 @@ function AM.Update()
                     anim.endT = desiredEndT;
                     AM.inputState.mousePosStartX = Input.mouseXRaw;
                 else
-                    -- check if mouse past whole of animR, and swap them
+                    -- check if mouse past whole of animL, and swap them
                     -- sL     eL s          e
                     -- sL          eL s     e
                     if (desiredStartT < animL.startT) then
@@ -277,9 +283,14 @@ function AM.Update()
                         AM.inputState.movingAnim = AM.inputState.movingAnim - 1;
                         AM.SelectAnimation(AM.inputState.movingAnim);
                         AM.inputState.mousePosStartX = Input.mouseXRaw;
+                        isSquashing = false;
+                        squashIndex = AM.inputState.movingAnim + 1;
                     else
                         anim.startT = animL.endT;
                         anim.endT = anim.startT + length;
+                        squash = (AM.inputState.mousePosStartX - Input.mouseXRaw) * squashStrength;
+                        isSquashing = true;
+                        squashIndex = AM.inputState.movingAnim - 1;
                     end
                 end
             elseif (animR and not animL) then
@@ -304,9 +315,14 @@ function AM.Update()
                         AM.inputState.movingAnim = AM.inputState.movingAnim + 1;
                         AM.SelectAnimation(AM.inputState.movingAnim);
                         AM.inputState.mousePosStartX = Input.mouseXRaw;
+                        isSquashing = false;
+                        squashIndex = AM.inputState.movingAnim - 1;
                     else
                         anim.endT = animR.startT;
                         anim.startT = anim.endT - length;
+                        squash = -(AM.inputState.mousePosStartX - Input.mouseXRaw) * squashStrength;
+                        isSquashing = true;
+                        squashIndex = AM.inputState.movingAnim + 1;
                     end
                 end
             elseif (animL and animR) then
@@ -332,9 +348,14 @@ function AM.Update()
                             AM.inputState.movingAnim = AM.inputState.movingAnim - 1;
                             AM.SelectAnimation(AM.inputState.movingAnim);
                             AM.inputState.mousePosStartX = Input.mouseXRaw;
+                            isSquashing = false;
+                            squashIndex = AM.inputState.movingAnim + 1;
                         else
                             anim.startT = animL.endT;
                             anim.endT = anim.startT + length;
+                            squash = (AM.inputState.mousePosStartX - Input.mouseXRaw) * squashStrength;
+                            isSquashing = true;
+                            squashIndex = AM.inputState.movingAnim - 1;
                         end
                     elseif (desiredEndT >= animR.startT) then
                         -- check if mouse past whole of animR, and swap them
@@ -353,9 +374,14 @@ function AM.Update()
                             AM.inputState.movingAnim = AM.inputState.movingAnim + 1;
                             AM.SelectAnimation(AM.inputState.movingAnim);
                             AM.inputState.mousePosStartX = Input.mouseXRaw;
+                            isSquashing = false;
+                            squashIndex = AM.inputState.movingAnim - 1;
                         else
                             anim.endT = animR.startT;
                             anim.startT = anim.endT - length;
+                            squash = -(AM.inputState.mousePosStartX - Input.mouseXRaw) * squashStrength;
+                            isSquashing = true;
+                            squashIndex = AM.inputState.movingAnim + 1;
                         end
                     end
                 end
@@ -377,6 +403,29 @@ function AM.Update()
 
             AM.RefreshWorkspace();
         end
+    end
+
+    -- desquash
+    if (not isSquashing) then
+        if (squash > 0) then
+            squash = squash - (squashStrength * 3);
+            if (squash <= 0) then
+                squash = 0;
+                squashIndex = -1;
+            end
+        end
+    end
+
+    if (squash ~= 0 and squashIndex ~= -1) then
+        if (squash > 1) then
+            squash = 1;
+        end
+        local animElement = AM.AnimationPool[squashIndex];
+        --animElement:SetScale(1 + squash);
+        
+        animElement:SetHeight((1 + squash) * AM.trackElementH);
+        --local gpointL, grelativeToL, grelativePointL, gxOfsL, gyOfsL = animElement:GetPoint(1);
+        --animElement:SetPoint("TOPLEFT", grelativeToL, "TOPLEFT", gxOfsL, gyOfsL + squash * AM.trackElementH);
     end
 end
 
@@ -987,6 +1036,7 @@ function AM.AddTrack(object)
 
     AM.loadedTimeline.tracks[#AM.loadedTimeline.tracks + 1] = track;
 
+    AM.SelectTrack(#AM.loadedTimeline.tracks);
     AM.RefreshWorkspace();
 end
 
@@ -1005,6 +1055,7 @@ function AM.RemoveTrack(track)
         end
     end
 
+    AM.SelectTrack(#AM.loadedTimeline.tracks);
     AM.RefreshWorkspace();
 end
 
