@@ -8,6 +8,7 @@ local Gizmos = SceneMachine.Gizmos;
 local Camera = SceneMachine.Camera;
 local MousePick = Editor.MousePick;
 local AssetBrowser = SceneMachine.Editor.AssetBrowser;
+local AM = SceneMachine.Editor.AnimationManager;
 
 Input.Keys = {}
 
@@ -100,11 +101,15 @@ function Input.Update()
                 if (Input.mouseXRaw > frameXMin and Input.mouseXRaw < frameXMax and Input.mouseYRaw > frameYMin and Input.mouseYRaw < frameYMax) then
                     SM.DeleteObject(SM.selectedObject);
                 end
-
             end
-
+            
             Input.mouseState.isDragging = false;
             Input.OnDragStop();
+        end
+
+        if (x < frameXMin or x > frameXMax or y < frameYMin or y > frameYMax) then
+            -- save to previous state --
+            Input.mouseState.LMB = LMB;
         end
     end
 
@@ -118,6 +123,11 @@ function Input.Update()
             Input.mouseState.isDragging = false;
             Input.OnDragStop();
         end
+
+        if (x < frameXMin or x > frameXMax or y < frameYMin or y > frameYMax) then
+            -- save to previous state --
+            Input.mouseState.RMB = RMB;
+        end
     end
 
     if (Input.mouseState.MMB ~= MMB) then
@@ -129,6 +139,11 @@ function Input.Update()
 
             Input.mouseState.isDragging = false;
             Input.OnDragStop();
+        end
+
+        if (x < frameXMin or x > frameXMax or y < frameYMin or y > frameYMax) then
+            -- save to previous state --
+            Input.mouseState.MMB = MMB;
         end
     end
 
@@ -230,6 +245,12 @@ end
 function Input.OnClickUp(LMB, RMB, MMB, x, y)
     if (not Editor.isOpen) then return end
     if (LMB) then
+        AM.inputState.movingMin = false;
+        AM.inputState.movingMax = false;
+        AM.inputState.movingCenter = false;
+        AM.inputState.movingScrollbar = false;
+        AM.inputState.movingTime = false;
+        AM.inputState.movingAnim = -1;
     elseif (RMB) then
         -- open RMB context menu --
         local scale = SceneMachine.mainWindow:GetEffectiveScale();
