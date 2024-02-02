@@ -103,6 +103,54 @@ function Quaternion:Multiply(q2)
     self.w = w;
 end
 
+function Quaternion.Interpolate(a, b, t)
+    -- http://jsperf.com/quaternion-slerp-implementations
+    local output = Quaternion:New();
+    local ax = a.x;
+    local ay = a.y;
+    local az = a.z;
+    local aw = a.w;
+    local bx = b.x;
+    local by = b.y;
+    local bz = b.z;
+    local bw = b.w;
+    local omega, cosom, sinom, scale0, scale1;
+
+    -- calc cosine
+    cosom = ax * bx + ay * by + az * bz + aw * bw;
+
+    -- adjust signs (if necessary)
+    if (cosom < 0.0) then
+        cosom = -cosom;
+        bx = -bx;
+        by = -by;
+        bz = -bz;
+        bw = -bw;
+    end
+
+    -- calculate coefficients
+    if ((1.0 - cosom) > 0.000001) then
+        -- standard case (slerp)
+        omega = math.acos(cosom);
+        sinom = math.sin(omega);
+        scale0 = math.sin((1.0 - t) * omega) / sinom;
+        scale1 = math.sin(t * omega) / sinom;
+    else
+        -- "from" and "to" quaternions are very close 
+        --  ... so we can do a linear interpolation
+        scale0 = 1.0 - t;
+        scale1 = t;
+    end
+
+    -- calculate final values
+    output.x = scale0 * ax + scale1 * bx;
+    output.y = scale0 * ay + scale1 * by;
+    output.z = scale0 * az + scale1 * bz;
+    output.w = scale0 * aw + scale1 * bw;
+
+    return output;
+end
+
 Quaternion.__tostring = function(self)
 	return string.format("Quaternion( %.3f, %.3f, %.3f, %.3f )", self.x, self.y, self.z, self.w);
 end

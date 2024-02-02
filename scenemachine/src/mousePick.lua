@@ -78,9 +78,11 @@ function MousePick.Pick(x, y)
         MousePick.previousSelectionList[i] = MousePick.selectionList[i];
     end
 
-    -- also select track if available
+    -- also select track
     if (SM.selectedObject ~= nil) then
         AM.SelectTrackOfObject(SM.selectedObject);
+    else
+        AM.SelectTrack(-1);
     end
 
     SH.RefreshHierarchy();

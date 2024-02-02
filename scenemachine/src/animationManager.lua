@@ -1288,12 +1288,13 @@ function AM.AddTrack(object)
 	end
     --]]
     -- even simpler, when adding a track the selected object would have current track selected anyway
-    if (AM.selectedTrack.objectID == object.id) then
-        return;
+    if (AM.selectedTrack) then
+        if (AM.selectedTrack.objectID == object.id) then
+            return;
+        end
     end
 
     local track = Track:New(object);
-
     AM.loadedTimeline.tracks[#AM.loadedTimeline.tracks + 1] = track;
 
     AM.SelectTrack(#AM.loadedTimeline.tracks);
@@ -1315,7 +1316,7 @@ function AM.RemoveTrack(track)
         end
     end
 
-    AM.SelectTrack(#AM.loadedTimeline.tracks);
+    --AM.SelectTrack(#AM.loadedTimeline.tracks);
     AM.RefreshWorkspace();
 end
 
@@ -1873,6 +1874,9 @@ end
 
 function AM.SetTime(timeMS)
 
+    -- force time selection to 30 fps ticks
+    --timeMS = floor(floor(timeMS / 33.3333) * 33.3333);
+
     -- move ze slider
     local groupBgH = AM.timebarGroup:GetWidth() - 26;
     local timeNorm = AM.GetTimeNormalized(timeMS);
@@ -1916,6 +1920,7 @@ function AM.SetTime(timeMS)
                 if (track.keyframes and #track.keyframes > 0) then
                     local pos, rot, scale = track:SampleKeyframes(timeMS);
                     obj:SetPositionVector3(pos);
+                    obj:SetRotationQuaternion(rot);
                 else
                     -- no keyframes, don't animate
                 end

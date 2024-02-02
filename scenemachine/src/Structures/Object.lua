@@ -127,6 +127,17 @@ function Object:SetPositionVector3(pos)
     end
 end
 
+function Object:SetRotationQuaternion(rot)
+    self.rotation = rot:ToEuler();
+
+    -- apply to actor
+    if (self.actor ~= nil) then
+        self.actor:SetRoll(self.rotation.x);
+        self.actor:SetPitch(self.rotation.y);
+        self.actor:SetYaw(self.rotation.z);
+    end
+end
+
 function Object:GetPosition()
     return self.position;
 end
@@ -244,27 +255,11 @@ function Object:ImportData(data)
     end
 
     if (data.position ~= nil) then
-        if (data.position.x ~= nil) then
-            self.position.x = data.position.x;
-        end
-        if (data.position.y ~= nil) then
-            self.position.y = data.position.y;
-        end
-        if (data.position.z ~= nil) then
-            self.position.z = data.position.z;
-        end
+        self.position = Vector3:New(data.position.x, data.position.y, data.position.z);
     end
 
     if (data.rotation ~= nil) then
-        if (data.rotation.x ~= nil) then
-            self.rotation.x = data.rotation.x;
-        end
-        if (data.rotation.y ~= nil) then
-            self.rotation.y = data.rotation.y;
-        end
-        if (data.rotation.z ~= nil) then
-            self.rotation.z = data.rotation.z;
-        end
+        self.rotation = Vector3:New(data.rotation.x, data.rotation.y, data.rotation.z);
     end
 
     if (data.scale ~= nil and data.scale ~= 0) then

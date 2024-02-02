@@ -64,7 +64,18 @@ function Track:ImportData(data)
     end
 
     if (data.keyframes ~= nil) then
-        self.keyframes = data.keyframes;
+        self.keyframes = {};
+
+        for k in pairs(data.keyframes) do
+            local key = data.keyframes[k];
+
+            self.keyframes[k] = {
+                time = key.time,
+                position = Vector3:New(key.position.x, key.position.y ,key.position.z),
+                rotation = Quaternion:New(key.rotation.x, key.rotation.y, key.rotation.z, key.rotation.w),
+                scale = key.scale,
+            };
+        end
     end
 end
 
@@ -113,7 +124,8 @@ end
 function Track:SampleKeyframes(timeMS)
 
     local pos = self:SamplePositionKey(timeMS);
-    return pos, Quaternion.identity, Vector3.one;
+    local rot = self:SampleRotationKey(timeMS);
+    return pos, rot, Vector3.one;
 end
 
 function Track:SamplePositionKey(timeMS)
@@ -152,8 +164,55 @@ function Track:SamplePositionKey(timeMS)
     end
     if (r >= 1) then
         return self.keyframes[#self.keyframes].position;
+    elseif(r < 0) then
+        return self.keyframes[1].position;
     end
+
+
     return Vector3.Interpolate(self.keyframes[idx].position, self.keyframes[idx + 1].position, r);
+end
+
+function Track:SampleRotationKey(timeMS)
+    if (not self.keyframes) then
+        return Quaternion.identity;
+    end
+
+    if (#self.keyframes == 0) then
+        return Quaternion.identity;
+    end
+
+    if (#self.keyframes == 1) then
+        return self.keyframes[1].rotation;
+    end
+
+    local idx = 1;
+    local numTimes = #self.keyframes;
+
+    for i = 1, numTimes, 1 do
+        if (i + 1 <= numTimes) then
+            if (timeMS >= self.keyframes[i].time and timeMS < self.keyframes[i + 1].time) then
+                idx = i;
+                break;
+            end
+        else
+            idx = 1;
+            break;
+        end
+    end
+
+    local t1 = self.keyframes[idx].time;
+    local t2 = self.keyframes[idx + 1].time;
+
+    if (t1 ~= t2) then
+        r = (timeMS - t1) / (t2 - t1);
+    end
+    if (r >= 1) then
+        return self.keyframes[#self.keyframes].rotation;
+    elseif(r < 0) then
+        return self.keyframes[1].rotation;
+    end
+    
+    return Quaternion.Interpolate(self.keyframes[idx].rotation, self.keyframes[idx + 1].rotation, r);
 end
 
 Track.__tostring = function(self)
