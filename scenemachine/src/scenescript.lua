@@ -48,6 +48,10 @@ function SceneMachine.SceneTimelineAddFileData(scriptFile, sceneData)
         if (animKit) then
             animKit = animKit.events[1];
         end
+        local playSpellState = properties.PlaySpellState;
+        if (playSpellState) then
+            playSpellState = playSpellState.events[1];
+        end
 
         local object;
 
@@ -82,6 +86,11 @@ function SceneMachine.SceneTimelineAddFileData(scriptFile, sceneData)
 
             if (animKit) then
                 local animationKit = animKit.props.animKitID;
+                object.actor:PlayAnimationKit(animationKit);
+            end
+
+            if (playSpellState) then
+                local animationKit = playSpellState.props.spellVisualID;
                 object.actor:PlayAnimationKit(animationKit);
             end
         end
