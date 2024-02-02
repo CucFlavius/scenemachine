@@ -1774,6 +1774,15 @@ function AM.RefreshWorkspace()
                 end
             end
 
+            -- if no tracks, hide keyframes
+            if (usedTracks == 0) then
+                for i = 1, #AM.KeyframePool, 1 do
+                    if (AM.KeyframePool[i]) then
+                        AM.KeyframePool[i]:Hide();
+                    end
+                end
+            end
+
             -- tracks: hide unused
             for i = usedTracks + 1, #AM.TrackPool, 1 do
                 if (AM.TrackPool[i]) then
