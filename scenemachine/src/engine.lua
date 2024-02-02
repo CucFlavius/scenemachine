@@ -78,24 +78,27 @@ local function SG_UpdateLoop ()
 	end
 
 	if (Editor.isOpen) then
+		--SceneMachine.deltaTime = 1.0 / GetFramerate();
+		--print(GetFramerate())
 		Camera.Update();
 		CameraController.Update();
 		Input.Update();
 		Gizmos.Update();
 		Renderer.RenderGizmos();
-		AM.Update();
+		AM.Update(SceneMachine.deltaTime);
 		if (Debug) then Debug.FlushLinePool(); end
 	end
 end
 
-
 local function SG_OnUpdate(self, elapsed)
 	TimeSinceLastUpdate = TimeSinceLastUpdate + elapsed; 	
-	while (TimeSinceLastUpdate > SceneMachine.UPDATE_INTERVAL) do
+	SceneMachine.deltaTime = elapsed;
+	SceneMachine.time = SceneMachine.time + SceneMachine.deltaTime;
+	--while (TimeSinceLastUpdate > SceneMachine.UPDATE_INTERVAL) do
 		SG_UpdateLoop()
-		SceneMachine.time = SceneMachine.time + SceneMachine.UPDATE_INTERVAL;
-		TimeSinceLastUpdate = TimeSinceLastUpdate - SceneMachine.UPDATE_INTERVAL;
-	end
+	--	SceneMachine.time = SceneMachine.time + SceneMachine.UPDATE_INTERVAL;
+	--	TimeSinceLastUpdate = TimeSinceLastUpdate - SceneMachine.UPDATE_INTERVAL;
+	--end
 end
 
 local SG_UpdateFrame = CreateFrame("frame")

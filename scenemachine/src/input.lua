@@ -153,6 +153,14 @@ function Input.Update()
         return;
     end
 
+    -- filter mouse down if some windows are open
+    if (LMB or RMB or MMB) then
+        local animSelectWindow = AM.animSelectWindow:IsVisible()
+        if (animSelectWindow) then
+            return;
+        end
+    end
+
     if (Input.mouseState.LMB ~= LMB) then
         if (LMB == true) then
             -- LMB DOWN

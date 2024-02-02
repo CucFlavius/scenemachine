@@ -21,6 +21,7 @@ AM.currentCrop = {
     min = 0;
     max = 0.3;
 };
+
 AM.inputState = {
     minFramePosStart = 0;
     maxFramePosStart = 0;
@@ -76,6 +77,10 @@ AM.colors = {
     {234, 39, 194}
 }
 
+AM.playing = false;
+AM.loopPlay = true;
+AM.lastKeyedTime = 0;
+
 local c1 = { 0.1757, 0.1757, 0.1875 };
 local c2 = { 0.242, 0.242, 0.25 };
 local c3 = { 0, 0.4765, 0.7968 };
@@ -86,8 +91,32 @@ local squashStrength = 0.01;
 local isSquashing = false;
 local squashIndex = -1;
 
-function AM.Update()
+function AM.Update(deltaTime)
     isSquashing = false;
+
+    if (AM.loadedTimeline) then
+        if (AM.playing) then
+            local deltaTimeMS = math.floor(deltaTime * 1000);
+            local nextTime = AM.loadedTimeline.currentTime + deltaTimeMS;
+
+            if (not AM.loopPlay) then
+                -- if stop at the end
+                if (nextTime >= AM.loadedTimeline.duration) then
+                    AM.SetTime(AM.loadedTimeline.duration);
+                    AM.playing = false;
+                    return;
+                end
+            else
+                -- if loop
+                if (nextTime >= AM.lastKeyedTime) then
+                    AM.SetTime(0);
+                    return;
+                end
+            end
+
+            AM.SetTime(nextTime);
+        end
+    end
 
     if (AM.inputState.movingMin) then
         local groupBgW = AM.groupBG:GetWidth() - 30;
@@ -632,7 +661,6 @@ function AM.CreateAnimationManager(x, y, w, h, parent)
     AM.RefreshTimelineTabs();
     AM.RefreshTimebar();
     AM.RefreshWorkspace();
-    AM.SetTime(0);
 end
 
 function AM.CreateAnimationSelectWindow(x, y, w, h)
@@ -785,12 +813,14 @@ function AM.CreateToolbar(x, y, w, h, parent)
         { type = "Separator" },
         { type = "Button", name = "AddKey", icon = toolbar.getIcon("addkey"), action = function(self) AM.AddKey(AM.selectedTrack); end },
         { type = "Button", name = "RemoveKey", icon = toolbar.getIcon("removekey"), action = function(self) AM.RemoveKey(AM.selectedTrack, AM.selectedKey); end },
+        { type = "DragHandle" },
+        { type = "Button", name = "SeekToStart", icon = toolbar.getIcon("skiptoend", true), action = function(self) AM.SeekToStartButton_OnClick(); end },
+        { type = "Button", name = "SkipOneFrameBack", icon = toolbar.getIcon("skiponeframe", true), action = function(self) AM.SkipFrameBackwardButton_OnClick(); end },
+        { type = "Toggle", name = "PlayPause", iconOn = toolbar.getIcon("pause"), iconOff = toolbar.getIcon("play"), action = function(self, on) AM.PlayToggle_OnClick(on); end, default = false },
+        { type = "Button", name = "SkipOneFrameForward", icon = toolbar.getIcon("skiponeframe"), action = function(self) AM.SkipFrameForwardButton_OnClick(); end },
+        { type = "Button", name = "SeekToEnd", icon = toolbar.getIcon("skiptoend"), action = function(self) AM.SeekToEndButton_OnClick(); end },
         { type = "Separator" },
-        { type = "Button", name = "SkipToStart", icon = toolbar.getIcon("skiptoend", true), action = function(self)  end },
-        { type = "Button", name = "SkipOneFrameBack", icon = toolbar.getIcon("skiponeframe", true), action = function(self)  end },
-        { type = "Button", name = "PlayPause", icon = toolbar.getIcon("play"), action = function(self)  end },
-        { type = "Button", name = "SkipOneFrameForward", icon = toolbar.getIcon("skiponeframe"), action = function(self)  end },
-        { type = "Button", name = "SkipToEnd", icon = toolbar.getIcon("skiptoend"), action = function(self)  end },
+        { type = "Toggle", name = "Loop", iconOn = toolbar.getIcon("loop"), iconOff = toolbar.getIcon("loopoff"), action = function(self, on) AM.LoopToggle_OnClick(on); end, default = true },
         { type = "Separator" },
     });
     AM.mainToolbar = toolbar;
@@ -1365,6 +1395,7 @@ function AM.LoadTimeline(index)
     AM.loadedTimeline = timeline;
 
     -- refresh the ui
+    AM.SetTime(0);
     AM.RefreshTimebar();
     AM.RefreshTimelineTabs();
     AM.RefreshWorkspace();
@@ -1571,6 +1602,19 @@ function AM.RefreshTimebar()
                 needle:Hide();
             end
         end
+    end
+
+    -- move ze slider
+    local groupBgH = AM.timebarGroup:GetWidth() - 26;
+    local timeNorm = AM.GetTimeNormalized(AM.loadedTimeline.currentTime);
+    if (timeNorm < 0 or timeNorm > 1) then
+        -- the slider is offscreen
+        AM.TimeSlider:Hide();
+    else
+        AM.TimeSlider:Show();
+        local pos = timeNorm * groupBgH + 10;
+        AM.TimeSlider:ClearAllPoints();
+        AM.TimeSlider:SetPoint("CENTER", AM.timebarGroup, "LEFT", pos, 0);
     end
 end
 
@@ -1880,11 +1924,16 @@ function AM.SetTime(timeMS)
     -- move ze slider
     local groupBgH = AM.timebarGroup:GetWidth() - 26;
     local timeNorm = AM.GetTimeNormalized(timeMS);
-    local pos = timeNorm * groupBgH + 10;
-    AM.TimeSlider:ClearAllPoints();
-    AM.TimeSlider:SetPoint("CENTER", AM.timebarGroup, "LEFT", pos, 0);
-    --print(AM.Round(timeMS / 1000, 3));
-    
+    if (timeNorm < 0 or timeNorm > 1) then
+        -- the slider is offscreen
+        AM.TimeSlider:Hide();
+    else
+        AM.TimeSlider:Show();
+        local pos = timeNorm * groupBgH + 10;
+        AM.TimeSlider:ClearAllPoints();
+        AM.TimeSlider:SetPoint("CENTER", AM.timebarGroup, "LEFT", pos, 0);
+    end
+
     -- update timer
     if (AM.loadedTimeline) then
         AM.loadedTimeline.currentTime = timeMS;
@@ -2069,4 +2118,78 @@ function AM.SelectTrackOfObject(obj)
 
     AM.SelectTrack(-1);
     AM.RefreshWorkspace();
+end
+
+function AM.Play()
+    AM.playing = true;
+
+    if (AM.loopPlay) then
+        -- find last keyed time
+        AM.lastKeyedTime = 0;
+        for t = 1, #AM.loadedTimeline.tracks, 1 do
+            local track = AM.loadedTimeline.tracks[t];
+            if (track.animations and #track.animations > 0) then
+                local animEnd = track.animations[#track.animations].endT;
+                if (animEnd > AM.lastKeyedTime) then
+                    AM.lastKeyedTime = animEnd;
+                end
+            end
+            if (track.keyframes and #track.keyframes > 0) then
+                local keyEnd = track.keyframes[#track.keyframes].time;
+                if (keyEnd > AM.lastKeyedTime) then
+                    AM.lastKeyedTime = keyEnd;
+                end
+            end
+        end
+
+        if (AM.lastKeyedTime == 0) then
+            AM.lastKeyedTime = AM.loadedTimeline.duration;
+        end
+    end
+end
+
+function AM.Pause()
+    AM.playing = false;
+end
+
+function AM.PlayToggle_OnClick(on)
+    if (on) then
+        AM.Play();
+    else
+        AM.Pause();
+    end
+end
+
+function AM.SeekToStartButton_OnClick()
+    AM.SetTime(0);
+end
+
+function AM.SeekToEndButton_OnClick()
+    if (AM.loadedTimeline) then
+        AM.SetTime(AM.loadedTimeline.duration);
+    end
+end
+
+function AM.SkipFrameForwardButton_OnClick()
+    if (AM.loadedTimeline) then
+        local nextTime = AM.loadedTimeline.currentTime + 33.3333;
+        if (nextTime > AM.loadedTimeline.duration) then
+            nextTime = AM.loadedTimeline.duration;
+        end
+        AM.SetTime(nextTime);
+    end
+end
+
+function AM.SkipFrameBackwardButton_OnClick()
+    if (AM.loadedTimeline) then
+        local nextTime = AM.loadedTimeline.currentTime - 33.3333;
+        if (nextTime < 0) then
+            nextTime = 0;
+        end
+        AM.SetTime(nextTime);
+    end
+end
+
+function AM.LoopToggle_OnClick(on)
+    AM.loopPlay = on;
 end

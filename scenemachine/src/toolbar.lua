@@ -21,7 +21,7 @@ function Toolbar.Create(x, y, w, h, parent, iconCrop)
         { "", "", "", "", "", "", "", "" },
         { "", "", "", "", "", "", "", "" },
         { "", "", "", "", "", "", "", "" },
-        { "", "addanim", "removeanim", "addkey", "removekey", "", "", "" },
+        { "", "addanim", "removeanim", "addkey", "removekey", "loop", "loopoff", "" },
         { "timesettings", "addobj", "removeobj", "play", "pause", "fastforward", "skiponeframe", "skiptoend" },
     };
 
@@ -67,6 +67,24 @@ function Toolbar.Create(x, y, w, h, parent, iconCrop)
                     group.components[c] = Win.CreateButton(x, 0, buttonW, buttonH, group, "LEFT", "LEFT", component.name, nil, "BUTTON_VS");
                 end
                 group.components[c]:SetScript("OnClick", component.action);
+                x = x + buttonW;
+            elseif (component.type == "Toggle") then
+                if (component.default) then
+                    group.components[c] = Win.CreateButton(x, 0, buttonW, buttonH, group, "LEFT", "LEFT", nil, component.iconOn[1], "BUTTON_VS", component.iconOn[2]);
+                else
+                    group.components[c] = Win.CreateButton(x, 0, buttonW, buttonH, group, "LEFT", "LEFT", nil, component.iconOff[1], "BUTTON_VS", component.iconOff[2]);
+                end
+                
+                group.components[c].toggleOn = component.default;
+                group.components[c]:SetScript("OnClick", function (self, button, down)
+                    group.components[c].toggleOn = not group.components[c].toggleOn;
+                    component.action(group.components[c], group.components[c].toggleOn);
+                    if (group.components[c].toggleOn) then
+                        group.components[c].icon.texture:SetTexCoord(component.iconOn[2][1], component.iconOn[2][2], component.iconOn[2][3], component.iconOn[2][4]);
+                    else
+                        group.components[c].icon.texture:SetTexCoord(component.iconOff[2][1], component.iconOff[2][2], component.iconOff[2][3], component.iconOff[2][4]);
+                    end
+                end);
                 x = x + buttonW;
             elseif (component.type == "Dropdown") then
                 -- Win.CreateDropdown(posX, posY, sizeX, sizeY, parent, dropdownPoint, parentPoint)
