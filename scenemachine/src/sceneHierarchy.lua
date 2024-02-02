@@ -148,16 +148,8 @@ function SH.SelectObject(index)
     SH.RefreshHierarchy();
 	OP.Refresh();
 
-	-- this func is only called from hierarchy list
-	-- Also select track, if available
-	--[[
-	if (AM.loadedTimeline) then
-		for i in pairs(AM.loadedTimeline.tracks) do
-			if (AM.loadedTimeline.tracks[i].objectID == SM.selectedObject.id) then
-				AM.SelectTrack(i);
-				return;
-			end
-		end
-	end
-	--]]
+    -- also select track if available
+    if (SM.selectedObject ~= nil) then
+        AM.SelectTrackOfObject(SM.selectedObject);
+    end
 end

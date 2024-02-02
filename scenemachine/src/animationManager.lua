@@ -818,6 +818,7 @@ function AM.CreateWorkArea(x, y, w, h, parent)
         if (button == "LeftButton" and down) then
             AM.SelectAnimation(-1);
             AM.SelectTrack(-1);
+            AM.SelectKeyframe(-1);
         end
     end)
 
@@ -1275,6 +1276,22 @@ function AM.AddTrack(object)
         AM.loadedTimeline.tracks = {};
     end
 
+    -- check if we already have a track for this object
+    --[[
+    if (AM.loadedTimeline) then
+		for i in pairs(AM.loadedTimeline.tracks) do
+			if (AM.loadedTimeline.tracks[i].objectID == object.id) then
+				AM.SelectTrack(i);
+				return;
+			end
+		end
+	end
+    --]]
+    -- even simpler, when adding a track the selected object would have current track selected anyway
+    if (AM.selectedTrack.objectID == object.id) then
+        return;
+    end
+
     local track = Track:New(object);
 
     AM.loadedTimeline.tracks[#AM.loadedTimeline.tracks + 1] = track;
@@ -1306,12 +1323,15 @@ function AM.SelectTrack(index)
     if (index == -1) then
         AM.selectedTrack = nil;
         AM.SelectAnimation(-1);
-        AM.RefreshSelectedTrack(index);
         return;
     end
 
     if (not AM.loadedTimeline.tracks[index]) then
         return;
+    end
+
+    if (AM.loadedTimeline.tracks[index] ~= AM.selectedTrack) then
+        AM.SelectKeyframe(-1);
     end
 
     AM.selectedTrack = AM.loadedTimeline.tracks[index];
@@ -1325,7 +1345,6 @@ function AM.SelectTrack(index)
     end
 
     AM.SelectAnimation(-1);
-    AM.RefreshSelectedTrack(index);
 end
 
 function AM.LoadTimeline(index)
@@ -1560,6 +1579,8 @@ function AM.RefreshWorkspace()
     AM.usedAnimations = 0;
     AM.usedKeyframes = 0;
 
+    AM.trackSelectionBox:Hide();
+
     -- load tracks
     local usedTracks = 0;
     local usedAnimations = 0;
@@ -1568,17 +1589,18 @@ function AM.RefreshWorkspace()
         if (not AM.loadedTimeline.tracks) then
             AM.loadedTimeline.tracks = {};
         end
+
+        -- tracks
         if (AM.loadedTimeline.tracks) then
             usedTracks = #AM.loadedTimeline.tracks;
             for t = 1, #AM.loadedTimeline.tracks, 1 do
                 local track = AM.loadedTimeline.tracks[t];
                 local trackElement = AM.GetAvailableTrackElement();
+                local trackElementW = trackElement:GetWidth() - 6;
                 trackElement.name.text:SetText(track.name);
                 trackElement:Show();
 
-                --AM.BuildTrackElement(trackElement);
-                local trackElementW = trackElement:GetWidth() - 6;
-
+                -- animations
                 if (track.animations) then
                     for a = 1, #track.animations, 1 do
                         local animElement = AM.GetAvailableAnimationElement();
@@ -1635,13 +1657,14 @@ function AM.RefreshWorkspace()
                     end
                 end
 
-                -- hide the rest
+                -- animations: hide unused
                 for i = usedAnimations + 1, #AM.AnimationPool, 1 do
                     if (AM.AnimationPool[i]) then
                         AM.AnimationPool[i]:Hide();
                     end
                 end
 
+                -- keyframes
                 if (track.keyframes) then
                     --print(track.name .. " " .. #track.keyframes)
                     for k = 1, #track.keyframes, 1 do
@@ -1650,6 +1673,16 @@ function AM.RefreshWorkspace()
                         local startMS = AM.currentCrop.min * AM.loadedTimeline.duration;
                         local endMS = AM.currentCrop.max * AM.loadedTimeline.duration;
                         local xMS = track.keyframes[k].time;
+
+                        -- check if ghost key
+                        local keyAlpha = 1.0;
+                        if (track ~= AM.selectedTrack) then
+                            -- ghost frame (of another track)
+                            keyAlpha = 0.3;
+                            keyframeElement:RegisterForClicks();
+                        else
+                            keyframeElement:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
+                        end
 
                         -- check if on screen or cropped out
                         -- check if the point are on screen
@@ -1662,7 +1695,7 @@ function AM.RefreshWorkspace()
 
                             keyframeElement:ClearAllPoints();
                             keyframeElement:SetPoint("CENTER", AM.KeyframeBar, "LEFT", startP, 0);
-                            keyframeElement.ntex:SetVertexColor(0.5, 0.5, 0.5, 1);
+                            keyframeElement.ntex:SetVertexColor(0.5, 0.5, 0.5, keyAlpha);
                             -- use alpha to desaturate the animation bars
                             -- so that they don't draw more attention than the scene
                             -- calculate an alpha value based on percieved R,G,B
@@ -1671,9 +1704,10 @@ function AM.RefreshWorkspace()
             
                             -- store some information for lookup
                             keyframeElement.trackIdx = t;
+                            keyframeElement.keyIdx = k;
 
-                            if (track.keyframes[k] == AM.selectedKey) then
-                                keyframeElement.ntex:SetVertexColor(1, 1, 1, 1);
+                            if (track.keyframes[k] == AM.selectedKey and track == AM.selectedTrack) then
+                                keyframeElement.ntex:SetVertexColor(1, 1, 1, keyAlpha);
                             end
                         else
                             keyframeElement:Hide();
@@ -1681,14 +1715,21 @@ function AM.RefreshWorkspace()
                     end
                 end
 
-                -- hide the rest
+                -- keyframes: hide unused
                 for i = usedKeyframes + 1, #AM.KeyframePool, 1 do
                     if (AM.KeyframePool[i]) then
                         AM.KeyframePool[i]:Hide();
                     end
                 end
+
+                if (track == AM.selectedTrack) then
+                    AM.trackSelectionBox:Show();
+                    AM.trackSelectionBox:ClearAllPoints();
+                    AM.trackSelectionBox:SetPoint("TOPLEFT", AM.workAreaList, "TOPLEFT", -6, (t - 1) * -(AM.trackElementH + Editor.pmult));
+                end
             end
-            -- hide the rest
+
+            -- tracks: hide unused
             for i = usedTracks + 1, #AM.TrackPool, 1 do
                 if (AM.TrackPool[i]) then
                     AM.TrackPool[i]:Hide();
@@ -1717,12 +1758,6 @@ function AM.RefreshWorkspace()
         local currentTime = AM.TimeValueToString(AM.loadedTimeline.currentTime or 0);
         AM.timerTextBox.text:SetText(currentTime .. "-" .. totalTime);
     end
-end
-
-function AM.RefreshSelectedTrack(index)
-    AM.trackSelectionBox:Show();
-    AM.trackSelectionBox:ClearAllPoints();
-    AM.trackSelectionBox:SetPoint("TOPLEFT", AM.workAreaList, "TOPLEFT", -6, (index - 1) * -(AM.trackElementH + Editor.pmult));
 end
 
 function AM.TimeValueToString(duration)
@@ -1793,7 +1828,7 @@ function AM.RemoveAnim(track, anim)
         return;
     end
 
-    if (track == AM.SelectedTrack and anim == AM.SelectAnimation) then
+    if (track == AM.selectedTrack and anim == AM.SelectAnimation) then
         -- deselect
         AM.SelectAnimation(-1);
     end
@@ -1876,11 +1911,14 @@ function AM.SetTime(timeMS)
                 else
                     -- stop playback
                 end
-                -- animate keyframes
-                --print(track.name .. " " .. #track.keyframes)
-                local pos, rot, scale = track:SampleKeyframes(timeMS);
 
-                obj:SetPositionVector3(pos);
+                -- animate keyframes
+                if (track.keyframes and #track.keyframes > 0) then
+                    local pos, rot, scale = track:SampleKeyframes(timeMS);
+                    obj:SetPositionVector3(pos);
+                else
+                    -- no keyframes, don't animate
+                end
             end
         end
     end
@@ -2000,11 +2038,29 @@ function AM.SelectKeyframe(index)
     if (index < 0) then
         AM.selectedKey = nil;
         AM.RefreshWorkspace();
+        return;
     end
 
     -- find which track and elements were just selected
     local keyframeElement = AM.KeyframePool[index];
     local track = AM.loadedTimeline.tracks[keyframeElement.trackIdx];
+    local keyIndex = keyframeElement.keyIdx;
 
-    AM.selectedKey = track.keyframes[index];
+    AM.selectedKey = track.keyframes[keyIndex];
+    AM.selectedTrack = track;
+    AM.RefreshWorkspace();
+end
+
+function AM.SelectTrackOfObject(obj)
+	if (AM.loadedTimeline) then
+		for i in pairs(AM.loadedTimeline.tracks) do
+			if (AM.loadedTimeline.tracks[i].objectID == obj.id) then
+				AM.SelectTrack(i);
+				return;
+			end
+		end
+	end
+
+    AM.SelectTrack(-1);
+    AM.RefreshWorkspace();
 end

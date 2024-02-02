@@ -11,6 +11,7 @@ local BoundingBox = SceneMachine.BoundingBox;
 local Ray = SceneMachine.Ray;
 local Vector3 = SceneMachine.Vector3;
 local Quaternion = SceneMachine.Quaternion;
+local AM = SceneMachine.Editor.AnimationManager;
 
 function MousePick.Initialize()
     MousePick.previousSelectionList = {};
@@ -75,6 +76,11 @@ function MousePick.Pick(x, y)
     MousePick.previousSelectionList = {};
     for i = 1, #MousePick.selectionList, 1 do
         MousePick.previousSelectionList[i] = MousePick.selectionList[i];
+    end
+
+    -- also select track if available
+    if (SM.selectedObject ~= nil) then
+        AM.SelectTrackOfObject(SM.selectedObject);
     end
 
     SH.RefreshHierarchy();
