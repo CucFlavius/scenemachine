@@ -90,8 +90,8 @@ function SceneMachine.SceneTimelineAddFileData(scriptFile, sceneData)
             end
 
             if (playSpellState) then
-                local animationKit = playSpellState.props.spellVisualID;
-                object.actor:PlayAnimationKit(animationKit);
+                local spellVisualKit = playSpellState.props.spellVisualID;
+                object.actor:SetSpellVisualKit(spellVisualKit);
             end
         end
     end

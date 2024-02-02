@@ -11,10 +11,11 @@ function OP.CreatePanel(x, y, w, h, c1, c2, c3, c4)
     local leftPanel = Win.CreateRectangle(x, y, w, h, SceneMachine.mainWindow, "TOPLEFT", "TOPLEFT", c4[1], c4[2], c4[3], 1);
     local group = Editor.CreateGroup("Properties", h, leftPanel);
 
-    local collapseList = Win.CreateCollapsableList(0, -1, w - 2, { 60, 80, 100 }, group, "TOP", "TOP", { "Transform", "Scene properties (temp)", "Test Property B" }, c1[1], c1[2], c1[3], 1);
+    local collapseList = Win.CreateCollapsableList(0, -1, w - 2, { 60, 80, 100 }, group, "TOP", "TOP", { "Transform", "Actor Properties", "Scene properties (temp)" }, c1[1], c1[2], c1[3], 1);
 
     OP.CreateTransformProperties(0, 0, w - 2, 60, collapseList[1].panel);
-    OP.CreateSceneProperties(0, 0, w - 2, 80, collapseList[2].panel);
+    OP.CreateActorProperties(0, 0, w - 2, 20, collapseList[2].panel)
+    OP.CreateSceneProperties(0, 0, w - 2, 80, collapseList[3].panel);
 
     OP.Refresh();
 end
@@ -143,6 +144,56 @@ function OP.CreateActorProperties(x, y, w, h, parent)
     -- 3. actor:SetParticleOverrideScale(scale) works
     -- 4. SetSpellVisualKit(ID) id comes from SpellVisualKit.db2 (finding ones that work is hard though, gonna need to show them in a list like asset browser, to see what they do)
 
+    OP.ActorProperties = {};
+    local editBoxTitleW = 85;
+    local h = 16;
+    local hPad = h + 2;
+    local y = -5;
+
+    Win.CreateTextBoxSimple(10, y, editBoxTitleW, h, parent, "TOPLEFT", "TOPLEFT", "Alpha", 9);
+    OP.ActorProperties.alpha = Win.CreateEditBox(editBoxTitleW + 10 + 8, y, 159, h, parent, "TOPLEFT", "TOPLEFT", "0");
+    OP.ActorProperties.alpha:SetScript('OnEscapePressed', function(self1) 
+        -- restore value
+        self1:SetText(tostring(self1.value));
+        self1:ClearFocus();
+        Win.focused = false;
+    end);
+    OP.ActorProperties.alpha:SetScript('OnEnterPressed', function(self1)
+        -- set value
+        local valText = self1:GetText();
+        if (valText == nil or valText == "") then
+            valText = "1";
+        end
+        local val = tonumber(valText);
+        if (val ~= nil) then
+            self1.value = val;
+        end
+        OP.SetAlpha(self1);
+        self1:ClearFocus();
+        Win.focused = false;
+    end);
+    OP.ActorProperties.alpha:SetScript('OnEditFocusLost', function(self1) 
+        -- set value
+        local valText = self1:GetText();
+        if (valText == nil or valText == "") then
+            valText = "1";
+        end
+        local val = tonumber(valText);
+        if (val ~= nil) then
+            self1.value = val;
+        end
+        OP.SetAlpha(self1);
+        Win.focused = false;
+    end);
+    local resetScaleButton = Win.CreateButton(editBoxTitleW + 10 + (55 * 3) + (2 * 2), y, h, h, parent, "TOPLEFT", "TOPLEFT", "R", nil, "BUTTON_VS");
+    resetScaleButton:SetScript("OnClick", function(self)
+        if (SM.selectedObject ~= nil) then
+            SM.selectedObject:SetAlpha(1);
+            OP.Refresh();
+        end
+    end);
+    y = y - hPad;
+
 end
 
 function OP.CreateSceneProperties(x, y, w, h, parent)
@@ -171,18 +222,20 @@ function OP.CreateSceneProperties(x, y, w, h, parent)
 end
 
 function OP.Refresh()
-    local pos, rot, scale;
+    local pos, rot, scale, alpha;
 
     if (SM.selectedObject == nil) then
         pos = { x=0, y=0, z=0 };
         rot = { x=0, y=0, z=0 };
         scale = 1;
+        alpha = 1;
         OP.ToggleTransformFields(false);
     else
         OP.ToggleTransformFields(true);
         pos = SM.selectedObject:GetPosition();
         rot = SM.selectedObject:GetRotation();
         scale = SM.selectedObject:GetScale();
+        alpha = SM.selectedObject:GetAlpha();
     end
 
     OP.Transform.posX:SetText(tostring(OP.Truncate(pos.x, 3)));
@@ -194,6 +247,8 @@ function OP.Refresh()
     OP.Transform.rotZ:SetText(tostring(OP.Truncate(deg(rot.z), 3)));
 
     OP.Transform.scale:SetText(tostring(OP.Truncate(scale, 3)));
+
+    OP.ActorProperties.alpha:SetText(tostring(OP.Truncate(alpha, 3)));
 end
 
 function OP.ToggleTransformFields(on)
@@ -273,6 +328,13 @@ function OP.SetScale(self)
         return;
     end
     SM.selectedObject:SetScale(self.value);
+end
+
+function OP.SetAlpha(self)
+    if (SM.selectedObject == nil) then
+        return;
+    end
+    SM.selectedObject:SetAlpha(self.value);
 end
 
 function OP.Truncate(num, digits)

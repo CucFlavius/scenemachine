@@ -13,7 +13,8 @@ SceneMachine.Object =
     name = "",
     position = Vector3:New(),
     rotation = Vector3:New(),
-    scale = 1,	
+    scale = 1,
+    alpha = 1,
 	actor = nil,
 	class = "Object",
     type = SceneMachine.ObjectType.Model,
@@ -35,7 +36,8 @@ function Object:New(name, fileID, position, rotation, scale)
         name = name or "NewObject",
         position = position or Vector3:New(),
         rotation = rotation or Vector3:New(),
-        scale = scale or 1,	
+        scale = scale or 1,
+        alpha = 1,
         actor = nil,
         class = "Object",
         id = math.random(99999999);
@@ -57,6 +59,7 @@ function Object:NewCreature(name, displayID, position, rotation, scale)
         position = position or Vector3:New(),
         rotation = rotation or Vector3:New(),
         scale = scale or 1,	
+        alpha = 1,
         actor = nil,
         class = "Object",
         id = math.random(99999999);
@@ -87,6 +90,7 @@ function Object:SetActor(actor)
     self.actor:SetPitch(self.rotation.y);
     self.actor:SetYaw(self.rotation.z);
     self.actor:SetScale(self.scale);
+    self.actor:SetAlpha(self.alpha);
 end
 
 function Object:GetActor()
@@ -198,6 +202,15 @@ function Object:ToggleVisibility()
     end
 end
 
+function Object:SetAlpha(alpha)
+    self.alpha = alpha;
+    self.actor:SetAlpha(alpha);
+end
+
+function Object:GetAlpha()
+    return self.alpha;
+end
+
 function Object:ToggleFrozen()
     self.frozen = not self.frozen;
 end
@@ -276,6 +289,12 @@ function Object:ImportData(data)
         self.frozen = data.frozen;
     else
         self.frozen = false;
+    end
+
+    if(data.alpha ~= nil) then
+        self.alpha = data.alpha;
+    else
+        self.alpha = 1.0;
     end
 
     self.id = data.id or math.random(99999999);
