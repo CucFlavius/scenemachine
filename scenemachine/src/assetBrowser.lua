@@ -79,8 +79,27 @@ function AssetBrowser.CreateCreatureListTab(parent, w, h)
         Win.focused = false;
     end);
 
-    local creatureAnimationText = Win.CreateTextBoxSimple(0, -22, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimID", 9);
-    local creatureAnimationEditBox = Win.CreateEditBox(w * 0.3, -22, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    local creatureIDText = Win.CreateTextBoxSimple(0, -22, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "CreatureID", 9);
+    local creatureIDEditBox = Win.CreateEditBox(w * 0.3, -22, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    creatureIDEditBox:SetScript('OnEnterPressed', function(self1)
+        -- set value
+        local valText = self1:GetText();
+        if (valText == nil or valText == "") then
+            return;
+        end
+        local val = tonumber(valText);
+        if (val ~= nil) then
+            local creatureDisplayID = SceneMachine.creatureToDisplayID[val];
+            if (creatureDisplayID) then
+                SM.CreateCreature(creatureDisplayID, "Creature", 0, 0, 0);
+            end
+        end
+        self1:ClearFocus();
+        Win.focused = false;
+    end);
+
+    local creatureAnimationText = Win.CreateTextBoxSimple(0, -44, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimID", 9);
+    local creatureAnimationEditBox = Win.CreateEditBox(w * 0.3, -44, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     creatureAnimationEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
         local valText = self1:GetText();
@@ -98,8 +117,8 @@ function AssetBrowser.CreateCreatureListTab(parent, w, h)
         Win.focused = false;
     end);
 
-    local creatureAnimationKitText = Win.CreateTextBoxSimple(0, -44, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimKitID", 9);
-    local creatureAnimationKitEditBox = Win.CreateEditBox(w * 0.3, -44, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    local creatureAnimationKitText = Win.CreateTextBoxSimple(0, -66, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimKitID", 9);
+    local creatureAnimationKitEditBox = Win.CreateEditBox(w * 0.3, -66, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     creatureAnimationKitEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
         local valText = self1:GetText();
