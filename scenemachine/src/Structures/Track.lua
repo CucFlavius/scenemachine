@@ -125,7 +125,8 @@ function Track:SampleKeyframes(timeMS)
 
     local pos = self:SamplePositionKey(timeMS);
     local rot = self:SampleRotationKey(timeMS);
-    return pos, rot, Vector3.one;
+    local scale = self:SampleScaleKey(timeMS);
+    return pos, rot, scale;
 end
 
 function Track:SamplePositionKey(timeMS)
@@ -162,12 +163,12 @@ function Track:SamplePositionKey(timeMS)
     if (t1 ~= t2) then
         r = (timeMS - t1) / (t2 - t1);
     end
+
     if (r >= 1) then
         return self.keyframes[#self.keyframes].position;
     elseif(r < 0) then
         return self.keyframes[1].position;
     end
-
 
     return Vector3.Interpolate(self.keyframes[idx].position, self.keyframes[idx + 1].position, r);
 end
@@ -213,6 +214,53 @@ function Track:SampleRotationKey(timeMS)
     end
     
     return Quaternion.Interpolate(self.keyframes[idx].rotation, self.keyframes[idx + 1].rotation, r);
+end
+
+function Track:SampleScaleKey(timeMS)
+    if (not self.keyframes) then
+        return 1;
+    end
+
+    if (#self.keyframes == 0) then
+        return 1;
+    end
+
+    if (#self.keyframes == 1) then
+        return self.keyframes[1].scale;
+    end
+
+    local idx = 1;
+    local numTimes = #self.keyframes;
+
+    for i = 1, numTimes, 1 do
+        if (i + 1 <= numTimes) then
+            if (timeMS >= self.keyframes[i].time and timeMS < self.keyframes[i + 1].time) then
+                idx = i;
+                break;
+            end
+        else
+            idx = 1;
+            break;
+        end
+    end
+
+    local t1 = self.keyframes[idx].time;
+    local t2 = self.keyframes[idx + 1].time;
+
+    if (t1 ~= t2) then
+        r = (timeMS - t1) / (t2 - t1);
+    end
+
+    if (r >= 1) then
+        return self.keyframes[#self.keyframes].scale;
+    elseif(r < 0) then
+        return self.keyframes[1].scale;
+    end
+
+    local v1 = self.keyframes[idx].scale;
+    local v2 = self.keyframes[idx + 1].scale;
+    local result = (v1 + (v2 - v1) * r);
+    return result;
 end
 
 Track.__tostring = function(self)

@@ -1921,6 +1921,7 @@ function AM.SetTime(timeMS)
                     local pos, rot, scale = track:SampleKeyframes(timeMS);
                     obj:SetPositionVector3(pos);
                     obj:SetRotationQuaternion(rot);
+                    obj:SetScale(scale);
                 else
                     -- no keyframes, don't animate
                 end
