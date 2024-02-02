@@ -52,12 +52,17 @@ function SceneMachine.SceneTimelineAddFileData(scriptFile, sceneData)
         local object;
 
         if (appearance) then
+            local creatureID = appearance.creatureID;
             local creatureDisplayInfoID = appearance.creatureDisplayInfoID;
             local fileDataID = appearance.fileDataID;
             
-            if (fileDataID) then
+            if (fileDataID ~= 0) then
                 object = SM.CreateObject(fileDataID, actorName, 0, 0, 0);
-            elseif (creatureDisplayInfoID) then
+            elseif (creatureDisplayInfoID ~= 0) then
+                object = SM.CreateCreature(creatureDisplayInfoID, actorName, 0, 0, 0);
+            elseif (creatureID ~= 0) then
+                creatureDisplayInfoID = SceneMachine.creatureToDisplayID[creatureID];
+                print(creatureDisplayInfoID);
                 object = SM.CreateCreature(creatureDisplayInfoID, actorName, 0, 0, 0);
             else
                 print("Unsupported actor type");

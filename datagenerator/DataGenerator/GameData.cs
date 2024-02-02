@@ -17,6 +17,7 @@ namespace DataGenerator
         List<int> m2FileIDs;
         Dictionary<int, int> creatureModelDataToFileID;
         Dictionary<int, int> creatureDisplayInfoToCreatureModelData;
+        Dictionary<int, int> creatureToDisplayInfo;
 
         private Stopwatch _sw;
 
@@ -104,6 +105,28 @@ namespace DataGenerator
             Console.WriteLine("{0} completed in {1}", "Load CreatureDisplayInfo.db2", _sw.Elapsed);
         }
 
+        public void GetCreatureToDisplayInfo()
+        {
+            this.creatureToDisplayInfo = new Dictionary<int, int>();
+            _sw = Stopwatch.StartNew();
+
+            var dbcProvider = new DBCProvider(this.cascHandler.OpenFile(841631));
+            var dbdProvider = new DBDProvider();
+
+            var dbcd = new DBCD.DBCD(dbcProvider, dbdProvider);
+
+            var creatureDisplayInfo = dbcd.Load("Creature.db2");
+            _sw.Stop();
+
+            foreach (DBCDRow row in creatureDisplayInfo.Values)
+            {
+                var val = row.FieldAs<int[]>("DisplayID");
+                this.creatureToDisplayInfo.Add(row.ID, val[0]);
+            }
+
+            Console.WriteLine("{0} completed in {1}", "Load Creature.db2", _sw.Elapsed);
+        }
+
         public void GenerateAnimationData(string outputPath)
         {
             if (m2FileIDs == null)
@@ -144,6 +167,28 @@ namespace DataGenerator
             sw.WriteLine("}");
         }
 
+        public void GenerateCreatureData(string outputPath)
+        {
+            if (creatureToDisplayInfo == null)
+            {
+                GetCreatureToDisplayInfo();
+            }
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Generate Creature To Display Data");
+            Console.ResetColor();
+            using var sw = new StreamWriter(outputPath);
+
+            sw.WriteLine("SceneMachine.creatureToDisplayID={");
+
+            foreach (var item in creatureToDisplayInfo)
+            {
+                sw.WriteLine($"[{item.Key}]={item.Value},");
+            }
+
+            sw.WriteLine("}");
+        }
+        
         List<(ushort, ushort, uint)>? GetAnimDataFromM2(int fileID)
         {
             try
