@@ -10,6 +10,7 @@ function MainMenu.Create()
             ["Name"] = "File",
             ["Options"] = {
                 { ["Name"] = "Project Manager", ["Action"] = function() Editor.ShowProjectManager() end },
+                { ["Name"] = "Import Scenescript", ["Action"] = function() Editor.ShowImportScenescript() end },
                 { ["Name"] = "Save", ["Action"] = function() Editor.Save() end },
             },
         },

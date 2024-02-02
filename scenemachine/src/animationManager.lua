@@ -730,7 +730,7 @@ function AM.GenerateKeyframeElement(index, x, y, w, h, parent, R, G, B, A)
     element:SetFrameLevel(10);
     element.ntex = element:CreateTexture();
     element.ntex:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\keyframe.png")
-    element.ntex:SetTexCoord(0, 1, 0, 1);
+    element.ntex:SetTexCoord(0, 0.25, 0, 0.25);
     element.ntex:SetAllPoints();
     element.ntex:SetVertexColor(R, G, B, A);
     element:SetNormalTexture(element.ntex);

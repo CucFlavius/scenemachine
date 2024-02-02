@@ -368,8 +368,23 @@ function SM.CloneObject(object, selectAfter)
     OP.Refresh();
 end
 
+function SM.Clear()
+    print("clear")
+    if (#SM.loadedScene.objects > 0) then
+        for i in pairs(SM.loadedScene.objects) do
+            Renderer.RemoveActor(SM.loadedScene.objects[i] .actor);
+        end
+    end
+
+    SM.loadedScene.objects = {};
+
+    -- refresh hierarchy
+    SH.RefreshHierarchy();
+    OP.Refresh();
+end
+
 function SM.DeleteObject(object)
-    if (SM.selectedObject == nil) then
+    if (object == nil) then
         return;
     end
 

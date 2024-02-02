@@ -27,7 +27,7 @@ function Win.CreateEditBox(posX, posY, sizeX, sizeY, parent, windowPoint, parent
 	EditBox:SetFont(textFont, textHeight, "OUTLINE");
 	EditBox:SetText(text);
 	EditBox.texture = EditBox:CreateTexture("Zee.WindowAPI.EditBox texture", "BACKGROUND");
-	EditBox.texture:SetColorTexture(0.1,0.1,0.1,1);
+	EditBox.texture:SetColorTexture(0,0,0,1);
 	EditBox.texture:SetAllPoints(EditBox);
 	EditBox:SetAutoFocus(false);
 	EditBox:EnableMouse(true);

@@ -161,7 +161,7 @@ function Track:SamplePositionKey(timeMS)
     local t2 = self.keyframes[idx + 1].time;
 
     if (t1 ~= t2) then
-        r = (timeMS - t1) / (t2 - t1);
+        r = Track:InterpolateAutoBezier(t1, t2, timeMS);
     end
 
     if (r >= 1) then
@@ -171,6 +171,30 @@ function Track:SamplePositionKey(timeMS)
     end
 
     return Vector3.Interpolate(self.keyframes[idx].position, self.keyframes[idx + 1].position, r);
+end
+
+function Track:InterpolateLinear(t1, t2, timeMS)
+    return (timeMS - t1) / (t2 - t1);
+end
+
+function Track:InterpolateAutoBezier(tA, tB, timeMS)
+    local t = (timeMS - tA) / (tB - tA)
+    
+    --t = interpolationValue
+    local t2 = t * t
+    local t3 = t2 * t
+    
+    local previousPoint = 0;
+    local nextPoint = 1;
+    local previousTangent = 0--tA + (tB - tA) / 3
+    local nextTangent = 0--tB - (tB - tA) / 3
+
+    local p = (2 * t3 - 3 * t2 + 1) * previousPoint +
+           (t3 - 2 * t2 + t) * previousTangent +
+           (-2 * t3 + 3 * t2) * nextPoint +
+           (t3 - t2) * nextTangent;
+
+    return p;
 end
 
 function Track:SampleRotationKey(timeMS)

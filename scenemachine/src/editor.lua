@@ -308,6 +308,39 @@ function Editor.ShowProjectManager()
     Editor.ProjectManager.OpenWindow();
 end
 
+function Editor.ShowImportScenescript()
+    -- create
+    if (not Editor.importSSWindow) then
+        Editor.importSSWindow = Win.CreatePopupWindow(0, 0, 400, 400, SceneMachine.mainWindow, "CENTER", "CENTER", "Editor.importSSWindow");
+        Editor.importSSWindow:SetFrameStrata(Editor.SUB_FRAME_STRATA);
+        local dropShadow = Win.CreateImageBox(0, 10, 400 * 1.20, 400 * 1.20, Editor.importSSWindow, "CENTER", "CENTER",
+        "Interface\\Addons\\scenemachine\\static\\textures\\dropShadowSquare.png");
+        dropShadow:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
+        Editor.importSSWindow.texture:SetColorTexture(c4[1], c4[2], c4[3],1);
+        Editor.importSSWindow.TitleBar.texture:SetColorTexture(c1[1], c1[2], c1[3], 1);
+        Editor.importSSWindow.CloseButton.ntex:SetColorTexture(c1[1], c1[2], c1[3], 1);
+        Editor.importSSWindow.CloseButton.htex:SetColorTexture(c2[1], c2[2], c2[3], 1);
+        Editor.importSSWindow.CloseButton.ptex:SetColorTexture(c3[1], c3[2], c3[3], 1);
+
+        Editor.importSSWindow.editBox = Win.CreateEditBox(0, 0, 390, 390, Editor.importSSWindow, "TOPLEFT", "TOPLEFT", "", 9);
+        Editor.importSSWindow.editBox:SetMultiLine(true);
+        Editor.importSSWindow.editBox:SetMaxLetters(0);
+        Editor.importSSWindow.editBox:SetScript('OnEscapePressed', function()
+            Editor.importSSWindow.editBox:ClearFocus();
+            Win.focused = false;
+            Editor.importSSWindow.editBox:SetText("");
+        end);
+        Editor.importSSWindow.editBox:SetScript('OnEnterPressed', function() 
+            Editor.importSSWindow.editBox:ClearFocus();
+            Win.focused = false;
+            Editor.importSSWindow:Hide();
+            SceneMachine.ImportScenescript(Editor.importSSWindow.editBox:GetText())
+        end);
+    end
+
+    Editor.importSSWindow:Show();
+end
+
 function Editor.OpenContextMenu(x, y)
 	local menuOptions = {
         { ["Name"] = "Select", ["Action"] = function() Gizmos.activeTransformGizmo = 0; end },
