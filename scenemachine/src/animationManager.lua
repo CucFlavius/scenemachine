@@ -60,6 +60,11 @@ AM.usedKeyframes = 0;
 AM.selectedAnimID = -1;
 AM.animListIDs = {};
 
+AM.uiMode = 0;      -- 0 = keyframe/anims, 1 = curve view
+
+AM.CurvePoolSize = 30;
+AM.usedCurveLines = 0;
+
 AM.colors = {
     {242, 240, 161},
     {252, 174, 187},
@@ -656,10 +661,16 @@ function AM.CreateAnimationManager(x, y, w, h, parent)
     AM.CreateWorkArea(workAreaX - 6, workAreaY, workAreaW, workAreaH, AM.groupBG);
     AM.CreateCropperBar(0, cropperBarY, w - 14, cropperBarH, AM.groupBG);
 
+    local curveViewH = h - (timelineTabH + timebarH + cropperBarH + bottomPad + toolbarH);
+    local curveViewY = -(timebarH + timelineTabH + toolbarH);
+    AM.CreateCurveView(workAreaX - 6, curveViewY, workAreaW, curveViewH, AM.groupBG);
+
     AM.CreateAnimationSelectWindow(0, 0, 300, 500);
 
     AM.RefreshTimelineTabs();
     AM.RefreshTimebar();
+
+    AM.ChangeUIMode(AM.uiMode);
     AM.RefreshWorkspace();
 end
 
@@ -822,6 +833,7 @@ function AM.CreateToolbar(x, y, w, h, parent)
         { type = "Separator" },
         { type = "Toggle", name = "Loop", iconOn = toolbar.getIcon("loop"), iconOff = toolbar.getIcon("loopoff"), action = function(self, on) AM.LoopToggle_OnClick(on); end, default = true },
         { type = "Separator" },
+        { type = "Button", name = "UIMode", icon = toolbar.getIcon("scale"), action = function(self) AM.ToggleUIMode(); end },
     });
     AM.mainToolbar = toolbar;
 end
@@ -918,6 +930,37 @@ function AM.CreateWorkArea(x, y, w, h, parent)
 
     AM.RefreshWorkspace();
 end
+
+function AM.CreateCurveView(x, y, w, h, parent)
+    AM.curveViewBG = Win.CreateRectangle(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 1);
+
+    -- create line pool
+    AM.CurvePool = {};
+    for i = 1, AM.CurvePoolSize, 1 do
+        AM.CurvePool[i] = AM.CreateCurveLineElement();
+    end
+end
+
+function AM.CreateCurveLineElement()
+    local line = AM.curveViewBG:CreateLine(nil, nil, nil);
+    line:SetThickness(1 + Editor.pmult);
+    line:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\line.png", "REPEAT", "REPEAT");
+    line:SetVertexColor(1,1,1,1);
+    line:Hide();
+    return line;
+end
+
+function AM.GetAvailableCurvePoolLineElement()
+    local i = AM.usedCurveLines + 1;
+    AM.usedCurveLines = AM.usedCurveLines + 1;
+
+    if (i >= #AM.CurvePool) then
+        AM.CurvePool[i] = AM.CreateCurveLineElement();
+    end
+
+    return AM.CurvePool[i];
+end
+
 
 function AM.GenerateTrackElement(index, x, y, w, h, parent, R, G, B, A)
     local element = CreateFrame("Button", "AM.TrackElement"..index, parent)
@@ -1623,187 +1666,283 @@ function AM.RefreshWorkspace()
     AM.usedTracks = 0;
     AM.usedAnimations = 0;
     AM.usedKeyframes = 0;
+    AM.usedCurveLines = 0;
 
     AM.trackSelectionBox:Hide();
 
-    -- load tracks
-    local usedTracks = 0;
-    local usedAnimations = 0;
-    local usedKeyframes = 0;
-    if (AM.loadedTimeline) then
-        if (not AM.loadedTimeline.tracks) then
-            AM.loadedTimeline.tracks = {};
-        end
+    if (AM.uiMode == 0) then
+        -- load tracks
+        local usedTracks = 0;
+        local usedAnimations = 0;
+        local usedKeyframes = 0;
+        if (AM.loadedTimeline) then
+            if (not AM.loadedTimeline.tracks) then
+                AM.loadedTimeline.tracks = {};
+            end
 
-        -- tracks
-        if (AM.loadedTimeline.tracks) then
-            usedTracks = #AM.loadedTimeline.tracks;
-            for t = 1, #AM.loadedTimeline.tracks, 1 do
-                local track = AM.loadedTimeline.tracks[t];
-                local trackElement = AM.GetAvailableTrackElement();
-                local trackElementW = trackElement:GetWidth() - 6;
-                trackElement.name.text:SetText(track.name);
-                trackElement:Show();
+            -- tracks
+            if (AM.loadedTimeline.tracks) then
+                usedTracks = #AM.loadedTimeline.tracks;
+                for t = 1, #AM.loadedTimeline.tracks, 1 do
+                    local track = AM.loadedTimeline.tracks[t];
+                    local trackElement = AM.GetAvailableTrackElement();
+                    local trackElementW = trackElement:GetWidth() - 6;
+                    trackElement.name.text:SetText(track.name);
+                    trackElement:Show();
 
-                -- animations
-                if (track.animations) then
-                    for a = 1, #track.animations, 1 do
-                        local animElement = AM.GetAvailableAnimationElement();
-                        usedAnimations = usedAnimations + 1;
-                        local startMS = AM.currentCrop.min * AM.loadedTimeline.duration;
-                        local endMS = AM.currentCrop.max * AM.loadedTimeline.duration;
-                        local xMS = track.animations[a].startT;
-                        local yMS = track.animations[a].endT;
-                        local colorID = track.animations[a].colorId;
-            
-                        -- check if on screen or cropped out
-                        -- check if any of the points are on screen, or if both points are larger than screen else hide
-                        if (xMS >= startMS and xMS <= endMS) or (yMS >= startMS and yMS <= endMS) or (xMS <= startMS and yMS >= endMS ) then
-                            local xNorm = (xMS - startMS) / (endMS - startMS);
-                            local yNorm = (yMS - startMS) / (endMS - startMS);
-                            xNorm = max(0, xNorm);
-                            yNorm = min(1, yNorm);
-            
-                            local startP = math.floor(trackElementW * xNorm);
-                            local endP = math.floor(trackElementW * yNorm);
-                            local width = endP - startP;
-            
-                            animElement:ClearAllPoints();
-                            animElement:SetPoint("TOPLEFT", trackElement, "TOPLEFT", startP, 0);
-                            animElement:SetSize(width, AM.trackElementH);
+                    -- animations
+                    if (track.animations) then
+                        for a = 1, #track.animations, 1 do
+                            local animElement = AM.GetAvailableAnimationElement();
+                            usedAnimations = usedAnimations + 1;
+                            local startMS = AM.currentCrop.min * AM.loadedTimeline.duration;
+                            local endMS = AM.currentCrop.max * AM.loadedTimeline.duration;
+                            local xMS = track.animations[a].startT;
+                            local yMS = track.animations[a].endT;
+                            local colorID = track.animations[a].colorId;
+                
+                            -- check if on screen or cropped out
+                            -- check if any of the points are on screen, or if both points are larger than screen else hide
+                            if (xMS >= startMS and xMS <= endMS) or (yMS >= startMS and yMS <= endMS) or (xMS <= startMS and yMS >= endMS ) then
+                                local xNorm = (xMS - startMS) / (endMS - startMS);
+                                local yNorm = (yMS - startMS) / (endMS - startMS);
+                                xNorm = max(0, xNorm);
+                                yNorm = min(1, yNorm);
+                
+                                local startP = math.floor(trackElementW * xNorm);
+                                local endP = math.floor(trackElementW * yNorm);
+                                local width = endP - startP;
+                
+                                animElement:ClearAllPoints();
+                                animElement:SetPoint("TOPLEFT", trackElement, "TOPLEFT", startP, 0);
+                                animElement:SetSize(width, AM.trackElementH);
 
-                            -- use alpha to desaturate the animation bars
-                            -- so that they don't draw more attention than the scene
-                            -- calculate an alpha value based on percieved R,G,B
-                            local R = AM.colors[colorID][1] / 255;
-                            local G = AM.colors[colorID][2] / 255;
-                            local B = AM.colors[colorID][3] / 255;
-                            local alpha = 1.0 - ((R + G + (B / 2)) / 3);
-                            alpha = max(0, min(1, alpha));
+                                -- use alpha to desaturate the animation bars
+                                -- so that they don't draw more attention than the scene
+                                -- calculate an alpha value based on percieved R,G,B
+                                local R = AM.colors[colorID][1] / 255;
+                                local G = AM.colors[colorID][2] / 255;
+                                local B = AM.colors[colorID][3] / 255;
+                                local alpha = 1.0 - ((R + G + (B / 2)) / 3);
+                                alpha = max(0, min(1, alpha));
 
-                            animElement.ntex:SetVertexColor(R, G, B, alpha);
-                            animElement:Show();
-            
-                            animElement.name.text:SetText(track.animations[a].name);
+                                animElement.ntex:SetVertexColor(R, G, B, alpha);
+                                animElement:Show();
+                
+                                animElement.name.text:SetText(track.animations[a].name);
 
-                            -- store some information for lookup
-                            animElement.animIdx = a;
-                            animElement.trackIdx = t;
+                                -- store some information for lookup
+                                animElement.animIdx = a;
+                                animElement.trackIdx = t;
 
-                            if (track.animations[a] == AM.selectedAnim) then
-                                AM.animationSelectionBox.lineTop:SetTexCoord(0, width / 20, 0, 1);
-                                AM.animationSelectionBox.lineBottom:SetTexCoord(0, width / 20, 0, 1);
-                                local alphaH = max(0, min(1, alpha + 0.3));
-                                animElement.ntex:SetVertexColor(R, G, B, alphaH);
+                                if (track.animations[a] == AM.selectedAnim) then
+                                    AM.animationSelectionBox.lineTop:SetTexCoord(0, width / 20, 0, 1);
+                                    AM.animationSelectionBox.lineBottom:SetTexCoord(0, width / 20, 0, 1);
+                                    local alphaH = max(0, min(1, alpha + 0.3));
+                                    animElement.ntex:SetVertexColor(R, G, B, alphaH);
+                                end
+                            else
+                                animElement:Hide();
                             end
-                        else
-                            animElement:Hide();
                         end
                     end
-                end
 
-                -- animations: hide unused
-                for i = usedAnimations + 1, #AM.AnimationPool, 1 do
-                    if (AM.AnimationPool[i]) then
-                        AM.AnimationPool[i]:Hide();
-                    end
-                end
-
-                -- keyframes
-                if (track.keyframes) then
-                    --print(track.name .. " " .. #track.keyframes)
-                    for k = 1, #track.keyframes, 1 do
-                        local keyframeElement = AM.GetAvailableKeyframeElement();
-                        usedKeyframes = usedKeyframes + 1;
-                        local startMS = AM.currentCrop.min * AM.loadedTimeline.duration;
-                        local endMS = AM.currentCrop.max * AM.loadedTimeline.duration;
-                        local xMS = track.keyframes[k].time;
-
-                        -- check if ghost key
-                        local keyAlpha = 1.0;
-                        if (track ~= AM.selectedTrack) then
-                            -- ghost frame (of another track)
-                            keyAlpha = 0.3;
-                            keyframeElement:RegisterForClicks();
-                        else
-                            keyframeElement:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
+                    -- animations: hide unused
+                    for i = usedAnimations + 1, #AM.AnimationPool, 1 do
+                        if (AM.AnimationPool[i]) then
+                            AM.AnimationPool[i]:Hide();
                         end
+                    end
 
-                        -- check if on screen or cropped out
-                        -- check if the point are on screen
-                        if (xMS >= startMS and xMS <= endMS) then
-                            local xNorm = (xMS - startMS) / (endMS - startMS);
-                            xNorm = max(0, xNorm);
-                            xNorm = min(1, xNorm);
-            
-                            local startP = math.floor(trackElementW * xNorm);
+                    -- keyframes
+                    if (track.keyframes) then
+                        --print(track.name .. " " .. #track.keyframes)
+                        for k = 1, #track.keyframes, 1 do
+                            local keyframeElement = AM.GetAvailableKeyframeElement();
+                            usedKeyframes = usedKeyframes + 1;
+                            local startMS = AM.currentCrop.min * AM.loadedTimeline.duration;
+                            local endMS = AM.currentCrop.max * AM.loadedTimeline.duration;
+                            local xMS = track.keyframes[k].time;
 
-                            keyframeElement:ClearAllPoints();
-                            keyframeElement:SetPoint("CENTER", AM.KeyframeBar, "LEFT", startP, 0);
-                            keyframeElement.ntex:SetVertexColor(0.5, 0.5, 0.5, keyAlpha);
-                            -- use alpha to desaturate the animation bars
-                            -- so that they don't draw more attention than the scene
-                            -- calculate an alpha value based on percieved R,G,B
-                          
-                            keyframeElement:Show();
-            
-                            -- store some information for lookup
-                            keyframeElement.trackIdx = t;
-                            keyframeElement.keyIdx = k;
-
-                            if (track.keyframes[k] == AM.selectedKey and track == AM.selectedTrack) then
-                                keyframeElement.ntex:SetVertexColor(1, 1, 1, keyAlpha);
+                            -- check if ghost key
+                            local keyAlpha = 1.0;
+                            if (track ~= AM.selectedTrack) then
+                                -- ghost frame (of another track)
+                                keyAlpha = 0.3;
+                                keyframeElement:RegisterForClicks();
+                            else
+                                keyframeElement:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
                             end
-                        else
-                            keyframeElement:Hide();
+
+                            -- check if on screen or cropped out
+                            -- check if the point are on screen
+                            if (xMS >= startMS and xMS <= endMS) then
+                                local xNorm = (xMS - startMS) / (endMS - startMS);
+                                xNorm = max(0, xNorm);
+                                xNorm = min(1, xNorm);
+                
+                                local startP = math.floor(trackElementW * xNorm);
+
+                                keyframeElement:ClearAllPoints();
+                                keyframeElement:SetPoint("CENTER", AM.KeyframeBar, "LEFT", startP, 0);
+                                keyframeElement.ntex:SetVertexColor(0.5, 0.5, 0.5, keyAlpha);
+                                -- use alpha to desaturate the animation bars
+                                -- so that they don't draw more attention than the scene
+                                -- calculate an alpha value based on percieved R,G,B
+                            
+                                keyframeElement:Show();
+                
+                                -- store some information for lookup
+                                keyframeElement.trackIdx = t;
+                                keyframeElement.keyIdx = k;
+
+                                if (track.keyframes[k] == AM.selectedKey and track == AM.selectedTrack) then
+                                    keyframeElement.ntex:SetVertexColor(1, 1, 1, keyAlpha);
+                                end
+                            else
+                                keyframeElement:Hide();
+                            end
+                        end
+                    end
+
+                    -- keyframes: hide unused
+                    for i = usedKeyframes + 1, #AM.KeyframePool, 1 do
+                        if (AM.KeyframePool[i]) then
+                            AM.KeyframePool[i]:Hide();
+                        end
+                    end
+
+                    if (track == AM.selectedTrack) then
+                        AM.trackSelectionBox:Show();
+                        AM.trackSelectionBox:ClearAllPoints();
+                        AM.trackSelectionBox:SetPoint("TOPLEFT", AM.workAreaList, "TOPLEFT", -6, (t - 1) * -(AM.trackElementH + Editor.pmult));
+                    end
+                end
+
+                -- if no tracks, hide keyframes
+                if (usedTracks == 0) then
+                    for i = 1, #AM.KeyframePool, 1 do
+                        if (AM.KeyframePool[i]) then
+                            AM.KeyframePool[i]:Hide();
                         end
                     end
                 end
 
-                -- keyframes: hide unused
-                for i = usedKeyframes + 1, #AM.KeyframePool, 1 do
-                    if (AM.KeyframePool[i]) then
-                        AM.KeyframePool[i]:Hide();
+                -- tracks: hide unused
+                for i = usedTracks + 1, #AM.TrackPool, 1 do
+                    if (AM.TrackPool[i]) then
+                        AM.TrackPool[i]:Hide();
                     end
-                end
-
-                if (track == AM.selectedTrack) then
-                    AM.trackSelectionBox:Show();
-                    AM.trackSelectionBox:ClearAllPoints();
-                    AM.trackSelectionBox:SetPoint("TOPLEFT", AM.workAreaList, "TOPLEFT", -6, (t - 1) * -(AM.trackElementH + Editor.pmult));
-                end
-            end
-
-            -- if no tracks, hide keyframes
-            if (usedTracks == 0) then
-                for i = 1, #AM.KeyframePool, 1 do
-                    if (AM.KeyframePool[i]) then
-                        AM.KeyframePool[i]:Hide();
-                    end
-                end
-            end
-
-            -- tracks: hide unused
-            for i = usedTracks + 1, #AM.TrackPool, 1 do
-                if (AM.TrackPool[i]) then
-                    AM.TrackPool[i]:Hide();
                 end
             end
         end
-    end
-    
-    -- make list fit elements
-    local workAreaListHeight = usedTracks * (AM.trackElementH + Editor.pmult);
-    AM.workAreaList:SetHeight(workAreaListHeight);
-    
-    -- resize scrollbar
-    if (AM.scrollbarSlider) then
-        local workAreaHeight = AM.workAreaBG:GetHeight();
-        local minScrollbar = 20;
-        local maxScrollbar = workAreaHeight;
-        local desiredScrollbar = (workAreaHeight / workAreaListHeight) * workAreaHeight;
-        local newScrollbarHeight = max(minScrollbar, min(maxScrollbar, desiredScrollbar));
-        AM.scrollbarSlider:SetHeight(newScrollbarHeight);
+        
+        -- make list fit elements
+        local workAreaListHeight = usedTracks * (AM.trackElementH + Editor.pmult);
+        AM.workAreaList:SetHeight(workAreaListHeight);
+        
+        -- resize scrollbar
+        if (AM.scrollbarSlider) then
+            local workAreaHeight = AM.workAreaBG:GetHeight();
+            local minScrollbar = 20;
+            local maxScrollbar = workAreaHeight;
+            local desiredScrollbar = (workAreaHeight / workAreaListHeight) * workAreaHeight;
+            local newScrollbarHeight = max(minScrollbar, min(maxScrollbar, desiredScrollbar));
+            AM.scrollbarSlider:SetHeight(newScrollbarHeight);
+        end
+    elseif (AM.uiMode == 1) then
+        local usedLines = 0;
+        local viewScale = 20;
+        if (AM.loadedTimeline and AM.selectedTrack) then
+            local track = AM.selectedTrack;
+            --local trackElement = AM.GetAvailableTrackElement();
+            --local trackElementW = trackElement:GetWidth() - 6;
+            local trackElementW = AM.workAreaList:GetWidth() - 6;
+            if (track.keyframes) then
+                local linePreviousX = nil;
+                local linePreviousY = nil;
+                local linePreviousZ = nil;
+                for k = 1, #track.keyframes - 1, 1 do
+                    local startMS = AM.currentCrop.min * AM.loadedTimeline.duration;
+                    local endMS = AM.currentCrop.max * AM.loadedTimeline.duration;
+
+                    local time1MS = track.keyframes[k].time;
+                    local time2MS = track.keyframes[k + 1].time;
+
+                    local x1Norm = (time1MS - startMS) / (endMS - startMS);
+                    local x2Norm = (time2MS - startMS) / (endMS - startMS);
+
+                    local startX = math.floor(trackElementW * x1Norm);
+                    local endX = math.floor(trackElementW * x2Norm);
+
+                    local lineCount = 20;
+
+                    for l = 1, lineCount, 1 do
+                        local t = (l / lineCount);
+                        local timeMS = time1MS * (1 - t) + time2MS * t;
+                        local pos = track:SamplePositionKey(timeMS);
+
+                        -- pos X
+                        local lineX = AM.GetAvailableCurvePoolLineElement();
+                        local x = startX * (1 - t) + endX * t;
+                        local y = pos.x * viewScale;
+                        lineX:SetVertexColor(1,0,0,1);
+                        lineX:ClearAllPoints();
+                        lineX:SetStartPoint("LEFT", AM.curveViewBG, x, y);
+                        if (linePreviousX) then
+                            local relativePoint, relativeTo, offsetX, offsetY = linePreviousX:GetStartPoint();
+                            lineX:SetEndPoint(relativePoint, relativeTo, offsetX, offsetY);
+                        else
+                            lineX:SetEndPoint("LEFT", AM.curveViewBG, 0, 0);
+                        end
+                        lineX:Show();
+                        usedLines = usedLines + 1;
+                        linePreviousX = lineX;
+
+                        -- pos Y
+                        local lineY = AM.GetAvailableCurvePoolLineElement();
+                        local x = startX * (1 - t) + endX * t;
+                        local y = pos.y * viewScale;
+                        lineY:SetVertexColor(0,1,0,1);
+                        lineY:ClearAllPoints();
+                        lineY:SetStartPoint("LEFT", AM.curveViewBG, x, y);
+                        if (linePreviousY) then
+                            local relativePoint, relativeTo, offsetX, offsetY = linePreviousY:GetStartPoint();
+                            lineY:SetEndPoint(relativePoint, relativeTo, offsetX, offsetY);
+                        else
+                            lineY:SetEndPoint("LEFT", AM.curveViewBG, 0, 0);
+                        end
+                        lineY:Show();
+                        usedLines = usedLines + 1;
+                        linePreviousY = lineY;
+
+                        -- pos Z
+                        local lineZ = AM.GetAvailableCurvePoolLineElement();
+                        local x = startX * (1 - t) + endX * t;
+                        local y = pos.z * viewScale;
+                        lineZ:SetVertexColor(0,0,1,1);
+                        lineZ:ClearAllPoints();
+                        lineZ:SetStartPoint("LEFT", AM.curveViewBG, x, y);
+                        if (linePreviousZ) then
+                            local relativePoint, relativeTo, offsetX, offsetY = linePreviousZ:GetStartPoint();
+                            lineZ:SetEndPoint(relativePoint, relativeTo, offsetX, offsetY);
+                        else
+                            lineZ:SetEndPoint("LEFT", AM.curveViewBG, 0, 0);
+                        end
+                        lineZ:Show();
+                        usedLines = usedLines + 1;
+                        linePreviousZ = lineZ;
+                    end
+                end
+            end
+
+            -- lines: hide unused
+            for i = usedLines, #AM.CurvePool, 1 do
+                if (AM.CurvePool[i]) then
+                    AM.CurvePool[i]:Hide();
+                end
+            end
+        end
     end
 
     -- update timer
@@ -2201,4 +2340,31 @@ end
 
 function AM.LoopToggle_OnClick(on)
     AM.loopPlay = on;
+end
+
+function AM.ChangeUIMode(mode)
+    if (mode == 0) then
+        -- switch to key view
+        AM.uiMode = 0;
+        AM.KeyframeBar:Show();
+        AM.workAreaBG:Show();
+        AM.curveViewBG:Hide();
+    elseif (mode == 1) then
+        -- switch to curve view
+        AM.uiMode = 1;
+        AM.KeyframeBar:Hide();
+        AM.workAreaBG:Hide();
+        AM.curveViewBG:Show();
+    end
+
+    AM.RefreshWorkspace();
+end
+
+function AM.ToggleUIMode()
+    if (AM.uiMode == 0) then
+        AM.uiMode = 1;
+    elseif (AM.uiMode == 1) then
+        AM.uiMode = 0;
+    end
+    AM.ChangeUIMode(AM.uiMode)
 end
