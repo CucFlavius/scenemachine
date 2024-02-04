@@ -7,6 +7,7 @@ local Gizmos = SceneMachine.Gizmos;
 local CC = SceneMachine.CameraController;
 local OP = Editor.ObjectProperties;
 local AM = SceneMachine.Editor.AnimationManager;
+local Scrollbar = SceneMachine.Scrollbar;
 
 function SH.CreatePanel(x, y, w, h, c4)
     local leftPanel = Win.CreateRectangle(x, y, w, h, SceneMachine.mainWindow, "TOPLEFT", "TOPLEFT", c4[1], c4[2], c4[3], 1);
@@ -14,6 +15,14 @@ function SH.CreatePanel(x, y, w, h, c4)
 
     SH.scrollList = Win.CreateScrollList(1, -1, w - 2, h - 22, group, "TOPLEFT", "TOPLEFT");
     SH.list = SH.ItemList(w - 45, 20, SH.scrollList.ContentFrame);
+	local scrollbar = Scrollbar:New(0, 0, 16, h - 22, SH.scrollList, 
+	function(value)
+		-- on scroll
+		SH.scrollList.ContentFrame:ClearAllPoints();
+        local height = SH.scrollList.ContentFrame:GetHeight() - SH.scrollList:GetHeight();
+        local pos = value * height;
+        SH.scrollList.ContentFrame:SetPoint("TOPLEFT", SH.scrollList, "TOPLEFT", 0, math.floor(pos));
+	end);
 
     SH.RefreshHierarchy();
 end
@@ -139,8 +148,8 @@ function SH.RefreshHierarchy()
     end
 
     -- resize --
-    SH.scrollList.Scrollbar:SetMinMaxValues(0, max((index * 20) - (150), 1));
-	SH.scrollList.Scrollbar:SetValueStep(1);
+    --SH.scrollList.Scrollbar:SetMinMaxValues(0, max((index * 20) - (150), 1));
+	--SH.scrollList.Scrollbar:SetValueStep(1);
 end
 
 function SH.SelectObject(index)

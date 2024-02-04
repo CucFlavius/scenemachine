@@ -80,6 +80,7 @@ local function SG_UpdateLoop ()
 	if (Editor.isOpen) then
 		--SceneMachine.deltaTime = 1.0 / GetFramerate();
 		--print(GetFramerate())
+		Editor.Update();
 		Camera.Update();
 		CameraController.Update();
 		Input.Update();

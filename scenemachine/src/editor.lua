@@ -11,6 +11,7 @@ local CC = SceneMachine.CameraController;
 local PM = Editor.ProjectManager;
 local Input = SceneMachine.Input;
 local AM = Editor.AnimationManager;
+local UI = SceneMachine.UI;
 
 Editor.width = 1280;
 Editor.height = 720;
@@ -35,6 +36,8 @@ Editor.MESSAGE_BOX_FRAME_STRATA = "FULLSCREEN"; -- Dialogs like "Are you sure yo
 
 function Editor.Initialize()
     Editor.version = GetAddOnMetadata("scenemachine", "Version");
+
+    Editor.ui = UI:New();
 
     if (Editor.isInitialized) then
         return;
@@ -150,6 +153,10 @@ function Editor.Initialize()
     if (scenemachine_settings.editor_is_open) then
         Editor.Show();
     end
+end
+
+function Editor.Update()
+    Editor.ui:Update();
 end
 
 function Editor.RefreshProjectsDropdown()

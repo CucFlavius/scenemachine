@@ -35,6 +35,7 @@ function Win.CreateScrollList(posX, posY, sizeX, sizeY, parent, windowPoint, par
 		end)
 
 	-- ScrollList scrollbar 
+	--[[
 	ParentFrame.Scrollbar = CreateFrame("Slider", nil, ParentFrame.ScrollFrame, "MinimalScrollbar");
 	ParentFrame.Scrollbar:SetPoint("TOPLEFT", ParentFrame, "TOPRIGHT", -18, -16);
 	ParentFrame.Scrollbar:SetPoint("BOTTOMLEFT", ParentFrame, "BOTTOMRIGHT", 20, 16);
@@ -51,7 +52,7 @@ function Win.CreateScrollList(posX, posY, sizeX, sizeY, parent, windowPoint, par
 	local scrollbg1 = ParentFrame.Scrollbar:CreateTexture(nil, "BACKGROUND");
 	scrollbg1:SetAllPoints(ParentFrame.Scrollbar);
 	scrollbg1:SetTexture(0, 0, 0, 0.4);
-
+	--]]
 	-- ScrollList content frame 
 	ParentFrame.ContentFrame = CreateFrame("Frame", "Loot Scroll Frame", ParentFrame.ScrollFrame) 
 	ParentFrame.ContentFrame:SetSize(sizeX, 380) 

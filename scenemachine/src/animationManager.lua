@@ -220,35 +220,6 @@ function AM.Update(deltaTime)
         AM.RefreshWorkspace();
     end
 
-    if (AM.inputState.movingScrollbar) then
-        local groupBgH = AM.scrollbarBg:GetHeight();
-        local sliderSize = AM.scrollbarSlider:GetHeight();
-        local mouseDiff = (AM.inputState.mousePosStartY - Input.mouseYRaw) * Renderer.scale;
-        local nextPoint = AM.inputState.scrollbarFramePosStart - mouseDiff;
-        local newPoint = 0;
-
-        if (nextPoint < 0 and nextPoint > -(groupBgH - sliderSize)) then
-            newPoint = nextPoint;
-        else
-            if (nextPoint >= 0) then
-                newPoint = 0;
-            end
-            if (nextPoint < -(groupBgH - sliderSize)) then
-                newPoint = -(groupBgH - sliderSize);
-            end
-        end
-
-        AM.scrollbarSlider:ClearAllPoints();
-        AM.scrollbarSlider:SetPoint("TOP", AM.scrollbarBg, "TOP", 0, newPoint);
-        
-        -- Scroll the items list --
-        local newPointNormalized = math.abs(newPoint) / (groupBgH - sliderSize);
-        AM.workAreaList:ClearAllPoints();
-        local height = AM.workAreaList:GetHeight() - AM.workAreaBG:GetHeight();
-        local pos = newPointNormalized * height;
-        AM.workAreaList:SetPoint("TOPLEFT", AM.workAreaBG, "TOPLEFT", 0, math.floor(pos));
-    end
-
     if (AM.inputState.movingTime) then
         
         local groupBgH = AM.timebarGroup:GetWidth() - 26;
@@ -656,7 +627,6 @@ function AM.CreateAnimationManager(x, y, w, h, parent)
     AM.CreateTimeSlider(workAreaH);
     AM.CreateToolbar(0, toolbarY, w, toolbarH, AM.groupBG);
     AM.CreateToolbarTimer(toolbarH, AM.mainToolbar);
-    AM.CreateScrollBar(0, workAreaY, cropperBarH, workAreaH, AM.groupBG);
     AM.CreateKeyframeBar(keyframeBarX, keyframeBarY, keyframeBarW, keyframeBarH, AM.groupBG)
     AM.CreateWorkArea(workAreaX - 6, workAreaY, workAreaW, workAreaH, AM.groupBG);
     AM.CreateCropperBar(0, cropperBarY, w - 14, cropperBarH, AM.groupBG);
@@ -928,6 +898,15 @@ function AM.CreateWorkArea(x, y, w, h, parent)
     AM.animationSelectionBox.lineRight = lineRight;
     AM.animationSelectionBox:Hide();
 
+	AM.workAreaScrollbar = SceneMachine.Scrollbar:New(0, y, 16, h, AM.groupBG,
+	function(value)
+		-- on scroll
+        AM.workAreaList:ClearAllPoints();
+        local height = AM.workAreaList:GetHeight() - AM.workAreaViewport:GetHeight();
+        local pos = value * height;
+        AM.workAreaList:SetPoint("TOPLEFT", AM.workAreaViewport, "TOPLEFT", 0, math.floor(pos));
+	end);
+
     AM.RefreshWorkspace();
 end
 
@@ -960,7 +939,6 @@ function AM.GetAvailableCurvePoolLineElement()
 
     return AM.CurvePool[i];
 end
-
 
 function AM.GenerateTrackElement(index, x, y, w, h, parent, R, G, B, A)
     local element = CreateFrame("Button", "AM.TrackElement"..index, parent)
@@ -1188,58 +1166,6 @@ function AM.CreateCropperBar(x, y, w, h, parent)
         AM.inputState.mousePosStartX = Input.mouseXRaw;
     end);
     AM.cropperSlider:SetScript("OnMouseUp", function(self, button) AM.inputState.movingCenter = false; end);
-end
-
-function AM.CreateScrollBar(x, y, w, h, parent)
-    AM.scrollbarBg = Win.CreateRectangle(x, y, w, h, parent, "TOPRIGHT", "TOPRIGHT",  0, 0, 0, 0);
-    
-    AM.scrollbarBgCenter = Win.CreateImageBox(0, 0, w, h - w, AM.scrollbarBg, "CENTER", "CENTER",
-        "Interface\\Addons\\scenemachine\\static\\textures\\scrollBar.png", { 0, 1, 0.4, 0.6 });
-    AM.scrollbarBgCenter.texture:SetVertexColor(0.18,0.18,0.18,1);
-    
-    AM.scrollbarBgTop = Win.CreateImageBox(0, 0, w, w / 2, AM.scrollbarBg, "TOP", "TOP",
-        "Interface\\Addons\\scenemachine\\static\\textures\\scrollBar.png", { 0, 1, 0, 0.5 });
-    AM.scrollbarBgTop.texture:SetVertexColor(0.18,0.18,0.18,1);
-
-    AM.scrollbarBgBottom = Win.CreateImageBox(0, 0, w, w / 2, AM.scrollbarBg, "BOTTOM", "BOTTOM",
-        "Interface\\Addons\\scenemachine\\static\\textures\\scrollBar.png", { 0, 1, 0.5, 1 });
-    AM.scrollbarBgBottom.texture:SetVertexColor(0.18,0.18,0.18,1);
-
-    -- Scrollbar
-    AM.scrollbarSlider = CreateFrame("Button", "AM.scrollbarSlider", AM.scrollbarBg)
-	AM.scrollbarSlider:SetPoint("TOP", AM.scrollbarBg, "TOP", 0, 0);
-	AM.scrollbarSlider:SetSize(w, 50);
-    AM.scrollbarSlider.ntex = AM.scrollbarSlider:CreateTexture();
-    AM.scrollbarSlider.ntex:SetColorTexture(0,0,0,0);
-    AM.scrollbarSlider.ntex:SetAllPoints();
-    AM.scrollbarSlider:SetNormalTexture(AM.scrollbarSlider.ntex);
-    AM.scrollbarSlider:SetScript("OnMouseDown", function(self, button)
-        if (math.ceil(self:GetHeight()) == AM.workAreaBG:GetHeight()) then
-            return;
-        end
-        AM.inputState.movingScrollbar = true;
-        AM.inputState.mousePosStartY = Input.mouseYRaw;
-        local gpointC, grelativeToC, grelativePointC, gxOfsC, gyOfsC = AM.scrollbarSlider:GetPoint(1);
-        AM.inputState.scrollbarFramePosStart = gyOfsC;
-    end);
-    AM.scrollbarSlider:SetScript("OnMouseUp", function(self, button) AM.inputState.movingScrollbar = false; end);
-
-    AM.scrollbarSliderCenter = Win.CreateImageBox(0, 0, w, h, AM.scrollbarSlider, "CENTER", "CENTER",
-        "Interface\\Addons\\scenemachine\\static\\textures\\scrollBar.png", { 0, 1, 0.4, 0.6 });
-        AM.scrollbarSliderCenter:ClearAllPoints();
-        AM.scrollbarSliderCenter:SetPoint("TOP", AM.scrollbarSlider, "TOP", 0, -w / 2);
-        AM.scrollbarSliderCenter:SetPoint("BOTTOM", AM.scrollbarSlider, "BOTTOM", 0, w / 2);
-    AM.scrollbarSliderCenter.texture:SetVertexColor(0.3,0.3,0.3,1);
-
-    AM.scrollbarSliderTop = Win.CreateImageBox(0, 0, w, w / 2, AM.scrollbarSlider, "TOP", "TOP",
-        "Interface\\Addons\\scenemachine\\static\\textures\\scrollBar.png", { 0, 1, 0, 0.5 });
-    AM.scrollbarSliderTop.texture:SetVertexColor(0.3,0.3,0.3,1);
-
-    AM.scrollbarSliderBottom = Win.CreateImageBox(0, 0, w, w / 2, AM.scrollbarSlider, "BOTTOM", "BOTTOM",
-        "Interface\\Addons\\scenemachine\\static\\textures\\scrollBar.png", { 0, 1, 0.5, 1 });
-    AM.scrollbarSliderBottom.texture:SetVertexColor(0.3,0.3,0.3,1);
-
-    AM.scrollbarSlider:SetHeight(50);
 end
 
 function AM.CreateDefaultTimeline()
@@ -1842,14 +1768,8 @@ function AM.RefreshWorkspace()
         AM.workAreaList:SetHeight(workAreaListHeight);
         
         -- resize scrollbar
-        if (AM.scrollbarSlider) then
-            local workAreaHeight = AM.workAreaBG:GetHeight();
-            local minScrollbar = 20;
-            local maxScrollbar = workAreaHeight;
-            local desiredScrollbar = (workAreaHeight / workAreaListHeight) * workAreaHeight;
-            local newScrollbarHeight = max(minScrollbar, min(maxScrollbar, desiredScrollbar));
-            AM.scrollbarSlider:SetHeight(newScrollbarHeight);
-        end
+        AM.workAreaScrollbar:Resize(AM.workAreaBG:GetHeight(), workAreaListHeight);
+
     elseif (AM.uiMode == 1) then
         local usedLines = 0;
         local viewScale = 20;

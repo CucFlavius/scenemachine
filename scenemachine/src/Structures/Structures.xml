@@ -13,4 +13,8 @@ Structures
 	<Script file="BoundingBox.lua"/>
 	<Script file="Object.lua"/>
 	<Script file="Track.lua"/>
+
+	<!-- UI Objects -->
+	<Script file="UI/UI.lua"/>
+	<Script file="UI/Scrollbar.lua"/>
 </Ui>
