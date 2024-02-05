@@ -89,8 +89,9 @@ function Track:SampleAnimation(timeMS)
                 -- anim is in range
                 local animMS = mod(timeMS - animation.startT, animation.animLength);
                 local animID = animation.id;
+                local variationID = animation.variation;
 
-                return animID, animMS;
+                return animID, variationID, animMS;
             end
         end
     end

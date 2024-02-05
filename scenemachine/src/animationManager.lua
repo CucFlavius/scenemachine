@@ -58,7 +58,7 @@ AM.KeyframePoolSize = 20;
 AM.usedKeyframes = 0;
 
 AM.selectedAnimID = -1;
-AM.animListIDs = {};
+AM.selectedAnimVariant = 0;
 
 AM.uiMode = 0;      -- 0 = keyframe/anims, 1 = curve view
 
@@ -645,25 +645,59 @@ function AM.CreateAnimationManager(x, y, w, h, parent)
 end
 
 function AM.CreateAnimationSelectWindow(x, y, w, h)
-    -- Window:New(x, y, w, h, parent, point, parentPoint, title)
     AM.animSelectWindow = UI.Window:New(x, y, w, h, SceneMachine.mainWindow:GetFrame(), "CENTER", "CENTER", "AnimationList");
     AM.animSelectWindow:SetFrameStrata(Editor.SUB_FRAME_STRATA);
     local dropShadow = UI.ImageBox:New(0, 10, w * 1.20, h * 1.20, AM.animSelectWindow:GetFrame(), "CENTER", "CENTER", "Interface\\Addons\\scenemachine\\static\\textures\\dropShadowSquare.png");
     dropShadow:SetFrameLevel(100);
     dropShadow:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
 
-    -- project list frame --
-    AM.animListFrame = UI.Rectangle:New(0, 0, w, h, AM.animSelectWindow:GetFrame(), "TOPLEFT", "TOPLEFT", 0, 0, 0, 0);
-    AM.animScrollList = UI.ScrollFrame:New(10, -10, w - 20, h - 60, AM.animListFrame:GetFrame(), "TOPLEFT", "TOPLEFT");
-    AM.animationList = UI.ItemList:New(AM.animScrollList:GetWidth() - 30, 20, AM.animScrollList.contentFrame, function(index)
-        if (index > 0) then
-            AM.selectedAnimID = AM.animListIDs[index];
-        end
-     end);
-    AM.animSelectWindow:Hide();
+    AM.animScrollList = UI.PooledScrollList:New(0, 0, w, h - 60, AM.animSelectWindow:GetFrame(), "TOPLEFT", "TOPLEFT");
+	AM.animScrollList:SetItemTemplate(
+		{
+			height = 20,
+			buildItem = function(item)
+				-- main button --
+				item.components[1] = UI.Button:New(0, 0, 50, 18, item:GetFrame(), "CENTER", "CENTER", "");
+				item.components[1]:ClearAllPoints();
+				item.components[1]:SetAllPoints(item:GetFrame());
 
-    AM.animSelectWindow.loadAnimBtn = UI.Button:New(10, 10, 60, 40, AM.animListFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "Add Anim", nil);
-    AM.animSelectWindow.loadAnimBtn:SetScript("OnClick", function(self) AM.AddAnim(AM.selectedTrack, AM.selectedAnimID); AM.animSelectWindow:Hide(); end);
+				-- anim name text --
+				item.components[2] = UI.Label:New(10, 0, 200, 18, item.components[1]:GetFrame(), "LEFT", "LEFT", "", 9);
+			end,
+			refreshItem = function(entry, item)
+                -- interpret data --
+                local animID = entry[1];
+                local animVariant = entry[2];
+                local name = SceneMachine.animationNames[animID];
+                name = name or ("Anim_" .. animID);
+
+                if (animVariant ~= 0) then
+                    name = name .. " " .. animVariant;
+                end
+
+                -- main button --
+				item.components[1]:SetScript("OnClick", function()
+                    AM.selectedAnimID = animID;
+                    AM.selectedAnimVariant = animVariant;
+                end);
+
+				if (animID == AM.selectedAnimID and animVariant == AM.selectedAnimVariant) then
+					item.components[1]:SetColor(UI.Button.State.Normal, 0, 0.4765, 0.7968, 1);
+				else
+					item.components[1]:SetColor(UI.Button.State.Normal, 0.1757, 0.1757, 0.1875, 1);
+				end
+
+				-- object name text --
+				item.components[2]:SetText(name);
+			end,
+	    }
+    );
+
+	AM.animScrollList:MakePool();
+
+    AM.animSelectWindow.loadAnimBtn = UI.Button:New(10, 10, 60, 40, AM.animSelectWindow:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "Add Anim", nil);
+    AM.animSelectWindow.loadAnimBtn:SetScript("OnClick", function(self) AM.AddAnim(AM.selectedTrack, AM.selectedAnimID, AM.selectedAnimVariant); AM.animSelectWindow:Hide(); end);
+    AM.animSelectWindow:Hide();
 end
 
 function AM.CreateTimebar(x, y, w, h, parent)
@@ -1866,7 +1900,7 @@ function AM.TimeValueToString(duration)
     return string.format("%02d:%02d", durationM, durationS);
 end
 
-function AM.AddAnim(track, animID, variation)
+function AM.AddAnim(track, animID, animVariant)
     if (not track) then
         return;
     end
@@ -1875,7 +1909,7 @@ function AM.AddAnim(track, animID, variation)
         track.animations = {};
     end
 
-    variation = variation or 0;
+    animVariant = animVariant or 0;
 
     -- place after last in time
     local colorId = math.random(1, #AM.colors);
@@ -1892,7 +1926,7 @@ function AM.AddAnim(track, animID, variation)
     if (animData) then
         for i in pairs(animData) do
             local entry = animData[i];
-            if (entry[1] == animID) then
+            if (entry[1] == animID and entry[2] == animVariant) then
                 animLength = entry[3];
             end
         end
@@ -1906,11 +1940,14 @@ function AM.AddAnim(track, animID, variation)
     end
 
     local name = SceneMachine.animationNames[animID];
-    name = name or "Anim_" .. animID;
+    name = name or ("Anim_" .. animID);
+    if (animVariant ~= 0) then
+        name = name .. " " .. animVariant;
+    end
 
     track.animations[#track.animations + 1] = {
         id = animID,
-        variation = variation,
+        variation = animVariant,
         animLength = animLength,
         startT = startT,
         endT = endT,
@@ -2009,11 +2046,10 @@ function AM.SetTime(timeMS)
             local obj = AM.GetObjectOfTrack(track);
             if (obj) then
                 -- animate object
-                local animID, animMS = track:SampleAnimation(timeMS);
-                local variation = 0;
+                local animID, variationID, animMS = track:SampleAnimation(timeMS);
                 local animSpeed = 0;
                 if (animID ~= -1) then
-                    obj.actor:SetAnimation(animID, variation, animSpeed, animMS / 1000);
+                    obj.actor:SetAnimation(animID, variationID, animSpeed, animMS / 1000);
                 else
                     -- stop playback
                 end
@@ -2072,32 +2108,12 @@ function AM.OpenAddAnimationWindow(track)
     end
 
     if (obj.fileID == nil or obj.fileID <= 0) then
-        local ignore, ignore2, idString = strsplit(" ", obj.actor:GetModelPath());
+        local _, _, idString = strsplit(" ", obj.actor:GetModelPath());
         obj.fileID = tonumber(idString);
     end
 
-    
-    AM.animationList:Clear();
     local animData = SceneMachine.animationData[obj.fileID];
-    local index = 1;
-    AM.animListIDs = {};
-    if (animData) then
-        for i in pairs(animData) do
-            local entry = animData[i];
-            local animID = entry[1];
-            local animVariant = entry[2];
-            local name = SceneMachine.animationNames[animID];
-            name = name or "Anim_" .. animID;
-            AM.animationList:SetItem(index, name);
-            AM.animListIDs[index] = animID;
-            index = index + 1;
-        end
-    end
-
-    -- resize --
-    --AM.animScrollList.Scrollbar:SetMinMaxValues(0, max((index * 20) - (150), 1));
-    --AM.animScrollList.Scrollbar:SetValueStep(1);
-
+    AM.animScrollList:SetData(animData);
     AM.animSelectWindow:Show();
 end
 

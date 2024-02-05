@@ -57,8 +57,6 @@ function SH.CreatePanel(x, y, w, h, c4)
 		});
 
 	SH.scrollList:MakePool();
-	
-
     SH.RefreshHierarchy();
 end
 
