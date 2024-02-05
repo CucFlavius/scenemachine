@@ -44,12 +44,11 @@ function Dropdown:Build()
 	self.options = {};
 
 	for o = 1, #self.optionNames, 1 do
-		self.options[o] = { ["Name"] = self.optionNames[o], ["Action"] = function() onSelect(o); end };
+		self.options[o] = { ["Name"] = self.optionNames[o], ["Action"] = function() self.onSelect(o); end };
 	end
 
-    local dropdown = self;
     self.button:SetScript("OnClick", function ()
-	    self.window:PopupWindowMenu(dropdown.x, dropdown.y - dropdown.h, dropdown.options);
+	    self.window:PopupWindowMenu(self.x, self.y - height, self.options);
 	end);
 end
 
@@ -64,5 +63,5 @@ function Dropdown:ShowSelectedName(name)
 end
 
 Dropdown.__tostring = function(self)
-	return string.format("Dropdown( %.3f, %.3f, %.3f, %.3f, %s )", self.x, self.y, self.w, self.h, self.parent);
+	return string.format("Dropdown( %.3f, %.3f, %.3f, %.3f )", self.x, self.y, self.w, self.h);
 end

@@ -70,7 +70,7 @@ function Window:Build()
 
     -- Resize Handle --
     self.frame:SetResizable(true);
-	self.frame:SetResizeBounds(200, 200, 1280, 1024);
+	self.frame:SetResizeBounds(200, 200, 1920, 1080);
     self.resizeFrame = UI.ImageBox:New(0, 0, 16, 16, self.frame, "BOTTOMRIGHT", "BOTTOMRIGHT", "Interface\\Addons\\scenemachine\\static\\textures\\cornerResize.png");
     self.resizeFrame:GetFrame():EnableMouse(true);
 	self.resizeFrame:SetVertexColor(1,1,1,0.3);

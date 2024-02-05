@@ -62,24 +62,24 @@ function Editor.Initialize()
     -- Create all of the UI --
     Editor.CreateMainWindow();
     Editor.MainMenu.Create();
-    local toolbar = Editor.Toolbar.Create(0, -15, Editor.width, 30, SceneMachine.mainWindow:GetFrame(), nil, SceneMachine.mainWindow);
+    local toolbar = UI.Toolbar:New(0, -15, Editor.width, 30, SceneMachine.mainWindow:GetFrame(), 0, SceneMachine.mainWindow);
     Editor.mainToolbar = toolbar;
-    toolbar.CreateGroup(0, 0, Editor.width, 30, toolbar,
+    Editor.mainToolbar.transformGroup = toolbar:CreateGroup(0, 0, Editor.width, 30,
         {
             { type = "DragHandle" },
-            { type = "Button", name = "Project", icon = toolbar.getIcon("projects"), action = function(self) Editor.ProjectManager.OpenWindow() end },
+            { type = "Button", name = "Project", icon = toolbar:GetIcon("projects"), action = function(self) Editor.ProjectManager.OpenWindow() end },
             { type = "Dropdown", name = "ProjectList", width = 200, options = {}, action = function(index) Editor.ProjectManager.LoadProjectByIndex(index); end },
             { type = "Separator" },
-            { type = "Button", name = "Select", icon = toolbar.getIcon("select"), action = function(self) Gizmos.activeTransformGizmo = 0; end },
-            { type = "Button", name = "Move", icon = toolbar.getIcon("move"), action = function(self) Gizmos.activeTransformGizmo = 1; end },
-            { type = "Button", name = "Rotate", icon = toolbar.getIcon("rotate"), action = function(self) Gizmos.activeTransformGizmo = 2; end },
-            { type = "Button", name = "Scale", icon = toolbar.getIcon("scale"), action = function(self) Gizmos.activeTransformGizmo = 3; end },
+            { type = "Button", name = "Select", icon = toolbar:GetIcon("select"), action = function(self) Gizmos.activeTransformGizmo = 0; end },
+            { type = "Button", name = "Move", icon = toolbar:GetIcon("move"), action = function(self) Gizmos.activeTransformGizmo = 1; end },
+            { type = "Button", name = "Rotate", icon = toolbar:GetIcon("rotate"), action = function(self) Gizmos.activeTransformGizmo = 2; end },
+            { type = "Button", name = "Scale", icon = toolbar:GetIcon("scale"), action = function(self) Gizmos.activeTransformGizmo = 3; end },
             { type = "Separator" },
-            { type = "Button", name = "L", icon = toolbar.getIcon("localpivot"), action = function(self) Gizmos.space = 1; print("Local Space"); end },
-            { type = "Button", name = "W", icon = toolbar.getIcon("worldpivot"), action = function(self) Gizmos.space = 0; print("World Space"); end },
+            { type = "Button", name = "L", icon = toolbar:GetIcon("localpivot"), action = function(self) Gizmos.space = 1; print("Local Space"); end },
+            { type = "Button", name = "W", icon = toolbar:GetIcon("worldpivot"), action = function(self) Gizmos.space = 0; print("World Space"); end },
             { type = "Separator" },
-            { type = "Button", name = "Center", icon = toolbar.getIcon("centerpivot"), action = function(self) Gizmos.pivot = 0; print("Pivot Center"); end },
-            { type = "Button", name = "Base", icon = toolbar.getIcon("basepivot"), action = function(self) Gizmos.pivot = 1; print("Pivot Base"); end },
+            { type = "Button", name = "Center", icon = toolbar:GetIcon("centerpivot"), action = function(self) Gizmos.pivot = 0; print("Pivot Center"); end },
+            { type = "Button", name = "Base", icon = toolbar:GetIcon("basepivot"), action = function(self) Gizmos.pivot = 1; print("Pivot Base"); end },
             { type = "Separator" },
         }
     );

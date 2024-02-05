@@ -626,7 +626,6 @@ function AM.CreateAnimationManager(x, y, w, h, parent)
     AM.CreateTimebar(0, timebarY, w, timebarH, AM.groupBG:GetFrame());
     AM.CreateTimeSlider(workAreaH);
     AM.CreateToolbar(0, toolbarY, w, toolbarH, AM.groupBG:GetFrame());
-    AM.CreateToolbarTimer(toolbarH, AM.mainToolbar:GetFrame());
     AM.CreateKeyframeBar(keyframeBarX, keyframeBarY, keyframeBarW, keyframeBarH, AM.groupBG:GetFrame())
     AM.CreateWorkArea(workAreaX - 6, workAreaY, workAreaW, workAreaH, AM.groupBG:GetFrame());
     AM.CreateCropperBar(0, cropperBarY, w - 14, cropperBarH, AM.groupBG:GetFrame());
@@ -840,37 +839,36 @@ function AM.GetNeedle()
 end
 
 function AM.CreateToolbar(x, y, w, h, parent)
-    local toolbar = Toolbar.Create(x, y, w, h, parent, 0.16, SceneMachine.mainWindow);
-    toolbar.CreateGroup(x, 0, w, h, toolbar,
+    local toolbar = UI.Toolbar:New(x, y, w, h, parent, 0.16, SceneMachine.mainWindow);
+    local mainGroup = toolbar:CreateGroup(x, 0, w, h,
     {
         { type = "DragHandle" },
-        { type = "Button", name = "TimeSettings", icon = toolbar.getIcon("timesettings"), action = function(self) end },
+        { type = "Button", name = "TimeSettings", icon = toolbar:GetIcon("timesettings"), action = function(self) end },
         { type = "Separator" },
-        { type = "Button", name = "AddObject", icon = toolbar.getIcon("addobj"), action = function(self) AM.AddTrack(SM.selectedObject); end },
-        { type = "Button", name = "RemoveObject", icon = toolbar.getIcon("removeobj"), action = function(self) AM.RemoveTrack(AM.selectedTrack) end },
+        { type = "Button", name = "AddObject", icon = toolbar:GetIcon("addobj"), action = function(self) AM.AddTrack(SM.selectedObject); end },
+        { type = "Button", name = "RemoveObject", icon = toolbar:GetIcon("removeobj"), action = function(self) AM.RemoveTrack(AM.selectedTrack) end },
         { type = "Separator" },
-        { type = "Button", name = "AddAnim", icon = toolbar.getIcon("addanim"), action = function(self) AM.OpenAddAnimationWindow(AM.selectedTrack); end },
-        { type = "Button", name = "RemoveAnim", icon = toolbar.getIcon("removeanim"), action = function(self) AM.RemoveAnim(AM.selectedTrack, AM.selectedAnim); end },
+        { type = "Button", name = "AddAnim", icon = toolbar:GetIcon("addanim"), action = function(self) AM.OpenAddAnimationWindow(AM.selectedTrack); end },
+        { type = "Button", name = "RemoveAnim", icon = toolbar:GetIcon("removeanim"), action = function(self) AM.RemoveAnim(AM.selectedTrack, AM.selectedAnim); end },
         { type = "Separator" },
-        { type = "Button", name = "AddKey", icon = toolbar.getIcon("addkey"), action = function(self) AM.AddKey(AM.selectedTrack); end },
-        { type = "Button", name = "RemoveKey", icon = toolbar.getIcon("removekey"), action = function(self) AM.RemoveKey(AM.selectedTrack, AM.selectedKey); end },
+        { type = "Button", name = "AddKey", icon = toolbar:GetIcon("addkey"), action = function(self) AM.AddKey(AM.selectedTrack); end },
+        { type = "Button", name = "RemoveKey", icon = toolbar:GetIcon("removekey"), action = function(self) AM.RemoveKey(AM.selectedTrack, AM.selectedKey); end },
         { type = "DragHandle" },
-        { type = "Button", name = "SeekToStart", icon = toolbar.getIcon("skiptoend", true), action = function(self) AM.SeekToStartButton_OnClick(); end },
-        { type = "Button", name = "SkipOneFrameBack", icon = toolbar.getIcon("skiponeframe", true), action = function(self) AM.SkipFrameBackwardButton_OnClick(); end },
-        { type = "Toggle", name = "PlayPause", iconOn = toolbar.getIcon("pause"), iconOff = toolbar.getIcon("play"), action = function(self, on) AM.PlayToggle_OnClick(on); end, default = false },
-        { type = "Button", name = "SkipOneFrameForward", icon = toolbar.getIcon("skiponeframe"), action = function(self) AM.SkipFrameForwardButton_OnClick(); end },
-        { type = "Button", name = "SeekToEnd", icon = toolbar.getIcon("skiptoend"), action = function(self) AM.SeekToEndButton_OnClick(); end },
+        { type = "Button", name = "SeekToStart", icon = toolbar:GetIcon("skiptoend", true), action = function(self) AM.SeekToStartButton_OnClick(); end },
+        { type = "Button", name = "SkipOneFrameBack", icon = toolbar:GetIcon("skiponeframe", true), action = function(self) AM.SkipFrameBackwardButton_OnClick(); end },
+        { type = "Toggle", name = "PlayPause", iconOn = toolbar:GetIcon("pause"), iconOff = toolbar:GetIcon("play"), action = function(self, on) AM.PlayToggle_OnClick(on); end, default = false },
+        { type = "Button", name = "SkipOneFrameForward", icon = toolbar:GetIcon("skiponeframe"), action = function(self) AM.SkipFrameForwardButton_OnClick(); end },
+        { type = "Button", name = "SeekToEnd", icon = toolbar:GetIcon("skiptoend"), action = function(self) AM.SeekToEndButton_OnClick(); end },
         { type = "Separator" },
-        { type = "Toggle", name = "Loop", iconOn = toolbar.getIcon("loop"), iconOff = toolbar.getIcon("loopoff"), action = function(self, on) AM.LoopToggle_OnClick(on); end, default = true },
+        { type = "Toggle", name = "Loop", iconOn = toolbar:GetIcon("loop"), iconOff = toolbar:GetIcon("loopoff"), action = function(self, on) AM.LoopToggle_OnClick(on); end, default = true },
         { type = "Separator" },
-        { type = "Button", name = "UIMode", icon = toolbar.getIcon("scale"), action = function(self) AM.ToggleUIMode(); end },
+        { type = "Button", name = "UIMode", icon = toolbar:GetIcon("scale"), action = function(self) AM.ToggleUIMode(); end },
     });
     AM.mainToolbar = toolbar;
-end
 
-function AM.CreateToolbarTimer(h, parent)
+    -- timer
     local font = "Interface\\Addons\\scenemachine\\static\\font\\digital-7.ttf"
-    AM.timerTextBox = UI.Label:New(0, 0, 90, h, parent, "RIGHT", "RIGHT", "00:00 / 00:00", 16, font);
+    AM.timerTextBox = UI.Label:New(0, 0, 90, h, mainGroup:GetFrame(), "RIGHT", "RIGHT", "00:00 / 00:00", 16, font);
 end
 
 function AM.CreateWorkArea(x, y, w, h, parent)

@@ -30,5 +30,6 @@ Structures
 	<Script file="UI/ScrollFrame.lua"/>
 	<Script file="UI/ItemList.lua"/>
 	<Script file="UI/PooledScrollList.lua"/>
+	<Script file="UI/Toolbar.lua"/>
 	<Script file="UI/Window.lua"/>
 </Ui>
