@@ -34,7 +34,7 @@ function TextBox:Build()
     self.frame:SetText(self.text);
 
 	self.frame.texture = self.frame:CreateTexture("SceneMachine.UI.EditBox.frame.texture", "BACKGROUND");
-	self.frame.texture:SetColorTexture(0,0,0,1);
+	self.frame.texture:SetColorTexture(0,0,0,0.5);
 	self.frame.texture:SetAllPoints(self.frame);
 	self.frame:SetAutoFocus(false);
 	self.frame:EnableMouse(true);

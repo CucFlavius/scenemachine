@@ -647,11 +647,9 @@ end
 function AM.CreateAnimationSelectWindow(x, y, w, h)
     AM.animSelectWindow = UI.Window:New(x, y, w, h, SceneMachine.mainWindow:GetFrame(), "CENTER", "CENTER", "AnimationList");
     AM.animSelectWindow:SetFrameStrata(Editor.SUB_FRAME_STRATA);
-    local dropShadow = UI.ImageBox:New(0, 10, w * 1.20, h * 1.20, AM.animSelectWindow:GetFrame(), "CENTER", "CENTER", "Interface\\Addons\\scenemachine\\static\\textures\\dropShadowSquare.png");
-    dropShadow:SetFrameLevel(100);
-    dropShadow:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
 
-    AM.animScrollList = UI.PooledScrollList:New(0, 0, w, h - 60, AM.animSelectWindow:GetFrame(), "TOPLEFT", "TOPLEFT");
+    AM.animScrollList = UI.PooledScrollList:New(0, 0, w, h - 30, AM.animSelectWindow:GetFrame(), "TOPLEFT", "TOPLEFT");
+    AM.animScrollList:SetPoint("BOTTOMRIGHT", AM.animSelectWindow:GetFrame(), "BOTTOMRIGHT", 0, 30);
 	AM.animScrollList:SetItemTemplate(
 		{
 			height = 20,
@@ -679,6 +677,7 @@ function AM.CreateAnimationSelectWindow(x, y, w, h)
 				item.components[1]:SetScript("OnClick", function()
                     AM.selectedAnimID = animID;
                     AM.selectedAnimVariant = animVariant;
+                    AM.animScrollList:RefreshStatic();
                 end);
 
 				if (animID == AM.selectedAnimID and animVariant == AM.selectedAnimVariant) then
@@ -695,9 +694,41 @@ function AM.CreateAnimationSelectWindow(x, y, w, h)
 
 	AM.animScrollList:MakePool();
 
-    AM.animSelectWindow.loadAnimBtn = UI.Button:New(10, 10, 60, 40, AM.animSelectWindow:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "Add Anim", nil);
-    AM.animSelectWindow.loadAnimBtn:SetScript("OnClick", function(self) AM.AddAnim(AM.selectedTrack, AM.selectedAnimID, AM.selectedAnimVariant); AM.animSelectWindow:Hide(); end);
+    AM.animSelectWindow.loadAnimBtn = UI.Button:New(5, 5, 60, 20, AM.animSelectWindow:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "Add Anim", nil);
+    AM.animSelectWindow.loadAnimBtn:SetScript("OnClick", function(_) AM.AddAnim(AM.selectedTrack, AM.selectedAnimID, AM.selectedAnimVariant); AM.animSelectWindow:Hide(); end);
+    AM.animSelectWindow.filterBox = UI.TextBox:New(70, 5, 100, 20, AM.animSelectWindow:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "", 9);
+    AM.animSelectWindow.filterBox:SetPoint("BOTTOMRIGHT", AM.animSelectWindow:GetFrame(), "BOTTOMRIGHT", -5, 0);
+    AM.animSelectWindow.filterBox:SetScript("OnTextChanged", function(self, userInput) AM.FilterAnimList(self:GetText()); end );
     AM.animSelectWindow:Hide();
+end
+
+function AM.FilterAnimList(text)
+    if (not AM.selectedTrack) then return; end
+
+    local obj = AM.GetObjectOfTrack(AM.selectedTrack);
+
+    if (not obj) then return; end
+
+    local animData = SceneMachine.animationData[obj.fileID];
+    if (not text or text == "") then
+        AM.animScrollList:SetData(animData);
+    else
+        local animDataFiltered = {};
+        local fI = 1;
+        for i = 1, #animData, 1 do
+            local anim = animData[i];
+            local animID = anim[1];
+            local name = SceneMachine.animationNames[animID];
+            if (name) then
+                local startIdx, endIdx = string.find(name:lower(), text:lower());
+                if (startIdx) then
+                    animDataFiltered[fI] = anim;
+                    fI = fI + 1;
+                end
+            end
+        end
+        AM.animScrollList:SetData(animDataFiltered);
+    end
 end
 
 function AM.CreateTimebar(x, y, w, h, parent)
@@ -2114,6 +2145,7 @@ function AM.OpenAddAnimationWindow(track)
 
     local animData = SceneMachine.animationData[obj.fileID];
     AM.animScrollList:SetData(animData);
+    AM.animSelectWindow.filterBox:SetText("");
     AM.animSelectWindow:Show();
 end
 

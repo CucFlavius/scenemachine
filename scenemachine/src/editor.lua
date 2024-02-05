@@ -305,10 +305,6 @@ function Editor.ShowImportScenescript()
     if (not Editor.importSSWindow) then
         Editor.importSSWindow = UI.Window:New(0, 0, 400, 400, SceneMachine.mainWindow:GetFrame(), "CENTER", "CENTER", "Editor.importSSWindow");
         Editor.importSSWindow:SetFrameStrata(Editor.SUB_FRAME_STRATA);
-        local dropShadow = UI.ImageBox:New(0, 10, 400 * 1.20, 400 * 1.20, Editor.importSSWindow:GetFrame(), "CENTER", "CENTER",
-        "Interface\\Addons\\scenemachine\\static\\textures\\dropShadowSquare.png");
-        dropShadow:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
-
         Editor.importSSWindow.editBox = UI.TextBox:New(0, 0, 390, 390, Editor.importSSWindow:GetFrame(), "TOPLEFT", "TOPLEFT", "", 9);
         Editor.importSSWindow.editBox:SetMultiLine(true);
         Editor.importSSWindow.editBox:SetMaxLetters(0);
@@ -356,9 +352,6 @@ function Editor.OpenMessageBox( window, title, message, hasYesButton, hasNoButto
     if (not Editor.messageBox) then
         Editor.messageBox = UI.Window:New(0, 0, 300, 150, window, "CENTER", "CENTER", title);
         Editor.messageBox:SetFrameStrata(Editor.MESSAGE_BOX_FRAME_STRATA);
-        local dropShadow = UI.ImageBox:New(0, 10, 300 * 1.20, 150 * 1.29, Editor.messageBox:GetFrame(), "CENTER", "CENTER", "Interface\\Addons\\scenemachine\\static\\textures\\dropShadowSquare.png");
-        dropShadow:SetFrameStrata("MEDIUM");
-
         Editor.messageBox.textBox = UI.Label:New(0, 10, 280, 100, Editor.messageBox:GetFrame(), "CENTER", "CENTER", message, 10);
         Editor.messageBox.yesButton = UI.Button:New(-75, 10, 50, 25, Editor.messageBox:GetFrame(), "BOTTOMRIGHT", "BOTTOMRIGHT", "YES");
         Editor.messageBox.noButton = UI.Button:New(-20, 10, 50, 25, Editor.messageBox:GetFrame(), "BOTTOMRIGHT", "BOTTOMRIGHT", "NO");

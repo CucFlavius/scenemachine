@@ -14,6 +14,7 @@ function PooledScrollList:New(x, y, w, h, parent, point, parentPoint)
         parent = parent or nil,
         point = point or "TOPLEFT",
         parentPoint = parentPoint or "TOPLEFT",
+        viewportHeight = 0;
         visible = true,
     };
 
@@ -29,9 +30,19 @@ function PooledScrollList:Build()
         self:ScrollStep(delta);
     end);
     
-    self.viewport = UI.Rectangle:New(self.x, self.y, self.w - 16, self.h, self.frame:GetFrame(), "TOPLEFT", "TOPLEFT", 1, 1, 1, 0);
+    self.viewport = UI.Rectangle:New(self.x, self.y, self.w - 16, self.h, self.frame:GetFrame(), "TOPLEFT", "TOPLEFT", 1, 0, 1, 0);
+    self.viewport:SetAllPoints(self.frame:GetFrame());
     self.viewport:SetClipsChildren(true);
+    self.viewport:GetFrame():SetScript("OnSizeChanged",
+    function(_, width, height)
+        --print(width .. " " .. height);
+        self:MakePool(width - 16, height);
+        self.viewportHeight = height;
+        self.scrollbar:Resize(height, #self.data * self.template.height);
+        self:Refresh(0);
+    end);
     self.scrollbar = UI.Scrollbar:New(0, 0, 16, self.h, self.frame:GetFrame(), function(v) self:SetPosition(v); end);
+    self.scrollbar:SetPoint("BOTTOMRIGHT", self.frame:GetFrame(), "BOTTOMRIGHT", 0, 0);
 
     self.data = {};
     self.itemPool = {};
@@ -42,15 +53,20 @@ function PooledScrollList:SetItemTemplate(template)
     self.template = template;
 end
 
-function PooledScrollList:MakePool()
-    local viewportHeight = self.viewport:GetHeight();
-    local viewportWidth = self.viewport:GetWidth();
+function PooledScrollList:MakePool(viewportWidth, viewportHeight)
+    viewportHeight = viewportHeight or self.viewport:GetHeight();
+    viewportWidth = viewportWidth or self.viewport:GetWidth();
+
     local itemHeight = self.template.height;
 
     local poolSize = math.ceil(viewportHeight / itemHeight + 1);
 
+    for i = 1, #self.itemPool, 1 do
+        self.itemPool[i]:SetWidth(viewportWidth);
+    end
+
     for i = #self.itemPool + 1, poolSize, 1 do
-        local item = UI.Rectangle:New(0, 0, 50, self.template.height, self.viewport:GetFrame(), "TOPLEFT", "TOPLEFT", 1, 1, 1, 0);
+        local item = UI.Rectangle:New(0, 0, 50, self.template.height, self.viewport:GetFrame(), "TOPLEFT", "TOPLEFT", 1, 1, 1, 1);
         item:SetSinglePoint("TOPLEFT", 0, -(i - 1) * itemHeight);
         item:SetWidth(viewportWidth);
         item.components = {};
@@ -79,7 +95,7 @@ end
 
 function PooledScrollList:SetData(data)
     self.data = data;
-    self.scrollbar:Resize(self.viewport:GetHeight(), #self.data * self.template.height);
+    self.scrollbar:Resize(self.viewportHeight, #self.data * self.template.height);
     self:Refresh(0);
 end
 
@@ -112,6 +128,15 @@ function PooledScrollList:Refresh(dif)
         for p = pidx, #self.itemPool, 1 do
             self.itemPool[p]:Hide();
         end
+    end
+end
+
+function PooledScrollList:RefreshStatic()
+    local pidx = 1;
+    for d = self.dataStartIdx, self.dataEndIdx, 1 do
+        local item = self.itemPool[pidx];
+        self.template.refreshItem(self.data[d], item);
+        pidx = pidx + 1;
     end
 end
 

@@ -19,10 +19,7 @@ function PM.CreateWindow()
     -- Window:New(x, y, w, h, parent, point, parentPoint, title)
     PM.window = UI.Window:New(0, 0, managerWindowWidth, managerWindowHeight, SceneMachine.mainWindow:GetFrame(), "CENTER", "CENTER", "ProjectManager");
     PM.window:SetFrameStrata(Editor.SUB_FRAME_STRATA);
-    local dropShadow = UI.ImageBox:New(0, 10, managerWindowWidth * 1.20, managerWindowHeight * 1.29, PM.window:GetFrame(), "CENTER", "CENTER",
-	"Interface\\Addons\\scenemachine\\static\\textures\\dropShadowSquare.png");
-    dropShadow:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
-
+    
     -- project list frame --
     PM.projectListFrame = UI.Rectangle:New(0, 0, managerWindowWidth, managerWindowHeight, PM.window:GetFrame(), "TOPLEFT", "TOPLEFT", 0, 0, 0, 0);
 

@@ -39,7 +39,8 @@ function Window:Build()
 
 	-- title bar frame --
 	self.titleBar = CreateFrame("Frame", "UI.Window.titleBar ".. self.title.. " TitleBar", self.frame);
-	self.titleBar:SetPoint("BOTTOM", self.frame, "TOP", 0, 0);
+	self.titleBar:SetPoint("BOTTOMLEFT", self.frame, "TOPLEFT", 0, 0);
+	self.titleBar:SetPoint("BOTTOMRIGHT", self.frame, "TOPRIGHT", 0, 0);
 	self.titleBar:SetSize(self.w, 20);
 	self.titleBar_texture = self.titleBar:CreateTexture("UI.Window.titleBar_texture ".. self.title.. " TitleBar texture", "BACKGROUND");
 	self.titleBar_texture:SetColorTexture(0.1757, 0.1757, 0.1875, 1);
@@ -51,18 +52,7 @@ function Window:Build()
 	self.titleBar:EnableMouse(true);
 	self.titleBar:RegisterForDrag("LeftButton");
 	self.titleBar:SetScript("OnDragStart", function() self.frame:StartMoving(); end);
-	self.titleBar:SetScript("OnDragStop", function()
-		self.frame:StopMovingOrSizing();
-		--local pmult = 1.0;
-		--local res = GetCVar("gxWindowedResolution")
-		--if res then
-		--	local w,h = string.match(res, "(%d+)x(%d+)")
-		--	pmult = (768 / h)
-		--end
-		--local gpoint, grelativeTo, grelativePoint, gxOfs, gyOfs = WindowFrame:GetPoint(1);
-		--WindowFrame:ClearAllPoints();
-		--WindowFrame:SetPoint(gpoint, grelativeTo, grelativePoint, gxOfs, gyOfs);
-	 end);
+	self.titleBar:SetScript("OnDragStop", function() self.frame:StopMovingOrSizing(); end);
 
 	-- Close Button --
 	self.closeButton = UI.Button:New(-1, -1, 20 - 1, 20 - 1, self.titleBar, "TOPRIGHT", "TOPRIGHT",
@@ -72,13 +62,21 @@ function Window:Build()
     self.closeButton:SetColor(UI.Button.State.Highlight, 0.1757, 0.1757, 0.1875, 1);
     self.closeButton:SetColor(UI.Button.State.Pressed, 0, 0.4765, 0.7968, 1);
 
+	-- Dropshadow --
+    --self.dropShadow = UI.ImageBox:New(-self.w * 0.09, 0, self.w, self.h, self.frame, "TOPLEFT", "TOPLEFT", "Interface\\Addons\\scenemachine\\static\\textures\\dropShadowSquare.png");
+    --self.dropShadow:SetPoint("BOTTOMRIGHT", self.frame, "BOTTOMRIGHT", 0, 0);
+	--self.dropShadow:SetFrameLevel(100);
+    --self.dropShadow:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
+
     -- Resize Handle --
-    --SceneMachine.mainWindow.ResizeFrame = UI.Button:New(10, -10, 20, 20, SceneMachine.mainWindow, "BOTTOMRIGHT", "BOTTOMRIGHT", "", nil, nil)
-    --SceneMachine.mainWindow.ResizeFrame:EnableMouse(true);
-    --SceneMachine.mainWindow:SetResizable(true)
-    --SceneMachine.mainWindow.ResizeFrame:RegisterForDrag("LeftButton");
-    --SceneMachine.mainWindow.ResizeFrame:SetScript("OnDragStart", function() SceneMachine.mainWindow:StartSizing("BOTTOMRIGHT"); end);
-	--SceneMachine.mainWindow.ResizeFrame:SetScript("OnDragStop", function() SceneMachine.mainWindow:StopMovingOrSizing(); end);
+    self.frame:SetResizable(true);
+	self.frame:SetResizeBounds(200, 200, 1280, 1024);
+    self.resizeFrame = UI.ImageBox:New(0, 0, 16, 16, self.frame, "BOTTOMRIGHT", "BOTTOMRIGHT", "Interface\\Addons\\scenemachine\\static\\textures\\cornerResize.png");
+    self.resizeFrame:GetFrame():EnableMouse(true);
+	self.resizeFrame:SetVertexColor(1,1,1,0.3);
+    self.resizeFrame:GetFrame():RegisterForDrag("LeftButton");
+    self.resizeFrame:GetFrame():SetScript("OnDragStart", function() self.frame:StartSizing("BOTTOMRIGHT"); end);
+	self.resizeFrame:GetFrame():SetScript("OnDragStop", function() self.frame:StopMovingOrSizing(); end);
 end
 
 function Window:WindowCreateMenuBar(menu)
