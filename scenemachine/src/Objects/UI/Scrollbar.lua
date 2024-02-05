@@ -159,13 +159,16 @@ function Scrollbar:Enable()
 end
 
 function Scrollbar:SetValue(value)
-    print(value);
-    local newPoint = value * (self.frame:GetHeight() - self.scrollbarSlider:GetHeight());
-    self.scrollbarSlider:ClearAllPoints();
-    self.scrollbarSlider:SetPoint("TOP", self.frame:GetFrame(), "TOP", 0, newPoint);
+    self:SetValueWithoutAction(value);
     if (self.onScroll) then
         self.onScroll(value);
     end
+end
+
+function Scrollbar:SetValueWithoutAction(value)
+    local newPoint = value * (self.frame:GetHeight() - self.scrollbarSlider:GetHeight());
+    self.scrollbarSlider:ClearAllPoints();
+    self.scrollbarSlider:SetPoint("TOP", self.frame:GetFrame(), "TOP", 0, -newPoint);
 end
 
 Scrollbar.__tostring = function(self)

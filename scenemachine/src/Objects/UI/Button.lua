@@ -40,19 +40,19 @@ function Button:Build()
 
     -- normal texture
     self.ntex = self.frame:CreateTexture();
-    self.ntex:SetColorTexture(0.1757, 0.1757, 0.1875 ,1);
+    self.ntex:SetColorTexture(0.1757, 0.1757, 0.1875, 1);
 	self.ntex:SetAllPoints();
 	self.frame:SetNormalTexture(self.ntex);
     
     -- highlight texture
     self.htex = self.frame:CreateTexture();
-    self.htex:SetColorTexture(0.242, 0.242, 0.25,1);
+    self.htex:SetColorTexture(0.242, 0.242, 0.25, 1);
     self.htex:SetAllPoints();
     self.frame:SetHighlightTexture(self.htex);
 
     -- pressed texture
     self.ptex = self.frame:CreateTexture();
-    self.ptex:SetColorTexture(0, 0.4765, 0.7968,1);
+    self.ptex:SetColorTexture(0, 0.4765, 0.7968, 1);
     self.ptex:SetAllPoints();
 	self.frame:SetPushedTexture(self.ptex);
 
@@ -93,9 +93,9 @@ function Button:SetColor(state, R, G, B, A)
     end
 end
 
-function Button:SetTexCoords(left, right, top, bottom)
-    self.texcoords = { left, right, top, bottom };
-    self.icon:SetTexCoords(self.texcoords[1], self.texcoords[2], self.texcoords[3], self.texcoords[4]);
+function Button:SetTexCoords(texcoords)
+    self.texcoords = texcoords;
+    self.icon:SetTexCoords(self.texcoords);
 end
 
 function Button:GetText()
@@ -119,5 +119,5 @@ function Button:EnableMouse(on)
 end
 
 Button.__tostring = function(self)
-	return string.format("Button( %.3f, %.3f, %.3f, %.3f, %s )", self.x, self.y, self.w, self.h, self.parent);
+	return string.format("Button( %.3f, %.3f, %.3f, %.3f )", self.x, self.y, self.w, self.h);
 end

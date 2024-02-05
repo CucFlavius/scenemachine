@@ -56,8 +56,8 @@ function ImageBox:SetTexture(texture)
     self.frame.texture:SetTexture(self.texture);
 end
 
-function ImageBox:SetTexCoords(left, right, top, bottom)
-    self.texcoords = { left, right, top, bottom };
+function ImageBox:SetTexCoords(texcoords)
+    self.texcoords = texcoords;
     self.frame.texture:SetTexCoord(self.texcoords[1], self.texcoords[2], self.texcoords[3], self.texcoords[4]);
 end
 

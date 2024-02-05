@@ -29,5 +29,6 @@ Structures
 	<Script file="UI/TabPanel.lua"/>
 	<Script file="UI/ScrollFrame.lua"/>
 	<Script file="UI/ItemList.lua"/>
+	<Script file="UI/PooledScrollList.lua"/>
 	<Script file="UI/Window.lua"/>
 </Ui>

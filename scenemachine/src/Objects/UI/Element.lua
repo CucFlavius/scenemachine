@@ -58,6 +58,10 @@ function Element:ClearAllPoints()
     self.frame:ClearAllPoints();
 end
 
+function Element:SetAllPoints(frame)
+    self.frame:SetAllPoints(frame);
+end
+
 function Element:SetWidth(w)
     self.w = w;
     self.frame:SetWidth(w);
@@ -114,4 +118,8 @@ end
 
 function Element:GetEffectiveScale()
     return self.frame:GetEffectiveScale();
+end
+
+function Element:SetClipsChildren(on)
+    self.frame:SetClipsChildren(on);
 end

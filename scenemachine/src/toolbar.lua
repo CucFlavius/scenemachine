@@ -80,9 +80,9 @@ function Toolbar.Create(x, y, w, h, parent, iconCrop, window)
                     group.components[c].toggleOn = not group.components[c].toggleOn;
                     component.action(group.components[c], group.components[c].toggleOn);
                     if (group.components[c].toggleOn) then
-                        group.components[c]:SetTexCoords(component.iconOn[2][1], component.iconOn[2][2], component.iconOn[2][3], component.iconOn[2][4]);
+                        group.components[c]:SetTexCoords(component.iconOn[2]);
                     else
-                        group.components[c]:SetTexCoords(component.iconOff[2][1], component.iconOff[2][2], component.iconOff[2][3], component.iconOff[2][4]);
+                        group.components[c]:SetTexCoords(component.iconOff[2]);
                     end
                 end);
                 x = x + buttonW;
