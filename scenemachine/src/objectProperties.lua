@@ -1,4 +1,3 @@
-local Win = ZWindowAPI;
 local Editor = SceneMachine.Editor;
 local PM = Editor.ProjectManager;
 local SM = Editor.SceneManager;
@@ -6,16 +5,17 @@ local SH = Editor.SceneHierarchy;
 local Gizmos = SceneMachine.Gizmos;
 local OP = Editor.ObjectProperties;
 local Renderer = SceneMachine.Renderer;
+local UI = SceneMachine.UI;
 
 function OP.CreatePanel(x, y, w, h, c1, c2, c3, c4)
-    local leftPanel = Win.CreateRectangle(x, y, w, h, SceneMachine.mainWindow, "TOPLEFT", "TOPLEFT", c4[1], c4[2], c4[3], 1);
-    local group = Editor.CreateGroup("Properties", h, leftPanel);
+    local leftPanel = UI.Rectangle:New(x, y, w, h, SceneMachine.mainWindow:GetFrame(), "TOPLEFT", "TOPLEFT", c4[1], c4[2], c4[3], 1);
+    local group = Editor.CreateGroup("Properties", h, leftPanel:GetFrame());
 
-    local collapseList = Win.CreateCollapsableList(0, -1, w - 2, { 60, 80, 100 }, group, "TOP", "TOP", { "Transform", "Actor Properties", "Scene properties (temp)" }, c1[1], c1[2], c1[3], 1);
+    local collapseList = UI.CollapsableList:New(0, -1, w - 2, { 60, 80, 100 }, group, "TOP", "TOP", { "Transform", "Actor Properties", "Scene properties (temp)" }, c1[1], c1[2], c1[3], 1);
 
-    OP.CreateTransformProperties(0, 0, w - 2, 60, collapseList[1].panel);
-    OP.CreateActorProperties(0, 0, w - 2, 20, collapseList[2].panel)
-    OP.CreateSceneProperties(0, 0, w - 2, 80, collapseList[3].panel);
+    OP.CreateTransformProperties(0, 0, w - 2, 60, collapseList.bars[1].panel:GetFrame());
+    OP.CreateActorProperties(0, 0, w - 2, 20, collapseList.bars[2].panel:GetFrame())
+    OP.CreateSceneProperties(0, 0, w - 2, 80, collapseList.bars[3].panel:GetFrame());
 
     OP.Refresh();
 end
@@ -26,11 +26,11 @@ function OP.CreateTransformProperties(x, y, w, h, parent)
     local h = 16;
     local hPad = h + 2;
     local y = -5;
-    Win.CreateTextBoxSimple(10, y, editBoxTitleW, h, parent, "TOPLEFT", "TOPLEFT", "Position", 9);
+    UI.Label:New(10, y, editBoxTitleW, h, parent, "TOPLEFT", "TOPLEFT", "Position", 9);
     OP.Transform.posX = OP.CreateTransformField(editBoxTitleW + 10, y, 45, h, parent, "x", OP.SetPosX, 0);
     OP.Transform.posY = OP.CreateTransformField(editBoxTitleW + 10 + 55 + 2, y, 45, h,parent, "y", OP.SetPosY, 0);
     OP.Transform.posZ = OP.CreateTransformField(editBoxTitleW + 10 + (55 * 2) + (2 * 2), y, 45, h,parent, "z", OP.SetPosZ, 0);
-    local resetPosButton = Win.CreateButton(editBoxTitleW + 10 + (55 * 3) + (2 * 2), y, h, h, parent, "TOPLEFT", "TOPLEFT", "R", nil, "BUTTON_VS");
+    local resetPosButton = UI.Button:New(editBoxTitleW + 10 + (55 * 3) + (2 * 2), y, h, h, parent, "TOPLEFT", "TOPLEFT", "R", nil);
     resetPosButton:SetScript("OnClick", function(self)
         if (SM.selectedObject ~= nil) then
             SM.selectedObject:SetPosition(0, 0, 0);
@@ -39,11 +39,11 @@ function OP.CreateTransformProperties(x, y, w, h, parent)
     end);
 
     y = y - hPad;
-    Win.CreateTextBoxSimple(10, y, editBoxTitleW, h, parent, "TOPLEFT", "TOPLEFT", "Rotation", 9);
+    UI.Label:New(10, y, editBoxTitleW, h, parent, "TOPLEFT", "TOPLEFT", "Rotation", 9);
     OP.Transform.rotX = OP.CreateTransformField(editBoxTitleW + 10, y, 45, h,parent, "x", OP.SetRotX, 0);
     OP.Transform.rotY = OP.CreateTransformField(editBoxTitleW + 10 + 55 + 2, y, 45, h,parent, "y", OP.SetRotY, 0);
     OP.Transform.rotZ = OP.CreateTransformField(editBoxTitleW + 10 + (55 * 2) + (2 * 2), y, 45, h,parent, "z", OP.SetRotZ, 0);
-    local resetRotButton = Win.CreateButton(editBoxTitleW + 10 + (55 * 3) + (2 * 2), y, h, h, parent, "TOPLEFT", "TOPLEFT", "R", nil, "BUTTON_VS");
+    local resetRotButton = UI.Button:New(editBoxTitleW + 10 + (55 * 3) + (2 * 2), y, h, h, parent, "TOPLEFT", "TOPLEFT", "R", nil);
     resetRotButton:SetScript("OnClick", function(self)
         if (SM.selectedObject ~= nil) then
             SM.selectedObject:SetRotation(0, 0, 0);
@@ -52,13 +52,13 @@ function OP.CreateTransformProperties(x, y, w, h, parent)
     end);
 
     y = y - hPad;
-    Win.CreateTextBoxSimple(10, y, editBoxTitleW, h, parent, "TOPLEFT", "TOPLEFT", "Scale", 9);
-    OP.Transform.scale = Win.CreateEditBox(editBoxTitleW + 10 + 8, y, 159, h, parent, "TOPLEFT", "TOPLEFT", "0");
+    UI.Label:New(10, y, editBoxTitleW, h, parent, "TOPLEFT", "TOPLEFT", "Scale", 9);
+    OP.Transform.scale = UI.TextBox:New(editBoxTitleW + 10 + 8, y, 159, h, parent, "TOPLEFT", "TOPLEFT", "0");
     OP.Transform.scale:SetScript('OnEscapePressed', function(self1) 
         -- restore value
         self1:SetText(tostring(self1.value));
         self1:ClearFocus();
-        Win.focused = false;
+        Editor.ui.focused = false;
     end);
     OP.Transform.scale:SetScript('OnEnterPressed', function(self1)
         -- set value
@@ -72,7 +72,7 @@ function OP.CreateTransformProperties(x, y, w, h, parent)
         end
         OP.SetScale(self1);
         self1:ClearFocus();
-        Win.focused = false;
+        Editor.ui.focused = false;
     end);
     OP.Transform.scale:SetScript('OnEditFocusLost', function(self1) 
         -- set value
@@ -85,9 +85,9 @@ function OP.CreateTransformProperties(x, y, w, h, parent)
             self1.value = val;
         end
         OP.SetScale(self1);
-        Win.focused = false;
+        Editor.ui.focused = false;
     end);
-    local resetScaleButton = Win.CreateButton(editBoxTitleW + 10 + (55 * 3) + (2 * 2), y, h, h, parent, "TOPLEFT", "TOPLEFT", "R", nil, "BUTTON_VS");
+    local resetScaleButton = UI.Button:New(editBoxTitleW + 10 + (55 * 3) + (2 * 2), y, h, h, parent, "TOPLEFT", "TOPLEFT", "R", nil);
     resetScaleButton:SetScript("OnClick", function(self)
         if (SM.selectedObject ~= nil) then
             SM.selectedObject:SetScale(1);
@@ -97,13 +97,13 @@ function OP.CreateTransformProperties(x, y, w, h, parent)
 end
 
 function OP.CreateTransformField(x, y, w, h, parent, axisName, setValue, defaultValue)
-    Win.CreateTextBoxSimple(x, y, 10, h, parent, "TOPLEFT", "TOPLEFT", axisName, 9);
-    local transform = Win.CreateEditBox(x + 8, y, w, h, parent, "TOPLEFT", "TOPLEFT", "0");
+    UI.Label:New(x, y, 10, h, parent, "TOPLEFT", "TOPLEFT", axisName, 9);
+    local transform = UI.TextBox:New(x + 8, y, w, h, parent, "TOPLEFT", "TOPLEFT", "0");
     transform:SetScript('OnEscapePressed', function(self1) 
         -- restore value
         self1:SetText(tostring(self1.value));
         self1:ClearFocus();
-        Win.focused = false;
+        Editor.ui.focused = false;
     end);
     transform:SetScript('OnEnterPressed', function(self1)
         -- set value
@@ -117,7 +117,7 @@ function OP.CreateTransformField(x, y, w, h, parent, axisName, setValue, default
         end
         setValue(self1);
         self1:ClearFocus();
-        Win.focused = false;
+        Editor.ui.focused = false;
     end);
     transform:SetScript('OnEditFocusLost', function(self1) 
         -- set value
@@ -130,7 +130,7 @@ function OP.CreateTransformField(x, y, w, h, parent, axisName, setValue, default
             self1.value = val;
         end
         setValue(self1);
-        Win.focused = false;
+        Editor.ui.focused = false;
     end);
 
     return transform;
@@ -150,13 +150,13 @@ function OP.CreateActorProperties(x, y, w, h, parent)
     local hPad = h + 2;
     local y = -5;
 
-    Win.CreateTextBoxSimple(10, y, editBoxTitleW, h, parent, "TOPLEFT", "TOPLEFT", "Alpha", 9);
-    OP.ActorProperties.alpha = Win.CreateEditBox(editBoxTitleW + 10 + 8, y, 159, h, parent, "TOPLEFT", "TOPLEFT", "0");
+    UI.Label:New(10, y, editBoxTitleW, h, parent, "TOPLEFT", "TOPLEFT", "Alpha", 9);
+    OP.ActorProperties.alpha = UI.TextBox:New(editBoxTitleW + 10 + 8, y, 159, h, parent, "TOPLEFT", "TOPLEFT", "0");
     OP.ActorProperties.alpha:SetScript('OnEscapePressed', function(self1) 
         -- restore value
         self1:SetText(tostring(self1.value));
         self1:ClearFocus();
-        Win.focused = false;
+        Editor.ui.focused = false;
     end);
     OP.ActorProperties.alpha:SetScript('OnEnterPressed', function(self1)
         -- set value
@@ -170,7 +170,7 @@ function OP.CreateActorProperties(x, y, w, h, parent)
         end
         OP.SetAlpha(self1);
         self1:ClearFocus();
-        Win.focused = false;
+        Editor.ui.focused = false;
     end);
     OP.ActorProperties.alpha:SetScript('OnEditFocusLost', function(self1) 
         -- set value
@@ -183,9 +183,9 @@ function OP.CreateActorProperties(x, y, w, h, parent)
             self1.value = val;
         end
         OP.SetAlpha(self1);
-        Win.focused = false;
+        Editor.ui.focused = false;
     end);
-    local resetScaleButton = Win.CreateButton(editBoxTitleW + 10 + (55 * 3) + (2 * 2), y, h, h, parent, "TOPLEFT", "TOPLEFT", "R", nil, "BUTTON_VS");
+    local resetScaleButton = UI.Button:New(editBoxTitleW + 10 + (55 * 3) + (2 * 2), y, h, h, parent, "TOPLEFT", "TOPLEFT", "R", nil);
     resetScaleButton:SetScript("OnClick", function(self)
         if (SM.selectedObject ~= nil) then
             SM.selectedObject:SetAlpha(1);
@@ -201,17 +201,17 @@ function OP.CreateSceneProperties(x, y, w, h, parent)
     local h = 16;
     local hPad = h + 2;
     local y = -5;
-    Win.CreateTextBoxSimple(10, y, editBoxTitleW, h, parent, "TOPLEFT", "TOPLEFT", "Ambient Color", 9);
+    UI.Label:New(10, y, editBoxTitleW, h, parent, "TOPLEFT", "TOPLEFT", "Ambient Color", 9);
     local lightAmbColorR = OP.CreateTransformField(editBoxTitleW + 10, y, 45, h, parent, "r", OP.SetAmbientColorR, 1)
     local lightAmbColorG = OP.CreateTransformField(editBoxTitleW + 10 + 55 + 2, y, 45, h, parent, "g", OP.SetAmbientColorG, 1);
     local lightAmbColorB = OP.CreateTransformField(editBoxTitleW + 10 + (55 * 2) + (2 * 2), y, 45, h, parent, "b", OP.SetAmbientColorB, 1);
     y = y - hPad;
-    Win.CreateTextBoxSimple(10, y, editBoxTitleW, h, parent, "TOPLEFT", "TOPLEFT", "Diffuse Color", 9);
+    UI.Label:New(10, y, editBoxTitleW, h, parent, "TOPLEFT", "TOPLEFT", "Diffuse Color", 9);
     local lightDifColorR = OP.CreateTransformField(editBoxTitleW + 10, y, 45, h, parent, "r", OP.SetDiffuseColorR, 0)
     local lightDifColorG = OP.CreateTransformField(editBoxTitleW + 10 + 55 + 2, y, 45, h, parent, "g", OP.SetDiffuseColorG, 0);
     local lightDifColorB = OP.CreateTransformField(editBoxTitleW + 10 + (55 * 2) + (2 * 2), y, 45, h, parent, "b", OP.SetDiffuseColorB, 0);
     y = y - hPad;
-    --local testPosButton = Win.CreateButton(10, y, 100, h, parent, "TOPLEFT", "TOPLEFT", "Test", nil, "BUTTON_VS");
+    --local testPosButton = UI.Button:New(10, y, 100, h, parent, "TOPLEFT", "TOPLEFT", "Test", nil);
     --testPosButton:SetScript("OnClick", function(self) Renderer.projectionFrame:SetLightType(1); Renderer.projectionFrame:SetLightPosition(0, 0, 0); Renderer.projectionFrame:SetLightDirection(1, 1, 1); end);
     --{ Name = "Directional", Type = "ModelLightType", EnumValue = 0 },
     --{ Name = "Point", Type = "ModelLightType", EnumValue = 1 },

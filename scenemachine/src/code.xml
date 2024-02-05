@@ -1,7 +1,4 @@
 <Ui>
-    <!-- Libs -->
-    <Include file="Libraries\ZWindowAPI\ZWindowAPI.xml"/>
-
     <!-- Scene Machine -->
     <Script file="header.lua"/>
 
@@ -11,7 +8,7 @@
     <Script file="..\static\data\animdata.lua"/>
     <Script file="..\static\data\animnames.lua"/>
 
-    <Include file="Structures\Structures.xml"/>
+    <Include file="Objects\Objects.xml"/>
 
     <!-- <Script file="debug.lua"/> -->
 

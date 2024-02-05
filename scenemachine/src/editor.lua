@@ -1,5 +1,4 @@
 local Editor = SceneMachine.Editor;
-local Win = ZWindowAPI;
 local FX = SceneMachine.FX;
 local Renderer = SceneMachine.Renderer;
 local SH = Editor.SceneHierarchy;
@@ -37,7 +36,7 @@ Editor.MESSAGE_BOX_FRAME_STRATA = "FULLSCREEN"; -- Dialogs like "Are you sure yo
 function Editor.Initialize()
     Editor.version = GetAddOnMetadata("scenemachine", "Version");
 
-    Editor.ui = UI:New();
+    Editor.ui = UI.UI:New("Interface\\AddOns\\scenemachine\\static");
 
     if (Editor.isInitialized) then
         return;
@@ -61,10 +60,9 @@ function Editor.Initialize()
     };
 
     -- Create all of the UI --
-    Win.Initialize("Interface\\AddOns\\scenemachine\\src\\Libraries\\ZWindowAPI");
     Editor.CreateMainWindow();
     Editor.MainMenu.Create();
-    local toolbar = Editor.Toolbar.Create(0, -15, Editor.width, 30, SceneMachine.mainWindow);
+    local toolbar = Editor.Toolbar.Create(0, -15, Editor.width, 30, SceneMachine.mainWindow:GetFrame(), nil, SceneMachine.mainWindow);
     Editor.mainToolbar = toolbar;
     toolbar.CreateGroup(0, 0, Editor.width, 30, toolbar,
         {
@@ -97,7 +95,7 @@ function Editor.Initialize()
     local sceneY = -(Editor.toolbarHeight + 6);
     local sceneW = Editor.width - (rightPanelWidth + leftPanelWidth);
     local sceneH = Editor.height - (Editor.toolbarHeight + bottomPanelHeight + 6);
-    Editor.SceneManager.Create(sceneX, sceneY, sceneW, sceneH, SceneMachine.mainWindow);
+    Editor.SceneManager.Create(sceneX, sceneY, sceneW, sceneH, SceneMachine.mainWindow:GetFrame());
 
     -- Create minimap icon --
     local LDB = LibStub("LibDataBroker-1.1", true)
@@ -133,7 +131,7 @@ function Editor.Initialize()
         SceneMachine.Input.ShiftModifier = false;
     end);
     SceneMachine.Input.AddKeyBind("DELETE",function()
-        if (Win.focused == false) then
+        if (Editor.ui.focused == false) then
             SM.DeleteObject(SM.selectedObject);
         end
     end, nil);
@@ -178,8 +176,8 @@ function Editor.RefreshProjectsDropdown()
 
         if (component.type == "Dropdown") then
             if (component.name == "ProjectList") then
-                Editor.mainToolbar.transformGroup.components[c].SetOptions(projectNames);
-                Editor.mainToolbar.transformGroup.components[c].ShowSelectedName(selectedName);
+                Editor.mainToolbar.transformGroup.components[c]:SetOptions(projectNames);
+                Editor.mainToolbar.transformGroup.components[c]:ShowSelectedName(selectedName);
             end
         end
     end
@@ -227,39 +225,29 @@ function Editor.ResetWindow()
 end
 
 function Editor.CreateMainWindow()
-	SceneMachine.mainWindow = Win.CreateWindow(math.floor(Editor.width / 2), math.floor(Editor.height / 2), Editor.width, Editor.height, nil, "TOPLEFT", "TOPLEFT", true, "Scene Machine " .. Editor.version);
-    SceneMachine.mainWindow.CloseButton:SetScript("OnClick", function (self, button, down) Editor.Hide(); end)
+    local x = math.floor(Editor.width / 2);
+    local y = math.floor(Editor.height / 2);
+    local w = Editor.width;
+    local h = Editor.height;
+    -- Window:New(x, y, w, h, parent, point, parentPoint, title)
+	SceneMachine.mainWindow = UI.Window:New(x, y, w, h, UIParent, "TOPLEFT", "TOPLEFT", "Scene Machine");
+    SceneMachine.mainWindow.closeButton:SetScript("OnClick", function() Editor.Hide(); end);
 	SceneMachine.mainWindow:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
     SceneMachine.mainWindow:SetScale(Editor.scale);
+    SceneMachine.mainWindow.titleBar_text:SetJustifyH("LEFT");
+    SceneMachine.mainWindow.titleBar_text:ClearAllPoints();
+    SceneMachine.mainWindow.titleBar_text:SetPoint("LEFT", 25, 0);
+
+    SceneMachine.mainWindow.TitleBarIcon = UI.ImageBox:New(5/2, -5/2, 15, 15, SceneMachine.mainWindow.titleBar, "TOPLEFT", "TOPLEFT", "Interface\\Addons\\scenemachine\\static\\textures\\icon32.png");
 	SceneMachine.WINDOW_WIDTH = Editor.width;
 	SceneMachine.WINDOW_HEIGHT = Editor.height;
-    SceneMachine.mainWindow.TitleBar.text:SetJustifyH("LEFT");
-    SceneMachine.mainWindow.TitleBar.text:ClearAllPoints();
-    SceneMachine.mainWindow.TitleBar.text:SetPoint("LEFT", 25, 0);
-	--SceneMachine.mainWindow:SetIgnoreParentScale(true);		-- This way the camera doesn't get offset when the wow window or UI changes size/aspect
-    SceneMachine.mainWindow.texture:SetColorTexture(c4[1], c4[2], c4[3],1);
-    SceneMachine.mainWindow.TitleBar.texture:SetColorTexture(c1[1], c1[2], c1[3], 1);
-    SceneMachine.mainWindow.CloseButton.ntex:SetColorTexture(c1[1], c1[2], c1[3], 1);
-    SceneMachine.mainWindow.CloseButton.htex:SetColorTexture(c2[1], c2[2], c2[3], 1);
-    SceneMachine.mainWindow.CloseButton.ptex:SetColorTexture(c3[1], c3[2], c3[3], 1);
-
-    SceneMachine.mainWindow.TitleBarIcon = Win.CreateImageBox(5/2, -5/2, 15, 15, SceneMachine.mainWindow.TitleBar, "TOPLEFT", "TOPLEFT",
-	"Interface\\Addons\\scenemachine\\static\\textures\\icon32.png");
-
-    --SceneMachine.mainWindow.ResizeFrame = Win.CreateRectangle(10, -10, 20, 20, SceneMachine.mainWindow, "BOTTOMRIGHT", "BOTTOMRIGHT", 1, 1, 1, 1);
-    --SceneMachine.mainWindow.ResizeFrame = Win.CreateButton(10, -10, 20, 20, SceneMachine.mainWindow, "BOTTOMRIGHT", "BOTTOMRIGHT", "", nil, nil, nil)
-    --SceneMachine.mainWindow.ResizeFrame:EnableMouse(true);
-    --SceneMachine.mainWindow:SetResizable(true)
-    --SceneMachine.mainWindow.ResizeFrame:RegisterForDrag("LeftButton");
-    --SceneMachine.mainWindow.ResizeFrame:SetScript("OnDragStart", function() SceneMachine.mainWindow:StartSizing("BOTTOMRIGHT"); end);
-	--SceneMachine.mainWindow.ResizeFrame:SetScript("OnDragStop", function() SceneMachine.mainWindow:StopMovingOrSizing(); end);
 end
 
 function Editor.CreateRightPanel()
-    local rightPanel = Win.CreateRectangle(0, -Editor.toolbarHeight/2, rightPanelWidth, Editor.height - Editor.toolbarHeight, SceneMachine.mainWindow, "RIGHT", "RIGHT", c4[1], c4[2], c4[3], 1);
+    local rightPanel = UI.Rectangle:New(0, -Editor.toolbarHeight/2, rightPanelWidth, Editor.height - Editor.toolbarHeight, SceneMachine.mainWindow:GetFrame(), "RIGHT", "RIGHT", c4[1], c4[2], c4[3], 1);
     
     local edge = 10;
-    local tilesGroup = Editor.CreateGroup("Asset Explorer", Editor.height - Editor.toolbarHeight - edge , rightPanel);
+    local tilesGroup = Editor.CreateGroup("Asset Explorer", Editor.height - Editor.toolbarHeight - edge , rightPanel:GetFrame());
 
     Editor.AssetBrowser.Create(tilesGroup, rightPanelWidth - 12, Editor.height - Editor.toolbarHeight - edge -(Editor.toolbarHeight / 2));
 end
@@ -270,21 +258,21 @@ function Editor.CreateLeftPanel()
 end
 
 function Editor.CreateBottomPanel()
-    local bottomPanel = Win.CreateRectangle(leftPanelWidth, 0, Editor.width - (rightPanelWidth + leftPanelWidth),
-        bottomPanelHeight, SceneMachine.mainWindow, "BOTTOMLEFT", "BOTTOMLEFT", c4[1], c4[2], c4[3], 1);
+    local bottomPanel = UI.Rectangle:New(leftPanelWidth, 0, Editor.width - (rightPanelWidth + leftPanelWidth),
+        bottomPanelHeight, SceneMachine.mainWindow:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", c4[1], c4[2], c4[3], 1);
 
     -- Create Animation manager
     --local animX = leftPanelWidth;
     --local animY = -(Editor.toolbarHeight + 6) - Renderer.h;
-    AM.CreateAnimationManager(0, 0, Editor.width - (rightPanelWidth + leftPanelWidth), bottomPanelHeight, bottomPanel);
+    AM.CreateAnimationManager(0, 0, Editor.width - (rightPanelWidth + leftPanelWidth), bottomPanelHeight, bottomPanel:GetFrame());
 end
 
 function Editor.CreateGroup(name, groupHeight, groupParent)
-    local groupBG = Win.CreateRectangle(6, -6, leftPanelWidth - 12, groupHeight, groupParent, "TOPLEFT", "TOPLEFT",  c1[1], c1[2], c1[3], 1);
-    local groupTitleText = Win.CreateTextBoxSimple(0, 0, leftPanelWidth - 30, 20, groupBG, "TOP", "TOP", name, 9);
-    local groupContent = Win.CreateRectangle(0, -20, leftPanelWidth - 12, groupHeight - 20, groupBG, "TOPLEFT", "TOPLEFT", 0.1445, 0.1445, 0.1445, 1);
+    local groupBG = UI.Rectangle:New(6, -6, leftPanelWidth - 12, groupHeight, groupParent, "TOPLEFT", "TOPLEFT",  c1[1], c1[2], c1[3], 1);
+    local groupTitleText = UI.Label:New(0, 0, leftPanelWidth - 30, 20, groupBG:GetFrame(), "TOP", "TOP", name, 9);
+    local groupContent = UI.Rectangle:New(0, -20, leftPanelWidth - 12, groupHeight - 20, groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", 0.1445, 0.1445, 0.1445, 1);
 
-    return groupContent;
+    return groupContent:GetFrame();
 end
 
 function SceneMachine.CreateStatsFrame()
@@ -293,7 +281,7 @@ function SceneMachine.CreateStatsFrame()
 	SceneMachine.StatsFrame:SetWidth(200);
 	SceneMachine.StatsFrame:SetHeight(200);
 	SceneMachine.StatsFrame.text = SceneMachine.StatsFrame:CreateFontString(nil, "BACKGROUND", "GameTooltipText");
-	SceneMachine.StatsFrame.text:SetFont(Win.defaultFont, 9, "NORMAL");
+	SceneMachine.StatsFrame.text:SetFont(Editor.ui.defaultFont, 9, "NORMAL");
 
 	SceneMachine.StatsFrame.text:SetPoint("TOPRIGHT",-5,-5);
 	SceneMachine.StatsFrame.text:SetJustifyV("TOP");
@@ -305,10 +293,7 @@ function Editor.Save()
     scenemachine_projects = Editor.ProjectManager.projects;
 
     -- ask for restart / or restart --
-    Win.OpenMessageBox(SceneMachine.mainWindow, 
-    "Save", "Saving requires a UI reload, continue?",
-    true, true, function() ReloadUI(); end, function() end);
-    Win.messageBox:SetFrameStrata(Editor.MESSAGE_BOX_FRAME_STRATA);
+    Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),  "Save", "Saving requires a UI reload, continue?", true, true, function() ReloadUI(); end, function() end);
 end
 
 function Editor.ShowProjectManager()
@@ -318,28 +303,23 @@ end
 function Editor.ShowImportScenescript()
     -- create
     if (not Editor.importSSWindow) then
-        Editor.importSSWindow = Win.CreatePopupWindow(0, 0, 400, 400, SceneMachine.mainWindow, "CENTER", "CENTER", "Editor.importSSWindow");
+        Editor.importSSWindow = UI.Window:New(0, 0, 400, 400, SceneMachine.mainWindow:GetFrame(), "CENTER", "CENTER", "Editor.importSSWindow");
         Editor.importSSWindow:SetFrameStrata(Editor.SUB_FRAME_STRATA);
-        local dropShadow = Win.CreateImageBox(0, 10, 400 * 1.20, 400 * 1.20, Editor.importSSWindow, "CENTER", "CENTER",
+        local dropShadow = UI.ImageBox:New(0, 10, 400 * 1.20, 400 * 1.20, Editor.importSSWindow:GetFrame(), "CENTER", "CENTER",
         "Interface\\Addons\\scenemachine\\static\\textures\\dropShadowSquare.png");
         dropShadow:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
-        Editor.importSSWindow.texture:SetColorTexture(c4[1], c4[2], c4[3],1);
-        Editor.importSSWindow.TitleBar.texture:SetColorTexture(c1[1], c1[2], c1[3], 1);
-        Editor.importSSWindow.CloseButton.ntex:SetColorTexture(c1[1], c1[2], c1[3], 1);
-        Editor.importSSWindow.CloseButton.htex:SetColorTexture(c2[1], c2[2], c2[3], 1);
-        Editor.importSSWindow.CloseButton.ptex:SetColorTexture(c3[1], c3[2], c3[3], 1);
 
-        Editor.importSSWindow.editBox = Win.CreateEditBox(0, 0, 390, 390, Editor.importSSWindow, "TOPLEFT", "TOPLEFT", "", 9);
+        Editor.importSSWindow.editBox = UI.TextBox:New(0, 0, 390, 390, Editor.importSSWindow:GetFrame(), "TOPLEFT", "TOPLEFT", "", 9);
         Editor.importSSWindow.editBox:SetMultiLine(true);
         Editor.importSSWindow.editBox:SetMaxLetters(0);
         Editor.importSSWindow.editBox:SetScript('OnEscapePressed', function()
             Editor.importSSWindow.editBox:ClearFocus();
-            Win.focused = false;
+            Editor.ui.focused = false;
             Editor.importSSWindow.editBox:SetText("");
         end);
         Editor.importSSWindow.editBox:SetScript('OnEnterPressed', function() 
             Editor.importSSWindow.editBox:ClearFocus();
-            Win.focused = false;
+            Editor.ui.focused = false;
             Editor.importSSWindow:Hide();
             SceneMachine.ImportScenescript(Editor.importSSWindow.editBox:GetText())
         end);
@@ -369,5 +349,48 @@ function Editor.OpenContextMenu(x, y)
         end },
 	};
 
-    Win.PopupWindowMenu(x, y, SceneMachine.mainWindow, menuOptions);
+    SceneMachine.mainWindow:PopupWindowMenu(x, y, menuOptions);
+end
+
+function Editor.OpenMessageBox( window, title, message, hasYesButton, hasNoButton, onYesButton, onNoButton )
+    if (not Editor.messageBox) then
+        Editor.messageBox = UI.Window:New(0, 0, 300, 150, window, "CENTER", "CENTER", title);
+        Editor.messageBox:SetFrameStrata(Editor.MESSAGE_BOX_FRAME_STRATA);
+        local dropShadow = UI.ImageBox:New(0, 10, 300 * 1.20, 150 * 1.29, Editor.messageBox:GetFrame(), "CENTER", "CENTER", "Interface\\Addons\\scenemachine\\static\\textures\\dropShadowSquare.png");
+        dropShadow:SetFrameStrata("MEDIUM");
+
+        Editor.messageBox.textBox = UI.Label:New(0, 10, 280, 100, Editor.messageBox:GetFrame(), "CENTER", "CENTER", message, 10);
+        Editor.messageBox.yesButton = UI.Button:New(-75, 10, 50, 25, Editor.messageBox:GetFrame(), "BOTTOMRIGHT", "BOTTOMRIGHT", "YES");
+        Editor.messageBox.noButton = UI.Button:New(-20, 10, 50, 25, Editor.messageBox:GetFrame(), "BOTTOMRIGHT", "BOTTOMRIGHT", "NO");
+    end
+
+    Editor.messageBox:SetParent(window);
+    Editor.messageBox:SetTitle(title);
+    Editor.messageBox.textBox:SetText(message);
+
+    Editor.messageBox:Show();
+
+    if (hasYesButton) then
+        Editor.messageBox.yesButton:Show();
+        Editor.messageBox.yesButton:SetScript("OnClick", function (self, button, down)
+            Editor.messageBox:Hide();
+            if (onYesButton ~= nil) then
+                onYesButton();
+            end
+        end);
+    else
+        Editor.messageBox.yesButton:Hide();
+    end
+
+    if (hasNoButton) then
+        Editor.messageBox.noButton:Show();
+        Editor.messageBox.noButton:SetScript("OnClick", function (self, button, down)
+            Editor.messageBox:Hide();
+            if (onNoButton ~= nil) then
+                onNoButton();
+            end
+        end);
+    else
+        Editor.messageBox.noButton:Hide();
+    end
 end

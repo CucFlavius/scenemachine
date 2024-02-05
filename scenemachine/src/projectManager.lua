@@ -1,7 +1,7 @@
-local Win = ZWindowAPI;
 local Editor = SceneMachine.Editor;
 local PM = Editor.ProjectManager;
 local SM = Editor.SceneManager;
+local UI = SceneMachine.UI;
 
 local c1 = { 0.1757, 0.1757, 0.1875 };
 local c2 = { 0.242, 0.242, 0.25 };
@@ -16,45 +16,42 @@ PM.selectedProjectID = nil;
 PM.projectListIDs = {};
 
 function PM.CreateWindow()
-    PM.window = Win.CreatePopupWindow(0, 0, managerWindowWidth, managerWindowHeight, SceneMachine.mainWindow, "CENTER", "CENTER", "ProjectManager");
+    -- Window:New(x, y, w, h, parent, point, parentPoint, title)
+    PM.window = UI.Window:New(0, 0, managerWindowWidth, managerWindowHeight, SceneMachine.mainWindow:GetFrame(), "CENTER", "CENTER", "ProjectManager");
     PM.window:SetFrameStrata(Editor.SUB_FRAME_STRATA);
-    local dropShadow = Win.CreateImageBox(0, 10, managerWindowWidth * 1.20, managerWindowHeight * 1.29, PM.window, "CENTER", "CENTER",
+    local dropShadow = UI.ImageBox:New(0, 10, managerWindowWidth * 1.20, managerWindowHeight * 1.29, PM.window:GetFrame(), "CENTER", "CENTER",
 	"Interface\\Addons\\scenemachine\\static\\textures\\dropShadowSquare.png");
     dropShadow:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
-    PM.window.texture:SetColorTexture(c4[1], c4[2], c4[3],1);
-    PM.window.TitleBar.texture:SetColorTexture(c1[1], c1[2], c1[3], 1);
-    PM.window.CloseButton.ntex:SetColorTexture(c1[1], c1[2], c1[3], 1);
-    PM.window.CloseButton.htex:SetColorTexture(c2[1], c2[2], c2[3], 1);
-    PM.window.CloseButton.ptex:SetColorTexture(c3[1], c3[2], c3[3], 1);
 
     -- project list frame --
-    PM.projectListFrame = Win.CreateRectangle(0, 0, managerWindowWidth, managerWindowHeight, PM.window, "TOPLEFT", "TOPLEFT", 0, 0, 0, 0);
-    PM.projectScrollList = Win.CreateScrollList(10, -10, managerWindowWidth - 20, 200, PM.projectListFrame, "TOPLEFT", "TOPLEFT");
-    PM.projectList = Win.ItemList(PM.projectScrollList:GetWidth() - 30, 20, PM.projectScrollList.ContentFrame, function(index) 
+    PM.projectListFrame = UI.Rectangle:New(0, 0, managerWindowWidth, managerWindowHeight, PM.window:GetFrame(), "TOPLEFT", "TOPLEFT", 0, 0, 0, 0);
+
+    PM.projectScrollList = UI.ScrollFrame:New(10, -10, managerWindowWidth - 20, 200, PM.projectListFrame:GetFrame(), "TOPLEFT", "TOPLEFT");
+    PM.projectList = UI.ItemList:New(PM.projectScrollList:GetWidth() - 30, 20, PM.projectScrollList.contentFrame, function(index) 
         if (index > 0) then
             PM.selectedProjectID = PM.projectListIDs[index];
         end
      end);
 
     local buttonSpacing = 5;
-    PM.newProjectButton = Win.CreateButton(10, 10, 60, 40, PM.projectListFrame, "BOTTOMLEFT", "BOTTOMLEFT", "New Project", nil, Win.BUTTON_VS);
+    PM.newProjectButton = UI.Button:New(10, 10, 60, 40, PM.projectListFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "New Project", nil);
     PM.newProjectButton:SetScript("OnClick", function(self) PM.ButtonNewProject() end);
-    PM.loadProjectButton = Win.CreateButton(60 + (buttonSpacing) + 10, 10, 60, 40, PM.projectListFrame, "BOTTOMLEFT", "BOTTOMLEFT", "Load Project", nil, Win.BUTTON_VS);
+    PM.loadProjectButton = UI.Button:New(60 + (buttonSpacing) + 10, 10, 60, 40, PM.projectListFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "Load Project", nil);
     PM.loadProjectButton:SetScript("OnClick", function(self) PM.ButtonLoadProject() end);
-    PM.editProjectButton = Win.CreateButton((60 * 2) + (buttonSpacing * 2) + 10, 10, 60, 40, PM.projectListFrame, "BOTTOMLEFT", "BOTTOMLEFT", "Edit Project", nil, Win.BUTTON_VS);
+    PM.editProjectButton = UI.Button:New((60 * 2) + (buttonSpacing * 2) + 10, 10, 60, 40, PM.projectListFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "Edit Project", nil);
     PM.editProjectButton:SetScript("OnClick", function(self) PM.ButtonEditProject() end);
-    PM.deleteProjectButton = Win.CreateButton((60 * 3) + (buttonSpacing * 3) + 10, 10, 60, 40, PM.projectListFrame, "BOTTOMLEFT", "BOTTOMLEFT", "Remove Project", nil, Win.BUTTON_VS);
+    PM.deleteProjectButton = UI.Button:New((60 * 3) + (buttonSpacing * 3) + 10, 10, 60, 40, PM.projectListFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "Remove Project", nil);
     PM.deleteProjectButton:SetScript("OnClick", function(self) PM.ButtonDeleteProject() end);
-    PM.saveDataButton = Win.CreateButton((60 * 4) + (buttonSpacing * 4) + 10, 10, 60, 40, PM.projectListFrame, "BOTTOMLEFT", "BOTTOMLEFT", "Save Data", nil, Win.BUTTON_VS);
+    PM.saveDataButton = UI.Button:New((60 * 4) + (buttonSpacing * 4) + 10, 10, 60, 40, PM.projectListFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "Save Data", nil);
     PM.saveDataButton:SetScript("OnClick", function(self) Editor.Save() end);
 
     -- project edit frame --
-    PM.projectEditFrame = Win.CreateRectangle(0, 0, managerWindowWidth, managerWindowHeight, PM.window, "TOPLEFT", "TOPLEFT", 0, 0, 0, 0);
-    PM.projectEditFrame_NameBox = Win.CreateEditBox(10, -10, 300, 20, PM.projectEditFrame, "TOPLEFT", "TOPLEFT", "", 12);
+    PM.projectEditFrame = UI.Rectangle:New(0, 0, managerWindowWidth, managerWindowHeight, PM.window:GetFrame(), "TOPLEFT", "TOPLEFT", 0, 0, 0, 0);
+    PM.projectEditFrame_NameBox = UI.TextBox:New(10, -10, 300, 20, PM.projectEditFrame:GetFrame(), "TOPLEFT", "TOPLEFT", "", 12);
 
-    PM.saveEditProjectButton = Win.CreateButton(10, 10, 60, 40, PM.projectEditFrame, "BOTTOMLEFT", "BOTTOMLEFT", "Save", nil, Win.BUTTON_VS);
+    PM.saveEditProjectButton = UI.Button:New(10, 10, 60, 40, PM.projectEditFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "Save", nil);
     PM.saveEditProjectButton:SetScript("OnClick", function(self) PM.ButtonSaveEditProject() end);
-    PM.closeEditProjectButton = Win.CreateButton(60 + 10 + 10, 10, 60, 40, PM.projectEditFrame, "BOTTOMLEFT", "BOTTOMLEFT", "Cancel", nil, Win.BUTTON_VS);
+    PM.closeEditProjectButton = UI.Button:New(60 + 10 + 10, 10, 60, 40, PM.projectEditFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "Cancel", nil);
     PM.closeEditProjectButton:SetScript("OnClick", function(self) PM.ButtonCancelEditProject() end);
 
     PM.window:Hide();
@@ -130,7 +127,7 @@ function PM.LoadProject(ID)
         return;
     end
 
-    SceneMachine.mainWindow.TitleBar.text:SetText("Scene Machine " .. Editor.version .. " - " .. PM.currentProject.name);
+    SceneMachine.mainWindow:SetTitle("Scene Machine " .. Editor.version .. " - " .. PM.currentProject.name);
 
     -- Load last scene
     if (PM.currentProject.lastOpenScene ~= nil) then
@@ -170,7 +167,7 @@ function PM.OpenWindow()
     PM.window:Show();
     PM.projectListFrame:Show();
     PM.projectEditFrame:Hide();
-    PM.window.TitleBar.text:SetText("Project Manager");
+    PM.window:SetTitle("Project Manager");
     PM.RefreshProjectWindow();
 end
 
@@ -183,14 +180,14 @@ function PM.RefreshProjectWindow()
     end
 
     -- resize --
-    PM.projectScrollList.Scrollbar:SetMinMaxValues(0, max((index * 20) - (150), 1));
-	PM.projectScrollList.Scrollbar:SetValueStep(1);
+    --PM.projectScrollList.Scrollbar:SetMinMaxValues(0, max((index * 20) - (150), 1));
+	--PM.projectScrollList.Scrollbar:SetValueStep(1);
 end
 
 function PM.ButtonNewProject()
     PM.projectListFrame:Hide();
     PM.projectEditFrame:Show();
-    PM.window.TitleBar.text:SetText("New Project");
+    PM.window:SetTitle("New Project");
 
     PM.projectEditFrame_NameBox:SetText("Project Name");
 end
@@ -211,7 +208,7 @@ function PM.ButtonEditProject()
 
     PM.projectListFrame:Hide();
     PM.projectEditFrame:Show();
-    PM.window.TitleBar.text:SetText("Edit Project");
+    PM.window:SetTitle("Edit Project");
 
     -- fill in existing info --
     PM.projectEditFrame_NameBox:SetText(PM.projects[PM.selectedProjectID].name);
@@ -220,13 +217,13 @@ end
 function PM.ButtonCancelEditProject()
     PM.projectListFrame:Show();
     PM.projectEditFrame:Hide();
-    PM.window.TitleBar.text:SetText("Project Manager");
+    PM.window:SetTitle("Project Manager");
 end
 
 function PM.ButtonSaveEditProject()
     PM.projectListFrame:Show();
     PM.projectEditFrame:Hide();
-    PM.window.TitleBar.text:SetText("Project Manager");
+    PM.window:SetTitle("Project Manager");
 
     local projectName = PM.projectEditFrame_NameBox:GetText();
 
@@ -247,10 +244,7 @@ function PM.ButtonDeleteProject()
     end
 
     -- ask for restart / or restart --
-    Win.OpenMessageBox(PM.window, 
-    "Remove Project", "Removing the project will also remove all its scenes and data, continue?",
-    true, true, function() PM.DeleteProject(PM.selectedProjectID) end, function() end);
-    Win.messageBox:SetFrameStrata(Editor.MESSAGE_BOX_FRAME_STRATA);
+    Editor.OpenMessageBox(PM.window:GetFrame(), "Remove Project", "Removing the project will also remove all its scenes and data, continue?", true, true, function() PM.DeleteProject(PM.selectedProjectID) end, function() end);
 end
 
 function PM.DeleteProject(ID)

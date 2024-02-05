@@ -1,12 +1,12 @@
 local AssetBrowser = SceneMachine.Editor.AssetBrowser;
 local Editor = SceneMachine.Editor;
-local Win = ZWindowAPI;
 local Renderer = SceneMachine.Renderer;
 local SM = Editor.SceneManager;
 local Gizmos = SceneMachine.Gizmos;
 local Input = SceneMachine.Input;
 local Camera = SceneMachine.Camera;
 local Vector3 = SceneMachine.Vector3;
+local UI = SceneMachine.UI;
 
 local thumbSize = 95;
 local thumbCountX = 3;
@@ -20,16 +20,16 @@ local c4 = { 0.1171, 0.1171, 0.1171 };
 
 function AssetBrowser.Create(parent, w, h)
 
-    local tabPanel = Win.CreateTabPanel(0, 0, w, h, parent, "TOPLEFT", "TOPLEFT", 8);
+    local tabPanel = UI.TabPanel:New(0, 0, w, h, parent, "TOPLEFT", "TOPLEFT", 8);
     AssetBrowser.tabs = {};
-    AssetBrowser.tabs[1] = Win.AddTabPanelTab(tabPanel, w, h, "Models", 50, function() AssetBrowser.OnChangeTab(1); end);
-    AssetBrowser.tabs[2] = Win.AddTabPanelTab(tabPanel, w, h, "Creatures", 70, function() AssetBrowser.OnChangeTab(2); end);
 
-    AssetBrowser.CreateModelListTab(AssetBrowser.tabs[1], w, h -tabbarHeight);
+    AssetBrowser.tabs[1] = tabPanel:AddTab(w, h, "Models", 50, function() AssetBrowser.OnChangeTab(1); end);
+    AssetBrowser.tabs[2] = tabPanel:AddTab(w, h, "Creatures", 70, function() AssetBrowser.OnChangeTab(2); end);
+
+    AssetBrowser.CreateModelListTab(AssetBrowser.tabs[1]:GetFrame(), w, h -tabbarHeight);
     AssetBrowser.Refresh();
 
-
-    AssetBrowser.CreateCreatureListTab(AssetBrowser.tabs[2], w, h -tabbarHeight);
+    AssetBrowser.CreateCreatureListTab(AssetBrowser.tabs[2]:GetFrame(), w, h -tabbarHeight);
 
     -- DEBUG --
     --AssetBrowser.OnThumbnailClick("World");
@@ -45,7 +45,7 @@ function AssetBrowser.CreateModelListTab(parent, w, h)
 
     AssetBrowser.CreateToolbar(parent, -Editor.pmult, w);
 
-    AssetBrowser.thumbnailGroup = Win.CreateRectangle(
+    AssetBrowser.thumbnailGroup = UI.Rectangle:New(
         0, -((Editor.toolbarHeight - 15) + (Editor.pmult * 2)),
         w, h -(((Editor.toolbarHeight - 15) * 2) + (Editor.pmult)),
         parent, "TOPLEFT", "TOPLEFT", 0, 0, 0, 0.41);
@@ -57,14 +57,14 @@ function AssetBrowser.CreateModelListTab(parent, w, h)
     AssetBrowser.breadcrumb = {};
     table.insert(AssetBrowser.breadcrumb, AssetBrowser.currentDirectory);
 
-    AssetBrowser.CreateThumbnails(AssetBrowser.thumbnailGroup);
+    AssetBrowser.CreateThumbnails(AssetBrowser.thumbnailGroup:GetFrame());
     
     AssetBrowser.CreatePagination(parent);
 end
 
 function AssetBrowser.CreateCreatureListTab(parent, w, h)
-    local creatureDisplayIDText = Win.CreateTextBoxSimple(0, 0, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "CreatureDisplayID", 9);
-    local creatureDisplayIDEditBox = Win.CreateEditBox(w * 0.3, 0, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "41918");
+    local creatureDisplayIDText = UI.Label:New(0, 0, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "CreatureDisplayID", 9);
+    local creatureDisplayIDEditBox = UI.TextBox:New(w * 0.3, 0, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "41918");
     creatureDisplayIDEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
         local valText = self1:GetText();
@@ -76,11 +76,11 @@ function AssetBrowser.CreateCreatureListTab(parent, w, h)
             SM.CreateCreature(val, "Creature", 0, 0, 0);
         end
         self1:ClearFocus();
-        Win.focused = false;
+        Editor.ui.focused = false;
     end);
 
-    local creatureIDText = Win.CreateTextBoxSimple(0, -22, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "CreatureID", 9);
-    local creatureIDEditBox = Win.CreateEditBox(w * 0.3, -22, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    local creatureIDText = UI.Label:New(0, -22, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "CreatureID", 9);
+    local creatureIDEditBox = UI.TextBox:New(w * 0.3, -22, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     creatureIDEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
         local valText = self1:GetText();
@@ -95,11 +95,11 @@ function AssetBrowser.CreateCreatureListTab(parent, w, h)
             end
         end
         self1:ClearFocus();
-        Win.focused = false;
+        Editor.ui.focused = false;
     end);
 
-    local creatureAnimationText = Win.CreateTextBoxSimple(0, -44, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimID", 9);
-    local creatureAnimationEditBox = Win.CreateEditBox(w * 0.3, -44, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    local creatureAnimationText = UI.Label:New(0, -44, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimID", 9);
+    local creatureAnimationEditBox = UI.TextBox:New(w * 0.3, -44, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     creatureAnimationEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
         local valText = self1:GetText();
@@ -114,11 +114,11 @@ function AssetBrowser.CreateCreatureListTab(parent, w, h)
             end
         end
         self1:ClearFocus();
-        Win.focused = false;
+        Editor.ui.focused = false;
     end);
 
-    local creatureAnimationKitText = Win.CreateTextBoxSimple(0, -66, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimKitID", 9);
-    local creatureAnimationKitEditBox = Win.CreateEditBox(w * 0.3, -66, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    local creatureAnimationKitText = UI.Label:New(0, -66, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimKitID", 9);
+    local creatureAnimationKitEditBox = UI.TextBox:New(w * 0.3, -66, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     creatureAnimationKitEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
         local valText = self1:GetText();
@@ -133,33 +133,32 @@ function AssetBrowser.CreateCreatureListTab(parent, w, h)
             end
         end
         self1:ClearFocus();
-        Win.focused = false;
+        Editor.ui.focused = false;
     end);
 end
 
 function AssetBrowser.CreateToolbar(parent, y, w)
-    AssetBrowser.toolbar = Win.CreateRectangle(0, y, w, (Editor.toolbarHeight - 15), parent, "TOPLEFT", "TOPLEFT", c1[1], c1[2], c1[3], 1);
+    AssetBrowser.toolbar = UI.Rectangle:New(0, y, w, (Editor.toolbarHeight - 15), parent, "TOPLEFT", "TOPLEFT", c1[1], c1[2], c1[3], 1);
     
-    AssetBrowser.toolbar.upOneFolderButton = Win.CreateButton(1, 1, (Editor.toolbarHeight - 15) - 2, (Editor.toolbarHeight - 15) - 2, AssetBrowser.toolbar, "LEFT", "LEFT", nil,
-        "Interface\\Addons\\scenemachine\\static\\textures\\folderUpIcon.png", "BUTTON_VS");
+    AssetBrowser.toolbar.upOneFolderButton = UI.Button:New(0, 0, (Editor.toolbarHeight - 15) - 2, (Editor.toolbarHeight - 15) - 2, AssetBrowser.toolbar:GetFrame(), "LEFT", "LEFT", nil, "Interface\\Addons\\scenemachine\\static\\textures\\folderUpIcon.png");
     AssetBrowser.toolbar.upOneFolderButton:SetScript("OnClick", function (self, button, down) AssetBrowser.UpOneFolder(); end)
     
-    AssetBrowser.toolbar.breadCrumb = Win.CreateTextBoxSimple((Editor.toolbarHeight - 15), 0, w - (Editor.toolbarHeight - 15), (Editor.toolbarHeight - 15), AssetBrowser.toolbar,
+    AssetBrowser.toolbar.breadCrumb = UI.Label:New((Editor.toolbarHeight - 15), 0, w - (Editor.toolbarHeight - 15), (Editor.toolbarHeight - 15), AssetBrowser.toolbar:GetFrame(),
         "TOPLEFT", "TOPLEFT", "Breadcrumb", 9);
     
     -- Gave up on this because it requires resizing every element in the thumbnails too
-    --AssetBrowser.toolbar.increaseThumbColumns = Win.CreateButton(30, 0, toolbarHeight - 2, toolbarHeight - 2, AssetBrowser.toolbar, "LEFT", "LEFT", "+", nil, "BUTTON_VS");
+    --AssetBrowser.toolbar.increaseThumbColumns = UI.Button:New(30, 0, toolbarHeight - 2, toolbarHeight - 2, AssetBrowser.toolbar, "LEFT", "LEFT", "+", nil);
     --AssetBrowser.toolbar.increaseThumbColumns:SetScript("OnClick", function (self, button, down) AssetBrowser.OnIncreaseThumbnailColumns(); end)
 end
 
 function AssetBrowser.CreatePagination(parent)
-    AssetBrowser.paginationText = Win.CreateTextBoxSimple(0, 0, 100, 30, parent, "BOTTOM", "BOTTOM", "PaginationText", 9);
-    AssetBrowser.paginationText.text:SetJustifyH("CENTER");
+    AssetBrowser.paginationText = UI.Label:New(0, 0, 100, 30, parent, "BOTTOM", "BOTTOM", "PaginationText", 9);
+    AssetBrowser.paginationText:SetJustifyH("CENTER");
 
-    AssetBrowser.pageLeftButton = Win.CreateButton(0, 0, (Editor.toolbarHeight - 15) - 2, (Editor.toolbarHeight - 15) - 2, parent, "BOTTOMLEFT", "BOTTOMLEFT", "<", nil, "BUTTON_VS");
+    AssetBrowser.pageLeftButton = UI.Button:New(0, 0, (Editor.toolbarHeight - 15) - 2, (Editor.toolbarHeight - 15) - 2, parent, "BOTTOMLEFT", "BOTTOMLEFT", "<", nil);
     AssetBrowser.pageLeftButton:SetScript("OnClick", function (self, button, down) AssetBrowser.OnPreviousPageClic(); end)
 
-    AssetBrowser.pageRightButton = Win.CreateButton(0, 0, (Editor.toolbarHeight - 15) - 2, (Editor.toolbarHeight - 15) - 2, parent, "BOTTOMRIGHT", "BOTTOMRIGHT", ">", nil, "BUTTON_VS");
+    AssetBrowser.pageRightButton = UI.Button:New(0, 0, (Editor.toolbarHeight - 15) - 2, (Editor.toolbarHeight - 15) - 2, parent, "BOTTOMRIGHT", "BOTTOMRIGHT", ">", nil);
     AssetBrowser.pageRightButton:SetScript("OnClick", function (self, button, down) AssetBrowser.OnNextPageClick(); end)
 end
 
@@ -250,7 +249,7 @@ function AssetBrowser.RefreshBreadcrumb()
         end
     end
 
-    AssetBrowser.toolbar.breadCrumb.text:SetText(str);
+    AssetBrowser.toolbar.breadCrumb:SetText(str);
 end
 
 function AssetBrowser.RefreshPagination()
@@ -265,7 +264,7 @@ function AssetBrowser.RefreshPagination()
     end
 
     AssetBrowser.totalPages = math.ceil((directoryCount + fileCount) / (thumbCountX * thumbCountY));
-    AssetBrowser.paginationText.text:SetText(AssetBrowser.currentPage .. "/" .. AssetBrowser.totalPages);
+    AssetBrowser.paginationText:SetText(AssetBrowser.currentPage .. "/" .. AssetBrowser.totalPages);
 end
 
 function AssetBrowser.RefreshThumbnails()
@@ -286,7 +285,7 @@ function AssetBrowser.RefreshThumbnails()
     for i = 1, thumbCount, 1 do
         if (idx <= directoryCount) then
             local dirName = AssetBrowser.currentDirectory["D"][idx]["N"];
-            AssetBrowser.thumbnails[i].textBox.text:SetText(dirName);
+            AssetBrowser.thumbnails[i].textBox:SetText(dirName);
             AssetBrowser.thumbnails[i].imageBox:Show();
             AssetBrowser.thumbnails[i].modelFrame:Hide();
             AssetBrowser.thumbnails[i]:Show();
@@ -294,7 +293,7 @@ function AssetBrowser.RefreshThumbnails()
         elseif (idx <= directoryCount + fileCount) then
             local fileName = AssetBrowser.currentDirectory["FN"][idx];
             local fileID = AssetBrowser.currentDirectory["FI"][idx];
-            AssetBrowser.thumbnails[i].textBox.text:SetText(fileName);
+            AssetBrowser.thumbnails[i].textBox:SetText(fileName);
             AssetBrowser.thumbnails[i]:Show();
             AssetBrowser.thumbnails[i].modelFrame:Show();
             AssetBrowser.thumbnails[i].imageBox:Hide();
@@ -314,23 +313,24 @@ function AssetBrowser.RefreshThumbnails()
 end
 
 function AssetBrowser.CreateThumbnail(x, y, w, h, parent, name)
-    local thumbnail = Win.CreateButton(x, y, w, h, parent, "TOPLEFT", "TOPLEFT", "", nil, Win.BUTTON_VS);
-    thumbnail:RegisterForDrag("LeftButton");
-    thumbnail:SetScript("OnDoubleClick", function (self, button, down)
-            AssetBrowser.OnThumbnailClick(self.textBox.text:GetText());
+    local thumbnail = UI.Button:New(x, y, w, h, parent, "TOPLEFT", "TOPLEFT", "", nil);
+    thumbnail:GetFrame():RegisterForDrag("LeftButton");
+    thumbnail:GetFrame():SetScript("OnDoubleClick", function (self, button, down)
+            AssetBrowser.OnThumbnailClick(thumbnail.textBox:GetText());
        end);
 
-    thumbnail:SetScript("OnDragStart", function (self, button, down)
-            AssetBrowser.OnThumbnailDrag(self.textBox.text:GetText());
+    thumbnail:GetFrame():SetScript("OnDragStart", function (self, button, down)
+            AssetBrowser.OnThumbnailDrag(thumbnail.textBox:GetText());
         end);
 
-    thumbnail.imageBox = Win.CreateImageBox(0, -w / 4, w / 2, w / 2, thumbnail, "TOP", "TOP", "Interface\\Addons\\scenemachine\\static\\textures\\folderIcon.png");
-    thumbnail.textBox = Win.CreateTextBoxSimple(5, 0, w, 20, thumbnail, "BOTTOMLEFT", "BOTTOMLEFT", name, 9);
+    thumbnail.imageBox = UI.ImageBox:New(0, -w / 4, w / 2, w / 2, thumbnail:GetFrame(), "TOP", "TOP", "Interface\\Addons\\scenemachine\\static\\textures\\folderIcon.png");
+    thumbnail.textBox = UI.Label:New(5, 0, w, 20, thumbnail:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", name, 9);
 
-    thumbnail.modelFrame = CreateFrame("PlayerModel", "thumbnail_model_frame_" .. x .. y, thumbnail)
+    thumbnail.modelFrame = CreateFrame("PlayerModel", "thumbnail_model_frame_" .. x .. y, thumbnail:GetFrame());
     thumbnail.modelFrame:SetSize(w, w);
-    thumbnail.modelFrame:SetPoint("TOP", thumbnail, "TOP", 0, 0);
+    thumbnail.modelFrame:SetPoint("TOP", thumbnail:GetFrame(), "TOP", 0, 0);
     thumbnail.modelFrame:SetCustomCamera(1);
+
     return thumbnail;
 end
 

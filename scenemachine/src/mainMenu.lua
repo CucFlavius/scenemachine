@@ -1,5 +1,4 @@
 local Editor = SceneMachine.Editor;
-local Win = ZWindowAPI;
 local MainMenu = Editor.MainMenu;
 
 
@@ -38,5 +37,6 @@ function MainMenu.Create()
             },
         },
     };
-	Win.WindowCreateMenuBar(SceneMachine.mainWindow, menu, Editor.MAIN_FRAME_STRATA);
+    
+	SceneMachine.mainWindow:WindowCreateMenuBar(menu, Editor.MAIN_FRAME_STRATA);
 end

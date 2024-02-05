@@ -1,16 +1,16 @@
 local Editor = SceneMachine.Editor;
-local Win = ZWindowAPI;
 local Toolbar = Editor.Toolbar;
 local Gizmos = SceneMachine.Gizmos;
+local UI = SceneMachine.UI;
 
 local c1 = { 0.1757, 0.1757, 0.1875 };
 local c2 = { 0.242, 0.242, 0.25 };
 local c3 = { 0, 0.4765, 0.7968 };
 local c4 = { 0.1171, 0.1171, 0.1171 };
 
-function Toolbar.Create(x, y, w, h, parent, iconCrop)
+function Toolbar.Create(x, y, w, h, parent, iconCrop, window)
     iconCrop = iconCrop or 0;
-    local toolbar = Win.CreateRectangle(x, y, w, h, parent, "TOP", "TOP", c1[1], c1[2], c1[3], 1);
+    local toolbar = UI.Rectangle:New(x, y, w, h, parent, "TOP", "TOP", c1[1], c1[2], c1[3], 1);
 
     local iconsTexture = "Interface\\Addons\\scenemachine\\static\\textures\\toolbar.png";
 
@@ -44,7 +44,7 @@ function Toolbar.Create(x, y, w, h, parent, iconCrop)
     end
 
     function toolbar.CreateGroup(x, y, w, h, toolbar, components)
-        local group = Win.CreateRectangle(x, y, w, h, toolbar, "TOPLEFT", "TOPLEFT", c1[1], c1[2], c1[3], 1);
+        local group = UI.Rectangle:New(x, y, w, h, toolbar:GetFrame(), "TOPLEFT", "TOPLEFT", c1[1], c1[2], c1[3], 1);
         group.components = {};
     
         local x = 0;
@@ -55,24 +55,24 @@ function Toolbar.Create(x, y, w, h, parent, iconCrop)
             local component = components[c];
             
             if (component.type == "Separator") then
-                group.components[c] = Win.CreateRectangle(x + 2, 0, 1, 20, group, "LEFT", "LEFT", c2[1], c2[2], c2[3], 1);
+                group.components[c] = UI.Rectangle:New(x + 2, 0, 1, 20, group:GetFrame(), "LEFT", "LEFT", c2[1], c2[2], c2[3], 1);
                 x = x + 6;
             elseif (component.type == "DragHandle") then
-                group.components[c] = Win.CreateRectangle(x + 2, 0, 5, 20, group, "LEFT", "LEFT", c2[1], c2[2], c2[3], 1);
+                group.components[c] = UI.Rectangle:New(x + 2, 0, 5, 20, group:GetFrame(), "LEFT", "LEFT", c2[1], c2[2], c2[3], 1);
                 x = x + 9;
             elseif (component.type == "Button") then
                 if (component.icon ~= nil) then
-                    group.components[c] = Win.CreateButton(x, 0, buttonW, buttonH, group, "LEFT", "LEFT", nil, component.icon[1], "BUTTON_VS", component.icon[2]);
+                    group.components[c] = UI.Button:New(x, 0, buttonW, buttonH, group:GetFrame(), "LEFT", "LEFT", nil, component.icon[1], component.icon[2]);
                 else
-                    group.components[c] = Win.CreateButton(x, 0, buttonW, buttonH, group, "LEFT", "LEFT", component.name, nil, "BUTTON_VS");
+                    group.components[c] = UI.Button:New(x, 0, buttonW, buttonH, group:GetFrame(), "LEFT", "LEFT", component.name, nil);
                 end
                 group.components[c]:SetScript("OnClick", component.action);
                 x = x + buttonW;
             elseif (component.type == "Toggle") then
                 if (component.default) then
-                    group.components[c] = Win.CreateButton(x, 0, buttonW, buttonH, group, "LEFT", "LEFT", nil, component.iconOn[1], "BUTTON_VS", component.iconOn[2]);
+                    group.components[c] = UI.Button:New(x, 0, buttonW, buttonH, group:GetFrame(), "LEFT", "LEFT", nil, component.iconOn[1], component.iconOn[2]);
                 else
-                    group.components[c] = Win.CreateButton(x, 0, buttonW, buttonH, group, "LEFT", "LEFT", nil, component.iconOff[1], "BUTTON_VS", component.iconOff[2]);
+                    group.components[c] = UI.Button:New(x, 0, buttonW, buttonH, group:GetFrame(), "LEFT", "LEFT", nil, component.iconOff[1], component.iconOff[2]);
                 end
                 
                 group.components[c].toggleOn = component.default;
@@ -80,15 +80,14 @@ function Toolbar.Create(x, y, w, h, parent, iconCrop)
                     group.components[c].toggleOn = not group.components[c].toggleOn;
                     component.action(group.components[c], group.components[c].toggleOn);
                     if (group.components[c].toggleOn) then
-                        group.components[c].icon.texture:SetTexCoord(component.iconOn[2][1], component.iconOn[2][2], component.iconOn[2][3], component.iconOn[2][4]);
+                        group.components[c]:SetTexCoords(component.iconOn[2][1], component.iconOn[2][2], component.iconOn[2][3], component.iconOn[2][4]);
                     else
-                        group.components[c].icon.texture:SetTexCoord(component.iconOff[2][1], component.iconOff[2][2], component.iconOff[2][3], component.iconOff[2][4]);
+                        group.components[c]:SetTexCoords(component.iconOff[2][1], component.iconOff[2][2], component.iconOff[2][3], component.iconOff[2][4]);
                     end
                 end);
                 x = x + buttonW;
             elseif (component.type == "Dropdown") then
-                -- Win.CreateDropdown(posX, posY, sizeX, sizeY, parent, dropdownPoint, parentPoint)
-                group.components[c] = Win.CreateDropdown(x, 0, component.width, buttonH, group, "LEFT", "LEFT", component.options, component.action);
+                group.components[c] = UI.Dropdown:New(x, 0, component.width, buttonH, group:GetFrame(), "LEFT", "LEFT", component.options, component.action, window);
                 x = x + component.width;
             end
     

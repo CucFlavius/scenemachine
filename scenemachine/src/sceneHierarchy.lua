@@ -1,4 +1,3 @@
-local Win = ZWindowAPI;
 local Editor = SceneMachine.Editor;
 local PM = Editor.ProjectManager;
 local SM = Editor.SceneManager;
@@ -7,23 +6,14 @@ local Gizmos = SceneMachine.Gizmos;
 local CC = SceneMachine.CameraController;
 local OP = Editor.ObjectProperties;
 local AM = SceneMachine.Editor.AnimationManager;
-local Scrollbar = SceneMachine.Scrollbar;
+local UI = SceneMachine.UI;
 
 function SH.CreatePanel(x, y, w, h, c4)
-    local leftPanel = Win.CreateRectangle(x, y, w, h, SceneMachine.mainWindow, "TOPLEFT", "TOPLEFT", c4[1], c4[2], c4[3], 1);
-    local group = Editor.CreateGroup("Hierarchy", h, leftPanel);
+    local leftPanel = UI.Rectangle:New(x, y, w, h, SceneMachine.mainWindow:GetFrame(), "TOPLEFT", "TOPLEFT", c4[1], c4[2], c4[3], 1);
+    local group = Editor.CreateGroup("Hierarchy", h, leftPanel:GetFrame());
 
-    SH.scrollList = Win.CreateScrollList(1, -1, w - 2, h - 22, group, "TOPLEFT", "TOPLEFT");
-    SH.list = SH.ItemList(w - 45, 20, SH.scrollList.ContentFrame);
-	local scrollbar = Scrollbar:New(0, 0, 16, h - 22, SH.scrollList, 
-	function(value)
-		-- on scroll
-		SH.scrollList.ContentFrame:ClearAllPoints();
-        local height = SH.scrollList.ContentFrame:GetHeight() - SH.scrollList:GetHeight();
-        local pos = value * height;
-        SH.scrollList.ContentFrame:SetPoint("TOPLEFT", SH.scrollList, "TOPLEFT", 0, math.floor(pos));
-	end);
-
+    SH.scrollList = UI.ScrollFrame:New(1, -1, w - 2, h - 22, group, "TOPLEFT", "TOPLEFT");
+    SH.list = SH.ItemList(w - 45, 20, SH.scrollList.contentFrame);
     SH.RefreshHierarchy();
 end
 
@@ -69,7 +59,7 @@ function SH.ItemList(itemSizeX, itemSizeY, parent)
 end
 
 function SH.ItemList_CreateNewItem(x, y, w, h, parent, index)
-	local ButtonFont = Win.defaultFont;
+	local ButtonFont = Editor.ui.defaultFont;
 	local ButtonFontSize = 9;
 
 	-- main button frame --
@@ -99,10 +89,9 @@ function SH.ItemList_CreateNewItem(x, y, w, h, parent, index)
 	-- visibility icon --
 	SH.eyeIconVisibleTexCoord = { 0, 1, 0, 0.5 };
 	SH.eyeIconInvisibleTexCoord = { 0, 1, 0.5, 1 };
-	item.visibilityButton = Win.CreateButton(0, 0, h, h, item, "RIGHT", "RIGHT", nil,
-		"Interface\\Addons\\scenemachine\\static\\textures\\eyeIcon.png", nil, SH.eyeIconVisibleTexCoord);
-	item.visibilityButton.ntex:SetColorTexture(0, 0, 0, 0);
-	--item.visibilityButton = Win.CreateImageBox(-2.5, 0, h - 5, h - 5, item, "RIGHT", "RIGHT", "Interface\\Addons\\scenemachine\\static\\textures\\eyeIcon.png", SH.eyeIconVisibleTexCoord);
+	item.visibilityButton = UI.Button:New(0, 0, h, h, item, "RIGHT", "RIGHT", nil,
+		"Interface\\Addons\\scenemachine\\static\\textures\\eyeIcon.png", SH.eyeIconVisibleTexCoord);
+	item.visibilityButton:SetColor(UI.Button.State.Normal, 0, 0, 0, 0);
 	item.visibilityButton:SetAlpha(0.6);
 	item.visibilityButton:SetScript("OnClick", function (self, button, down) SH.VisibilityButton_OnClick(index) end);
 	return item;
@@ -139,9 +128,9 @@ function SH.RefreshHierarchy()
 		end
 
 		if (object.visible) then
-			SH.list.pool[index].visibilityButton.icon.texture:SetTexCoord(SH.eyeIconVisibleTexCoord[1], SH.eyeIconVisibleTexCoord[2], SH.eyeIconVisibleTexCoord[3], SH.eyeIconVisibleTexCoord[4]);
+			SH.list.pool[index].visibilityButton:SetTexCoords(SH.eyeIconVisibleTexCoord[1], SH.eyeIconVisibleTexCoord[2], SH.eyeIconVisibleTexCoord[3], SH.eyeIconVisibleTexCoord[4]);
 		else
-			SH.list.pool[index].visibilityButton.icon.texture:SetTexCoord(SH.eyeIconInvisibleTexCoord[1], SH.eyeIconInvisibleTexCoord[2], SH.eyeIconInvisibleTexCoord[3], SH.eyeIconInvisibleTexCoord[4]);
+			SH.list.pool[index].visibilityButton:SetTexCoords(SH.eyeIconInvisibleTexCoord[1], SH.eyeIconInvisibleTexCoord[2], SH.eyeIconInvisibleTexCoord[3], SH.eyeIconInvisibleTexCoord[4]);
 		end
 
         index = index + 1;

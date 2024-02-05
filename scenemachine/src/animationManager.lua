@@ -1,4 +1,3 @@
-local Win = ZWindowAPI;
 local AM = SceneMachine.Editor.AnimationManager;
 local SM = SceneMachine.Editor.SceneManager;
 local SH = SceneMachine.Editor.SceneHierarchy;
@@ -8,6 +7,7 @@ local Editor = SceneMachine.Editor;
 local Input = SceneMachine.Input;
 local Toolbar = Editor.Toolbar;
 local Track = SceneMachine.Track;
+local UI = SceneMachine.UI;
 
 local tabButtonHeight = 20;
 local tabPool = {};
@@ -146,8 +146,8 @@ function AM.Update(deltaTime)
         end
 
         AM.cropperSlider:ClearAllPoints();
-        AM.cropperSlider:SetPoint("LEFT", AM.cropperBg, "LEFT", newPoint + 16, 0);
-        AM.cropperSlider:SetPoint("RIGHT", AM.cropperBg, "LEFT", AM.inputState.maxFramePosStart, 0);
+        AM.cropperSlider:SetPoint("LEFT", AM.cropperBg:GetFrame(), "LEFT", newPoint + 16, 0);
+        AM.cropperSlider:SetPoint("RIGHT", AM.cropperBg:GetFrame(), "LEFT", AM.inputState.maxFramePosStart, 0);
         local newPointNormalized = newPoint / groupBgW;
         AM.currentCrop.min = newPointNormalized;
         AM.RefreshTimebar();
@@ -177,8 +177,8 @@ function AM.Update(deltaTime)
         end
 
         AM.cropperSlider:ClearAllPoints();
-        AM.cropperSlider:SetPoint("RIGHT", AM.cropperBg, "LEFT", newPoint, 0);
-        AM.cropperSlider:SetPoint("LEFT", AM.cropperBg, "LEFT", AM.inputState.minFramePosStart + 16, 0);
+        AM.cropperSlider:SetPoint("RIGHT", AM.cropperBg:GetFrame(), "LEFT", newPoint, 0);
+        AM.cropperSlider:SetPoint("LEFT", AM.cropperBg:GetFrame(), "LEFT", AM.inputState.minFramePosStart + 16, 0);
         local newPointNormalized = newPoint / groupBgW;
         AM.currentCrop.max = newPointNormalized;
         AM.RefreshTimebar();
@@ -203,8 +203,8 @@ function AM.Update(deltaTime)
         end
 
         AM.cropperSlider:ClearAllPoints();
-        AM.cropperSlider:SetPoint("RIGHT", AM.cropperBg, "LEFT", newPoint + sliderSize, 0);
-        AM.cropperSlider:SetPoint("LEFT", AM.cropperBg, "LEFT", newPoint + 16, 0);
+        AM.cropperSlider:SetPoint("RIGHT", AM.cropperBg:GetFrame(), "LEFT", newPoint + sliderSize, 0);
+        AM.cropperSlider:SetPoint("LEFT", AM.cropperBg:GetFrame(), "LEFT", newPoint + 16, 0);
         
         AM.cropperRightDrag:ClearAllPoints();
         AM.cropperRightDrag:SetPoint("LEFT", newPoint + sliderSize, 0);
@@ -596,16 +596,16 @@ function AM.CreateAnimationManager(x, y, w, h, parent)
 
     local timelineTabH = 20;
 
-    AM.groupBG = Win.CreateRectangle(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 0);
+    AM.groupBG = UI.Rectangle:New(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 0);
     AM.parentFrame = parent;
     AM.groupBGy = y;
-    AM.addTimelineButtonTab = AM.CreateNewTimelineTab(0, 0, timelineTabH, tabButtonHeight, AM.groupBG);
+    AM.addTimelineButtonTab = AM.CreateNewTimelineTab(0, 0, timelineTabH, tabButtonHeight, AM.groupBG:GetFrame());
     AM.addTimelineButtonTab.text:SetText("+");
     AM.addTimelineButtonTab.ntex:SetColorTexture(0, 0, 0 ,0);
     AM.addTimelineButtonTab.text:SetAllPoints(AM.addTimelineButtonTab);
     AM.addTimelineButtonTab:Hide();
-
-    AM.addTimelineEditBox = Win.CreateEditBox(0, 0, 100, tabButtonHeight, AM.groupBG, "TOPLEFT", "TOPLEFT", "Timeline Name");
+    --TextBox:New(x, y, w, h, parent, point, parentPoint, text, textHeight, textFont)
+    AM.addTimelineEditBox = UI.TextBox:New(0, 0, 100, tabButtonHeight, AM.groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", "Timeline Name");
     AM.addTimelineEditBox:Hide();
 
     local bottomPad = 4;
@@ -623,17 +623,17 @@ function AM.CreateAnimationManager(x, y, w, h, parent)
     local workAreaY = -(timebarH + timelineTabH + toolbarH + keyframeBarH);
     local workAreaW = w - 20;
     local workAreaH = h - (timelineTabH + timebarH + cropperBarH + bottomPad + toolbarH + keyframeBarH);
-    AM.CreateTimebar(0, timebarY, w, timebarH, AM.groupBG);
+    AM.CreateTimebar(0, timebarY, w, timebarH, AM.groupBG:GetFrame());
     AM.CreateTimeSlider(workAreaH);
-    AM.CreateToolbar(0, toolbarY, w, toolbarH, AM.groupBG);
-    AM.CreateToolbarTimer(toolbarH, AM.mainToolbar);
-    AM.CreateKeyframeBar(keyframeBarX, keyframeBarY, keyframeBarW, keyframeBarH, AM.groupBG)
-    AM.CreateWorkArea(workAreaX - 6, workAreaY, workAreaW, workAreaH, AM.groupBG);
-    AM.CreateCropperBar(0, cropperBarY, w - 14, cropperBarH, AM.groupBG);
+    AM.CreateToolbar(0, toolbarY, w, toolbarH, AM.groupBG:GetFrame());
+    AM.CreateToolbarTimer(toolbarH, AM.mainToolbar:GetFrame());
+    AM.CreateKeyframeBar(keyframeBarX, keyframeBarY, keyframeBarW, keyframeBarH, AM.groupBG:GetFrame())
+    AM.CreateWorkArea(workAreaX - 6, workAreaY, workAreaW, workAreaH, AM.groupBG:GetFrame());
+    AM.CreateCropperBar(0, cropperBarY, w - 14, cropperBarH, AM.groupBG:GetFrame());
 
     local curveViewH = h - (timelineTabH + timebarH + cropperBarH + bottomPad + toolbarH);
     local curveViewY = -(timebarH + timelineTabH + toolbarH);
-    AM.CreateCurveView(workAreaX - 6, curveViewY, workAreaW, curveViewH, AM.groupBG);
+    AM.CreateCurveView(workAreaX - 6, curveViewY, workAreaW, curveViewH, AM.groupBG:GetFrame());
 
     AM.CreateAnimationSelectWindow(0, 0, 300, 500);
 
@@ -645,29 +645,24 @@ function AM.CreateAnimationManager(x, y, w, h, parent)
 end
 
 function AM.CreateAnimationSelectWindow(x, y, w, h)
-    AM.animSelectWindow = Win.CreatePopupWindow(x, y, w, h, SceneMachine.mainWindow, "CENTER", "CENTER", "AnimationList");
+    -- Window:New(x, y, w, h, parent, point, parentPoint, title)
+    AM.animSelectWindow = UI.Window:New(x, y, w, h, SceneMachine.mainWindow:GetFrame(), "CENTER", "CENTER", "AnimationList");
     AM.animSelectWindow:SetFrameStrata(Editor.SUB_FRAME_STRATA);
-    local dropShadow = Win.CreateImageBox(0, 10, w * 1.20, h * 1.20, AM.animSelectWindow, "CENTER", "CENTER",
-	"Interface\\Addons\\scenemachine\\static\\textures\\dropShadowSquare.png");
+    local dropShadow = UI.ImageBox:New(0, 10, w * 1.20, h * 1.20, AM.animSelectWindow:GetFrame(), "CENTER", "CENTER", "Interface\\Addons\\scenemachine\\static\\textures\\dropShadowSquare.png");
     dropShadow:SetFrameLevel(100);
     dropShadow:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
-    AM.animSelectWindow.texture:SetColorTexture(c4[1], c4[2], c4[3],1);
-    AM.animSelectWindow.TitleBar.texture:SetColorTexture(c1[1], c1[2], c1[3], 1);
-    AM.animSelectWindow.CloseButton.ntex:SetColorTexture(c1[1], c1[2], c1[3], 1);
-    AM.animSelectWindow.CloseButton.htex:SetColorTexture(c2[1], c2[2], c2[3], 1);
-    AM.animSelectWindow.CloseButton.ptex:SetColorTexture(c3[1], c3[2], c3[3], 1);
 
     -- project list frame --
-    AM.animListFrame = Win.CreateRectangle(0, 0, w, h, AM.animSelectWindow, "TOPLEFT", "TOPLEFT", 0, 0, 0, 0);
-    AM.animScrollList = Win.CreateScrollList(10, -10, w - 20, h - 60, AM.animListFrame, "TOPLEFT", "TOPLEFT");
-    AM.animationList = Win.ItemList(AM.animScrollList:GetWidth() - 30, 20, AM.animScrollList.ContentFrame, function(index) 
+    AM.animListFrame = UI.Rectangle:New(0, 0, w, h, AM.animSelectWindow:GetFrame(), "TOPLEFT", "TOPLEFT", 0, 0, 0, 0);
+    AM.animScrollList = UI.ScrollFrame:New(10, -10, w - 20, h - 60, AM.animListFrame:GetFrame(), "TOPLEFT", "TOPLEFT");
+    AM.animationList = UI.ItemList:New(AM.animScrollList:GetWidth() - 30, 20, AM.animScrollList.contentFrame, function(index)
         if (index > 0) then
             AM.selectedAnimID = AM.animListIDs[index];
         end
      end);
     AM.animSelectWindow:Hide();
 
-    AM.animSelectWindow.loadAnimBtn = Win.CreateButton(10, 10, 60, 40, AM.animListFrame, "BOTTOMLEFT", "BOTTOMLEFT", "Add Anim", nil, Win.BUTTON_VS);
+    AM.animSelectWindow.loadAnimBtn = UI.Button:New(10, 10, 60, 40, AM.animListFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "Add Anim", nil);
     AM.animSelectWindow.loadAnimBtn:SetScript("OnClick", function(self) AM.AddAnim(AM.selectedTrack, AM.selectedAnimID); AM.animSelectWindow:Hide(); end);
 end
 
@@ -695,11 +690,11 @@ function AM.CreateTimebar(x, y, w, h, parent)
 end
 
 function AM.CreateKeyframeBar(x, y, w, h, parent)
-    AM.KeyframeBar = Win.CreateRectangle(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 1);
+    AM.KeyframeBar = UI.Rectangle:New(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 1);
 
     AM.KeyframePool = {};
     for i = 1, AM.KeyframePoolSize, 1 do
-        AM.KeyframePool[i] = AM.GenerateKeyframeElement(i, 0, 0, AM.keyframeElementH, AM.keyframeElementH, AM.KeyframeBar, 0.5, 0.5, 0.5, 1);
+        AM.KeyframePool[i] = AM.GenerateKeyframeElement(i, 0, 0, AM.keyframeElementH, AM.keyframeElementH, AM.KeyframeBar:GetFrame(), 0.5, 0.5, 0.5, 1);
         AM.KeyframePool[i]:Hide();
     end
 end
@@ -737,7 +732,7 @@ function AM.GetAvailableKeyframeElement()
     AM.usedKeyframes = AM.usedKeyframes + 1;
 
     if (i >= #AM.KeyframePool) then
-        AM.KeyframePool[i] = AM.GenerateKeyframeElement(i, 0, 0, AM.keyframeElementH, AM.keyframeElementH, AM.KeyframeBar, 0.5, 0.5, 0.5, 1);
+        AM.KeyframePool[i] = AM.GenerateKeyframeElement(i, 0, 0, AM.keyframeElementH, AM.keyframeElementH, AM.KeyframeBar:GetFrame(), 0.5, 0.5, 0.5, 1);
     end
 
     return AM.KeyframePool[i];
@@ -745,17 +740,17 @@ end
 
 function AM.CreateTimeSlider(workAreaH)
     local c = { 0.9, 0.2, 0.2 };
-    AM.TimeSlider = Win.CreateImageBox(20, 0, 20, 20, AM.timebarGroup, "CENTER", "LEFT", "Interface\\Addons\\scenemachine\\static\\textures\\timeSlider.png");
-    AM.TimeSlider.texture:SetVertexColor(c[1], c[2], c[3], 1);
+    AM.TimeSlider = UI.ImageBox:New(20, 0, 20, 20, AM.timebarGroup, "CENTER", "LEFT", "Interface\\Addons\\scenemachine\\static\\textures\\timeSlider.png");
+    AM.TimeSlider:SetVertexColor(c[1], c[2], c[3], 1);
     
-    AM.TimeSliderBar = Win.CreateRectangle(0, 0, 1, workAreaH + 10, AM.TimeSlider, "TOP", "CENTER",  c[1], c[2], c[3], 1);
+    AM.TimeSliderBar = UI.Rectangle:New(0, 0, 1, workAreaH + 10, AM.TimeSlider:GetFrame(), "TOP", "CENTER",  c[1], c[2], c[3], 1);
 end
 
 function AM.CreateNeedle()
-    local needle = Win.CreateRectangle(0, 0, 1, 4, AM.timebarGroup, "TOPLEFT", "TOPLEFT",  1, 1, 1, 0.5);
-    needle.text = needle:CreateFontString("needle text");
-	needle.text:SetFont(Win.defaultFont, 8, "NORMAL");
-	needle.text:SetPoint("TOP", needle, "TOP", 0, 12);
+    local needle = UI.Rectangle:New(0, 0, 1, 4, AM.timebarGroup, "TOPLEFT", "TOPLEFT",  1, 1, 1, 0.5);
+    needle.text = needle:GetFrame():CreateFontString("needle text");
+	needle.text:SetFont(Editor.ui.defaultFont, 8, "NORMAL");
+	needle.text:SetPoint("TOP", needle.frame, "TOP", 0, 12);
     needle.text:SetSize(30, 10);
     needle.text:SetTextColor(1,1,1,0.5);
 	needle.text:SetJustifyV("CENTER");
@@ -780,7 +775,7 @@ function AM.GetNeedle()
 end
 
 function AM.CreateToolbar(x, y, w, h, parent)
-    local toolbar = Toolbar.Create(x, y, w, h, parent, 0.16);
+    local toolbar = Toolbar.Create(x, y, w, h, parent, 0.16, SceneMachine.mainWindow);
     toolbar.CreateGroup(x, 0, w, h, toolbar,
     {
         { type = "DragHandle" },
@@ -810,16 +805,15 @@ end
 
 function AM.CreateToolbarTimer(h, parent)
     local font = "Interface\\Addons\\scenemachine\\static\\font\\digital-7.ttf"
-    AM.timerTextBox = Win.CreateTextBoxSimple(0, 0, 90, h, parent, "RIGHT", "RIGHT", "00:00 / 00:00", 16, font);
+    AM.timerTextBox = UI.Label:New(0, 0, 90, h, parent, "RIGHT", "RIGHT", "00:00 / 00:00", 16, font);
 end
 
 function AM.CreateWorkArea(x, y, w, h, parent)
-    AM.workAreaBG = Win.CreateRectangle(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 0);
-    AM.workAreaBG:SetClipsChildren(true);
-    
-    --AM.workAreaViewport = Win.CreateRectangle(6, 0, w, h, AM.workAreaBG, "TOPLEFT", "TOPLEFT",  c4[1], c4[2], c4[3], 1);
-    AM.workAreaViewport = CreateFrame("Button", "AM.workAreaViewport", AM.workAreaBG)
-	AM.workAreaViewport:SetPoint("TOPLEFT", AM.workAreaBG, "TOPLEFT", 6, 0);
+    AM.workAreaBG = UI.Rectangle:New(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 0);
+    AM.workAreaBG:GetFrame():SetClipsChildren(true);
+
+    AM.workAreaViewport = CreateFrame("Button", "AM.workAreaViewport", AM.workAreaBG:GetFrame())
+	AM.workAreaViewport:SetPoint("TOPLEFT", AM.workAreaBG:GetFrame(), "TOPLEFT", 6, 0);
 	AM.workAreaViewport:SetSize(w, h);
     AM.workAreaViewport.ntex = AM.workAreaViewport:CreateTexture();
     AM.workAreaViewport.ntex:SetColorTexture(c4[1], c4[2], c4[3], 1);
@@ -834,28 +828,28 @@ function AM.CreateWorkArea(x, y, w, h, parent)
         end
     end)
 
-    AM.workAreaList = Win.CreateRectangle(0, 0, w, h, AM.workAreaViewport, "TOPLEFT", "TOPLEFT",  c4[1], c4[2], c4[3], 1);
+    AM.workAreaList = UI.Rectangle:New(0, 0, w, h, AM.workAreaViewport, "TOPLEFT", "TOPLEFT",  c4[1], c4[2], c4[3], 1);
 
     AM.TrackPool = {};
     for i = 1, AM.TrackPoolSize, 1 do
-        AM.TrackPool[i] = AM.GenerateTrackElement(i, 0, -((AM.trackElementH + Editor.pmult) * (i - 1)), w, AM.trackElementH, AM.workAreaList, c2[1], c2[2], c2[3], c2[4]);
+        AM.TrackPool[i] = AM.GenerateTrackElement(i, 0, -((AM.trackElementH + Editor.pmult) * (i - 1)), w, AM.trackElementH, AM.workAreaList:GetFrame(), c2[1], c2[2], c2[3], c2[4]);
     end
 
     AM.AnimationPool = {};
     for i = 1, AM.AnimationPoolSize, 1 do
-        AM.AnimationPool[i] = AM.GenerateAnimationElement(i, 0, 0, AM.trackElementH, AM.trackElementH, AM.workAreaList, c2[1], c2[2], c2[3], c2[4]);
+        AM.AnimationPool[i] = AM.GenerateAnimationElement(i, 0, 0, AM.trackElementH, AM.trackElementH, AM.workAreaList:GetFrame(), c2[1], c2[2], c2[3], c2[4]);
     end
 
     -- track selection box thing
-    AM.trackSelectionBox = Win.CreateRectangle(-6, 0, 5, AM.trackElementH, AM.workAreaList, "TOPLEFT", "TOPLEFT",  c3[1], c3[2], c3[3], c3[4]);
+    AM.trackSelectionBox = UI.Rectangle:New(-6, 0, 5, AM.trackElementH, AM.workAreaList:GetFrame(), "TOPLEFT", "TOPLEFT",  c3[1], c3[2], c3[3], c3[4]);
     AM.trackSelectionBox:Hide();
 
     -- animation selection box thing
-    AM.animationSelectionBox = Win.CreateRectangle(0, 0, AM.trackElementH, AM.trackElementH, AM.workAreaList, "TOPLEFT", "TOPLEFT",  1, 1, 1, 0);
+    AM.animationSelectionBox = UI.Rectangle:New(0, 0, AM.trackElementH, AM.trackElementH, AM.workAreaList:GetFrame(), "TOPLEFT", "TOPLEFT",  1, 1, 1, 0);
     
     local thickness = 2 + Editor.pmult;
 
-    local lineTop = AM.animationSelectionBox:CreateLine(nil, nil, nil);
+    local lineTop = AM.animationSelectionBox:GetFrame():CreateLine(nil, nil, nil);
     local c = { 1, 1, 1, 0.5 };
     lineTop:SetThickness(thickness);
     lineTop:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\dashedLine.png", "REPEAT", "REPEAT", "NEAREST");
@@ -865,7 +859,7 @@ function AM.CreateWorkArea(x, y, w, h, parent)
     lineTop:SetEndPoint("TOPRIGHT", 0, -thickness / 2)   -- end bottomright
     lineTop:SetTexCoord(0, 10, 0, 1);
 
-    local lineBottom = AM.animationSelectionBox:CreateLine(nil, nil, nil);
+    local lineBottom = AM.animationSelectionBox:GetFrame():CreateLine(nil, nil, nil);
     lineBottom:SetThickness(thickness);
     lineBottom:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\dashedLine.png", "REPEAT", "REPEAT", "NEAREST");
     lineBottom:Show();
@@ -874,7 +868,7 @@ function AM.CreateWorkArea(x, y, w, h, parent)
     lineBottom:SetEndPoint("BOTTOMRIGHT", 0, thickness / 2)   -- end bottomright
     lineBottom:SetTexCoord(0, 10, 0, 1);
 
-    local lineLeft = AM.animationSelectionBox:CreateLine(nil, nil, nil);
+    local lineLeft = AM.animationSelectionBox:GetFrame():CreateLine(nil, nil, nil);
     lineLeft:SetThickness(thickness);
     lineLeft:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\dashedLine.png", "REPEAT", "REPEAT", "NEAREST");
     lineLeft:Show();
@@ -883,7 +877,7 @@ function AM.CreateWorkArea(x, y, w, h, parent)
     lineLeft:SetEndPoint("TOPLEFT", thickness / 2, 0)   -- end bottomright
     lineLeft:SetTexCoord(0, 2.5, 0, 1);
 
-    local lineRight = AM.animationSelectionBox:CreateLine(nil, nil, nil);
+    local lineRight = AM.animationSelectionBox:GetFrame():CreateLine(nil, nil, nil);
     lineRight:SetThickness(thickness);
     lineRight:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\dashedLine.png", "REPEAT", "REPEAT", "NEAREST");
     lineRight:Show();
@@ -898,20 +892,19 @@ function AM.CreateWorkArea(x, y, w, h, parent)
     AM.animationSelectionBox.lineRight = lineRight;
     AM.animationSelectionBox:Hide();
 
-	AM.workAreaScrollbar = SceneMachine.Scrollbar:New(0, y, 16, h, AM.groupBG,
+	AM.workAreaScrollbar = UI.Scrollbar:New(0, y, 16, h, AM.groupBG:GetFrame(),
 	function(value)
 		-- on scroll
-        AM.workAreaList:ClearAllPoints();
         local height = AM.workAreaList:GetHeight() - AM.workAreaViewport:GetHeight();
         local pos = value * height;
-        AM.workAreaList:SetPoint("TOPLEFT", AM.workAreaViewport, "TOPLEFT", 0, math.floor(pos));
+        AM.workAreaList:SetSinglePoint("TOPLEFT", 0, math.floor(pos));
 	end);
 
     AM.RefreshWorkspace();
 end
 
 function AM.CreateCurveView(x, y, w, h, parent)
-    AM.curveViewBG = Win.CreateRectangle(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 1);
+    AM.curveViewBG = UI.Rectangle:New(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 1);
 
     -- create line pool
     AM.CurvePool = {};
@@ -921,7 +914,7 @@ function AM.CreateCurveView(x, y, w, h, parent)
 end
 
 function AM.CreateCurveLineElement()
-    local line = AM.curveViewBG:CreateLine(nil, nil, nil);
+    local line = AM.curveViewBG:GetFrame():CreateLine(nil, nil, nil);
     line:SetThickness(1 + Editor.pmult);
     line:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\line.png", "REPEAT", "REPEAT");
     line:SetVertexColor(1,1,1,1);
@@ -957,8 +950,7 @@ function AM.GenerateTrackElement(index, x, y, w, h, parent, R, G, B, A)
         end
     end)
 
-    element.name = Win.CreateTextBoxSimple(2, 0, 200, 10, element, "TOPLEFT", "TOPLEFT", index, 8);
-
+    element.name = UI.Label:New(2, 0, 200, 10, element, "TOPLEFT", "TOPLEFT", index, 8);
     element:Hide();
 
     return element;
@@ -969,7 +961,7 @@ function AM.GetAvailableTrackElement()
     AM.usedTracks = AM.usedTracks + 1;
 
     if (i >= #AM.TrackPool) then
-        AM.TrackPool[i] = AM.GenerateTrackElement(i, 0, -((AM.trackElementH + Editor.pmult) * (i - 1)), w, AM.trackElementH, AM.workAreaList);
+        AM.TrackPool[i] = AM.GenerateTrackElement(i, 0, -((AM.trackElementH + Editor.pmult) * (i - 1)), 10, AM.trackElementH, AM.workAreaList:GetFrame());
     end
 
     return AM.TrackPool[i];
@@ -1057,12 +1049,12 @@ function AM.GenerateAnimationElement(index, x, y, w, h, parent, R, G, B, A)
     end)
 
     -- name
-    element.name = Win.CreateTextBoxSimple(2, 0, 100, 10, element, "CENTER", "CENTER", index, 8);
+    element.name = UI.Label:New(2, 0, 100, 10, element, "CENTER", "CENTER", index, 8);
     element.name:ClearAllPoints();
     element.name:SetPoint("LEFT", element, "LEFT", 10, 0);
     element.name:SetPoint("RIGHT", element);
     element.name:SetAlpha(0.7);
-    element.name.text:SetTextColor(0, 0, 0, 1);
+    element.name:SetTextColor(0, 0, 0, 1);
     element:Hide();
 
     return element;
@@ -1073,32 +1065,32 @@ function AM.GetAvailableAnimationElement()
     AM.usedAnimations = AM.usedAnimations + 1;
 
     if (i >= #AM.AnimationPool) then
-        AM.AnimationPool[i] = AM.GenerateAnimationElement(i, 0, 0, AM.trackElementH, AM.trackElementH, AM.workAreaList, 0, 0, 0, 1);
+        AM.AnimationPool[i] = AM.GenerateAnimationElement(i, 0, 0, AM.trackElementH, AM.trackElementH, AM.workAreaList:GetFrame(), 0, 0, 0, 1);
     end
 
     return AM.AnimationPool[i];
 end
 
 function AM.CreateCropperBar(x, y, w, h, parent)
-    AM.cropperBg = Win.CreateRectangle(x, y, w, h, parent, "BOTTOMLEFT", "BOTTOMLEFT",  0, 0, 0, 0);
+    AM.cropperBg = UI.Rectangle:New(x, y, w, h, parent, "BOTTOMLEFT", "BOTTOMLEFT",  0, 0, 0, 0);
 
-    AM.cropperBgCenter = Win.CreateImageBox(0, 0, w - (h * 2), h, AM.cropperBg, "CENTER", "CENTER",
+    AM.cropperBgCenter = UI.ImageBox:New(0, 0, w - (h * 2), h, AM.cropperBg:GetFrame(), "CENTER", "CENTER",
         "Interface\\Addons\\scenemachine\\static\\textures\\cropBar.png", { 0.25 + 0.125, 0.75 - 0.125, 0, 0.5 });
-    AM.cropperBgCenter.texture:SetVertexColor(0.18,0.18,0.18,1);
+    AM.cropperBgCenter:SetVertexColor(0.18,0.18,0.18,1);
 
-    AM.cropperBgLeft = Win.CreateImageBox(0, 0, h, h, AM.cropperBg, "LEFT", "LEFT",
+    AM.cropperBgLeft = UI.ImageBox:New(0, 0, h, h, AM.cropperBg:GetFrame(), "LEFT", "LEFT",
         "Interface\\Addons\\scenemachine\\static\\textures\\cropBar.png", { 0, 0.5, 0, 0.5 });
-    AM.cropperBgLeft.texture:SetVertexColor(0.18,0.18,0.18,1);
+    AM.cropperBgLeft:SetVertexColor(0.18,0.18,0.18,1);
 
-    AM.cropperBgRight = Win.CreateImageBox(0, 0, h, h, AM.cropperBg, "RIGHT", "RIGHT",
+    AM.cropperBgRight = UI.ImageBox:New(0, 0, h, h, AM.cropperBg:GetFrame(), "RIGHT", "RIGHT",
         "Interface\\Addons\\scenemachine\\static\\textures\\cropBar.png", { 0.5, 1.0, 0, 0.5 });
-    AM.cropperBgRight.texture:SetVertexColor(0.18,0.18,0.18,1);
+    AM.cropperBgRight:SetVertexColor(0.18,0.18,0.18,1);
 
     local initialSliderLength = w * (AM.currentCrop.max - AM.currentCrop.min) - 10;
 
     -- Left handle
-    AM.cropperLeftDrag = CreateFrame("Button", "AM.cropperLeftDrag", AM.cropperBg)
-	AM.cropperLeftDrag:SetPoint("LEFT", AM.cropperBg, "LEFT", 0, 0);
+    AM.cropperLeftDrag = CreateFrame("Button", "AM.cropperLeftDrag", AM.cropperBg:GetFrame())
+	AM.cropperLeftDrag:SetPoint("LEFT", AM.cropperBg:GetFrame(), "LEFT", 0, 0);
 	AM.cropperLeftDrag:SetSize(h, h);
     --AM.cropperLeftDrag:SetAlpha(0.5);
     AM.cropperLeftDrag.ntex = AM.cropperLeftDrag:CreateTexture();
@@ -1117,12 +1109,12 @@ function AM.CreateCropperBar(x, y, w, h, parent)
         AM.inputState.mousePosStartX = Input.mouseXRaw;
     end);
     AM.cropperLeftDrag:SetScript("OnMouseUp", function(self, button) AM.inputState.movingMin = false; end);
-    local burgerLD = Win.CreateImageBox(0, 0, h, h, AM.cropperLeftDrag, "CENTER", "CENTER", "Interface\\Addons\\scenemachine\\static\\textures\\cropBar.png", { 0, 0.5, 0.5, 1 })
+    local burgerLD = UI.ImageBox:New(0, 0, h, h, AM.cropperLeftDrag, "CENTER", "CENTER", "Interface\\Addons\\scenemachine\\static\\textures\\cropBar.png", { 0, 0.5, 0.5, 1 })
     burgerLD:SetAlpha(0.2);
 
     -- Right handle
-    AM.cropperRightDrag = CreateFrame("Button", "AM.cropperRightDrag", AM.cropperBg)
-	AM.cropperRightDrag:SetPoint("LEFT", AM.cropperBg, "LEFT", initialSliderLength, 0);
+    AM.cropperRightDrag = CreateFrame("Button", "AM.cropperRightDrag", AM.cropperBg:GetFrame())
+	AM.cropperRightDrag:SetPoint("LEFT", AM.cropperBg:GetFrame(), "LEFT", initialSliderLength, 0);
 	AM.cropperRightDrag:SetSize(h, h);
     --AM.cropperRightDrag:SetAlpha(0.5);
     AM.cropperRightDrag.ntex = AM.cropperRightDrag:CreateTexture();
@@ -1141,12 +1133,12 @@ function AM.CreateCropperBar(x, y, w, h, parent)
         AM.inputState.mousePosStartX = Input.mouseXRaw;
     end);
     AM.cropperRightDrag:SetScript("OnMouseUp", function(self, button) AM.inputState.movingMax = false; end);
-    local burgerRD = Win.CreateImageBox(0, 0, h, h, AM.cropperRightDrag, "CENTER", "CENTER", "Interface\\Addons\\scenemachine\\static\\textures\\cropBar.png", { 0, 0.5, 0.5, 1 })
+    local burgerRD = UI.ImageBox:New(0, 0, h, h, AM.cropperRightDrag, "CENTER", "CENTER", "Interface\\Addons\\scenemachine\\static\\textures\\cropBar.png", { 0, 0.5, 0.5, 1 })
     burgerRD:SetAlpha(0.2);
 
     -- Middle handle
-    AM.cropperSlider = CreateFrame("Button", "AM.cropperSlider", AM.cropperBg)
-	AM.cropperSlider:SetPoint("LEFT", AM.cropperBg, "LEFT", h, 0);
+    AM.cropperSlider = CreateFrame("Button", "AM.cropperSlider", AM.cropperBg:GetFrame())
+	AM.cropperSlider:SetPoint("LEFT", AM.cropperBg:GetFrame(), "LEFT", h, 0);
 	AM.cropperSlider:SetSize(initialSliderLength-h, h);
     --AM.cropperSlider:SetAlpha(0.5);
     AM.cropperSlider.ntex = AM.cropperSlider:CreateTexture();
@@ -1177,7 +1169,7 @@ function AM.TimelineTabButton_OnClick(index)
 end
 
 function AM.TimelineTabButton_OnRightClick(index, x, y)
-    local gpoint, grelativeTo, grelativePoint, gxOfs, gyOfs = AM.parentFrame:GetPoint(1);   -- point is at bottom left of SceneMachine.mainWindow
+    local gpoint, grelativeTo, grelativePoint, gxOfs, gyOfs = AM.parentFrame:GetPoint(1);
     gyOfs = gyOfs - (SceneMachine.mainWindow:GetHeight() - AM.parentFrame:GetHeight());
 
 	local menuOptions = {
@@ -1186,14 +1178,14 @@ function AM.TimelineTabButton_OnRightClick(index, x, y)
         [3] = { ["Name"] = "Delete", ["Action"] = function() AM.Button_DeleteTimeline(index) end },
 	};
 
-    Win.PopupWindowMenu(x + gxOfs, y + gyOfs, SceneMachine.mainWindow, menuOptions);
+    SceneMachine.mainWindow.PopupWindowMenu(x + gxOfs, y + gyOfs, menuOptions);
 end
 
 function AM.Button_RenameTimeline(index, x)
     AM.addTimelineEditBox:Show();
     AM.addTimelineEditBox:SetText("Timeline " .. (#SM.loadedScene.timelines));
     AM.addTimelineButtonTab:Hide();
-    AM.addTimelineEditBox:SetPoint("TOPLEFT", AM.groupBG, "TOPLEFT", x, 0);
+    AM.addTimelineEditBox:SetPoint("TOPLEFT", AM.groupBG:GetFrame(), "TOPLEFT", x, 0);
     AM.addTimelineEditBox:SetFocus();
 
     local previousName = "";
@@ -1201,14 +1193,14 @@ function AM.Button_RenameTimeline(index, x)
         -- copy current text to edit box
         previousName = tabPool[index].text:GetText();
         AM.addTimelineEditBox:SetText(previousName);
-        AM.addTimelineEditBox:SetPoint("TOPLEFT", AM.groupBG, "TOPLEFT", x + 10, 0);
+        AM.addTimelineEditBox:SetPoint("TOPLEFT", AM.groupBG:GetFrame(), "TOPLEFT", x + 10, 0);
         -- clearing current visible name
         tabPool[index].text:SetText("");
     end
 
     AM.addTimelineEditBox:SetScript('OnEscapePressed', function(self1) 
         self1:ClearFocus();
-        Win.focused = false;
+        Editor.ui.focused = false;
         self1:Hide();
         AM.addTimelineButtonTab:Show();
         if (index ~= -1) then
@@ -1218,7 +1210,7 @@ function AM.Button_RenameTimeline(index, x)
     end);
     AM.addTimelineEditBox:SetScript('OnEnterPressed', function(self1)
         self1:ClearFocus();
-        Win.focused = false;
+        Editor.ui.focused = false;
         local text = self1:GetText();
         if (text ~= nil and text ~= "") then
             if (index == -1) then
@@ -1241,12 +1233,7 @@ function AM.Button_EditTimeline()
 end
 
 function AM.Button_DeleteTimeline()
-    Win.OpenMessageBox(SceneMachine.mainWindow, 
-    "Delete Timeline", "Are you sure you wish to continue?",
-    true, true, function() 
-        AM.DeleteTimeline(index);
-    end, function() end);
-    Win.messageBox:SetFrameStrata(Editor.MESSAGE_BOX_FRAME_STRATA);
+    Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), "Delete Timeline", "Are you sure you wish to continue?", true, true, function() AM.DeleteTimeline(index); end, function() end);
 end
 
 function AM.CreateTimeline(timelineName)
@@ -1402,7 +1389,7 @@ function AM.DeleteTimeline()
 end
 
 function AM.CreateNewTimelineTab(x, y, w, h, parent)
-	local ButtonFont = Win.defaultFont;
+	local ButtonFont = Editor.ui.defaultFont;
 	local ButtonFontSize = 9;
 
 	-- main button frame --
@@ -1445,7 +1432,7 @@ function AM.RefreshTimelineTabs()
         for i in pairs(SM.loadedScene.timelines) do
             local timeline = SM.loadedScene.timelines[i];
             if (tabPool[i] == nil) then
-                tabPool[i] = AM.CreateNewTimelineTab(x, 0, 50, tabButtonHeight, AM.groupBG);
+                tabPool[i] = AM.CreateNewTimelineTab(x, 0, 50, tabButtonHeight, AM.groupBG:GetFrame());
                 tabPool[i].text:SetText(timeline.name);
                 tabPool[i]:SetWidth(tabPool[i].text:GetStringWidth() + 20);
                 tabPool[i]:RegisterForClicks("LeftButtonUp", "RightButtonUp");
@@ -1478,7 +1465,7 @@ function AM.RefreshTimelineTabs()
     -- add new scene button --
     AM.addTimelineButtonTab:Show();
     AM.addTimelineEditBox:Hide();
-    AM.addTimelineButtonTab:SetPoint("TOPLEFT", AM.groupBG, "TOPLEFT", x, 0);
+    AM.addTimelineButtonTab:SetPoint("TOPLEFT", AM.groupBG:GetFrame(), "TOPLEFT", x, 0);
     AM.addTimelineButtonTab:SetScript("OnClick", function(self) 
         AM.Button_RenameTimeline(-1, x);
     end);
@@ -1555,8 +1542,7 @@ function AM.RefreshTimebar()
         local pos = needleStartOffs + ((i - 1) * needleSpacing) + 9.5;
         local text = math.ceil(startTimeS) + ((i - 1) * needleTimeSpacing) - numberOffs .. "s";
         local needle = AM.GetNeedle();
-        needle:ClearAllPoints();
-        needle:SetPoint("BOTTOMLEFT", pos, 0);
+        needle:SetSinglePoint("BOTTOMLEFT", pos, 0);
         needle.text:SetText(text);
         needle:Show();
 
@@ -1613,7 +1599,7 @@ function AM.RefreshWorkspace()
                     local track = AM.loadedTimeline.tracks[t];
                     local trackElement = AM.GetAvailableTrackElement();
                     local trackElementW = trackElement:GetWidth() - 6;
-                    trackElement.name.text:SetText(track.name);
+                    trackElement.name:SetText(track.name);
                     trackElement:Show();
 
                     -- animations
@@ -1655,7 +1641,7 @@ function AM.RefreshWorkspace()
                                 animElement.ntex:SetVertexColor(R, G, B, alpha);
                                 animElement:Show();
                 
-                                animElement.name.text:SetText(track.animations[a].name);
+                                animElement.name:SetText(track.animations[a].name);
 
                                 -- store some information for lookup
                                 animElement.animIdx = a;
@@ -1710,7 +1696,7 @@ function AM.RefreshWorkspace()
                                 local startP = math.floor(trackElementW * xNorm);
 
                                 keyframeElement:ClearAllPoints();
-                                keyframeElement:SetPoint("CENTER", AM.KeyframeBar, "LEFT", startP, 0);
+                                keyframeElement:SetPoint("CENTER", AM.KeyframeBar:GetFrame(), "LEFT", startP, 0);
                                 keyframeElement.ntex:SetVertexColor(0.5, 0.5, 0.5, keyAlpha);
                                 -- use alpha to desaturate the animation bars
                                 -- so that they don't draw more attention than the scene
@@ -1740,8 +1726,7 @@ function AM.RefreshWorkspace()
 
                     if (track == AM.selectedTrack) then
                         AM.trackSelectionBox:Show();
-                        AM.trackSelectionBox:ClearAllPoints();
-                        AM.trackSelectionBox:SetPoint("TOPLEFT", AM.workAreaList, "TOPLEFT", -6, (t - 1) * -(AM.trackElementH + Editor.pmult));
+                        AM.trackSelectionBox:SetSinglePoint("TOPLEFT", -6, (t - 1) * -(AM.trackElementH + Editor.pmult));
                     end
                 end
 
@@ -1808,12 +1793,12 @@ function AM.RefreshWorkspace()
                         local y = pos.x * viewScale;
                         lineX:SetVertexColor(1,0,0,1);
                         lineX:ClearAllPoints();
-                        lineX:SetStartPoint("LEFT", AM.curveViewBG, x, y);
+                        lineX:SetStartPoint("LEFT", AM.curveViewBG:GetFrame(), x, y);
                         if (linePreviousX) then
                             local relativePoint, relativeTo, offsetX, offsetY = linePreviousX:GetStartPoint();
                             lineX:SetEndPoint(relativePoint, relativeTo, offsetX, offsetY);
                         else
-                            lineX:SetEndPoint("LEFT", AM.curveViewBG, 0, 0);
+                            lineX:SetEndPoint("LEFT", AM.curveViewBG:GetFrame(), 0, 0);
                         end
                         lineX:Show();
                         usedLines = usedLines + 1;
@@ -1825,12 +1810,12 @@ function AM.RefreshWorkspace()
                         local y = pos.y * viewScale;
                         lineY:SetVertexColor(0,1,0,1);
                         lineY:ClearAllPoints();
-                        lineY:SetStartPoint("LEFT", AM.curveViewBG, x, y);
+                        lineY:SetStartPoint("LEFT", AM.curveViewBG:GetFrame(), x, y);
                         if (linePreviousY) then
                             local relativePoint, relativeTo, offsetX, offsetY = linePreviousY:GetStartPoint();
                             lineY:SetEndPoint(relativePoint, relativeTo, offsetX, offsetY);
                         else
-                            lineY:SetEndPoint("LEFT", AM.curveViewBG, 0, 0);
+                            lineY:SetEndPoint("LEFT", AM.curveViewBG:GetFrame(), 0, 0);
                         end
                         lineY:Show();
                         usedLines = usedLines + 1;
@@ -1842,12 +1827,12 @@ function AM.RefreshWorkspace()
                         local y = pos.z * viewScale;
                         lineZ:SetVertexColor(0,0,1,1);
                         lineZ:ClearAllPoints();
-                        lineZ:SetStartPoint("LEFT", AM.curveViewBG, x, y);
+                        lineZ:SetStartPoint("LEFT", AM.curveViewBG:GetFrame(), x, y);
                         if (linePreviousZ) then
                             local relativePoint, relativeTo, offsetX, offsetY = linePreviousZ:GetStartPoint();
                             lineZ:SetEndPoint(relativePoint, relativeTo, offsetX, offsetY);
                         else
-                            lineZ:SetEndPoint("LEFT", AM.curveViewBG, 0, 0);
+                            lineZ:SetEndPoint("LEFT", AM.curveViewBG:GetFrame(), 0, 0);
                         end
                         lineZ:Show();
                         usedLines = usedLines + 1;
@@ -1869,7 +1854,7 @@ function AM.RefreshWorkspace()
     if (AM.loadedTimeline) then
         local totalTime = AM.TimeValueToString(AM.loadedTimeline.duration);
         local currentTime = AM.TimeValueToString(AM.loadedTimeline.currentTime or 0);
-        AM.timerTextBox.text:SetText(currentTime .. "-" .. totalTime);
+        AM.timerTextBox:SetText(currentTime .. "-" .. totalTime);
     end
 end
 
@@ -2008,7 +1993,7 @@ function AM.SetTime(timeMS)
 
         local totalTime = AM.TimeValueToString(AM.loadedTimeline.duration);
         local currentTime = AM.TimeValueToString(AM.loadedTimeline.currentTime or 0);
-        AM.timerTextBox.text:SetText(currentTime .. "-" .. totalTime);
+        AM.timerTextBox:SetText(currentTime .. "-" .. totalTime);
     end
 
     if (not SM.loadedScene) then
@@ -2110,8 +2095,8 @@ function AM.OpenAddAnimationWindow(track)
     end
 
     -- resize --
-    AM.animScrollList.Scrollbar:SetMinMaxValues(0, max((index * 20) - (150), 1));
-    AM.animScrollList.Scrollbar:SetValueStep(1);
+    --AM.animScrollList.Scrollbar:SetMinMaxValues(0, max((index * 20) - (150), 1));
+    --AM.animScrollList.Scrollbar:SetValueStep(1);
 
     AM.animSelectWindow:Show();
 end

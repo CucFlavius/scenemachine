@@ -1,4 +1,3 @@
-local Win = ZWindowAPI;
 local Editor = SceneMachine.Editor;
 local PM = Editor.ProjectManager;
 local SM = Editor.SceneManager;
@@ -11,6 +10,7 @@ local OP = Editor.ObjectProperties;
 local Gizmos = SceneMachine.Gizmos;
 local Math = SceneMachine.Math;
 local AM = Editor.AnimationManager;
+local UI = SceneMachine.UI;
 
 local tabButtonHeight = 20;
 local tabPool = {};
@@ -20,16 +20,16 @@ SM.loadedScene = nil;
 SM.selectedObject = nil;
 
 function SM.Create(x, y, w, h, parent)
-    SM.groupBG = Win.CreateRectangle(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 0);
-    SceneMachine.Renderer.CreateRenderer(0, 0, w, h - tabButtonHeight, SM.groupBG, "BOTTOMLEFT", "BOTTOMLEFT");
+    SM.groupBG = UI.Rectangle:New(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 0);
+    SceneMachine.Renderer.CreateRenderer(0, 0, w, h - tabButtonHeight, SM.groupBG:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT");
 
-    SM.addSceneButtonTab = SM.CreateNewSceneTab(0, 0, 20, tabButtonHeight, SM.groupBG);
+    SM.addSceneButtonTab = SM.CreateNewSceneTab(0, 0, 20, tabButtonHeight, SM.groupBG:GetFrame());
     SM.addSceneButtonTab.text:SetText("+");
     SM.addSceneButtonTab.ntex:SetColorTexture(0, 0, 0 ,0);
     SM.addSceneButtonTab.text:SetAllPoints(SM.addSceneButtonTab);
     SM.addSceneButtonTab:Hide();
 
-    SM.addSceneEditBox = Win.CreateEditBox(0, 0, 100, tabButtonHeight, SM.groupBG, "TOPLEFT", "TOPLEFT", "Scene Name");
+    SM.addSceneEditBox = UI.TextBox:New(0, 0, 100, tabButtonHeight, SM.groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", "Scene Name");
     SM.addSceneEditBox:Hide();
 
     SM.RefreshSceneTabs();
@@ -47,7 +47,7 @@ function SM.RefreshSceneTabs()
         for i in pairs(PM.currentProject.scenes) do
             local scene = PM.currentProject.scenes[i];
             if (tabPool[i] == nil) then
-                tabPool[i] = SM.CreateNewSceneTab(x, 0, 50, tabButtonHeight, SM.groupBG);
+                tabPool[i] = SM.CreateNewSceneTab(x, 0, 50, tabButtonHeight, SM.groupBG:GetFrame());
                 tabPool[i].text:SetText(scene.name);
                 tabPool[i]:SetWidth(tabPool[i].text:GetStringWidth() + 20);
                 tabPool[i]:RegisterForClicks("LeftButtonUp", "RightButtonUp");
@@ -80,7 +80,7 @@ function SM.RefreshSceneTabs()
     -- add new scene button --
     SM.addSceneButtonTab:Show();
     SM.addSceneEditBox:Hide();
-    SM.addSceneButtonTab:SetPoint("TOPLEFT", SM.groupBG, "TOPLEFT", x, 0);
+    SM.addSceneButtonTab:SetPoint("TOPLEFT", SM.groupBG:GetFrame(), "TOPLEFT", x, 0);
     SM.addSceneButtonTab:SetScript("OnClick", function(self) 
         SM.Button_RenameScene(-1, x);
     end);
@@ -105,14 +105,14 @@ function SM.SceneTabButtonOnRightClick(index, x, y)
         [3] = { ["Name"] = "Delete", ["Action"] = function() SM.Button_DeleteScene(index) end },
 	};
 
-    Win.PopupWindowMenu(x + gxOfs, y + gyOfs, SceneMachine.mainWindow, menuOptions);
+    SceneMachine.mainWindow:PopupWindowMenu(x + gxOfs, y + gyOfs, menuOptions);
 end
 
 function SM.Button_RenameScene(index, x)
     SM.addSceneEditBox:Show();
     SM.addSceneEditBox:SetText("Scene " .. (#PM.currentProject.scenes));
     SM.addSceneButtonTab:Hide();
-    SM.addSceneEditBox:SetPoint("TOPLEFT", SM.groupBG, "TOPLEFT", x, 0);
+    SM.addSceneEditBox:SetPoint("TOPLEFT", SM.groupBG:GetFrame(), "TOPLEFT", x, 0);
     SM.addSceneEditBox:SetFocus();
 
     local previousName = "";
@@ -120,14 +120,14 @@ function SM.Button_RenameScene(index, x)
         -- copy current text to edit box
         previousName = tabPool[index].text:GetText();
         SM.addSceneEditBox:SetText(previousName);
-        SM.addSceneEditBox:SetPoint("TOPLEFT", SM.groupBG, "TOPLEFT", x + 10, 0);
+        SM.addSceneEditBox:SetPoint("TOPLEFT", SM.groupBG:GetFrame(), "TOPLEFT", x + 10, 0);
         -- clearing current visible name
         tabPool[index].text:SetText("");
     end
 
     SM.addSceneEditBox:SetScript('OnEscapePressed', function(self1) 
         self1:ClearFocus();
-        Win.focused = false;
+        Editor.ui.focused = false;
         self1:Hide();
         SM.addSceneButtonTab:Show();
         if (index ~= -1) then
@@ -137,7 +137,7 @@ function SM.Button_RenameScene(index, x)
     end);
     SM.addSceneEditBox:SetScript('OnEnterPressed', function(self1)
         self1:ClearFocus();
-        Win.focused = false;
+        Editor.ui.focused = false;
         local text = self1:GetText();
         if (text ~= nil and text ~= "") then
             if (index == -1) then
@@ -161,12 +161,7 @@ function SM.Button_EditScene(index)
 end
 
 function SM.Button_DeleteScene(index)
-    Win.OpenMessageBox(SceneMachine.mainWindow, 
-    "Delete Scene", "Are you sure you wish to continue?",
-    true, true, function() 
-        SM.DeleteScene(index);
-    end, function() end);
-    Win.messageBox:SetFrameStrata(Editor.MESSAGE_BOX_FRAME_STRATA);
+    Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), "Delete Scene", "Are you sure you wish to continue?", true, true, function() SM.DeleteScene(index); end, function() end);
 end
 
 function SM.CreateScene(sceneName)
@@ -435,7 +430,7 @@ function SM.ToggleObjectFreezeState(object)
 end
 
 function SM.CreateNewSceneTab(x, y, w, h, parent)
-	local ButtonFont = Win.defaultFont;
+	local ButtonFont = Editor.ui.defaultFont;
 	local ButtonFontSize = 9;
 
 	-- main button frame --
