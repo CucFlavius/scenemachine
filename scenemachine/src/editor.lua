@@ -33,7 +33,9 @@ Editor.MESSAGE_BOX_FRAME_STRATA = "FULLSCREEN"; -- Dialogs like "Are you sure yo
 
 function Editor.Initialize()
     Editor.version = GetAddOnMetadata("scenemachine", "Version");
-
+    
+    SceneMachine.Settings.Initialize();
+    
     Editor.ui = UI.UI:New();
 
     if (Editor.isInitialized) then
@@ -47,18 +49,6 @@ function Editor.Initialize()
         local w,h = string.match(res, "(%d+)x(%d+)")
         Editor.pmult = (768 / h)
     end
-
-    scenemachine_settings = scenemachine_settings or {};
-    scenemachine_settings.minimap_button = scenemachine_settings.minimap_button or {
-        minimapPos = 90;
-        hide = false;
-        lock = true;
-    }
-    scenemachine_settings.editor_is_open = scenemachine_settings.editor_is_open or false;
-    scenemachine_settings.leftPanelW = scenemachine_settings.leftPanelW or 300;
-    scenemachine_settings.rightPanelW = scenemachine_settings.rightPanelW or 300;
-    scenemachine_settings.propertiesPanelH = scenemachine_settings.propertiesPanelH or 200;
-    scenemachine_settings.animationManagerH = scenemachine_settings.animationManagerH or 220;
 
     -- Create all of the UI --
     Editor.CreateMainWindow(1);
@@ -244,8 +234,6 @@ function Editor.CreateMainWindow(startLevel)
 
     SceneMachine.mainWindow.TitleBarIcon = UI.ImageBox:New(5/2, -5/2, 15, 15, SceneMachine.mainWindow.titleBar, "TOPLEFT", "TOPLEFT", Resources.textures["Icon32"]);
 	SceneMachine.mainWindow.TitleBarIcon:SetFrameLevel(startLevel + 1);
-    SceneMachine.WINDOW_WIDTH = Editor.width;
-	SceneMachine.WINDOW_HEIGHT = Editor.height;
 end
 
 function Editor.CreateRightPanel(startLevel)

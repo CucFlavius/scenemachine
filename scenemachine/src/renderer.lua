@@ -25,14 +25,14 @@ function Renderer.GenerateFrameBuffer(startLevel)
 
     -- Frames --
 	for t = 1, Renderer.FrameBufferSize, 1 do
-		Renderer.FrameBufferFrames[t] = CreateFrame("Frame", "Renderer.FramebufferFrame_" .. t, Renderer.projectionFrame)
+		Renderer.FrameBufferFrames[t] = CreateFrame("Frame", "Renderer.FramebufferFrame_" .. t, Renderer.projectionFrame);
 		Renderer.FrameBufferFrames[t]:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
         Renderer.FrameBufferFrames[t]:SetFrameLevel(startLevel + t);
-		Renderer.FrameBufferFrames[t]:SetWidth(SceneMachine.WINDOW_WIDTH)
-		Renderer.FrameBufferFrames[t]:SetHeight(SceneMachine.WINDOW_HEIGHT)
-		Renderer.FrameBufferFrames[t].texture = Renderer.FrameBufferFrames[t]:CreateTexture("Renderer.FramebufferFrame_" .. t ..".texture", "ARTWORK")
+		Renderer.FrameBufferFrames[t]:SetWidth(Editor.width);
+		Renderer.FrameBufferFrames[t]:SetHeight(Editor.height);
+		Renderer.FrameBufferFrames[t].texture = Renderer.FrameBufferFrames[t]:CreateTexture("Renderer.FramebufferFrame_" .. t ..".texture", "ARTWORK");
 		Renderer.FrameBufferFrames[t].texture:SetVertexColor(1,1,1)
-        Renderer.FrameBufferFrames[t].texture:SetAllPoints(Renderer.FrameBufferFrames[t])
+        Renderer.FrameBufferFrames[t].texture:SetAllPoints(Renderer.FrameBufferFrames[t]);
 		--Renderer.FrameBufferFrames[t].texture:SetTexture(World.TerrainTexture, "REPEAT", "REPEAT", "NEAREST");
 		--Renderer.FrameBufferFrames[t].texture:SetTexCoord(0, 0.125, 0.125, 0.25);
 		Renderer.FrameBufferFrames[t].texture:SetColorTexture(1,1,1,1);

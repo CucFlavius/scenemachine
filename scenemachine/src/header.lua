@@ -1,6 +1,7 @@
 --- Creating all namespaces and classes here so that they are always defined first
 SceneMachine = {};
 
+SceneMachine.Settings = {};
 SceneMachine.Data = {};
 SceneMachine.Resources = {};
 

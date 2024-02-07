@@ -1,7 +1,15 @@
-SceneMachine.BORDER_OFFSET = -1 / 512
-SceneMachine.BORDER_SCALE = 512 / 510
-SceneMachine.TRIANGLE_TEX_WHITE = [[Interface\AddOns\ZEngine\Textures\Triangle]]
-SceneMachine.WINDOW_WIDTH = 800--640
-SceneMachine.WINDOW_HEIGHT = 600--400
-SceneMachine.WINDOW_ASPECT_RATIO = SceneMachine.WINDOW_WIDTH / SceneMachine.WINDOW_HEIGHT;
-SceneMachine.UPDATE_INTERVAL = 0.01
+local Settings = SceneMachine.Settings;
+
+function Settings.Initialize()
+    scenemachine_settings = scenemachine_settings or {};
+    scenemachine_settings.minimap_button = scenemachine_settings.minimap_button or {
+        minimapPos = 90;
+        hide = false;
+        lock = true;
+    }
+    scenemachine_settings.editor_is_open = scenemachine_settings.editor_is_open or false;
+    scenemachine_settings.leftPanelW = scenemachine_settings.leftPanelW or 300;
+    scenemachine_settings.rightPanelW = scenemachine_settings.rightPanelW or 300;
+    scenemachine_settings.propertiesPanelH = scenemachine_settings.propertiesPanelH or 200;
+    scenemachine_settings.animationManagerH = scenemachine_settings.animationManagerH or 220;
+end

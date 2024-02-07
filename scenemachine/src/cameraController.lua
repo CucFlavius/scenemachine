@@ -46,10 +46,6 @@ CC.mouseTurnSpeed = 0.2;
 --------------------------------------
 function CC.Initialize()
     SceneMachine.Input.Initialize();
-
-	-- calculate speeds based on update interval --
-	CC.keyboardTurnSpeed = CC.keyboardTurnSpeed * (SceneMachine.UPDATE_INTERVAL * 100);
-	CC.moveSpeed = CC.moveSpeed * (SceneMachine.UPDATE_INTERVAL * 100);
 end
 
 function clampAngle(angle)
@@ -63,7 +59,7 @@ end
 
 function CC.Update()
 	if (CC.Action.ShiftSpeed == true) then
-		CC.acceleration = CC.acceleration + (SceneMachine.UPDATE_INTERVAL * 3.0);
+		CC.acceleration = CC.acceleration + 0.03;
 		CC.acceleration = math.min(CC.maxAcceleration, CC.acceleration);
 	else
 		CC.acceleration = 1.0;

@@ -91,18 +91,14 @@ local function SG_UpdateLoop ()
 end
 
 local function SG_OnUpdate(self, elapsed)
-	TimeSinceLastUpdate = TimeSinceLastUpdate + elapsed; 	
+	TimeSinceLastUpdate = TimeSinceLastUpdate + elapsed;
 	SceneMachine.deltaTime = elapsed;
 	SceneMachine.time = SceneMachine.time + SceneMachine.deltaTime;
-	--while (TimeSinceLastUpdate > SceneMachine.UPDATE_INTERVAL) do
-		SG_UpdateLoop()
-	--	SceneMachine.time = SceneMachine.time + SceneMachine.UPDATE_INTERVAL;
-	--	TimeSinceLastUpdate = TimeSinceLastUpdate - SceneMachine.UPDATE_INTERVAL;
-	--end
+	SG_UpdateLoop();
 end
 
-local SG_UpdateFrame = CreateFrame("frame")
-SG_UpdateFrame:SetScript("OnUpdate", SG_OnUpdate)
+local SG_UpdateFrame = CreateFrame("frame");
+SG_UpdateFrame:SetScript("OnUpdate", SG_OnUpdate);
 
 function SceneMachine.SetPreRenderUpdate(action)
 	SceneMachine.preRenderUpdateAction = action;
