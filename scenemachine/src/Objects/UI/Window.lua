@@ -80,7 +80,8 @@ function Window:Build()
 end
 
 function Window:WindowCreateMenuBar(menu)
-	local menubar = UI.Rectangle:New(0, 0, self:GetWidth(), 15, self:GetFrame(), "TOP", "TOP", 0.1757, 0.1757, 0.1875, 1);
+	local menubar = UI.Rectangle:New(0, 0, self:GetWidth(), 15, self:GetFrame(), "TOPLEFT", "TOPLEFT", 0.1757, 0.1757, 0.1875, 1);
+	menubar:SetPoint("TOPRIGHT", self:GetFrame(), "TOPRIGHT", 0, 0);
 	menubar.buttons = {};
 
 	for m = 1, #menu, 1 do

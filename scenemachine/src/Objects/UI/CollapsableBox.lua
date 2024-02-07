@@ -29,8 +29,10 @@ function CollapsableBox:New(x, y, w, h, parent, point, parentPoint, title, R, G,
 end
 
 function CollapsableBox:Build()
-    self.bar = UI.Button:New(self.x, self.y, self.w, 12, self.parent, "TOP", "TOP", self.title);
-    self.panel = UI.Rectangle:New(0, -12, self.w, self.h, self.bar.frame, "TOP", "TOP", self.R, self.G, self.B, self.A);
+    self.bar = UI.Button:New(self.x, self.y, self.w, 12, self.parent, "TOPLEFT", "TOPLEFT", self.title);
+    self.bar:SetPoint("TOPRIGHT", self.parent, "TOPRIGHT", self.x, self.y);
+    self.panel = UI.Rectangle:New(0, -12, self.w, self.h, self.bar.frame, "TOPLEFT", "TOPLEFT", self.R, self.G, self.B, self.A);
+    self.panel:SetPoint("TOPRIGHT", self.bar.frame, "TOPRIGHT", 0, -12);
     local list = self.list;
     local panel = self.panel;
     local bar = self.bar;

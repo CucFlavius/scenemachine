@@ -14,20 +14,20 @@ local Vector3 = SceneMachine.Vector3;
 local sqrt = math.sqrt;
 local floor = math.floor;
 
-Renderer.FrameBufferSize = 400;
+Renderer.FrameBufferSize = 1;
 Renderer.FrameBufferFrames = {};
 Renderer.actors = {};
 SceneMachine.UsedFrames = 1;
 SceneMachine.CulledFrames = 1;
 SceneMachine.lineThickness = 2;
 
-function Renderer.GenerateFrameBuffer()
+function Renderer.GenerateFrameBuffer(startLevel)
 
     -- Frames --
 	for t = 1, Renderer.FrameBufferSize, 1 do
 		Renderer.FrameBufferFrames[t] = CreateFrame("Frame", "Renderer.FramebufferFrame_" .. t, Renderer.projectionFrame)
 		Renderer.FrameBufferFrames[t]:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
-        Renderer.FrameBufferFrames[t]:SetFrameLevel(100);
+        Renderer.FrameBufferFrames[t]:SetFrameLevel(startLevel + t);
 		Renderer.FrameBufferFrames[t]:SetWidth(SceneMachine.WINDOW_WIDTH)
 		Renderer.FrameBufferFrames[t]:SetHeight(SceneMachine.WINDOW_HEIGHT)
 		Renderer.FrameBufferFrames[t].texture = Renderer.FrameBufferFrames[t]:CreateTexture("Renderer.FramebufferFrame_" .. t ..".texture", "ARTWORK")
@@ -44,30 +44,34 @@ function Renderer.GenerateFrameBuffer()
 	end
 end
 
-function Renderer.CreateBackgroundFrame()
-	Renderer.backgroundFrame = CreateFrame("Frame", "Renderer.backgroundFrame", Renderer.projectionFrame)
+function Renderer.CreateRenderer(x, y, w, h, parent, startLevel)
+	Renderer.w = w;
+	Renderer.h = h;
+
+    Renderer.backgroundFrame = CreateFrame("Frame", "Renderer.backgroundFrame", parent)
 	Renderer.backgroundFrame:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
 	Renderer.backgroundFrame:SetWidth(Renderer.w);
 	Renderer.backgroundFrame:SetHeight(Renderer.h);
-	Renderer.backgroundFrame:SetPoint("TOPRIGHT", Renderer.projectionFrame, "TOPRIGHT", 0, 0);
+	Renderer.backgroundFrame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, -20);
+    Renderer.backgroundFrame:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 0, 0);
+    --Renderer.backgroundFrame:SetAllPoints(parent);
+
 	Renderer.backgroundFrame.texture = Renderer.backgroundFrame:CreateTexture("Renderer.backgroundFrame.texture", "ARTWORK")
 	Renderer.backgroundFrame.texture:SetColorTexture(0.554,0.554,0.554,1);
 	Renderer.backgroundFrame.texture:SetAllPoints(Renderer.backgroundFrame);
-	Renderer.backgroundFrame:SetFrameLevel(0);
-end
+	Renderer.backgroundFrame:SetFrameLevel(startLevel);
 
-function Renderer.CreateRenderer(x, y, w, h, parent, point, relativePoint)
-	Renderer.w = w;
-	Renderer.h = h;
-	Renderer.projectionFrame = CreateFrame("ModelScene", "Renderer.projectionFrame", parent);
-	Renderer.projectionFrame:SetPoint(point, parent, relativePoint, x, y);
-	Renderer.projectionFrame:SetWidth(w);
-	Renderer.projectionFrame:SetHeight(h);
+	Renderer.projectionFrame = CreateFrame("ModelScene", "Renderer.projectionFrame", Renderer.backgroundFrame);
+	--Renderer.projectionFrame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", 0, 0);
+    --Renderer.projectionFrame:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, 0);
+    Renderer.projectionFrame:SetAllPoints(Renderer.backgroundFrame);
+	--Renderer.projectionFrame:SetWidth(w);
+	--Renderer.projectionFrame:SetHeight(h);
 	Renderer.projectionFrame:SetClipsChildren(true);
 	Renderer.projectionFrame:SetCameraPosition(4,0,0);
 	Renderer.projectionFrame:SetCameraOrientationByYawPitchRoll(0, 0, 0);
-	Renderer.CreateBackgroundFrame();
-	Renderer.GenerateFrameBuffer();
+    Renderer.projectionFrame:SetFrameLevel(startLevel + 2);
+	--Renderer.GenerateFrameBuffer(startLevel + 3);
 	Renderer.active = false;
 end
 

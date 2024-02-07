@@ -8,14 +8,24 @@ local OP = Editor.ObjectProperties;
 local AM = SceneMachine.Editor.AnimationManager;
 local UI = SceneMachine.UI;
 
-function SH.CreatePanel(x, y, w, h, c4)
-    local leftPanel = UI.Rectangle:New(x, y, w, h, SceneMachine.mainWindow:GetFrame(), "TOPLEFT", "TOPLEFT", c4[1], c4[2], c4[3], 1);
-    local group = Editor.CreateGroup("Hierarchy", h, leftPanel:GetFrame());
+function SH.CreatePanel(w, h, leftPanel, startLevel)
+    --local group = Editor.CreateGroup("Hierarchy", h, leftPanel:GetFrame());
+	local groupBG = UI.Rectangle:New(6, -6, w, h, leftPanel:GetFrame(), "TOPLEFT", "TOPLEFT",  0.1757, 0.1757, 0.1875, 1);
+    groupBG:SetPoint("BOTTOMRIGHT", Editor.horizontalSeparatorL:GetFrame(), "BOTTOMRIGHT", -6, 6);
+	groupBG:SetFrameLevel(startLevel);
+    local groupTitleText = UI.Label:New(0, 0, w - 30, 20, groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", "   Hierarchy", 9);
+    groupTitleText:SetPoint("TOPRIGHT", groupBG:GetFrame(), "TOPRIGHT", 0, 0);
+	groupTitleText:SetFrameLevel(startLevel + 1);
+    local groupContent = UI.Rectangle:New(0, -20, w - 12, h - 20, groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", 0.1445, 0.1445, 0.1445, 1);
+    groupContent:SetPoint("BOTTOMRIGHT", groupBG:GetFrame(), "BOTTOMRIGHT", 0, 0);
+	groupContent:SetFrameLevel(startLevel + 2);
 
 	SH.eyeIconVisibleTexCoord = { 0, 1, 0, 0.5 };
 	SH.eyeIconInvisibleTexCoord = { 0, 1, 0.5, 1 };
 
-	SH.scrollList = UI.PooledScrollList:New(1, -1, w - 2, h - 22, group, "TOPLEFT", "TOPLEFT");
+	SH.scrollList = UI.PooledScrollList:New(1, -1, w - 12, h - 22, groupContent:GetFrame(), "TOPLEFT", "TOPLEFT");
+	SH.scrollList:SetPoint("BOTTOMRIGHT", groupContent:GetFrame(), "BOTTOMRIGHT", 0, 0);
+	SH.scrollList:SetFrameLevel(startLevel + 3);
 	SH.scrollList:SetItemTemplate(
 		{
 			height = 20,
@@ -57,6 +67,9 @@ function SH.CreatePanel(x, y, w, h, c4)
 		});
 
 	SH.scrollList:MakePool();
+
+	--SH.scrollList:Hide();
+
     SH.RefreshHierarchy();
 end
 

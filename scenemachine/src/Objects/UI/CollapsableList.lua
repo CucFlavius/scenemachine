@@ -4,12 +4,13 @@ local CollapsableList = UI.CollapsableList;
 CollapsableList.__index = CollapsableList;
 setmetatable(CollapsableList, UI.Element)
 
-function CollapsableList:New(x, y, w, sizesY, parent, point, parentPoint, titles, R, G, B, A)
+function CollapsableList:New(x, y, w, h, sizesY, parent, point, parentPoint, titles, R, G, B, A)
 	local v = 
     {
         x = x or 0,
         y = y or 0,
         w = w or 20,
+        h = h or 20,
         sizesY = sizesY or nil,
         parent = parent or nil,
         point = point or "TOPLEFT",
@@ -28,9 +29,13 @@ function CollapsableList:New(x, y, w, sizesY, parent, point, parentPoint, titles
 end
 
 function CollapsableList:Build()
+    self.frame = UI.Rectangle:New(self.x, self.y, self.w, self.h, self.parent, self.point, self.parentPoint, 0, 0, 0, 0);   -- viewport
+    self.frame:SetClipsChildren(true);
+    self.list = UI.Rectangle:New(self.x, self.y, self.w, self:GetTotalHeight(), self.frame:GetFrame(), self.point, self.parentPoint, 0, 0, 0, 0);
+    self.list:SetPoint("BOTTOMRIGHT", self.frame:GetFrame(), "BOTTOMRIGHT", 0, 0);
     self.bars = {};
     for c = 1, #self.titles, 1 do
-        self.bars[c] = UI.CollapsableBox:New(self.x, self.y, self.w, self.sizesY[c], self.parent,
+        self.bars[c] = UI.CollapsableBox:New(self.x, self.y, self.w, self.sizesY[c], self.list:GetFrame(),
                                             self.point, self.parentPoint, self.titles[c],
                                             self.R, self.G, self.B, self.A, self);
     end
@@ -38,6 +43,26 @@ function CollapsableList:Build()
     self:Sort();
 end
 
+function CollapsableList:GetTotalHeight()
+    local h = 0;
+    for c = 1, #self.sizesY, 1 do
+        h = h + self.sizesY[c];
+    end
+    return h;
+end
+--[[
+function CollapsableList:Hide()
+    for c = 1, #self.titles, 1 do
+        self.bars[c]:Hide();
+    end
+end
+
+function CollapsableList:Show()
+    for c = 1, #self.titles, 1 do
+        self.bars[c]:Show();
+    end
+end
+--]]
 CollapsableList.__tostring = function(self)
 	return string.format("CollapsableList( %.3f, %.3f, %.3f, %.3f, %s )", self.x, self.y, self.w, self.h, self.parent);
 end
@@ -49,7 +74,8 @@ function CollapsableList:Sort()
         local bar = self.bars[c];
 
         bar:ClearAllPoints();
-        bar:SetPoint("TOP", bar:GetParent(), "TOP", bar.x, y);
+        bar:SetPoint("TOPLEFT", bar:GetParent(), "TOPLEFT", bar.x, y);
+        bar:SetPoint("TOPRIGHT", bar:GetParent(), "TOPRIGHT", bar.x, y);
         bar:SetHeight(12);
 
         if (not bar.bar.isCollapsed) then

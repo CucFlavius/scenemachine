@@ -24,7 +24,8 @@ function Toolbar:New(x, y, w, h, parent, iconCrop, window)
 end
 
 function Toolbar:Build()
-    self.frame = UI.Rectangle:New(self.x, self.y, self.w, self.h, self.parent, "TOP", "TOP", 0.1757, 0.1757, 0.1875, 1);
+    self.frame = UI.Rectangle:New(self.x, self.y, self.w, self.h, self.parent, "TOPLEFT", "TOPLEFT", 0.1757, 0.1757, 0.1875, 1);
+    self.frame:SetPoint("TOPRIGHT", self.parent, "TOPRIGHT", 0, 0);
 
     self.iconsTexture = "Interface\\Addons\\scenemachine\\static\\textures\\toolbar.png";
 
@@ -62,6 +63,8 @@ end
 
 function Toolbar:CreateGroup(x, y, w, h, components)
     local group = UI.Rectangle:New(x, y, w, h, self.frame:GetFrame(), "TOPLEFT", "TOPLEFT", 0.1757, 0.1757, 0.1875, 1);
+    group:SetPoint("TOPRIGHT", self.frame:GetFrame(), "TOPRIGHT", 0, 0);
+    group:SetClipsChildren(true);
     group.components = {};
 
     local x = 0;

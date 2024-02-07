@@ -16,9 +16,6 @@ Editor.width = 1280;
 Editor.height = 720;
 Editor.scale = 1.0;
 Editor.toolbarHeight = 15 + 30;
-local rightPanelWidth = 300;
-local leftPanelWidth = 300;
-local bottomPanelHeight = 220;
 Editor.isOpen = false;
 Editor.isInitialized = false;
 
@@ -50,19 +47,23 @@ function Editor.Initialize()
         Editor.pmult = (768 / h)
     end
 
-    scenemachine_settings = scenemachine_settings or {
-        minimap_button = minimap_button or {
-            minimapPos = minimapPos or 90;
-            hide = hide or false;
-            lock = lock or true;
-        };
-        editor_is_open = editor_is_open or false;
-    };
+    scenemachine_settings = scenemachine_settings or {};
+    scenemachine_settings.minimap_button = scenemachine_settings.minimap_button or {
+        minimapPos = 90;
+        hide = false;
+        lock = true;
+    }
+    scenemachine_settings.editor_is_open = scenemachine_settings.editor_is_open or false;
+    scenemachine_settings.leftPanelW = scenemachine_settings.leftPanelW or 300;
+    scenemachine_settings.rightPanelW = scenemachine_settings.rightPanelW or 300;
+    scenemachine_settings.propertiesPanelH = scenemachine_settings.propertiesPanelH or 200;
+    scenemachine_settings.animationManagerH = scenemachine_settings.animationManagerH or 220;
 
     -- Create all of the UI --
-    Editor.CreateMainWindow();
+    Editor.CreateMainWindow(1);
     Editor.MainMenu.Create();
     local toolbar = UI.Toolbar:New(0, -15, Editor.width, 30, SceneMachine.mainWindow:GetFrame(), 0, SceneMachine.mainWindow);
+    toolbar:SetFrameLevel(2);
     Editor.mainToolbar = toolbar;
     Editor.mainToolbar.transformGroup = toolbar:CreateGroup(0, 0, Editor.width, 30,
         {
@@ -83,19 +84,20 @@ function Editor.Initialize()
             { type = "Separator" },
         }
     );
+    Editor.mainToolbar.transformGroup:SetFrameLevel(3);
 
-    Editor.CreateRightPanel();
-    Editor.CreateLeftPanel();
-    Editor.CreateBottomPanel();
+    Editor.CreateRightPanel(2);
+    Editor.CreateLeftPanel(2);
+    Editor.CreateBottomPanel(2);
     Editor.ProjectManager.CreateWindow();
     MousePick.Initialize();
 
     -- Create Scene manager
-    local sceneX = leftPanelWidth;
+    local sceneX = scenemachine_settings.leftPanelW;
     local sceneY = -(Editor.toolbarHeight + 6);
-    local sceneW = Editor.width - (rightPanelWidth + leftPanelWidth);
-    local sceneH = Editor.height - (Editor.toolbarHeight + bottomPanelHeight + 6);
-    Editor.SceneManager.Create(sceneX, sceneY, sceneW, sceneH, SceneMachine.mainWindow:GetFrame());
+    local sceneW = Editor.width - (scenemachine_settings.rightPanelW + scenemachine_settings.leftPanelW);
+    local sceneH = Editor.height - (Editor.toolbarHeight + scenemachine_settings.animationManagerH + 6);
+    Editor.SceneManager.Create(sceneX, sceneY, sceneW, sceneH, SceneMachine.mainWindow:GetFrame(), 2);
 
     -- Create minimap icon --
     local LDB = LibStub("LibDataBroker-1.1", true)
@@ -224,7 +226,7 @@ function Editor.ResetWindow()
     Editor.SetScale(90);
 end
 
-function Editor.CreateMainWindow()
+function Editor.CreateMainWindow(startLevel)
     local x = math.floor(Editor.width / 2);
     local y = math.floor(Editor.height / 2);
     local w = Editor.width;
@@ -237,41 +239,113 @@ function Editor.CreateMainWindow()
     SceneMachine.mainWindow.titleBar_text:SetJustifyH("LEFT");
     SceneMachine.mainWindow.titleBar_text:ClearAllPoints();
     SceneMachine.mainWindow.titleBar_text:SetPoint("LEFT", 25, 0);
+    SceneMachine.mainWindow:SetFrameLevel(startLevel);
 
     SceneMachine.mainWindow.TitleBarIcon = UI.ImageBox:New(5/2, -5/2, 15, 15, SceneMachine.mainWindow.titleBar, "TOPLEFT", "TOPLEFT", "Interface\\Addons\\scenemachine\\static\\textures\\icon32.png");
-	SceneMachine.WINDOW_WIDTH = Editor.width;
+	SceneMachine.mainWindow.TitleBarIcon:SetFrameLevel(startLevel + 1);
+    SceneMachine.WINDOW_WIDTH = Editor.width;
 	SceneMachine.WINDOW_HEIGHT = Editor.height;
 end
 
-function Editor.CreateRightPanel()
-    local rightPanel = UI.Rectangle:New(0, -Editor.toolbarHeight/2, rightPanelWidth, Editor.height - Editor.toolbarHeight, SceneMachine.mainWindow:GetFrame(), "RIGHT", "RIGHT", c4[1], c4[2], c4[3], 1);
+function Editor.CreateRightPanel(startLevel)
+    local rightPanel = UI.Rectangle:New(0, -Editor.toolbarHeight, scenemachine_settings.rightPanelW, Editor.height - Editor.toolbarHeight, SceneMachine.mainWindow:GetFrame(), "TOPRIGHT", "TOPRIGHT", 0.1171, 0.1171, 0.1171, 1);
+    rightPanel:SetPoint("BOTTOMRIGHT", SceneMachine.mainWindow:GetFrame(), "BOTTOMRIGHT", 0, 0);
+    rightPanel:SetFrameLevel(startLevel);
+    rightPanel.frame:SetResizeBounds(200, 100, 1000, 200);
+    rightPanel.frame:SetResizable(true);
+    rightPanel.frame:SetUserPlaced(true);
+
+    Editor.verticalSeparatorR = UI.Rectangle:New(0, 0, 6, 310, rightPanel:GetFrame(), "TOPLEFT", "TOPLEFT", 1,1,1,0);
+    Editor.verticalSeparatorR:SetPoint("BOTTOMLEFT", rightPanel:GetFrame(), "BOTTOMLEFT", 0, 0);
+    Editor.verticalSeparatorR:SetFrameLevel(100);
+    Editor.verticalSeparatorR:GetFrame():EnableMouse(true);
+    Editor.verticalSeparatorR:GetFrame():RegisterForDrag("LeftButton");
+    Editor.verticalSeparatorR:GetFrame():SetScript("OnDragStart", function()
+        rightPanel.frame:StartSizing("LEFT");
+    end);
+	Editor.verticalSeparatorR:GetFrame():SetScript("OnDragStop", function()
+        scenemachine_settings.rightPanelW = SceneMachine.mainWindow:GetRight() - rightPanel:GetLeft();
+        rightPanel.frame:StopMovingOrSizing();
+        rightPanel:SetPoint("TOPRIGHT", SceneMachine.mainWindow:GetFrame(), "TOPRIGHT", 0, -Editor.toolbarHeight);
+        rightPanel:SetPoint("BOTTOMRIGHT", SceneMachine.mainWindow:GetFrame(), "BOTTOMRIGHT", 0, 0);
+    end);
+    
     
     local edge = 10;
-    local tilesGroup = Editor.CreateGroup("Asset Explorer", Editor.height - Editor.toolbarHeight - edge , rightPanel:GetFrame());
+    local tilesGroup = Editor.CreateGroup("Asset Explorer", Editor.height - Editor.toolbarHeight - edge , rightPanel:GetFrame(), startLevel + 1);
 
-    Editor.AssetBrowser.Create(tilesGroup, rightPanelWidth - 12, Editor.height - Editor.toolbarHeight - edge -(Editor.toolbarHeight / 2));
+    Editor.AssetBrowser.Create(tilesGroup, scenemachine_settings.rightPanelW - 12, Editor.height - Editor.toolbarHeight - edge -(Editor.toolbarHeight / 2), startLevel + 4);
 end
 
-function Editor.CreateLeftPanel()
-    SH.CreatePanel(0, -Editor.toolbarHeight, leftPanelWidth - 12, 350, c4);
-    OP.CreatePanel(0, -(Editor.toolbarHeight + 350 + 5), leftPanelWidth - 12, 310, c1, c2, c3, c4);
+function Editor.CreateLeftPanel(startLevel)
+    local leftPanel = UI.Rectangle:New(0, -Editor.toolbarHeight, scenemachine_settings.leftPanelW, 310, SceneMachine.mainWindow:GetFrame(), "TOPLEFT", "TOPLEFT", c4[1], c4[2], c4[3], 1);
+    leftPanel:SetPoint("BOTTOMLEFT", SceneMachine.mainWindow:GetFrame(), "BOTTOMLEFT", 0, 0);
+    leftPanel:SetFrameLevel(startLevel);
+
+	leftPanel.frame:SetResizeBounds(200, 100, 1000, 200);
+    leftPanel.frame:SetResizable(true);
+    leftPanel.frame:SetUserPlaced(true);
+    
+    Editor.verticalSeparatorL = UI.Rectangle:New(0, 0, 6, 310, leftPanel:GetFrame(), "TOPRIGHT", "TOPRIGHT", 1,1,1,0);
+    Editor.verticalSeparatorL:SetPoint("BOTTOMRIGHT", leftPanel:GetFrame(), "BOTTOMRIGHT", 0, 0);
+    Editor.verticalSeparatorL:SetFrameLevel(100);
+    Editor.verticalSeparatorL:GetFrame():EnableMouse(true);
+    Editor.verticalSeparatorL:GetFrame():RegisterForDrag("LeftButton");
+    Editor.verticalSeparatorL:GetFrame():SetScript("OnDragStart", function()
+        leftPanel.frame:StartSizing("RIGHT");
+    end);
+	Editor.verticalSeparatorL:GetFrame():SetScript("OnDragStop", function()
+        scenemachine_settings.leftPanelW = leftPanel:GetRight() - SceneMachine.mainWindow:GetLeft();
+        leftPanel.frame:StopMovingOrSizing();
+        leftPanel:SetPoint("TOPLEFT", SceneMachine.mainWindow:GetFrame(), "TOPLEFT", 0, -Editor.toolbarHeight);
+        leftPanel:SetPoint("BOTTOMLEFT", SceneMachine.mainWindow:GetFrame(), "BOTTOMLEFT", 0, 0);
+    end);
+
+    OP.CreatePanel(scenemachine_settings.leftPanelW, scenemachine_settings.propertiesPanelH, c1, c2, c3, c4, leftPanel, startLevel + 2);
+    SH.CreatePanel(scenemachine_settings.leftPanelW, 350, leftPanel, startLevel + 2);
 end
 
-function Editor.CreateBottomPanel()
-    local bottomPanel = UI.Rectangle:New(leftPanelWidth, 0, Editor.width - (rightPanelWidth + leftPanelWidth),
-        bottomPanelHeight, SceneMachine.mainWindow:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", c4[1], c4[2], c4[3], 1);
+function Editor.CreateBottomPanel(startLevel)
+    local bottomPanel = UI.Rectangle:New(0, 0, Editor.width - (scenemachine_settings.rightPanelW + scenemachine_settings.leftPanelW),
+        scenemachine_settings.animationManagerH, Editor.verticalSeparatorL:GetFrame(), "BOTTOMLEFT", "BOTTOMRIGHT", c4[1], c4[2], c4[3], 1);
+    bottomPanel:SetPoint("BOTTOMRIGHT", Editor.verticalSeparatorR:GetFrame(), "BOTTOMLEFT", 0, 0);
+    bottomPanel:SetFrameLevel(startLevel);
+    bottomPanel.frame:SetResizable(true);
+    bottomPanel.frame:SetUserPlaced(true);
+    bottomPanel.frame:SetResizeBounds(120, 120, 800, 800);
+
+    Editor.horizontalSeparator = UI.Rectangle:New(0, 6, 6, 6, bottomPanel:GetFrame(), "TOPLEFT", "TOPLEFT", 1,1,1,0);
+    Editor.horizontalSeparator:SetPoint("TOPRIGHT", bottomPanel:GetFrame(), "TOPRIGHT", 0, 0);
+    Editor.horizontalSeparator:SetFrameLevel(100);
+    Editor.horizontalSeparator:GetFrame():EnableMouse(true);
+    Editor.horizontalSeparator:GetFrame():RegisterForDrag("LeftButton");
+    Editor.horizontalSeparator:GetFrame():SetScript("OnDragStart", function()
+        bottomPanel.frame:StartSizing("TOP");
+    end);
+	Editor.horizontalSeparator:GetFrame():SetScript("OnDragStop", function()
+        scenemachine_settings.animationManagerH = (bottomPanel:GetTop()) - SceneMachine.mainWindow:GetBottom();
+        bottomPanel.frame:StopMovingOrSizing();
+        bottomPanel:SetPoint("BOTTOMLEFT", Editor.verticalSeparatorL:GetFrame(), "BOTTOMRIGHT", 0, 0);
+        bottomPanel:SetPoint("BOTTOMRIGHT", Editor.verticalSeparatorR:GetFrame(), "BOTTOMLEFT", 0, 0);
+    end);
+
 
     -- Create Animation manager
     --local animX = leftPanelWidth;
     --local animY = -(Editor.toolbarHeight + 6) - Renderer.h;
-    AM.CreateAnimationManager(0, 0, Editor.width - (rightPanelWidth + leftPanelWidth), bottomPanelHeight, bottomPanel:GetFrame());
+    AM.CreateAnimationManager(0, 0, Editor.width - (scenemachine_settings.rightPanelW + scenemachine_settings.leftPanelW), scenemachine_settings.animationManagerH, bottomPanel:GetFrame(), startLevel);
 end
 
-function Editor.CreateGroup(name, groupHeight, groupParent)
-    local groupBG = UI.Rectangle:New(6, -6, leftPanelWidth - 12, groupHeight, groupParent, "TOPLEFT", "TOPLEFT",  c1[1], c1[2], c1[3], 1);
-    local groupTitleText = UI.Label:New(0, 0, leftPanelWidth - 30, 20, groupBG:GetFrame(), "TOP", "TOP", name, 9);
-    local groupContent = UI.Rectangle:New(0, -20, leftPanelWidth - 12, groupHeight - 20, groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", 0.1445, 0.1445, 0.1445, 1);
-
+function Editor.CreateGroup(name, groupHeight, groupParent, startLevel)
+    local groupBG = UI.Rectangle:New(6, -6, scenemachine_settings.leftPanelW - 12, groupHeight, groupParent, "TOPLEFT", "TOPLEFT",  c1[1], c1[2], c1[3], 1);
+    groupBG:SetPoint("BOTTOMRIGHT", groupParent, "BOTTOMRIGHT", -6, 6);
+    groupBG:SetFrameLevel(startLevel);
+    local groupTitleText = UI.Label:New(0, 0, scenemachine_settings.leftPanelW - 30, 20, groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", "   " .. name, 9);
+    groupTitleText:SetPoint("TOPRIGHT", groupBG:GetFrame(), "TOPRIGHT", 0, 0);
+    groupTitleText:SetFrameLevel(startLevel + 1);
+    local groupContent = UI.Rectangle:New(0, -20, scenemachine_settings.leftPanelW - 12, groupHeight - 20, groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", 0.1445, 0.1445, 0.1445, 1);
+    groupContent:SetPoint("BOTTOMRIGHT", groupBG:GetFrame(), "BOTTOMRIGHT", 0, 0);
+    groupContent:SetFrameLevel(startLevel + 2);
     return groupContent:GetFrame();
 end
 

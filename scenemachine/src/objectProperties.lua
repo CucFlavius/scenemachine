@@ -7,218 +7,55 @@ local OP = Editor.ObjectProperties;
 local Renderer = SceneMachine.Renderer;
 local UI = SceneMachine.UI;
 
-function OP.CreatePanel(x, y, w, h, c1, c2, c3, c4)
-    local leftPanel = UI.Rectangle:New(x, y, w, h, SceneMachine.mainWindow:GetFrame(), "TOPLEFT", "TOPLEFT", c4[1], c4[2], c4[3], 1);
-    local group = Editor.CreateGroup("Properties", h, leftPanel:GetFrame());
+function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
+    --local group = Editor.CreateGroup("Properties", h, leftPanel:GetFrame());
+    local groupBG = UI.Rectangle:New(-6, 0, w, h, leftPanel:GetFrame(), "BOTTOMRIGHT", "BOTTOMRIGHT",  0.1757, 0.1757, 0.1875, 1);
+    groupBG:SetPoint("BOTTOMLEFT", leftPanel:GetFrame(), "BOTTOMLEFT", 6, 6);
+    groupBG:SetFrameLevel(startLevel);
+    groupBG.frame:SetResizable(true);
+    groupBG.frame:SetUserPlaced(true);
 
-    local collapseList = UI.CollapsableList:New(0, -1, w - 2, { 60, 80, 100 }, group, "TOP", "TOP", { "Transform", "Actor Properties", "Scene properties (temp)" }, c1[1], c1[2], c1[3], 1);
+    Editor.horizontalSeparatorL = UI.Rectangle:New(0, 6, 0, 6, groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", 1,1,1,0);
+    Editor.horizontalSeparatorL:SetPoint("TOPRIGHT", leftPanel:GetFrame(), "TOPRIGHT", 0, 0);
+    Editor.horizontalSeparatorL:SetFrameLevel(startLevel + 10);
+    Editor.horizontalSeparatorL:GetFrame():EnableMouse(true);
+    Editor.horizontalSeparatorL:GetFrame():RegisterForDrag("LeftButton");
+    Editor.horizontalSeparatorL:GetFrame():SetScript("OnDragStart", function()
+        groupBG.frame:StartSizing("TOP");
+    end);
+	Editor.horizontalSeparatorL:GetFrame():SetScript("OnDragStop", function()
+        scenemachine_settings.propertiesPanelH = (groupBG:GetTop() - 6) - SceneMachine.mainWindow:GetBottom();
+        groupBG.frame:StopMovingOrSizing();
+        groupBG:SetPoint("BOTTOMRIGHT", leftPanel:GetFrame(), "BOTTOMRIGHT", -6, 0);
+        groupBG:SetPoint("BOTTOMLEFT", leftPanel:GetFrame(), "BOTTOMLEFT", 6, 6);
+    end);
 
-    OP.CreateTransformProperties(0, 0, w - 2, 60, collapseList.bars[1].panel:GetFrame());
-    OP.CreateActorProperties(0, 0, w - 2, 20, collapseList.bars[2].panel:GetFrame())
-    OP.CreateSceneProperties(0, 0, w - 2, 80, collapseList.bars[3].panel:GetFrame());
+
+    local groupTitleText = UI.Label:New(0, 0, w - 30, 20, groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", "   Properties", 9);
+    groupTitleText:SetPoint("TOPRIGHT", groupBG:GetFrame(), "TOPRIGHT", 0, 0);
+    groupTitleText:SetFrameLevel(startLevel + 1);
+
+    local groupContent = UI.Rectangle:New(0, -20, w - 12, h - 20, groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", 0.1445, 0.1445, 0.1445, 1);
+    groupContent:SetPoint("BOTTOMRIGHT", groupBG:GetFrame(), "BOTTOMRIGHT", 0, 0);
+    groupContent:SetFrameLevel(startLevel + 2);
+
+    local collapseList = UI.CollapsableList:New(0, 0, w - 6, h - 20, { 66, 22, 44 }, groupContent:GetFrame(), "TOPLEFT", "TOPLEFT", { "Transform", "Actor Properties", "Scene properties (temp)", }, c1[1], c1[2], c1[3], 1);
+    collapseList:SetPoint("BOTTOMRIGHT", groupContent:GetFrame(), "BOTTOMRIGHT", 0, 0);
+    collapseList:SetFrameLevel(startLevel + 3);
+    
+    local transformPropertyGroup = collapseList.bars[1].panel:GetFrame();
+    OP.positionField = UI.PropertyFieldVector3:New(0, 20, transformPropertyGroup, "Position", {0, 0, 0}, OP.SetPosX, OP.SetPosY, OP.SetPosZ);
+    OP.rotationField = UI.PropertyFieldVector3:New(-22, 20, transformPropertyGroup, "Rotation", {0, 0, 0}, OP.SetRotX, OP.SetRotY, OP.SetRotZ);
+    OP.scaleField = UI.PropertyFieldFloat:New(-44, 20, transformPropertyGroup, "Scale", 1, OP.SetScale);
+
+    local actorPropertyGroup = collapseList.bars[2].panel:GetFrame();
+    OP.alphaField = UI.PropertyFieldFloat:New(0, 20, actorPropertyGroup, "Alpha", 1, OP.SetAlpha);
+
+    local scenePropertyGroup = collapseList.bars[3].panel:GetFrame();
+    OP.ambientColorField = UI.PropertyFieldVector3:New(0, 20, scenePropertyGroup, "Ambient Color", {0, 0, 0}, OP.SetAmbientColorR, OP.SetAmbientColorG, OP.SetAmbientColorB);
+    OP.diffuseColorField = UI.PropertyFieldVector3:New(-22, 20, scenePropertyGroup, "Diffuse Color", {0, 0, 0}, OP.SetDiffuseColorR, OP.SetDiffuseColorG, OP.SetDiffuseColorB);
 
     OP.Refresh();
-end
-
-function OP.CreateTransformProperties(x, y, w, h, parent)
-    OP.Transform = {};
-    local editBoxTitleW = 85;
-    local h = 16;
-    local hPad = h + 2;
-    local y = -5;
-    UI.Label:New(10, y, editBoxTitleW, h, parent, "TOPLEFT", "TOPLEFT", "Position", 9);
-    OP.Transform.posX = OP.CreateTransformField(editBoxTitleW + 10, y, 45, h, parent, "x", OP.SetPosX, 0);
-    OP.Transform.posY = OP.CreateTransformField(editBoxTitleW + 10 + 55 + 2, y, 45, h,parent, "y", OP.SetPosY, 0);
-    OP.Transform.posZ = OP.CreateTransformField(editBoxTitleW + 10 + (55 * 2) + (2 * 2), y, 45, h,parent, "z", OP.SetPosZ, 0);
-    local resetPosButton = UI.Button:New(editBoxTitleW + 10 + (55 * 3) + (2 * 2), y, h, h, parent, "TOPLEFT", "TOPLEFT", "R", nil);
-    resetPosButton:SetScript("OnClick", function(self)
-        if (SM.selectedObject ~= nil) then
-            SM.selectedObject:SetPosition(0, 0, 0);
-            OP.Refresh();
-        end
-    end);
-
-    y = y - hPad;
-    UI.Label:New(10, y, editBoxTitleW, h, parent, "TOPLEFT", "TOPLEFT", "Rotation", 9);
-    OP.Transform.rotX = OP.CreateTransformField(editBoxTitleW + 10, y, 45, h,parent, "x", OP.SetRotX, 0);
-    OP.Transform.rotY = OP.CreateTransformField(editBoxTitleW + 10 + 55 + 2, y, 45, h,parent, "y", OP.SetRotY, 0);
-    OP.Transform.rotZ = OP.CreateTransformField(editBoxTitleW + 10 + (55 * 2) + (2 * 2), y, 45, h,parent, "z", OP.SetRotZ, 0);
-    local resetRotButton = UI.Button:New(editBoxTitleW + 10 + (55 * 3) + (2 * 2), y, h, h, parent, "TOPLEFT", "TOPLEFT", "R", nil);
-    resetRotButton:SetScript("OnClick", function(self)
-        if (SM.selectedObject ~= nil) then
-            SM.selectedObject:SetRotation(0, 0, 0);
-            OP.Refresh();
-        end
-    end);
-
-    y = y - hPad;
-    UI.Label:New(10, y, editBoxTitleW, h, parent, "TOPLEFT", "TOPLEFT", "Scale", 9);
-    OP.Transform.scale = UI.TextBox:New(editBoxTitleW + 10 + 8, y, 159, h, parent, "TOPLEFT", "TOPLEFT", "0");
-    OP.Transform.scale:SetScript('OnEscapePressed', function(self1) 
-        -- restore value
-        self1:SetText(tostring(self1.value));
-        self1:ClearFocus();
-        Editor.ui.focused = false;
-    end);
-    OP.Transform.scale:SetScript('OnEnterPressed', function(self1)
-        -- set value
-        local valText = self1:GetText();
-        if (valText == nil or valText == "") then
-            valText = "1";
-        end
-        local val = tonumber(valText);
-        if (val ~= nil) then
-            self1.value = val;
-        end
-        OP.SetScale(self1);
-        self1:ClearFocus();
-        Editor.ui.focused = false;
-    end);
-    OP.Transform.scale:SetScript('OnEditFocusLost', function(self1) 
-        -- set value
-        local valText = self1:GetText();
-        if (valText == nil or valText == "") then
-            valText = "1";
-        end
-        local val = tonumber(valText);
-        if (val ~= nil) then
-            self1.value = val;
-        end
-        OP.SetScale(self1);
-        Editor.ui.focused = false;
-    end);
-    local resetScaleButton = UI.Button:New(editBoxTitleW + 10 + (55 * 3) + (2 * 2), y, h, h, parent, "TOPLEFT", "TOPLEFT", "R", nil);
-    resetScaleButton:SetScript("OnClick", function(self)
-        if (SM.selectedObject ~= nil) then
-            SM.selectedObject:SetScale(1);
-            OP.Refresh();
-        end
-    end);
-end
-
-function OP.CreateTransformField(x, y, w, h, parent, axisName, setValue, defaultValue)
-    UI.Label:New(x, y, 10, h, parent, "TOPLEFT", "TOPLEFT", axisName, 9);
-    local transform = UI.TextBox:New(x + 8, y, w, h, parent, "TOPLEFT", "TOPLEFT", "0");
-    transform:SetScript('OnEscapePressed', function(self1) 
-        -- restore value
-        self1:SetText(tostring(self1.value));
-        self1:ClearFocus();
-        Editor.ui.focused = false;
-    end);
-    transform:SetScript('OnEnterPressed', function(self1)
-        -- set value
-        local valText = self1:GetText();
-        if (valText == nil or valText == "") then
-            valText = tostring(defaultValue);
-        end
-        local val = tonumber(valText);
-        if (val ~= nil) then
-            self1.value = val;
-        end
-        setValue(self1);
-        self1:ClearFocus();
-        Editor.ui.focused = false;
-    end);
-    transform:SetScript('OnEditFocusLost', function(self1) 
-        -- set value
-        local valText = self1:GetText();
-        if (valText == nil or valText == "") then
-            valText = tostring(defaultValue);
-        end
-        local val = tonumber(valText);
-        if (val ~= nil) then
-            self1.value = val;
-        end
-        setValue(self1);
-        Editor.ui.focused = false;
-    end);
-
-    return transform;
-end
-
-function OP.CreateActorProperties(x, y, w, h, parent)
-    -- writing notes on potential properties
-
-    -- 1. actor:SetAlpha(value) works, even on opaque
-    -- 2. actor:SetDesaturation(strength) works
-    -- 3. actor:SetParticleOverrideScale(scale) works
-    -- 4. SetSpellVisualKit(ID) id comes from SpellVisualKit.db2 (finding ones that work is hard though, gonna need to show them in a list like asset browser, to see what they do)
-
-    OP.ActorProperties = {};
-    local editBoxTitleW = 85;
-    local h = 16;
-    local hPad = h + 2;
-    local y = -5;
-
-    UI.Label:New(10, y, editBoxTitleW, h, parent, "TOPLEFT", "TOPLEFT", "Alpha", 9);
-    OP.ActorProperties.alpha = UI.TextBox:New(editBoxTitleW + 10 + 8, y, 159, h, parent, "TOPLEFT", "TOPLEFT", "0");
-    OP.ActorProperties.alpha:SetScript('OnEscapePressed', function(self1) 
-        -- restore value
-        self1:SetText(tostring(self1.value));
-        self1:ClearFocus();
-        Editor.ui.focused = false;
-    end);
-    OP.ActorProperties.alpha:SetScript('OnEnterPressed', function(self1)
-        -- set value
-        local valText = self1:GetText();
-        if (valText == nil or valText == "") then
-            valText = "1";
-        end
-        local val = tonumber(valText);
-        if (val ~= nil) then
-            self1.value = val;
-        end
-        OP.SetAlpha(self1);
-        self1:ClearFocus();
-        Editor.ui.focused = false;
-    end);
-    OP.ActorProperties.alpha:SetScript('OnEditFocusLost', function(self1) 
-        -- set value
-        local valText = self1:GetText();
-        if (valText == nil or valText == "") then
-            valText = "1";
-        end
-        local val = tonumber(valText);
-        if (val ~= nil) then
-            self1.value = val;
-        end
-        OP.SetAlpha(self1);
-        Editor.ui.focused = false;
-    end);
-    local resetScaleButton = UI.Button:New(editBoxTitleW + 10 + (55 * 3) + (2 * 2), y, h, h, parent, "TOPLEFT", "TOPLEFT", "R", nil);
-    resetScaleButton:SetScript("OnClick", function(self)
-        if (SM.selectedObject ~= nil) then
-            SM.selectedObject:SetAlpha(1);
-            OP.Refresh();
-        end
-    end);
-    y = y - hPad;
-
-end
-
-function OP.CreateSceneProperties(x, y, w, h, parent)
-    local editBoxTitleW = 85;
-    local h = 16;
-    local hPad = h + 2;
-    local y = -5;
-    UI.Label:New(10, y, editBoxTitleW, h, parent, "TOPLEFT", "TOPLEFT", "Ambient Color", 9);
-    local lightAmbColorR = OP.CreateTransformField(editBoxTitleW + 10, y, 45, h, parent, "r", OP.SetAmbientColorR, 1)
-    local lightAmbColorG = OP.CreateTransformField(editBoxTitleW + 10 + 55 + 2, y, 45, h, parent, "g", OP.SetAmbientColorG, 1);
-    local lightAmbColorB = OP.CreateTransformField(editBoxTitleW + 10 + (55 * 2) + (2 * 2), y, 45, h, parent, "b", OP.SetAmbientColorB, 1);
-    y = y - hPad;
-    UI.Label:New(10, y, editBoxTitleW, h, parent, "TOPLEFT", "TOPLEFT", "Diffuse Color", 9);
-    local lightDifColorR = OP.CreateTransformField(editBoxTitleW + 10, y, 45, h, parent, "r", OP.SetDiffuseColorR, 0)
-    local lightDifColorG = OP.CreateTransformField(editBoxTitleW + 10 + 55 + 2, y, 45, h, parent, "g", OP.SetDiffuseColorG, 0);
-    local lightDifColorB = OP.CreateTransformField(editBoxTitleW + 10 + (55 * 2) + (2 * 2), y, 45, h, parent, "b", OP.SetDiffuseColorB, 0);
-    y = y - hPad;
-    --local testPosButton = UI.Button:New(10, y, 100, h, parent, "TOPLEFT", "TOPLEFT", "Test", nil);
-    --testPosButton:SetScript("OnClick", function(self) Renderer.projectionFrame:SetLightType(1); Renderer.projectionFrame:SetLightPosition(0, 0, 0); Renderer.projectionFrame:SetLightDirection(1, 1, 1); end);
-    --{ Name = "Directional", Type = "ModelLightType", EnumValue = 0 },
-    --{ Name = "Point", Type = "ModelLightType", EnumValue = 1 },
-    --testPosButton:SetScript("OnClick", function(self) SM.selectedObject:GetActor():SetSpellVisualKit(174103); end);
-    --testPosButton:SetScript("OnClick", function(self) Renderer.projectionFrame:SetLightAmbientColor(0, 0, 0); Renderer.projectionFrame:SetLightDiffuseColor(0, 0, 0); end);
-    --testPosButton:SetScript("OnClick", function(self) Renderer.projectionFrame:SetLightType(1) end);
-    
 end
 
 function OP.Refresh()
@@ -238,103 +75,79 @@ function OP.Refresh()
         alpha = SM.selectedObject:GetAlpha();
     end
 
-    OP.Transform.posX:SetText(tostring(OP.Truncate(pos.x, 3)));
-    OP.Transform.posY:SetText(tostring(OP.Truncate(pos.y, 3)));
-    OP.Transform.posZ:SetText(tostring(OP.Truncate(pos.z, 3)));
-
-    OP.Transform.rotX:SetText(tostring(OP.Truncate(deg(rot.x), 3)));
-    OP.Transform.rotY:SetText(tostring(OP.Truncate(deg(rot.y), 3)));
-    OP.Transform.rotZ:SetText(tostring(OP.Truncate(deg(rot.z), 3)));
-
-    OP.Transform.scale:SetText(tostring(OP.Truncate(scale, 3)));
-
-    OP.ActorProperties.alpha:SetText(tostring(OP.Truncate(alpha, 3)));
+    OP.positionField:Set(OP.Truncate(pos.x, 3), OP.Truncate(pos.y, 3), OP.Truncate(pos.z, 3));
+    OP.rotationField:Set(OP.Truncate(deg(rot.x), 3), OP.Truncate(deg(rot.y), 3), OP.Truncate(deg(rot.z), 3));
+    OP.scaleField:Set(OP.Truncate(scale, 3));
+    OP.alphaField:Set(OP.Truncate(alpha, 3));
 end
 
-function OP.ToggleTransformFields(on)
-    local c = 0.5;
-    if (on) then
-        c = 1;
-    end
-
-    OP.Transform.posX:SetEnabled(on);
-    OP.Transform.posX:SetTextColor(1, 1, 1, c);
-    OP.Transform.posY:SetEnabled(on);
-    OP.Transform.posY:SetTextColor(1, 1, 1, c);
-    OP.Transform.posZ:SetEnabled(on);
-    OP.Transform.posZ:SetTextColor(1, 1, 1, c);
-
-    OP.Transform.rotX:SetEnabled(on);
-    OP.Transform.rotX:SetTextColor(1, 1, 1, c);
-    OP.Transform.rotY:SetEnabled(on);
-    OP.Transform.rotY:SetTextColor(1, 1, 1, c);
-    OP.Transform.rotZ:SetEnabled(on);
-    OP.Transform.rotZ:SetTextColor(1, 1, 1, c);
-
-    OP.Transform.scale:SetEnabled(on);
-    OP.Transform.scale:SetTextColor(1, 1, 1, c);
+function OP.ToggleTransformFields(enabled)
+    OP.positionField:SetEnabled(enabled);
+    OP.rotationField:SetEnabled(enabled);
+    OP.scaleField:SetEnabled(enabled);
+    OP.alphaField:SetEnabled(enabled);
 end
 
-function OP.SetPosX(self)
+function OP.SetPosX(value)
     if (SM.selectedObject == nil) then
         return;
     end
     local pos = SM.selectedObject:GetPosition();
-    SM.selectedObject:SetPosition(self.value, pos.y, pos.z);
+    SM.selectedObject:SetPosition(value, pos.y, pos.z);
 end
 
-function OP.SetPosY(self)
+function OP.SetPosY(value)
     if (SM.selectedObject == nil) then
         return;
     end
     local pos = SM.selectedObject:GetPosition();
-    SM.selectedObject:SetPosition(pos.x, self.value, pos.z);
+    SM.selectedObject:SetPosition(pos.x, value, pos.z);
 end
 
-function OP.SetPosZ(self)
+function OP.SetPosZ(value)
     if (SM.selectedObject == nil) then
         return;
     end
     local pos = SM.selectedObject:GetPosition();
-    SM.selectedObject:SetPosition(pos.x, pos.y, self.value);
+    SM.selectedObject:SetPosition(pos.x, pos.y, value);
 end
 
-function OP.SetRotX(self)
+function OP.SetRotX(value)
     if (SM.selectedObject == nil) then
         return;
     end
     local rot = SM.selectedObject:GetRotation();
-    SM.selectedObject:SetRotation(rad(self.value), rot.y, rot.z);
+    SM.selectedObject:SetRotation(rad(value), rot.y, rot.z);
 end
 
-function OP.SetRotY(self)
+function OP.SetRotY(value)
     if (SM.selectedObject == nil) then
         return;
     end
     local rot = SM.selectedObject:GetRotation();
-    SM.selectedObject:SetRotation(rot.x, rad(self.value), rot.z);
+    SM.selectedObject:SetRotation(rot.x, rad(value), rot.z);
 end
 
-function OP.SetRotZ(self)
+function OP.SetRotZ(value)
     if (SM.selectedObject == nil) then
         return;
     end
     local rot = SM.selectedObject:GetRotation();
-    SM.selectedObject:SetRotation(rot.x, rot.y, rad(self.value));
+    SM.selectedObject:SetRotation(rot.x, rot.y, rad(value));
 end
 
-function OP.SetScale(self)
+function OP.SetScale(value)
     if (SM.selectedObject == nil) then
         return;
     end
-    SM.selectedObject:SetScale(self.value);
+    SM.selectedObject:SetScale(value);
 end
 
-function OP.SetAlpha(self)
+function OP.SetAlpha(value)
     if (SM.selectedObject == nil) then
         return;
     end
-    SM.selectedObject:SetAlpha(self.value);
+    SM.selectedObject:SetAlpha(value);
 end
 
 function OP.Truncate(num, digits)
@@ -342,32 +155,32 @@ function OP.Truncate(num, digits)
     return math.modf(num*mult)/mult
 end
 
-function OP.SetAmbientColorR(self)
+function OP.SetAmbientColorR(value)
     local r, g, b = Renderer.projectionFrame:GetLightAmbientColor();
-    Renderer.projectionFrame:SetLightAmbientColor(self.value, g, b);
+    Renderer.projectionFrame:SetLightAmbientColor(value, g, b);
 end
 
-function OP.SetAmbientColorG(self)
+function OP.SetAmbientColorG(value)
     local r, g, b = Renderer.projectionFrame:GetLightAmbientColor();
-    Renderer.projectionFrame:SetLightAmbientColor(r, self.value, b);
+    Renderer.projectionFrame:SetLightAmbientColor(r, value, b);
 end
 
-function OP.SetAmbientColorB(self)
+function OP.SetAmbientColorB(value)
     local r, g, b = Renderer.projectionFrame:GetLightAmbientColor();
-    Renderer.projectionFrame:SetLightAmbientColor(r, g, self.value);
+    Renderer.projectionFrame:SetLightAmbientColor(r, g, value);
 end
 
-function OP.SetDiffuseColorR(self)
+function OP.SetDiffuseColorR(value)
     local r, g, b = Renderer.projectionFrame:GetLightDiffuseColor();
-    Renderer.projectionFrame:SetLightDiffuseColor(self.value, g, b);
+    Renderer.projectionFrame:SetLightDiffuseColor(value, g, b);
 end
 
-function OP.SetDiffuseColorG(self)
+function OP.SetDiffuseColorG(value)
     local r, g, b = Renderer.projectionFrame:GetLightDiffuseColor();
-    Renderer.projectionFrame:SetLightDiffuseColor(r, self.value, b);
+    Renderer.projectionFrame:SetLightDiffuseColor(r, value, b);
 end
 
-function OP.SetDiffuseColorB(self)
+function OP.SetDiffuseColorB(value)
     local r, g, b = Renderer.projectionFrame:GetLightDiffuseColor();
-    Renderer.projectionFrame:SetLightDiffuseColor(r, g, self.value);
+    Renderer.projectionFrame:SetLightDiffuseColor(r, g, value);
 end

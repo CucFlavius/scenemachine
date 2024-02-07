@@ -31,22 +31,26 @@ function TabPanel:Build()
     self.buttons = {};
     self.actions = {};
     self.tabBar = UI.Rectangle:New(0, -1.5, self.w, 20, tabPanel:GetFrame(), "TOPLEFT", "TOPLEFT", 0.1171, 0.1171, 0.1171, 1);
+    self.tabBar:SetPoint("TOPRIGHT", tabPanel:GetFrame(), "TOPRIGHT", 0, 0)
     self.lastTabTitleOffset = 0;
     self.frame = tabPanel:GetFrame();
 end
 
 
-function TabPanel:AddTab(width, height, title, titleWidth, action)
+function TabPanel:AddTab(width, height, title, titleWidth, action, startLevel)
     local idx = #self.buttons + 1;
     self.actions[idx] = action;
     self.buttons[idx] = UI.Button:New(5 + self.lastTabTitleOffset, -1, titleWidth, 20 - 1, self.tabBar:GetFrame(), "LEFT", "LEFT", title, nil);
-    self.buttons[idx]:SetScript("OnClick", function() 
+    self.buttons[idx]:SetFrameLevel(startLevel);
+    self.buttons[idx]:SetScript("OnClick", function()
         self:OnChangeTab(idx);
         if (self.actions[idx]) then
             self.actions[idx]();
         end
     end)
     self.tabs[idx] = UI.Rectangle:New(0, -20, width, height - 20, self:GetFrame(), "TOPLEFT", "TOPLEFT", 0, 0, 0, 0.0);
+    self.tabs[idx]:SetPoint("BOTTOMRIGHT", self:GetFrame(), "BOTTOMRIGHT", 0, 0);
+    self.tabs[idx]:SetFrameLevel(startLevel);
     self.lastTabTitleOffset = self.lastTabTitleOffset + titleWidth;
     self:OnChangeTab(1);
 

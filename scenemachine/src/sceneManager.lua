@@ -19,11 +19,14 @@ SM.loadedSceneIndex = 1;
 SM.loadedScene = nil;
 SM.selectedObject = nil;
 
-function SM.Create(x, y, w, h, parent)
-    SM.groupBG = UI.Rectangle:New(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 0);
-    SceneMachine.Renderer.CreateRenderer(0, 0, w, h - tabButtonHeight, SM.groupBG:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT");
+function SM.Create(x, y, w, h, parent, startLevel)
+    SM.startLevel = startLevel;
+    SM.groupBG = UI.Rectangle:New(6, -6, w, h, Editor.verticalSeparatorL:GetFrame(), "TOPLEFT", "TOPLEFT",  0, 0, 0, 0);
+    SM.groupBG:SetPoint("BOTTOMRIGHT", Editor.horizontalSeparator:GetFrame(), "BOTTOMRIGHT", 0, 6);
+    SM.groupBG:SetFrameLevel(startLevel);
+    SceneMachine.Renderer.CreateRenderer(0, 0, w, h - tabButtonHeight, SM.groupBG:GetFrame(), startLevel + 1);
 
-    SM.addSceneButtonTab = SM.CreateNewSceneTab(0, 0, 20, tabButtonHeight, SM.groupBG:GetFrame());
+    SM.addSceneButtonTab = SM.CreateNewSceneTab(0, 0, 20, tabButtonHeight, SM.groupBG:GetFrame(), startLevel + 1);
     SM.addSceneButtonTab.text:SetText("+");
     SM.addSceneButtonTab.ntex:SetColorTexture(0, 0, 0 ,0);
     SM.addSceneButtonTab.text:SetAllPoints(SM.addSceneButtonTab);
@@ -47,7 +50,7 @@ function SM.RefreshSceneTabs()
         for i in pairs(PM.currentProject.scenes) do
             local scene = PM.currentProject.scenes[i];
             if (tabPool[i] == nil) then
-                tabPool[i] = SM.CreateNewSceneTab(x, 0, 50, tabButtonHeight, SM.groupBG:GetFrame());
+                tabPool[i] = SM.CreateNewSceneTab(x, 0, 50, tabButtonHeight, SM.groupBG:GetFrame(), SM.startLevel + 1);
                 tabPool[i].text:SetText(scene.name);
                 tabPool[i]:SetWidth(tabPool[i].text:GetStringWidth() + 20);
                 tabPool[i]:RegisterForClicks("LeftButtonUp", "RightButtonUp");
@@ -251,6 +254,7 @@ function SM.LoadScene(index)
     end
 
     AM.RefreshTimelineTabs();
+
     -- load the first timeline
     AM.LoadTimeline(1);
 
@@ -429,7 +433,7 @@ function SM.ToggleObjectFreezeState(object)
     SH.RefreshHierarchy();
 end
 
-function SM.CreateNewSceneTab(x, y, w, h, parent)
+function SM.CreateNewSceneTab(x, y, w, h, parent, startLevel)
 	local ButtonFont = Editor.ui.defaultFont;
 	local ButtonFontSize = 9;
 
@@ -450,13 +454,14 @@ function SM.CreateNewSceneTab(x, y, w, h, parent)
 	item:SetNormalTexture(item.ntex)
 	item:SetHighlightTexture(item.htex)
 	item:SetPushedTexture(item.ptex)
+    item:SetFrameLevel(startLevel);
 
 	-- project name text --
 	item.text = item:CreateFontString("Zee.WindowAPI.Button Text");
 	item.text:SetFont(ButtonFont, ButtonFontSize, "NORMAL");
 	--item.text:SetPoint("LEFT", item, "LEFT", 10, 0);
     item.text:SetAllPoints(item);
-	item.text:SetText(name);
+	item.text:SetText("");
 
 	return item;
 end

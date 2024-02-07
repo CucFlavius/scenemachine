@@ -37,9 +37,10 @@ end
 function Gizmos.CreateLineProjectionFrame()
 	local lineProjectionFrame = CreateFrame("Frame", "lineProjectionFrame", Renderer.projectionFrame)
 	lineProjectionFrame:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
-	lineProjectionFrame:SetWidth(Renderer.w);
-	lineProjectionFrame:SetHeight(Renderer.h);
-	lineProjectionFrame:SetPoint("TOPRIGHT", Renderer.projectionFrame, "TOPRIGHT", 0, 0);
+	--lineProjectionFrame:SetWidth(Renderer.w);
+	--lineProjectionFrame:SetHeight(Renderer.h);
+	--lineProjectionFrame:SetPoint("TOPRIGHT", Renderer.projectionFrame, "TOPRIGHT", 0, 0);
+    lineProjectionFrame:SetAllPoints(Renderer.projectionFrame);
 	lineProjectionFrame.texture = lineProjectionFrame:CreateTexture("Renderer.lineProjectionFrame.texture", "ARTWORK")
 	lineProjectionFrame.texture:SetColorTexture(0,0,0,0);
 	lineProjectionFrame.texture:SetAllPoints(Renderer.lineProjectionFrame);

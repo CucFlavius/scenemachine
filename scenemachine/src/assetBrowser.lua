@@ -18,18 +18,21 @@ local c2 = { 0.242, 0.242, 0.25 };
 local c3 = { 0, 0.4765, 0.7968 };
 local c4 = { 0.1171, 0.1171, 0.1171 };
 
-function AssetBrowser.Create(parent, w, h)
+function AssetBrowser.Create(parent, w, h, startLevel)
 
-    local tabPanel = UI.TabPanel:New(0, 0, w, h, parent, "TOPLEFT", "TOPLEFT", 8);
+    local tabPanel = UI.TabPanel:New(0, 0, w, h, parent, "TOPRIGHT", "TOPRIGHT", 8);
+    tabPanel:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 0, 0);
+    tabPanel:SetFrameLevel(startLevel);
+
     AssetBrowser.tabs = {};
 
-    AssetBrowser.tabs[1] = tabPanel:AddTab(w, h, "Models", 50, function() AssetBrowser.OnChangeTab(1); end);
-    AssetBrowser.tabs[2] = tabPanel:AddTab(w, h, "Creatures", 70, function() AssetBrowser.OnChangeTab(2); end);
+    AssetBrowser.tabs[1] = tabPanel:AddTab(w, h, "Models", 50, function() AssetBrowser.OnChangeTab(1); end, startLevel + 1);
+    AssetBrowser.tabs[2] = tabPanel:AddTab(w, h, "Creatures", 70, function() AssetBrowser.OnChangeTab(2); end, startLevel + 1);
 
-    AssetBrowser.CreateModelListTab(AssetBrowser.tabs[1]:GetFrame(), w, h -tabbarHeight);
+    AssetBrowser.CreateModelListTab(AssetBrowser.tabs[1]:GetFrame(), w, h -tabbarHeight, startLevel + 2);
     AssetBrowser.Refresh();
 
-    AssetBrowser.CreateCreatureListTab(AssetBrowser.tabs[2]:GetFrame(), w, h -tabbarHeight);
+    AssetBrowser.CreateCreatureListTab(AssetBrowser.tabs[2]:GetFrame(), w, h -tabbarHeight, startLevel + 2);
 
     -- DEBUG --
     --AssetBrowser.OnThumbnailClick("World");
@@ -41,14 +44,15 @@ function AssetBrowser.OnChangeTab(idx)
 
 end
 
-function AssetBrowser.CreateModelListTab(parent, w, h)
+function AssetBrowser.CreateModelListTab(parent, w, h, startLevel)
 
-    AssetBrowser.CreateToolbar(parent, -Editor.pmult, w);
+    AssetBrowser.CreateToolbar(parent, -Editor.pmult, w, startLevel);
 
-    AssetBrowser.thumbnailGroup = UI.Rectangle:New(
-        0, -((Editor.toolbarHeight - 15) + (Editor.pmult * 2)),
-        w, h -(((Editor.toolbarHeight - 15) * 2) + (Editor.pmult)),
+    AssetBrowser.thumbnailGroup = UI.Rectangle:New(0, -((Editor.toolbarHeight - 15) + (Editor.pmult * 2)), w, h -(((Editor.toolbarHeight - 15) * 2) + (Editor.pmult)),
         parent, "TOPLEFT", "TOPLEFT", 0, 0, 0, 0.41);
+    AssetBrowser.thumbnailGroup:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", 0, 30);
+    AssetBrowser.thumbnailGroup:SetClipsChildren(true);
+    AssetBrowser.thumbnailGroup:SetFrameLevel(startLevel);
 
     local data = SceneMachine.modelData[1];
     AssetBrowser.currentDirectory = data;
@@ -137,15 +141,18 @@ function AssetBrowser.CreateCreatureListTab(parent, w, h)
     end);
 end
 
-function AssetBrowser.CreateToolbar(parent, y, w)
+function AssetBrowser.CreateToolbar(parent, y, w, startLevel)
     AssetBrowser.toolbar = UI.Rectangle:New(0, y, w, (Editor.toolbarHeight - 15), parent, "TOPLEFT", "TOPLEFT", c1[1], c1[2], c1[3], 1);
-    
+    AssetBrowser.toolbar:SetFrameLevel(startLevel);
+    AssetBrowser.toolbar:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, 0);
+
     AssetBrowser.toolbar.upOneFolderButton = UI.Button:New(0, 0, (Editor.toolbarHeight - 15) - 2, (Editor.toolbarHeight - 15) - 2, AssetBrowser.toolbar:GetFrame(), "LEFT", "LEFT", nil, "Interface\\Addons\\scenemachine\\static\\textures\\folderUpIcon.png");
     AssetBrowser.toolbar.upOneFolderButton:SetScript("OnClick", function (self, button, down) AssetBrowser.UpOneFolder(); end)
-    
+    AssetBrowser.toolbar.upOneFolderButton:SetFrameLevel(startLevel + 1);
+
     AssetBrowser.toolbar.breadCrumb = UI.Label:New((Editor.toolbarHeight - 15), 0, w - (Editor.toolbarHeight - 15), (Editor.toolbarHeight - 15), AssetBrowser.toolbar:GetFrame(),
         "TOPLEFT", "TOPLEFT", "Breadcrumb", 9);
-    
+    AssetBrowser.toolbar.breadCrumb:SetFrameLevel(startLevel + 1);
     -- Gave up on this because it requires resizing every element in the thumbnails too
     --AssetBrowser.toolbar.increaseThumbColumns = UI.Button:New(30, 0, toolbarHeight - 2, toolbarHeight - 2, AssetBrowser.toolbar, "LEFT", "LEFT", "+", nil);
     --AssetBrowser.toolbar.increaseThumbColumns:SetScript("OnClick", function (self, button, down) AssetBrowser.OnIncreaseThumbnailColumns(); end)
@@ -155,10 +162,10 @@ function AssetBrowser.CreatePagination(parent)
     AssetBrowser.paginationText = UI.Label:New(0, 0, 100, 30, parent, "BOTTOM", "BOTTOM", "PaginationText", 9);
     AssetBrowser.paginationText:SetJustifyH("CENTER");
 
-    AssetBrowser.pageLeftButton = UI.Button:New(0, 0, (Editor.toolbarHeight - 15) - 2, (Editor.toolbarHeight - 15) - 2, parent, "BOTTOMLEFT", "BOTTOMLEFT", "<", nil);
+    AssetBrowser.pageLeftButton = UI.Button:New(0, 0, (Editor.toolbarHeight - 15), (Editor.toolbarHeight - 15), parent, "BOTTOMLEFT", "BOTTOMLEFT", "<", nil);
     AssetBrowser.pageLeftButton:SetScript("OnClick", function (self, button, down) AssetBrowser.OnPreviousPageClic(); end)
 
-    AssetBrowser.pageRightButton = UI.Button:New(0, 0, (Editor.toolbarHeight - 15) - 2, (Editor.toolbarHeight - 15) - 2, parent, "BOTTOMRIGHT", "BOTTOMRIGHT", ">", nil);
+    AssetBrowser.pageRightButton = UI.Button:New(0, 0, (Editor.toolbarHeight - 15), (Editor.toolbarHeight - 15), parent, "BOTTOMRIGHT", "BOTTOMRIGHT", ">", nil);
     AssetBrowser.pageRightButton:SetScript("OnClick", function (self, button, down) AssetBrowser.OnNextPageClick(); end)
 end
 

@@ -41,5 +41,5 @@ function Rectangle:SetVertexOffset(vertexIndex, offsetX, offsetY)
 end
 
 Rectangle.__tostring = function(self)
-	return string.format("Rectangle( %.3f, %.3f, %.3f, %.3f, %s )", self.x, self.y, self.w, self.h, self.parent);
+	return string.format("Rectangle( %.3f, %.3f, %.3f, %.3f )", self.x, self.y, self.w, self.h);
 end
