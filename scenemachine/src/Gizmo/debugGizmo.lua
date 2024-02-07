@@ -1,5 +1,6 @@
 local Gizmos = SceneMachine.Gizmos;
 local Vector3 = SceneMachine.Vector3;
+local Resources = SceneMachine.Resources;
 
 function Gizmos.CreateDebugGizmo()
     local coneDetail = 10;
@@ -45,6 +46,6 @@ function Gizmos.CreateDebugGizmo()
         Gizmos.DebugGizmo.lines[t] = lineProjectionFrame:CreateLine(nil, nil, nil);
         Gizmos.DebugGizmo.lines[t]:SetThickness(2.5);
         Gizmos.DebugGizmo.lines[t]:Show();
-        Gizmos.DebugGizmo.lines[t]:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\line.png", "REPEAT", "REPEAT", "NEAREST");
+        Gizmos.DebugGizmo.lines[t]:SetTexture(Resources.textures["Line"], "REPEAT", "REPEAT", "NEAREST");
     end
 end

@@ -11,7 +11,7 @@ setmetatable(UI, UI)
 
 local fields = {}
 
-function UI:New(resourcePath)
+function UI:New()
 	local v = 
     {
         updateElements = {},
@@ -19,25 +19,7 @@ function UI:New(resourcePath)
     };
 
 	setmetatable(v, UI);
-	v:Initialize(resourcePath);
 	return v;
-end
-
-function UI:Initialize(resourcePath)
-    self.resourcePath = resourcePath;
-    
-    self.fontResourcePath = self.resourcePath .. "\\font";
-    self.fontResources = {}
-    self.fontResources["Segoe"] = self.fontResourcePath .. "\\Segoe UI.ttf";
-    
-    self.textureResourcePath = self.resourcePath .. "\\textures";
-    self.textureResources = {}
-    self.textureResources["SliderThumb"] = self.textureResourcePath .. "\\SliderThumb.png";
-
-    self.defaultFont = self.fontResources["Segoe"];
-
-    self.closeWindowText = nil;
-    self.closeWindowIcon = self.textureResourcePath .. "\\closeButton.png"
 end
 
 function UI:AddElement(element)

@@ -2,11 +2,12 @@
     <!-- Scene Machine -->
     <Script file="header.lua"/>
 
-    <Script file="..\static\data\creature.lua"/>
-    <Script file="..\static\data\creature2display.lua"/>
-    <Script file="..\static\data\data.lua"/>
-    <Script file="..\static\data\animdata.lua"/>
-    <Script file="..\static\data\animnames.lua"/>
+    <Script file="resources.lua"/>
+    <Script file="..\res\data\creature.lua"/>
+    <Script file="..\res\data\creature2display.lua"/>
+    <Script file="..\res\data\data.lua"/>
+    <Script file="..\res\data\animdata.lua"/>
+    <Script file="..\res\data\animnames.lua"/>
 
     <Include file="Objects\Objects.xml"/>
 

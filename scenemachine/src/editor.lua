@@ -11,6 +11,7 @@ local PM = Editor.ProjectManager;
 local Input = SceneMachine.Input;
 local AM = Editor.AnimationManager;
 local UI = SceneMachine.UI;
+local Resources = SceneMachine.Resources;
 
 Editor.width = 1280;
 Editor.height = 720;
@@ -33,7 +34,7 @@ Editor.MESSAGE_BOX_FRAME_STRATA = "FULLSCREEN"; -- Dialogs like "Are you sure yo
 function Editor.Initialize()
     Editor.version = GetAddOnMetadata("scenemachine", "Version");
 
-    Editor.ui = UI.UI:New("Interface\\AddOns\\scenemachine\\static");
+    Editor.ui = UI.UI:New();
 
     if (Editor.isInitialized) then
         return;
@@ -106,7 +107,7 @@ function Editor.Initialize()
     local SceneMachineMinimapBtn = LDB:NewDataObject("SceneMachine", {
         type = "launcher",
         text = "SceneMachine",
-        icon = "Interface\\AddOns\\scenemachine\\static\\textures\\icon32.png",
+        icon = Resources.textures["Icon32"],
         OnClick = function(_, button)
             if button == "LeftButton" then Editor.Toggle() end
         end,
@@ -241,7 +242,7 @@ function Editor.CreateMainWindow(startLevel)
     SceneMachine.mainWindow.titleBar_text:SetPoint("LEFT", 25, 0);
     SceneMachine.mainWindow:SetFrameLevel(startLevel);
 
-    SceneMachine.mainWindow.TitleBarIcon = UI.ImageBox:New(5/2, -5/2, 15, 15, SceneMachine.mainWindow.titleBar, "TOPLEFT", "TOPLEFT", "Interface\\Addons\\scenemachine\\static\\textures\\icon32.png");
+    SceneMachine.mainWindow.TitleBarIcon = UI.ImageBox:New(5/2, -5/2, 15, 15, SceneMachine.mainWindow.titleBar, "TOPLEFT", "TOPLEFT", Resources.textures["Icon32"]);
 	SceneMachine.mainWindow.TitleBarIcon:SetFrameLevel(startLevel + 1);
     SceneMachine.WINDOW_WIDTH = Editor.width;
 	SceneMachine.WINDOW_HEIGHT = Editor.height;
@@ -355,7 +356,7 @@ function SceneMachine.CreateStatsFrame()
 	SceneMachine.StatsFrame:SetWidth(200);
 	SceneMachine.StatsFrame:SetHeight(200);
 	SceneMachine.StatsFrame.text = SceneMachine.StatsFrame:CreateFontString(nil, "BACKGROUND", "GameTooltipText");
-	SceneMachine.StatsFrame.text:SetFont(Editor.ui.defaultFont, 9, "NORMAL");
+	SceneMachine.StatsFrame.text:SetFont(Resources.defaultFont, 9, "NORMAL");
 
 	SceneMachine.StatsFrame.text:SetPoint("TOPRIGHT",-5,-5);
 	SceneMachine.StatsFrame.text:SetJustifyV("TOP");

@@ -18,7 +18,7 @@ function Debug.Init()
 	for t = 1, linePoolSize, 1 do
 		Debug.linePool[t] = lineProjectionFrame:CreateLine(nil, nil, nil);
         Debug.linePool[t]:SetThickness(5.5);
-        Debug.linePool[t]:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\line.png", "REPEAT", "REPEAT", "NEAREST");
+        Debug.linePool[t]:SetTexture(Resources.textures["Line"], "REPEAT", "REPEAT", "NEAREST");
 	end
 end
 

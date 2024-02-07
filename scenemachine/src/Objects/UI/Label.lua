@@ -1,4 +1,4 @@
-local Editor = SceneMachine.Editor;
+local Resources = SceneMachine.Resources;
 local UI = SceneMachine.UI;
 UI.Label = {};
 local Label = UI.Label;
@@ -17,7 +17,7 @@ function Label:New(x, y, w, h, parent, point, parentPoint, text, textHeight, tex
         parentPoint = parentPoint or "TOPLEFT",
         text = text or nil,
         textHeight = textHeight or 9,
-        textFont = textFont or Editor.ui.defaultFont,
+        textFont = textFont or Resources.defaultFont,
         visible = true,
     };
 

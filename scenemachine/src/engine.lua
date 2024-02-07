@@ -1,8 +1,6 @@
 local Camera = SceneMachine.Camera;
-local World = SceneMachine.World;
 local Renderer = SceneMachine.Renderer;
 local CameraController = SceneMachine.CameraController;
-local Player = SceneMachine.Player;
 local Gizmos = SceneMachine.Gizmos;
 local Input = SceneMachine.Input;
 local Editor = SceneMachine.Editor;
@@ -17,6 +15,7 @@ SceneMachine.time = 0;
 --	 	  Start  	  --
 ------------------------
 function SceneMachine.Start()
+	SceneMachine.Resources.Initialize("Interface\\AddOns\\scenemachine\\res");
     SceneMachine.Editor.Initialize();
     CameraController.Initialize();
     SceneMachine.CreateStatsFrame();

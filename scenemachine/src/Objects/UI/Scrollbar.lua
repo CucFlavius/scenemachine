@@ -1,5 +1,6 @@
 local Editor = SceneMachine.Editor; -- reference needed for Update loop
 local UI = SceneMachine.UI;
+local Resources = SceneMachine.Resources;
 
 SceneMachine.UI.Scrollbar = {};
 local Scrollbar = SceneMachine.UI.Scrollbar;
@@ -59,18 +60,18 @@ function Scrollbar:Build()
             self.height = height;
         end);
 
-    self.frameTop = UI.ImageBox:New(0, 0, w, w / 2, self.frame.frame, "TOP", "TOP", Scrollbar.texture, { 0, 1, 0, 0.5 });
+    self.frameTop = UI.ImageBox:New(0, 0, w, w / 2, self.frame.frame, "TOP", "TOP", Resources.textures["ScrollBar"], { 0, 1, 0, 0.5 });
     self.frameTop:SetVertexColor(0.18,0.18,0.18,1);
     --self.frameTop:SetVertexColor(0.1171, 0.1171, 0.1171, 1);
     
-    self.frameCenter = UI.ImageBox:New(0, 0, w, h - w, self.frame.frame, "TOP", "TOP", Scrollbar.texture, { 0, 1, 0.4, 0.6 });
+    self.frameCenter = UI.ImageBox:New(0, 0, w, h - w, self.frame.frame, "TOP", "TOP", Resources.textures["ScrollBar"], { 0, 1, 0.4, 0.6 });
     self.frameCenter:ClearAllPoints();
     self.frameCenter:SetPoint("TOP", self.frame.frame, "TOP", 0, -w / 2);
     self.frameCenter:SetPoint("BOTTOM", self.frame.frame, "BOTTOM", 0, w / 2);
     self.frameCenter:SetVertexColor(0.18,0.18,0.18,1);
     --self.frameCenter:SetVertexColor(0.1171, 0.1171, 0.1171, 1);
     
-    self.frameBottom = UI.ImageBox:New(0, 0, w, w / 2, self.frame.frame, "BOTTOM", "BOTTOM", Scrollbar.texture, { 0, 1, 0.5, 1 });
+    self.frameBottom = UI.ImageBox:New(0, 0, w, w / 2, self.frame.frame, "BOTTOM", "BOTTOM", Resources.textures["ScrollBar"], { 0, 1, 0.5, 1 });
     self.frameBottom:SetVertexColor(0.18,0.18,0.18,1);
     --self.frameBottom:SetVertexColor(0.1171, 0.1171, 0.1171, 1);
 
@@ -94,16 +95,16 @@ function Scrollbar:Build()
     end);
     self.scrollbarSlider:SetScript("OnMouseUp", function() inputState.movingScrollbar = false; end);
 
-    self.scrollbarSliderCenter = UI.ImageBox:New(0, 0, w, h, self.scrollbarSlider, "CENTER", "CENTER", Scrollbar.texture, { 0, 1, 0.4, 0.6 });
+    self.scrollbarSliderCenter = UI.ImageBox:New(0, 0, w, h, self.scrollbarSlider, "CENTER", "CENTER", Resources.textures["ScrollBar"], { 0, 1, 0.4, 0.6 });
     self.scrollbarSliderCenter:ClearAllPoints();
     self.scrollbarSliderCenter:SetPoint("TOP", self.scrollbarSlider, "TOP", 0, -w / 2);
     self.scrollbarSliderCenter:SetPoint("BOTTOM", self.scrollbarSlider, "BOTTOM", 0, w / 2);
     self.scrollbarSliderCenter:SetVertexColor(0.3,0.3,0.3,1);
 
-    self.scrollbarSliderTop = UI.ImageBox:New(0, 0, w, w / 2, self.scrollbarSlider, "TOP", "TOP", Scrollbar.texture, { 0, 1, 0, 0.5 });
+    self.scrollbarSliderTop = UI.ImageBox:New(0, 0, w, w / 2, self.scrollbarSlider, "TOP", "TOP", Resources.textures["ScrollBar"], { 0, 1, 0, 0.5 });
     self.scrollbarSliderTop:SetVertexColor(0.3,0.3,0.3,1);
 
-    self.scrollbarSliderBottom = UI.ImageBox:New(0, 0, w, w / 2, self.scrollbarSlider, "BOTTOM", "BOTTOM", Scrollbar.texture, { 0, 1, 0.5, 1 });
+    self.scrollbarSliderBottom = UI.ImageBox:New(0, 0, w, w / 2, self.scrollbarSlider, "BOTTOM", "BOTTOM", Resources.textures["ScrollBar"], { 0, 1, 0.5, 1 });
     self.scrollbarSliderBottom:SetVertexColor(0.3,0.3,0.3,1);
 end
 
@@ -190,5 +191,3 @@ end
 Scrollbar.__tostring = function(self)
 	return string.format("Scrollbar( %.3f, %.3f, %.3f, %.3f, %s )", self.x, self.y, self.w, self.h, self.parent);
 end
-
-Scrollbar.texture = "Interface\\Addons\\scenemachine\\static\\textures\\scrollBar.png";

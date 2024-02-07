@@ -1,5 +1,6 @@
 local Gizmos = SceneMachine.Gizmos;
 local Vector3 = SceneMachine.Vector3;
+local Resources = SceneMachine.Resources;
 
 function Gizmos.CreateSelectionGizmo()
     local ch = 0.5;
@@ -51,6 +52,6 @@ function Gizmos.CreateSelectionGizmo()
     for t = 1, Gizmos.WireBox.lineCount, 1 do
         Gizmos.WireBox.lines[t] = lineProjectionFrame:CreateLine(nil, nil, nil);
         Gizmos.WireBox.lines[t]:SetThickness(1.5);
-        Gizmos.WireBox.lines[t]:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\dashedLine.png", "REPEAT", "REPEAT", "NEAREST");
+        Gizmos.WireBox.lines[t]:SetTexture(Resources.textures["DashedLine"], "REPEAT", "REPEAT", "NEAREST");
     end
 end

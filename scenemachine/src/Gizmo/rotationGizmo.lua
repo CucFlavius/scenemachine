@@ -1,5 +1,6 @@
 local Gizmos = SceneMachine.Gizmos;
 local Vector3 = SceneMachine.Vector3;
+local Resources = SceneMachine.Resources;
 
 local function calculateCirclePoints(centerX, centerY, centerZ, radius, numPoints, axis)
     local points = {}
@@ -103,6 +104,6 @@ function Gizmos.CreateRotateGizmo()
     -- Lines --
     for t = 1, Gizmos.RotateGizmo.lineCount, 1 do
         Gizmos.RotateGizmo.lines[t]:SetThickness(2.5);
-        Gizmos.RotateGizmo.lines[t]:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\line.png", "REPEAT", "REPEAT", "NEAREST");
+        Gizmos.RotateGizmo.lines[t]:SetTexture(Resources.textures["Line"], "REPEAT", "REPEAT", "NEAREST");
     end
 end

@@ -1,4 +1,4 @@
-local Editor = SceneMachine.Editor;
+local Resources = SceneMachine.Resources;
 local UI = SceneMachine.UI;
 UI.TabPanel = {};
 local TabPanel = UI.TabPanel;
@@ -16,7 +16,7 @@ function TabPanel:New(x, y, w, h, parent, point, parentPoint, textHeight, textFo
         point = point or "TOPLEFT",
         parentPoint = parentPoint or "TOPLEFT",
         textHeight = textHeight or 9,
-        textFont = textFont or Editor.ui.defaultFont,
+        textFont = textFont or Resources.defaultFont,
         visible = true,
     };
 

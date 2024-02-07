@@ -1,4 +1,5 @@
 local UI = SceneMachine.UI;
+local Resources = SceneMachine.Resources;
 UI.Toolbar = {};
 local Toolbar = UI.Toolbar;
 Toolbar.__index = Toolbar;
@@ -27,7 +28,7 @@ function Toolbar:Build()
     self.frame = UI.Rectangle:New(self.x, self.y, self.w, self.h, self.parent, "TOPLEFT", "TOPLEFT", 0.1757, 0.1757, 0.1875, 1);
     self.frame:SetPoint("TOPRIGHT", self.parent, "TOPRIGHT", 0, 0);
 
-    self.iconsTexture = "Interface\\Addons\\scenemachine\\static\\textures\\toolbar.png";
+    self.iconsTexture = Resources.textures["Toolbar"];
 
     self.iconCoordMap = {
         { "select", "move", "rotate", "scale", "worldpivot", "localpivot", "centerpivot", "basepivot" },

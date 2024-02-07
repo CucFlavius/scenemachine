@@ -7,6 +7,7 @@ local Input = SceneMachine.Input;
 local Camera = SceneMachine.Camera;
 local Vector3 = SceneMachine.Vector3;
 local UI = SceneMachine.UI;
+local Resources = SceneMachine.Resources;
 
 local thumbSize = 95;
 local thumbCountX = 3;
@@ -146,7 +147,7 @@ function AssetBrowser.CreateToolbar(parent, y, w, startLevel)
     AssetBrowser.toolbar:SetFrameLevel(startLevel);
     AssetBrowser.toolbar:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, 0);
 
-    AssetBrowser.toolbar.upOneFolderButton = UI.Button:New(0, 0, (Editor.toolbarHeight - 15) - 2, (Editor.toolbarHeight - 15) - 2, AssetBrowser.toolbar:GetFrame(), "LEFT", "LEFT", nil, "Interface\\Addons\\scenemachine\\static\\textures\\folderUpIcon.png");
+    AssetBrowser.toolbar.upOneFolderButton = UI.Button:New(0, 0, (Editor.toolbarHeight - 15) - 2, (Editor.toolbarHeight - 15) - 2, AssetBrowser.toolbar:GetFrame(), "LEFT", "LEFT", nil, Resources.textures["FolderUpIcon"]);
     AssetBrowser.toolbar.upOneFolderButton:SetScript("OnClick", function (self, button, down) AssetBrowser.UpOneFolder(); end)
     AssetBrowser.toolbar.upOneFolderButton:SetFrameLevel(startLevel + 1);
 
@@ -330,7 +331,7 @@ function AssetBrowser.CreateThumbnail(x, y, w, h, parent, name)
             AssetBrowser.OnThumbnailDrag(thumbnail.textBox:GetText());
         end);
 
-    thumbnail.imageBox = UI.ImageBox:New(0, -w / 4, w / 2, w / 2, thumbnail:GetFrame(), "TOP", "TOP", "Interface\\Addons\\scenemachine\\static\\textures\\folderIcon.png");
+    thumbnail.imageBox = UI.ImageBox:New(0, -w / 4, w / 2, w / 2, thumbnail:GetFrame(), "TOP", "TOP", Resources.textures["FolderIcon"]);
     thumbnail.textBox = UI.Label:New(5, 0, w, 20, thumbnail:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", name, 9);
 
     thumbnail.modelFrame = CreateFrame("PlayerModel", "thumbnail_model_frame_" .. x .. y, thumbnail:GetFrame());

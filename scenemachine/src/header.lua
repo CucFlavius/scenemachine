@@ -2,6 +2,7 @@
 SceneMachine = {};
 
 SceneMachine.Data = {};
+SceneMachine.Resources = {};
 
 SceneMachine.Math = {};
 SceneMachine.Camera = {};

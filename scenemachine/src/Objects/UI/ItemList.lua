@@ -1,4 +1,4 @@
-local Editor = SceneMachine.Editor;
+local Resources = SceneMachine.Resources;
 local UI = SceneMachine.UI;
 UI.ItemList = {};
 local ItemList = UI.ItemList;
@@ -77,7 +77,7 @@ function ItemList:SetItem(index, text)
 end
 
 function ItemList:CreateNewItem(x, y, w, h, parent)
-	local ButtonFont = Editor.ui.defaultFont;
+	local ButtonFont = Resources.defaultFont;
 	local ButtonFontSize = 9;
 
 	-- main button frame --

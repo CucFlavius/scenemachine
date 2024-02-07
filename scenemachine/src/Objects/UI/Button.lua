@@ -1,4 +1,4 @@
-local Editor = SceneMachine.Editor;
+local Resources = SceneMachine.Resources;
 local UI = SceneMachine.UI;
 UI.Button = {};
 local Button = UI.Button;
@@ -65,7 +65,7 @@ function Button:Build()
 	-- text --
 	if (self.text) then
 		self.textField = self.frame:CreateFontString("Zee.WindowAPI.Button.textField");
-		self.textField:SetFont(Editor.ui.defaultFont, 9, "NORMAL");
+		self.textField:SetFont(Resources.defaultFont, 9, "NORMAL");
 		self.textField:SetAllPoints(self.frame);
 		self.textField:SetText(self.text);
 	end
@@ -76,7 +76,7 @@ function Button:SetText(text)
 
     if (not self.textField) then
 		self.textField = self.frame:CreateFontString("Zee.WindowAPI.Button.textField");
-		self.textField:SetFont(Editor.ui.defaultFont, 9, "NORMAL");
+		self.textField:SetFont(Resources.defaultFont, 9, "NORMAL");
 		self.textField:SetAllPoints(self.frame);
     end
     

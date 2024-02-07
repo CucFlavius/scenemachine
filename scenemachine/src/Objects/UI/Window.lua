@@ -1,4 +1,5 @@
 local UI = SceneMachine.UI;
+local Resources = SceneMachine.Resources;
 UI.Window = {};
 local Window = UI.Window;
 local Editor = SceneMachine.Editor;
@@ -46,7 +47,7 @@ function Window:Build()
 	self.titleBar_texture:SetColorTexture(0.1757, 0.1757, 0.1875, 1);
 	self.titleBar_texture:SetAllPoints(self.titleBar);
 	self.titleBar_text = self.titleBar:CreateFontString("UI.Window.titleBar_text ".. self.title.. " TitleBar text");
-	self.titleBar_text:SetFont(Editor.ui.defaultFont, 10, "NORMAL");
+	self.titleBar_text:SetFont(Resources.defaultFont, 10, "NORMAL");
 	self.titleBar_text:SetAllPoints(self.titleBar);
 	self.titleBar_text:SetText(self.title);
 	self.titleBar:EnableMouse(true);
@@ -56,14 +57,14 @@ function Window:Build()
 
 	-- Close Button --
 	self.closeButton = UI.Button:New(-1, -1, 20 - 1, 20 - 1, self.titleBar, "TOPRIGHT", "TOPRIGHT",
-		nil, Editor.ui.closeWindowIcon)
+		nil, Resources.textures["CloseButton"])
 	self.closeButton:SetScript("OnClick", function() self:Hide(); end)
     self.closeButton:SetColor(UI.Button.State.Normal, 0.1757, 0.1757, 0.1875, 1);
     self.closeButton:SetColor(UI.Button.State.Highlight, 0.1757, 0.1757, 0.1875, 1);
     self.closeButton:SetColor(UI.Button.State.Pressed, 0, 0.4765, 0.7968, 1);
 
 	-- Dropshadow --
-    --self.dropShadow = UI.ImageBox:New(-self.w * 0.09, 0, self.w, self.h, self.frame, "TOPLEFT", "TOPLEFT", "Interface\\Addons\\scenemachine\\static\\textures\\dropShadowSquare.png");
+    --self.dropShadow = UI.ImageBox:New(-self.w * 0.09, 0, self.w, self.h, self.frame, "TOPLEFT", "TOPLEFT", Resources.textures["DropShadow"]);
     --self.dropShadow:SetPoint("BOTTOMRIGHT", self.frame, "BOTTOMRIGHT", 0, 0);
 	--self.dropShadow:SetFrameLevel(100);
     --self.dropShadow:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
@@ -71,7 +72,7 @@ function Window:Build()
     -- Resize Handle --
     self.frame:SetResizable(true);
 	self.frame:SetResizeBounds(200, 200, 1920, 1080);
-    self.resizeFrame = UI.ImageBox:New(0, 0, 16, 16, self.frame, "BOTTOMRIGHT", "BOTTOMRIGHT", "Interface\\Addons\\scenemachine\\static\\textures\\cornerResize.png");
+    self.resizeFrame = UI.ImageBox:New(0, 0, 16, 16, self.frame, "BOTTOMRIGHT", "BOTTOMRIGHT", Resources.textures["CornerResize"]);
     self.resizeFrame:GetFrame():EnableMouse(true);
 	self.resizeFrame:SetVertexColor(1,1,1,0.3);
     self.resizeFrame:GetFrame():RegisterForDrag("LeftButton");

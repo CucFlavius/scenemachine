@@ -5,9 +5,9 @@ local OP = SceneMachine.Editor.ObjectProperties;
 local Renderer = SceneMachine.Renderer;
 local Editor = SceneMachine.Editor;
 local Input = SceneMachine.Input;
-local Toolbar = Editor.Toolbar;
 local Track = SceneMachine.Track;
 local UI = SceneMachine.UI;
+local Resources = SceneMachine.Resources;
 
 local tabButtonHeight = 20;
 local tabPool = {};
@@ -789,7 +789,7 @@ function AM.GenerateKeyframeElement(index, x, y, w, h, parent, R, G, B, A)
 	element:SetSize(w, h);
     element:SetFrameLevel(10);
     element.ntex = element:CreateTexture();
-    element.ntex:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\keyframe.png")
+    element.ntex:SetTexture(Resources.textures["Keyframe"]);
     element.ntex:SetTexCoord(0, 0.25, 0, 0.25);
     element.ntex:SetAllPoints();
     element.ntex:SetVertexColor(R, G, B, A);
@@ -824,7 +824,7 @@ end
 
 function AM.CreateTimeSlider(workAreaH, startLevel)
     local c = { 0.9, 0.2, 0.2 };
-    AM.TimeSlider = UI.ImageBox:New(20, 0, 20, 20, AM.timebarGroup, "CENTER", "LEFT", "Interface\\Addons\\scenemachine\\static\\textures\\timeSlider.png");
+    AM.TimeSlider = UI.ImageBox:New(20, 0, 20, 20, AM.timebarGroup, "CENTER", "LEFT", Resources.textures["TimeSlider"]);
     AM.TimeSlider:SetVertexColor(c[1], c[2], c[3], 1);
     AM.TimeSlider:SetFrameLevel(startLevel);
     
@@ -835,7 +835,7 @@ end
 function AM.CreateNeedle()
     local needle = UI.Rectangle:New(0, 0, 1, 4, AM.timebarGroup, "TOPLEFT", "TOPLEFT",  1, 1, 1, 0.5);
     needle.text = needle:GetFrame():CreateFontString("needle text");
-	needle.text:SetFont(Editor.ui.defaultFont, 8, "NORMAL");
+	needle.text:SetFont(Resources.defaultFont, 8, "NORMAL");
 	needle.text:SetPoint("TOP", needle.frame, "TOP", 0, 12);
     needle.text:SetSize(30, 10);
     needle.text:SetTextColor(1,1,1,0.5);
@@ -892,8 +892,7 @@ function AM.CreateToolbar(x, y, w, h, parent, startLevel)
     AM.mainToolbar = toolbar;
 
     -- timer
-    local font = "Interface\\Addons\\scenemachine\\static\\font\\digital-7.ttf"
-    AM.timerTextBox = UI.Label:New(0, 0, 90, h, mainGroup:GetFrame(), "RIGHT", "RIGHT", "00:00 / 00:00", 16, font);
+    AM.timerTextBox = UI.Label:New(0, 0, 90, h, mainGroup:GetFrame(), "RIGHT", "RIGHT", "00:00 / 00:00", 16, Resources.fonts["Digital"]);
     AM.timerTextBox:SetFrameLevel(startLevel + 2);
 end
 
@@ -951,7 +950,7 @@ function AM.CreateWorkArea(x, y, w, h, parent, startLevel)
     local lineTop = AM.animationSelectionBox:GetFrame():CreateLine(nil, nil, nil);
     local c = { 1, 1, 1, 0.5 };
     lineTop:SetThickness(thickness);
-    lineTop:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\dashedLine.png", "REPEAT", "REPEAT", "NEAREST");
+    lineTop:SetTexture(Resources.textures["DashedLine"], "REPEAT", "REPEAT", "NEAREST");
     lineTop:Show();
     lineTop:SetVertexColor(c[1], c[2], c[3], c[4]);
     lineTop:SetStartPoint("TOPLEFT", 0, -thickness / 2) -- start topleft
@@ -960,7 +959,7 @@ function AM.CreateWorkArea(x, y, w, h, parent, startLevel)
 
     local lineBottom = AM.animationSelectionBox:GetFrame():CreateLine(nil, nil, nil);
     lineBottom:SetThickness(thickness);
-    lineBottom:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\dashedLine.png", "REPEAT", "REPEAT", "NEAREST");
+    lineBottom:SetTexture(Resources.textures["DashedLine"], "REPEAT", "REPEAT", "NEAREST");
     lineBottom:Show();
     lineBottom:SetVertexColor(c[1], c[2], c[3], c[4]);
     lineBottom:SetStartPoint("BOTTOMLEFT", 0, thickness / 2) -- start topleft
@@ -969,7 +968,7 @@ function AM.CreateWorkArea(x, y, w, h, parent, startLevel)
 
     local lineLeft = AM.animationSelectionBox:GetFrame():CreateLine(nil, nil, nil);
     lineLeft:SetThickness(thickness);
-    lineLeft:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\dashedLine.png", "REPEAT", "REPEAT", "NEAREST");
+    lineLeft:SetTexture(Resources.textures["DashedLine"], "REPEAT", "REPEAT", "NEAREST");
     lineLeft:Show();
     lineLeft:SetVertexColor(c[1], c[2], c[3], c[4]);
     lineLeft:SetStartPoint("BOTTOMLEFT", thickness / 2, 0) -- start topleft
@@ -978,7 +977,7 @@ function AM.CreateWorkArea(x, y, w, h, parent, startLevel)
 
     local lineRight = AM.animationSelectionBox:GetFrame():CreateLine(nil, nil, nil);
     lineRight:SetThickness(thickness);
-    lineRight:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\dashedLine.png", "REPEAT", "REPEAT", "NEAREST");
+    lineRight:SetTexture(Resources.textures["DashedLine"], "REPEAT", "REPEAT", "NEAREST");
     lineRight:Show();
     lineRight:SetVertexColor(c[1], c[2], c[3], c[4]);
     lineRight:SetStartPoint("BOTTOMRIGHT", -thickness / 2, 0) -- start topleft
@@ -1022,7 +1021,7 @@ end
 function AM.CreateCurveLineElement()
     local line = AM.curveViewBG:GetFrame():CreateLine(nil, nil, nil);
     line:SetThickness(1 + Editor.pmult);
-    line:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\line.png", "REPEAT", "REPEAT");
+    line:SetTexture(Resources.textures["Line"], "REPEAT", "REPEAT");
     line:SetVertexColor(1,1,1,1);
     line:Hide();
     return line;
@@ -1046,7 +1045,7 @@ function AM.GenerateTrackElement(index, x, y, w, h, parent, R, G, B, A)
 	element:SetSize(w, h);
     element:SetFrameLevel(8);
     element.ntex = element:CreateTexture();
-    element.ntex:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\animation.png")
+    element.ntex:SetTexture(Resources.textures["Animation"]);
     element.ntex:SetTexCoord(0, 0.5, 0, 0.5);    -- (left,right,top,bottom)
     element.ntex:SetAllPoints();
     element.ntex:SetVertexColor(0.2, 0.2, 0.2, 1);
@@ -1082,7 +1081,7 @@ function AM.GenerateAnimationElement(index, x, y, w, h, parent, R, G, B, A)
     --element:SetAlpha(0.5);
     element:SetFrameLevel(10);
     element.ntex = element:CreateTexture();
-    element.ntex:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\animation.png")
+    element.ntex:SetTexture(Resources.textures["Animation"]);
     element.ntex:SetTexCoord(0, 0.5, 0, 0.5);    -- (left,right,top,bottom)
     element.ntex:SetAllPoints();
     element.ntex:SetVertexColor(AM.colors[colIdx][1] / 255, AM.colors[colIdx][2] / 255, AM.colors[colIdx][3] / 255,1);
@@ -1108,7 +1107,7 @@ function AM.GenerateAnimationElement(index, x, y, w, h, parent, R, G, B, A)
 	element.handleL:SetSize(6, h);
     element.handleL:SetFrameLevel(11);
     element.handleL.ntex = element.handleL:CreateTexture();
-    element.handleL.ntex:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\animation.png")
+    element.handleL.ntex:SetTexture(Resources.textures["Animation"]);
     --element.handleL.ntex:SetTexCoord(0.125, 0.27, 0.5, 1);    -- (left,right,top,bottom)
     element.handleL.ntex:SetTexCoord(0, 0.5, 0, 0.5);
     element.handleL.ntex:SetAllPoints();
@@ -1135,7 +1134,7 @@ function AM.GenerateAnimationElement(index, x, y, w, h, parent, R, G, B, A)
     element.handleR:SetSize(6, h);
     element.handleR:SetFrameLevel(11);
     element.handleR.ntex = element.handleR:CreateTexture();
-    element.handleR.ntex:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\animation.png")
+    element.handleR.ntex:SetTexture(Resources.textures["Animation"]);
     --element.handleR.ntex:SetTexCoord(0.0, 0.125, 0.5, 1);    -- (left,right,top,bottom)
     element.handleR.ntex:SetTexCoord(0, 0.5, 0, 0.5);
     element.handleR.ntex:SetAllPoints();
@@ -1182,17 +1181,14 @@ function AM.CreateCropperBar(x, y, w, h, parent)
     AM.cropperBg = UI.Rectangle:New(x, y, w, h, parent, "BOTTOMLEFT", "BOTTOMLEFT",  0, 0, 0, 0);
     AM.cropperBg:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", x, y);
 
-    AM.cropperBgCenter = UI.ImageBox:New(h, 0, w - (h * 2), h, AM.cropperBg:GetFrame(), "LEFT", "LEFT",
-        "Interface\\Addons\\scenemachine\\static\\textures\\cropBar.png", { 0.25 + 0.125, 0.75 - 0.125, 0, 0.5 });
+    AM.cropperBgCenter = UI.ImageBox:New(h, 0, w - (h * 2), h, AM.cropperBg:GetFrame(), "LEFT", "LEFT", Resources.textures["CropBar"], { 0.25 + 0.125, 0.75 - 0.125, 0, 0.5 });
     AM.cropperBgCenter:SetPoint("RIGHT", AM.cropperBg:GetFrame(), "RIGHT", -h, y);
     AM.cropperBgCenter:SetVertexColor(0.18,0.18,0.18,1);
 
-    AM.cropperBgLeft = UI.ImageBox:New(0, 0, h, h, AM.cropperBg:GetFrame(), "LEFT", "LEFT",
-        "Interface\\Addons\\scenemachine\\static\\textures\\cropBar.png", { 0, 0.5, 0, 0.5 });
+    AM.cropperBgLeft = UI.ImageBox:New(0, 0, h, h, AM.cropperBg:GetFrame(), "LEFT", "LEFT", Resources.textures["CropBar"], { 0, 0.5, 0, 0.5 });
     AM.cropperBgLeft:SetVertexColor(0.18,0.18,0.18,1);
 
-    AM.cropperBgRight = UI.ImageBox:New(0, 0, h, h, AM.cropperBg:GetFrame(), "RIGHT", "RIGHT",
-        "Interface\\Addons\\scenemachine\\static\\textures\\cropBar.png", { 0.5, 1.0, 0, 0.5 });
+    AM.cropperBgRight = UI.ImageBox:New(0, 0, h, h, AM.cropperBg:GetFrame(), "RIGHT", "RIGHT", Resources.textures["CropBar"], { 0.5, 1.0, 0, 0.5 });
     AM.cropperBgRight:SetVertexColor(0.18,0.18,0.18,1);
 
     local initialSliderLength = w * (AM.currentCrop.max - AM.currentCrop.min) - 10;
@@ -1203,7 +1199,7 @@ function AM.CreateCropperBar(x, y, w, h, parent)
 	AM.cropperLeftDrag:SetSize(h, h);
     --AM.cropperLeftDrag:SetAlpha(0.5);
     AM.cropperLeftDrag.ntex = AM.cropperLeftDrag:CreateTexture();
-    AM.cropperLeftDrag.ntex:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\cropBar.png")
+    AM.cropperLeftDrag.ntex:SetTexture(Resources.textures["CropBar"]);
     AM.cropperLeftDrag.ntex:SetTexCoord(0, 0.5, 0, 0.5);    -- (left,right,top,bottom)
     AM.cropperLeftDrag.ntex:SetAllPoints();
     AM.cropperLeftDrag.ntex:SetVertexColor(0.3,0.3,0.3,1);
@@ -1218,7 +1214,7 @@ function AM.CreateCropperBar(x, y, w, h, parent)
         AM.inputState.mousePosStartX = Input.mouseXRaw;
     end);
     AM.cropperLeftDrag:SetScript("OnMouseUp", function(self, button) AM.inputState.movingMin = false; end);
-    local burgerLD = UI.ImageBox:New(0, 0, h, h, AM.cropperLeftDrag, "CENTER", "CENTER", "Interface\\Addons\\scenemachine\\static\\textures\\cropBar.png", { 0, 0.5, 0.5, 1 })
+    local burgerLD = UI.ImageBox:New(0, 0, h, h, AM.cropperLeftDrag, "CENTER", "CENTER", Resources.textures["CropBar"], { 0, 0.5, 0.5, 1 });
     burgerLD:SetAlpha(0.2);
 
     -- Right handle
@@ -1227,7 +1223,7 @@ function AM.CreateCropperBar(x, y, w, h, parent)
 	AM.cropperRightDrag:SetSize(h, h);
     --AM.cropperRightDrag:SetAlpha(0.5);
     AM.cropperRightDrag.ntex = AM.cropperRightDrag:CreateTexture();
-    AM.cropperRightDrag.ntex:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\cropBar.png")
+    AM.cropperRightDrag.ntex:SetTexture(Resources.textures["CropBar"]);
     AM.cropperRightDrag.ntex:SetTexCoord(0.5, 1.0, 0, 0.5);    -- (left,right,top,bottom)
     AM.cropperRightDrag.ntex:SetAllPoints();
     AM.cropperRightDrag.ntex:SetVertexColor(0.3,0.3,0.3,1);
@@ -1242,7 +1238,7 @@ function AM.CreateCropperBar(x, y, w, h, parent)
         AM.inputState.mousePosStartX = Input.mouseXRaw;
     end);
     AM.cropperRightDrag:SetScript("OnMouseUp", function(self, button) AM.inputState.movingMax = false; end);
-    local burgerRD = UI.ImageBox:New(0, 0, h, h, AM.cropperRightDrag, "CENTER", "CENTER", "Interface\\Addons\\scenemachine\\static\\textures\\cropBar.png", { 0, 0.5, 0.5, 1 })
+    local burgerRD = UI.ImageBox:New(0, 0, h, h, AM.cropperRightDrag, "CENTER", "CENTER", Resources.textures["CropBar"], { 0, 0.5, 0.5, 1 })
     burgerRD:SetAlpha(0.2);
 
     -- Middle handle
@@ -1251,7 +1247,7 @@ function AM.CreateCropperBar(x, y, w, h, parent)
 	AM.cropperSlider:SetSize(initialSliderLength-h, h);
     --AM.cropperSlider:SetAlpha(0.5);
     AM.cropperSlider.ntex = AM.cropperSlider:CreateTexture();
-    AM.cropperSlider.ntex:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\cropBar.png")
+    AM.cropperSlider.ntex:SetTexture(Resources.textures["CropBar"]);
     AM.cropperSlider.ntex:SetTexCoord(0.25 + 0.125, 0.75 - 0.125, 0, 0.5);    -- (left,right,top,bottom)
     AM.cropperSlider.ntex:SetAllPoints();
     AM.cropperSlider.ntex:SetVertexColor(0.3,0.3,0.3,1);
@@ -1500,7 +1496,7 @@ function AM.DeleteTimeline()
 end
 
 function AM.CreateNewTimelineTab(x, y, w, h, parent, startLevel)
-	local ButtonFont = Editor.ui.defaultFont;
+	local ButtonFont = Resources.defaultFont;
 	local ButtonFontSize = 9;
 
 	-- main button frame --

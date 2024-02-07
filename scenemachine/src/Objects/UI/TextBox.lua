@@ -1,4 +1,5 @@
 local Editor = SceneMachine.Editor;
+local Resources = SceneMachine.Resources;
 local UI = SceneMachine.UI;
 UI.TextBox = {};
 local TextBox = UI.TextBox;
@@ -17,7 +18,7 @@ function TextBox:New(x, y, w, h, parent, point, parentPoint, text, textHeight, t
         parentPoint = parentPoint or "TOPLEFT",
         text = text or nil,
         textHeight = textHeight or 9,
-        textFont = textFont or Editor.ui.defaultFont,
+        textFont = textFont or Resources.defaultFont,
         visible = true,
     };
 

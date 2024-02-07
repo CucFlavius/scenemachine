@@ -1,5 +1,6 @@
 local Gizmos = SceneMachine.Gizmos;
 local Vector3 = SceneMachine.Vector3;
+local Resources = SceneMachine.Resources;
 
 function Gizmos.CreateScaleGizmo()
     local ch = 0.5;
@@ -42,6 +43,6 @@ function Gizmos.CreateScaleGizmo()
     for t = 1, Gizmos.ScaleGizmo.lineCount + 1, 1 do
         Gizmos.ScaleGizmo.lines[t] = lineProjectionFrame:CreateLine(nil, nil, nil);
         Gizmos.ScaleGizmo.lines[t]:SetThickness(2.5);
-        Gizmos.ScaleGizmo.lines[t]:SetTexture("Interface\\Addons\\scenemachine\\static\\textures\\line.png", "REPEAT", "REPEAT", "NEAREST");
+        Gizmos.ScaleGizmo.lines[t]:SetTexture(Resources.textures["Line"], "REPEAT", "REPEAT", "NEAREST");
     end
 end

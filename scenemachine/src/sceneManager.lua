@@ -3,14 +3,12 @@ local PM = Editor.ProjectManager;
 local SM = Editor.SceneManager;
 local Renderer = SceneMachine.Renderer;
 local Camera = SceneMachine.Camera;
-local Player = SceneMachine.Player;
 local CameraController = SceneMachine.CameraController;
 local SH = Editor.SceneHierarchy;
 local OP = Editor.ObjectProperties;
-local Gizmos = SceneMachine.Gizmos;
-local Math = SceneMachine.Math;
 local AM = Editor.AnimationManager;
 local UI = SceneMachine.UI;
+local Resources = SceneMachine.Resources;
 
 local tabButtonHeight = 20;
 local tabPool = {};
@@ -434,7 +432,7 @@ function SM.ToggleObjectFreezeState(object)
 end
 
 function SM.CreateNewSceneTab(x, y, w, h, parent, startLevel)
-	local ButtonFont = Editor.ui.defaultFont;
+	local ButtonFont = Resources.defaultFont;
 	local ButtonFontSize = 9;
 
 	-- main button frame --

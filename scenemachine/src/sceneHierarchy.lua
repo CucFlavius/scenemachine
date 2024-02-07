@@ -7,6 +7,7 @@ local CC = SceneMachine.CameraController;
 local OP = Editor.ObjectProperties;
 local AM = SceneMachine.Editor.AnimationManager;
 local UI = SceneMachine.UI;
+local Resources = SceneMachine.Resources;
 
 function SH.CreatePanel(w, h, leftPanel, startLevel)
     --local group = Editor.CreateGroup("Hierarchy", h, leftPanel:GetFrame());
@@ -39,8 +40,7 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 				item.components[2] = UI.Label:New(10, 0, 200, 18, item.components[1]:GetFrame(), "LEFT", "LEFT", "", 9);
 
 				-- visibility icon --
-				item.components[3] = UI.Button:New(-10, 0, 18, 18, item.components[1]:GetFrame(), "RIGHT", "RIGHT", nil,
-					"Interface\\Addons\\scenemachine\\static\\textures\\eyeIcon.png");
+				item.components[3] = UI.Button:New(-10, 0, 18, 18, item.components[1]:GetFrame(), "RIGHT", "RIGHT", nil, Resources.textures["EyeIcon"]);
 				item.components[3]:SetColor(UI.Button.State.Normal, 0, 0, 0, 0);
 				item.components[3]:SetAlpha(0.6);
 			end,
