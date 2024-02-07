@@ -6,6 +6,7 @@ local Gizmos = SceneMachine.Gizmos;
 local OP = Editor.ObjectProperties;
 local Renderer = SceneMachine.Renderer;
 local UI = SceneMachine.UI;
+local Resources = SceneMachine.Resources;
 
 function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
     --local group = Editor.CreateGroup("Properties", h, leftPanel:GetFrame());
@@ -22,14 +23,17 @@ function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
     Editor.horizontalSeparatorL:GetFrame():RegisterForDrag("LeftButton");
     Editor.horizontalSeparatorL:GetFrame():SetScript("OnDragStart", function()
         groupBG.frame:StartSizing("TOP");
+        SetCursor(Resources.textures["CursorResizeV"]);
     end);
 	Editor.horizontalSeparatorL:GetFrame():SetScript("OnDragStop", function()
         scenemachine_settings.propertiesPanelH = (groupBG:GetTop() - 6) - SceneMachine.mainWindow:GetBottom();
         groupBG.frame:StopMovingOrSizing();
         groupBG:SetPoint("BOTTOMRIGHT", leftPanel:GetFrame(), "BOTTOMRIGHT", -6, 0);
         groupBG:SetPoint("BOTTOMLEFT", leftPanel:GetFrame(), "BOTTOMLEFT", 6, 6);
+        ResetCursor();
     end);
-
+    Editor.horizontalSeparatorL:GetFrame():SetScript('OnEnter', function() SetCursor(Resources.textures["CursorResizeV"]); end)
+    Editor.horizontalSeparatorL:GetFrame():SetScript('OnLeave', function() ResetCursor(); end)
 
     local groupTitleText = UI.Label:New(0, 0, w - 30, 20, groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", "   Properties", 9);
     groupTitleText:SetPoint("TOPRIGHT", groupBG:GetFrame(), "TOPRIGHT", 0, 0);

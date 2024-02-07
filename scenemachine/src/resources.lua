@@ -32,4 +32,7 @@ function Resources.Initialize(resourcePath)
     Resources.textures["Toolbar"] = Resources.texturesPath .. "\\toolbar.png";
     Resources.textures["DropShadow"] = Resources.texturesPath .. "\\dropShadowSquare.png";
     Resources.textures["CornerResize"] = Resources.texturesPath .. "\\cornerResize.png";
+    Resources.textures["CursorResizeH"] = "interface\\cursor\\crosshair\\ui-cursor-move.blp";--Resources.texturesPath .. "\\resizeCursorHorizontal.png";
+    Resources.textures["CursorResizeV"] = "interface\\cursor\\crosshair\\ui-cursor-move.blp";--Resources.texturesPath .. "\\resizeCursorVertical.png.crosshair";
+    Resources.textures["CursorResize"] = "interface\\cursor\\crosshair\\ui-cursor-sizeright.blp";--Resources.texturesPath .. "\\resizeCursorBoth.png.crosshair";
 end

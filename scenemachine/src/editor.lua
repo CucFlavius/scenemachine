@@ -251,14 +251,17 @@ function Editor.CreateRightPanel(startLevel)
     Editor.verticalSeparatorR:GetFrame():RegisterForDrag("LeftButton");
     Editor.verticalSeparatorR:GetFrame():SetScript("OnDragStart", function()
         rightPanel.frame:StartSizing("LEFT");
+        SetCursor(Resources.textures["CursorResizeH"]);
     end);
 	Editor.verticalSeparatorR:GetFrame():SetScript("OnDragStop", function()
         scenemachine_settings.rightPanelW = SceneMachine.mainWindow:GetRight() - rightPanel:GetLeft();
         rightPanel.frame:StopMovingOrSizing();
         rightPanel:SetPoint("TOPRIGHT", SceneMachine.mainWindow:GetFrame(), "TOPRIGHT", 0, -Editor.toolbarHeight);
         rightPanel:SetPoint("BOTTOMRIGHT", SceneMachine.mainWindow:GetFrame(), "BOTTOMRIGHT", 0, 0);
+        ResetCursor();
     end);
-    
+    Editor.verticalSeparatorR:GetFrame():SetScript('OnEnter', function() SetCursor(Resources.textures["CursorResizeH"]); end)
+    Editor.verticalSeparatorR:GetFrame():SetScript('OnLeave', function() ResetCursor(); end)
     
     local edge = 10;
     local tilesGroup = Editor.CreateGroup("Asset Explorer", Editor.height - Editor.toolbarHeight - edge , rightPanel:GetFrame(), startLevel + 1);
@@ -282,13 +285,17 @@ function Editor.CreateLeftPanel(startLevel)
     Editor.verticalSeparatorL:GetFrame():RegisterForDrag("LeftButton");
     Editor.verticalSeparatorL:GetFrame():SetScript("OnDragStart", function()
         leftPanel.frame:StartSizing("RIGHT");
+        SetCursor(Resources.textures["CursorResizeH"]);
     end);
 	Editor.verticalSeparatorL:GetFrame():SetScript("OnDragStop", function()
         scenemachine_settings.leftPanelW = leftPanel:GetRight() - SceneMachine.mainWindow:GetLeft();
         leftPanel.frame:StopMovingOrSizing();
         leftPanel:SetPoint("TOPLEFT", SceneMachine.mainWindow:GetFrame(), "TOPLEFT", 0, -Editor.toolbarHeight);
         leftPanel:SetPoint("BOTTOMLEFT", SceneMachine.mainWindow:GetFrame(), "BOTTOMLEFT", 0, 0);
+        ResetCursor();
     end);
+    Editor.verticalSeparatorL:GetFrame():SetScript('OnEnter', function() SetCursor(Resources.textures["CursorResizeH"]); end)
+    Editor.verticalSeparatorL:GetFrame():SetScript('OnLeave', function() ResetCursor(); end)
 
     OP.CreatePanel(scenemachine_settings.leftPanelW, scenemachine_settings.propertiesPanelH, c1, c2, c3, c4, leftPanel, startLevel + 2);
     SH.CreatePanel(scenemachine_settings.leftPanelW, 350, leftPanel, startLevel + 2);
@@ -310,14 +317,17 @@ function Editor.CreateBottomPanel(startLevel)
     Editor.horizontalSeparator:GetFrame():RegisterForDrag("LeftButton");
     Editor.horizontalSeparator:GetFrame():SetScript("OnDragStart", function()
         bottomPanel.frame:StartSizing("TOP");
+        SetCursor(Resources.textures["CursorResizeV"]);
     end);
 	Editor.horizontalSeparator:GetFrame():SetScript("OnDragStop", function()
         scenemachine_settings.animationManagerH = (bottomPanel:GetTop()) - SceneMachine.mainWindow:GetBottom();
         bottomPanel.frame:StopMovingOrSizing();
         bottomPanel:SetPoint("BOTTOMLEFT", Editor.verticalSeparatorL:GetFrame(), "BOTTOMRIGHT", 0, 0);
         bottomPanel:SetPoint("BOTTOMRIGHT", Editor.verticalSeparatorR:GetFrame(), "BOTTOMLEFT", 0, 0);
+        ResetCursor();
     end);
-
+    Editor.horizontalSeparator:GetFrame():SetScript('OnEnter', function() SetCursor(Resources.textures["CursorResizeV"]); end)
+    Editor.horizontalSeparator:GetFrame():SetScript('OnLeave', function() ResetCursor(); end)
 
     -- Create Animation manager
     --local animX = leftPanelWidth;

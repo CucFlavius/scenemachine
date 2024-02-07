@@ -76,8 +76,10 @@ function Window:Build()
     self.resizeFrame:GetFrame():EnableMouse(true);
 	self.resizeFrame:SetVertexColor(1,1,1,0.3);
     self.resizeFrame:GetFrame():RegisterForDrag("LeftButton");
-    self.resizeFrame:GetFrame():SetScript("OnDragStart", function() self.frame:StartSizing("BOTTOMRIGHT"); end);
-	self.resizeFrame:GetFrame():SetScript("OnDragStop", function() self.frame:StopMovingOrSizing(); end);
+    self.resizeFrame:GetFrame():SetScript("OnDragStart", function() self.frame:StartSizing("BOTTOMRIGHT"); SetCursor(Resources.textures["CursorResize"]); end);
+	self.resizeFrame:GetFrame():SetScript("OnDragStop", function() self.frame:StopMovingOrSizing(); ResetCursor(); end);
+	self.resizeFrame:GetFrame():SetScript('OnEnter', function() SetCursor(Resources.textures["CursorResize"]); end)
+    self.resizeFrame:GetFrame():SetScript('OnLeave', function() ResetCursor(); end)
 end
 
 function Window:WindowCreateMenuBar(menu)
