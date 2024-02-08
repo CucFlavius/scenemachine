@@ -94,11 +94,8 @@ function Input.Update()
                 Input.mouseState.isDraggingAssetFromUI = false;
                 
                 -- Check if mouse is over asset browser, then delete object instead of placing it
-                local frameXMin = AssetBrowser.tabs[1]:GetLeft();
-                local frameYMin = AssetBrowser.tabs[1]:GetBottom();
-                local frameXMax = AssetBrowser.tabs[1]:GetRight();
-                local frameYMax = AssetBrowser.tabs[1]:GetTop();
-                if (Input.mouseXRaw > frameXMin and Input.mouseXRaw < frameXMax and Input.mouseYRaw > frameYMin and Input.mouseYRaw < frameYMax) then
+                local isOver = MouseIsOver(AssetBrowser.tabs[1]:GetFrame());
+                if (isOver) then
                     SM.DeleteObject(SM.selectedObject);
                 end
             end

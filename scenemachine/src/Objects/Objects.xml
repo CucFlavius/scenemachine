@@ -30,6 +30,7 @@ Structures
 	<Script file="UI/ScrollFrame.lua"/>
 	<Script file="UI/ItemList.lua"/>
 	<Script file="UI/PooledScrollList.lua"/>
+	<Script file="UI/PooledGridScrollList.lua"/>
 	<Script file="UI/PropertyField.lua"/>
 	<Script file="UI/PropertyFieldFloat.lua"/>
 	<Script file="UI/PropertyFieldVector3.lua"/>

@@ -73,6 +73,8 @@
         "CALENDAR_STATUS_NOT_SIGNEDUP",
         "GRAY_FONT_COLOR",
         "CALENDAR_STATUS_TENTATIVE",
-        "message"
+        "message",
+        "enabled",
+        "MouseIsOver"
     ]
 }
