@@ -134,8 +134,8 @@ function PooledGridScrollList:SetPosition(value)
     self.totalRows = math.ceil(#self.data / self.visibleColumns);
 
     -- this fixes some rounding issues
-    if (value >= 1) then value = 0.999; end
-    if (value <= 0) then value = 0.001; end
+    if (value >= 1) then value = 0.999999; end
+    if (value <= 0) then value = 0.000001; end
 
     local visibleRowsF =  self.viewportHeight / self.itemHeight;
     local offs = (value * (self.totalRows)) - (value * visibleRowsF);

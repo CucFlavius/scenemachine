@@ -155,7 +155,10 @@ function Input.Update()
         local animSelectWindow = AM.animSelectWindow:IsVisible();
         local projectManager = PM.window:IsVisible();
         local colorPicker = Editor.ColorPicker.window:IsVisible();
-        local sceneScript = Editor.importSSWindow:IsVisible();
+        local sceneScript = nil;
+        if (Editor.importSSWindow) then
+            sceneScript = Editor.importSSWindow:IsVisible();
+        end
         local messageBox = nil;
         if (Editor.messageBox) then
             messageBox = Editor.messageBox:IsVisible();
