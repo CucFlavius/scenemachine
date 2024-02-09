@@ -364,6 +364,8 @@ function AssetBrowser.OnThumbnailDrag(name)
                 local mouseRay = Camera.GetMouseRay();
                 local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
                 local object = SM.CreateObject(fileID, fileName, initialPosition.x, initialPosition.y, initialPosition.z);
+                local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
+                object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
                 SM.selectedObject = object;
                 Input.mouseState.LMB = true;
                 Input.mouseState.isDraggingAssetFromUI = true;
