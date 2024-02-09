@@ -152,8 +152,15 @@ function Input.Update()
 
     -- filter mouse down if some windows are open
     if (LMB or RMB or MMB) then
-        local animSelectWindow = AM.animSelectWindow:IsVisible()
-        if (animSelectWindow) then
+        local animSelectWindow = AM.animSelectWindow:IsVisible();
+        local projectManager = PM.window:IsVisible();
+        local colorPicker = Editor.ColorPicker.window:IsVisible();
+        local sceneScript = Editor.importSSWindow:IsVisible();
+        local messageBox = nil;
+        if (Editor.messageBox) then
+            messageBox = Editor.messageBox:IsVisible();
+        end
+        if (animSelectWindow or projectManager or colorPicker or sceneScript or messageBox) then
             return;
         end
     end

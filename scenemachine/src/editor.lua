@@ -385,7 +385,7 @@ function Editor.ShowImportScenescript()
         Editor.importSSWindow:SetFrameStrata(Editor.SUB_FRAME_STRATA);
         Editor.importSSWindow.editBox = UI.TextBox:New(0, 0, 390, 390, Editor.importSSWindow:GetFrame(), "TOPLEFT", "TOPLEFT", "", 9);
         Editor.importSSWindow.editBox:SetMultiLine(true);
-        Editor.importSSWindow.editBox:SetMaxLetters(0);
+        --Editor.importSSWindow.editBox:SetMaxLetters(0);
         Editor.importSSWindow.editBox:SetScript('OnEscapePressed', function()
             Editor.importSSWindow.editBox:ClearFocus();
             Editor.ui.focused = false;
@@ -433,6 +433,8 @@ function Editor.OpenMessageBox( window, title, message, hasYesButton, hasNoButto
         Editor.messageBox.textBox = UI.Label:New(0, 10, 280, 100, Editor.messageBox:GetFrame(), "CENTER", "CENTER", message, 10);
         Editor.messageBox.yesButton = UI.Button:New(-75, 10, 50, 25, Editor.messageBox:GetFrame(), "BOTTOMRIGHT", "BOTTOMRIGHT", "YES");
         Editor.messageBox.noButton = UI.Button:New(-20, 10, 50, 25, Editor.messageBox:GetFrame(), "BOTTOMRIGHT", "BOTTOMRIGHT", "NO");
+        Editor.messageBox:GetFrame():SetResizable(false);
+        Editor.messageBox.resizeFrame:Hide();
     end
 
     Editor.messageBox:SetParent(window);

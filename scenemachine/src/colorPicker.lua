@@ -218,6 +218,7 @@ function ColorPicker.Initialize(r, g, b)
     ColorPicker.window:GetFrame():SetResizable(false);
     ColorPicker.window.resizeFrame:Hide();
     ColorPicker.window:SetFrameLevel(1);
+    ColorPicker.window.closeButton:SetScript("OnClick", function() ColorPicker.Close(); end);
 
     ColorPicker.circleGroup = UI.Rectangle:New(25, -25, 300, 300, ColorPicker.window:GetFrame(), "TOPLEFT", "TOPLEFT", 0, 0, 0, 0);
     ColorPicker.circleGroup:SetFrameLevel(2);
@@ -441,6 +442,7 @@ function ColorPicker.Initialize(r, g, b)
 end
 
 function ColorPicker.Open(r, g, b, a, onColorChanged)
+    ColorPicker.Close();
     ColorPicker.enabled = true;
     ColorPicker.window:Show();
 
@@ -461,6 +463,8 @@ end
 function ColorPicker.Close()
     ColorPicker.enabled = false;
     ColorPicker.window:Hide();
+
+    ColorPicker.onColorChanged = nil;
 end
 
 function ColorPicker.BuildSlider(x, y, w, h, parent, startLevel, text, onValueChange, onEditBoxValueChange)
