@@ -14,6 +14,7 @@ SceneMachine.Input = {};
 
 SceneMachine.Editor = {};
 SceneMachine.Editor.Toolbar = {};
+SceneMachine.Editor.ColorPicker = {};
 SceneMachine.Editor.MainMenu = {};
 SceneMachine.Editor.AssetBrowser = {};
 SceneMachine.Editor.ProjectManager = {};

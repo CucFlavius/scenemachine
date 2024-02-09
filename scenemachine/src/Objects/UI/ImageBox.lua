@@ -65,6 +65,10 @@ function ImageBox:GetTexCoords()
     return self.texcoords;
 end
 
+function ImageBox:SetBlendMode(mode)
+    self.frame.texture:SetBlendMode(mode);
+end
+
 ImageBox.__tostring = function(self)
 	return string.format("ImageBox( %.3f, %.3f, %.3f, %.3f, %s )", self.x, self.y, self.w, self.h, self.parent);
 end

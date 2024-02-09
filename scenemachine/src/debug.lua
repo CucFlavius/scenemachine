@@ -150,6 +150,7 @@ function Debug.GetAvailableLineFromPool()
 end
 
 function Debug.FlushLinePool()
+	--[[
 	for t = 1, linePoolSize, 1 do
 		if (Debug.linePool[t].visible == true) then
 			local line = Debug.linePool[t];
@@ -166,4 +167,5 @@ function Debug.FlushLinePool()
 			end
 		end
 	end
+	--]]
 end

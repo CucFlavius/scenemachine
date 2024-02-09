@@ -75,6 +75,7 @@
         "CALENDAR_STATUS_TENTATIVE",
         "message",
         "enabled",
-        "MouseIsOver"
+        "MouseIsOver",
+        "ADD"
     ]
 }

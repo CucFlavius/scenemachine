@@ -43,21 +43,21 @@ function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
     groupContent:SetPoint("BOTTOMRIGHT", groupBG:GetFrame(), "BOTTOMRIGHT", 0, 0);
     groupContent:SetFrameLevel(startLevel + 2);
 
-    local collapseList = UI.CollapsableList:New(0, 0, w - 6, h - 20, { 66, 22, 44 }, groupContent:GetFrame(), "TOPLEFT", "TOPLEFT", { "Transform", "Actor Properties", "Scene properties (temp)", }, c1[1], c1[2], c1[3], 1);
+    local collapseList = UI.CollapsableList:New(0, 0, w - 6, h - 20, { 71, 27, 49 }, groupContent:GetFrame(), "TOPLEFT", "TOPLEFT", { "Transform", "Actor Properties", "Scene properties (temp)", }, c1[1], c1[2], c1[3], 1);
     collapseList:SetPoint("BOTTOMRIGHT", groupContent:GetFrame(), "BOTTOMRIGHT", 0, 0);
     collapseList:SetFrameLevel(startLevel + 3);
     
     local transformPropertyGroup = collapseList.bars[1].panel:GetFrame();
-    OP.positionField = UI.PropertyFieldVector3:New(0, 20, transformPropertyGroup, "Position", {0, 0, 0}, OP.SetPosX, OP.SetPosY, OP.SetPosZ);
-    OP.rotationField = UI.PropertyFieldVector3:New(-22, 20, transformPropertyGroup, "Rotation", {0, 0, 0}, OP.SetRotX, OP.SetRotY, OP.SetRotZ);
-    OP.scaleField = UI.PropertyFieldFloat:New(-44, 20, transformPropertyGroup, "Scale", 1, OP.SetScale);
+    OP.positionField = UI.PropertyFieldVector3:New(-5, 20, transformPropertyGroup, "Position", {0, 0, 0}, OP.SetPosX, OP.SetPosY, OP.SetPosZ);
+    OP.rotationField = UI.PropertyFieldVector3:New(-27, 20, transformPropertyGroup, "Rotation", {0, 0, 0}, OP.SetRotX, OP.SetRotY, OP.SetRotZ);
+    OP.scaleField = UI.PropertyFieldFloat:New(-49, 20, transformPropertyGroup, "Scale", 1, OP.SetScale);
 
     local actorPropertyGroup = collapseList.bars[2].panel:GetFrame();
-    OP.alphaField = UI.PropertyFieldFloat:New(0, 20, actorPropertyGroup, "Alpha", 1, OP.SetAlpha);
+    OP.alphaField = UI.PropertyFieldFloat:New(-5, 20, actorPropertyGroup, "Alpha", 1, OP.SetAlpha);
 
     local scenePropertyGroup = collapseList.bars[3].panel:GetFrame();
-    OP.ambientColorField = UI.PropertyFieldVector3:New(0, 20, scenePropertyGroup, "Ambient Color", {0, 0, 0}, OP.SetAmbientColorR, OP.SetAmbientColorG, OP.SetAmbientColorB);
-    OP.diffuseColorField = UI.PropertyFieldVector3:New(-22, 20, scenePropertyGroup, "Diffuse Color", {0, 0, 0}, OP.SetDiffuseColorR, OP.SetDiffuseColorG, OP.SetDiffuseColorB);
+    OP.ambientColorField = UI.PropertyFieldColor:New(-5, 20, scenePropertyGroup, "Ambient Color", 0, 0, 0, 1, OP.SetAmbientColor);
+    OP.diffuseColorField = UI.PropertyFieldColor:New(-27, 20, scenePropertyGroup, "Diffuse Color", 0, 0, 0, 1, OP.SetDiffuseColor);
 
     OP.Refresh();
 end
@@ -83,6 +83,13 @@ function OP.Refresh()
     OP.rotationField:Set(OP.Truncate(deg(rot.x), 3), OP.Truncate(deg(rot.y), 3), OP.Truncate(deg(rot.z), 3));
     OP.scaleField:Set(OP.Truncate(scale, 3));
     OP.alphaField:Set(OP.Truncate(alpha, 3));
+
+    if (Renderer.projectionFrame) then
+        local r, g, b = Renderer.projectionFrame:GetLightAmbientColor();
+        OP.ambientColorField:Set(r, g, b, 1);
+        local r, g, b = Renderer.projectionFrame:GetLightDiffuseColor();
+        OP.diffuseColorField:Set(r, g, b, 1);
+    end
 end
 
 function OP.ToggleTransformFields(enabled)
@@ -159,32 +166,10 @@ function OP.Truncate(num, digits)
     return math.modf(num*mult)/mult
 end
 
-function OP.SetAmbientColorR(value)
-    local r, g, b = Renderer.projectionFrame:GetLightAmbientColor();
-    Renderer.projectionFrame:SetLightAmbientColor(value, g, b);
+function OP.SetAmbientColor(R, G, B, A)
+    Renderer.projectionFrame:SetLightAmbientColor(R, G, B);
 end
 
-function OP.SetAmbientColorG(value)
-    local r, g, b = Renderer.projectionFrame:GetLightAmbientColor();
-    Renderer.projectionFrame:SetLightAmbientColor(r, value, b);
-end
-
-function OP.SetAmbientColorB(value)
-    local r, g, b = Renderer.projectionFrame:GetLightAmbientColor();
-    Renderer.projectionFrame:SetLightAmbientColor(r, g, value);
-end
-
-function OP.SetDiffuseColorR(value)
-    local r, g, b = Renderer.projectionFrame:GetLightDiffuseColor();
-    Renderer.projectionFrame:SetLightDiffuseColor(value, g, b);
-end
-
-function OP.SetDiffuseColorG(value)
-    local r, g, b = Renderer.projectionFrame:GetLightDiffuseColor();
-    Renderer.projectionFrame:SetLightDiffuseColor(r, value, b);
-end
-
-function OP.SetDiffuseColorB(value)
-    local r, g, b = Renderer.projectionFrame:GetLightDiffuseColor();
-    Renderer.projectionFrame:SetLightDiffuseColor(r, g, value);
+function OP.SetDiffuseColor(R, G, B, A)
+    Renderer.projectionFrame:SetLightDiffuseColor(R, G, B);
 end

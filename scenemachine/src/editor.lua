@@ -12,6 +12,7 @@ local Input = SceneMachine.Input;
 local AM = Editor.AnimationManager;
 local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
+local ColorPicker = Editor.ColorPicker;
 
 Editor.width = 1280;
 Editor.height = 720;
@@ -82,6 +83,7 @@ function Editor.Initialize()
     Editor.CreateBottomPanel(2);
     Editor.ProjectManager.CreateWindow();
     MousePick.Initialize();
+    ColorPicker.Initialize(1, 0, 0);
 
     -- Create Scene manager
     local sceneX = scenemachine_settings.leftPanelW;
@@ -148,6 +150,9 @@ end
 
 function Editor.Update()
     Editor.ui:Update();
+    if (ColorPicker.enabled) then
+        ColorPicker.Update();
+    end
 end
 
 function Editor.RefreshProjectsDropdown()

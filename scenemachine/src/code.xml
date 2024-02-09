@@ -15,6 +15,7 @@
 
     <Script file="camera.lua"/>
     <Script file="input.lua"/>
+    <Script file="colorPicker.lua"/>
     <Script file="cameraController.lua"/>
     <Script file="renderer.lua"/>
 	<Script file="settings.lua"/>
