@@ -152,6 +152,7 @@ function PooledGridScrollList:SetData(data)
     self.data = data;
     self.scrollbar:Resize(self.viewportHeight, #self.data * self.template.height);
     self:MakePool(self.viewportWidth, self.viewportHeight);
+    self.scrollbar:SetValueWithoutAction(0);
     self:Refresh(0);
     self:SetPosition(0);
 end

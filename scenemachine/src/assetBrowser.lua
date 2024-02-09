@@ -30,7 +30,7 @@ function AssetBrowser.Create(parent, w, h, startLevel)
     AssetBrowser.CreateToolbar(AssetBrowser.tabs[1]:GetFrame(), -Editor.pmult, w, startLevel + 2);
     AssetBrowser.CreateSearchBar(0, -30 - Editor.pmult, 0, 0, AssetBrowser.tabs[1]:GetFrame(), startLevel + 3);
     AssetBrowser.CreateGridView(0, -50 - Editor.pmult, 0, 0, AssetBrowser.tabs[1]:GetFrame(), startLevel + 3);
-
+    
 	AssetBrowser.gridList:MakePool();
     AssetBrowser.currentDirectory = SceneMachine.modelData[1];
     AssetBrowser.gridList:SetData(AssetBrowser.BuildFolderData(AssetBrowser.currentDirectory));
@@ -231,6 +231,8 @@ function AssetBrowser.UpOneFolder()
         -- clear search
         AssetBrowser.searchBar:SetText("");
         AssetBrowser.SearchModelList("");
+        AssetBrowser.gridList:Refresh(0);
+        AssetBrowser.gridList:SetPosition(0);
     else
         local pos = table.getn(AssetBrowser.breadcrumb) - 1;
 
