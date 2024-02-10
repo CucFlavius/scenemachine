@@ -76,6 +76,7 @@
         "message",
         "enabled",
         "MouseIsOver",
-        "ADD"
+        "ADD",
+        "GameTooltip_SetDefaultAnchor"
     ]
 }

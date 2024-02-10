@@ -26,11 +26,14 @@ function AssetBrowser.Create(parent, w, h, startLevel)
     
     AssetBrowser.tabs[1] = tabPanel:AddTab(w, h, "Models", 50, function() AssetBrowser.OnChangeTab(1); end, startLevel + 1);
     AssetBrowser.tabs[2] = tabPanel:AddTab(w, h, "Creatures", 70, function() AssetBrowser.OnChangeTab(2); end, startLevel + 1);
+    AssetBrowser.tabs[3] = tabPanel:AddTab(w, h, "Debug", 70, function() AssetBrowser.OnChangeTab(3); end, startLevel + 1);
     
     AssetBrowser.CreateToolbar(AssetBrowser.tabs[1]:GetFrame(), -Editor.pmult, w, startLevel + 2);
     AssetBrowser.CreateSearchBar(0, -30 - Editor.pmult, 0, 0, AssetBrowser.tabs[1]:GetFrame(), startLevel + 3);
     AssetBrowser.CreateGridView(0, -50 - Editor.pmult, 0, 0, AssetBrowser.tabs[1]:GetFrame(), startLevel + 3);
     
+    AssetBrowser.CreateDebugTab(AssetBrowser.tabs[3]:GetFrame(), 300, 100);
+
 	AssetBrowser.gridList:MakePool();
     AssetBrowser.currentDirectory = SceneMachine.modelData[1];
     AssetBrowser.gridList:SetData(AssetBrowser.BuildFolderData(AssetBrowser.currentDirectory));
@@ -45,12 +48,27 @@ function AssetBrowser.Create(parent, w, h, startLevel)
 end
 
 function AssetBrowser.OnChangeTab(idx)
-
+    if (idx == 1) then
+        -- Models --
+        AssetBrowser.toolbar:Show();
+        AssetBrowser.tabs[1]:Show();
+        AssetBrowser.currentDirectory = SceneMachine.modelData[1];
+        AssetBrowser.gridList:SetData(AssetBrowser.BuildFolderData(AssetBrowser.currentDirectory));
+    elseif (idx == 2) then
+        -- Creatures --
+        AssetBrowser.toolbar:Hide();
+        AssetBrowser.tabs[1]:Show();
+        AssetBrowser.tabs[2]:Hide();
+        AssetBrowser.gridList:SetData(AssetBrowser.BuildCreatureData());
+    elseif (idx == 3) then
+        -- Debug --
+        AssetBrowser.tabs[1]:Hide();
+    end
 end
 
-function AssetBrowser.CreateCreatureListTab(parent, w, h)
-    local creatureDisplayIDText = UI.Label:New(0, 0, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "CreatureDisplayID", 9);
-    local creatureDisplayIDEditBox = UI.TextBox:New(w * 0.3, 0, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "41918");
+function AssetBrowser.CreateDebugTab(parent, w, h)
+    local creatureDisplayIDText = UI.Label:New(0, -5, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "CreatureDisplayID", 9);
+    local creatureDisplayIDEditBox = UI.TextBox:New(w * 0.3, -5, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "41918");
     creatureDisplayIDEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
         local valText = self1:GetText();
@@ -65,8 +83,8 @@ function AssetBrowser.CreateCreatureListTab(parent, w, h)
         Editor.ui.focused = false;
     end);
 
-    local creatureIDText = UI.Label:New(0, -22, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "CreatureID", 9);
-    local creatureIDEditBox = UI.TextBox:New(w * 0.3, -22, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    local creatureIDText = UI.Label:New(0, -27, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "CreatureID", 9);
+    local creatureIDEditBox = UI.TextBox:New(w * 0.3, -27, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     creatureIDEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
         local valText = self1:GetText();
@@ -84,8 +102,8 @@ function AssetBrowser.CreateCreatureListTab(parent, w, h)
         Editor.ui.focused = false;
     end);
 
-    local creatureAnimationText = UI.Label:New(0, -44, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimID", 9);
-    local creatureAnimationEditBox = UI.TextBox:New(w * 0.3, -44, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    local creatureAnimationText = UI.Label:New(0, -49, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimID", 9);
+    local creatureAnimationEditBox = UI.TextBox:New(w * 0.3, -49, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     creatureAnimationEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
         local valText = self1:GetText();
@@ -103,8 +121,8 @@ function AssetBrowser.CreateCreatureListTab(parent, w, h)
         Editor.ui.focused = false;
     end);
 
-    local creatureAnimationKitText = UI.Label:New(0, -66, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimKitID", 9);
-    local creatureAnimationKitEditBox = UI.TextBox:New(w * 0.3, -66, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    local creatureAnimationKitText = UI.Label:New(0, -71, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimKitID", 9);
+    local creatureAnimationKitEditBox = UI.TextBox:New(w * 0.3, -71, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     creatureAnimationKitEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
         local valText = self1:GetText();
@@ -120,6 +138,15 @@ function AssetBrowser.CreateCreatureListTab(parent, w, h)
         end
         self1:ClearFocus();
         Editor.ui.focused = false;
+    end);
+    local testButton = UI.Button:New(0, -93, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "TEST");
+    testButton:SetScript("OnClick", function(_, button, up)
+        GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
+        GameTooltip:SetHyperlink(format("unit:Creature-0-0-0-0-%d-0", 4))
+        for i=1, GameTooltip:NumLines() do 
+            print(_G["GameTooltipTextLeft"..i]:GetText())
+        end
+        GameTooltip:Hide();
     end);
 end
 
@@ -217,6 +244,13 @@ function AssetBrowser.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
                         item.components[4].fileID = entry.fileID;
                     end
                 -- doesn't have model (folder)
+                elseif (entry.displayID) then
+                    item.components[3]:Hide();
+                    item.components[4]:Show();
+                    if (item.components[4].displayID ~= entry.displayID) then
+                        item.components[4]:SetDisplayInfo(entry.displayID);
+                        item.components[4].displayID = entry.displayID;
+                    end
                 else
                     item.components[3]:Show();
                     item.components[4]:Hide();
@@ -267,6 +301,19 @@ function AssetBrowser.BuildFolderData(dir)
             data[idx] = { N = fileName, fileID = fileID };
             idx = idx + 1;
         end
+    end
+
+    return data;
+end
+
+function AssetBrowser.BuildCreatureData()
+    local data = {};
+    local idx = 1;
+
+    for c in pairs(SceneMachine.creatureToDisplayID) do
+        local d = SceneMachine.creatureToDisplayID[c];
+        data[idx] = { N = tostring(c), displayID = d };
+        idx = idx + 1;
     end
 
     return data;
@@ -387,6 +434,8 @@ function AssetBrowser.OnThumbnailDrag(name)
                     local mouseRay = Camera.GetMouseRay();
                     local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
                     local object = SM.CreateObject(fileID, fileName, initialPosition.x, initialPosition.y, initialPosition.z);
+                    local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
+                    object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
                     SM.selectedObject = object;
                     Input.mouseState.LMB = true;
                     Input.mouseState.isDraggingAssetFromUI = true;

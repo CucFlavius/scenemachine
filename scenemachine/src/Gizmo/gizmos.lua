@@ -331,17 +331,21 @@ function Gizmos.MotionToTransform()
             local rx, ry, rz = rotation.x, rotation.y, rotation.z;
             local s = SM.selectedObject:GetScale();
             local iPoint;
-            local axis = Vector3:New(1,1,1);
-            local axisMoveSpeed = 0.0002;
+            local axisMoveSpeed = 0.02;
             if (Gizmos.activeTransformGizmo == 1) then
                 if (Gizmos.selectedAxis == 1) then
                     -- X --
-                    local dot = Math.dotProduct(
-                        xDiff,
-                        yDiff,
-                        Gizmos.MoveGizmo.screenSpaceVertices[1][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][1],
-                        Gizmos.MoveGizmo.screenSpaceVertices[1][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][2]
-                    );
+                    local ssX = Gizmos.MoveGizmo.screenSpaceVertices[1][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][1];
+                    local ssY = Gizmos.MoveGizmo.screenSpaceVertices[1][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[1][1][2];
+                    local ssMag = math.sqrt(ssX^2 + ssY^2);
+                    if (ssMag == 0) then
+                        ssX = 0;
+                        ssY = 0;
+                    else
+                        ssX = ssX / ssMag;
+                        ssY = ssY / ssMag;
+                    end
+                    local dot = Math.dotProduct(xDiff, yDiff, ssX, ssY);
                     local gscale = dot * axisMoveSpeed * Gizmos.MoveGizmo.scale;
                     if (Gizmos.space == 0) then
                         px = px + gscale;
@@ -352,12 +356,17 @@ function Gizmos.MotionToTransform()
                     end
                 elseif (Gizmos.selectedAxis == 2) then
                     -- Y --
-                    local dot = Math.dotProduct(
-                        xDiff,
-                        yDiff,
-                        Gizmos.MoveGizmo.screenSpaceVertices[2][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][1],
-                        Gizmos.MoveGizmo.screenSpaceVertices[2][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][2]
-                    );
+                    local ssX = Gizmos.MoveGizmo.screenSpaceVertices[2][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][1];
+                    local ssY = Gizmos.MoveGizmo.screenSpaceVertices[2][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[2][1][2];
+                    local ssMag = math.sqrt(ssX^2 + ssY^2);
+                    if (ssMag == 0) then
+                        ssX = 0;
+                        ssY = 0;
+                    else
+                        ssX = ssX / ssMag;
+                        ssY = ssY / ssMag;
+                    end
+                    local dot = Math.dotProduct(xDiff, yDiff, ssX, ssY);
                     local gscale = dot * axisMoveSpeed * Gizmos.MoveGizmo.scale;
                     if (Gizmos.space == 0) then
                         py = py + gscale;
@@ -368,12 +377,17 @@ function Gizmos.MotionToTransform()
                     end
                 elseif (Gizmos.selectedAxis == 3) then
                     -- Z --
-                    local dot = Math.dotProduct(
-                        xDiff,
-                        yDiff,
-                        Gizmos.MoveGizmo.screenSpaceVertices[3][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[3][1][1],
-                        Gizmos.MoveGizmo.screenSpaceVertices[3][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[3][1][2]
-                    );
+                    local ssX = Gizmos.MoveGizmo.screenSpaceVertices[3][2][1] - Gizmos.MoveGizmo.screenSpaceVertices[3][1][1];
+                    local ssY = Gizmos.MoveGizmo.screenSpaceVertices[3][2][2] - Gizmos.MoveGizmo.screenSpaceVertices[3][1][2];
+                    local ssMag = math.sqrt(ssX^2 + ssY^2);
+                    if (ssMag == 0) then
+                        ssX = 0;
+                        ssY = 0;
+                    else
+                        ssX = ssX / ssMag;
+                        ssY = ssY / ssMag;
+                    end
+                    local dot = Math.dotProduct(xDiff, yDiff, ssX, ssY);
                     local gscale = dot * axisMoveSpeed * Gizmos.MoveGizmo.scale;
                     if (Gizmos.space == 0) then
                         pz = pz + gscale;

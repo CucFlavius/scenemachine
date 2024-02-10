@@ -706,6 +706,7 @@ function AM.CreateAnimationSelectWindow(x, y, w, h)
 	    }
     );
 
+    AM.animScrollList:SetFrameLevel(10);
 	AM.animScrollList:MakePool();
 
     AM.animSelectWindow.loadAnimBtn = UI.Button:New(5, 5, 60, 20, AM.animSelectWindow:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "Add Anim", nil);
@@ -1805,7 +1806,7 @@ function AM.RefreshWorkspace()
                                 xNorm = max(0, xNorm);
                                 xNorm = min(1, xNorm);
                 
-                                local startP = math.floor(trackElementW * xNorm);
+                                local startP = math.floor(trackElementW * xNorm + 10);
 
                                 keyframeElement:ClearAllPoints();
                                 keyframeElement:SetPoint("CENTER", AM.KeyframeBar:GetFrame(), "LEFT", startP, 0);
