@@ -41,10 +41,10 @@ function AssetBrowser.Create(parent, w, h, startLevel)
     table.insert(AssetBrowser.breadcrumb, AssetBrowser.currentDirectory);
 
     -- DEBUG --
-    AssetBrowser.OnThumbnailDoubleClick("World");
-    AssetBrowser.OnThumbnailDoubleClick("Expansion07");
-    AssetBrowser.OnThumbnailDoubleClick("Doodads");
-    --AssetBrowser.OnThumbnailDoubleClick("Kultiraszone");
+    AssetBrowser.OnThumbnailDoubleClick(nil, "World");
+    AssetBrowser.OnThumbnailDoubleClick(nil, "Expansion07");
+    AssetBrowser.OnThumbnailDoubleClick(nil, "Doodads");
+    --AssetBrowser.OnThumbnailDoubleClick(nil, "Kultiraszone");
 end
 
 AssetBrowser.dataSource = "Models";
@@ -220,11 +220,11 @@ function AssetBrowser.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
 
                 -- on double click --
                 item.components[1]:GetFrame():SetScript("OnDoubleClick", function (self, button, down)
-                    AssetBrowser.OnThumbnailDoubleClick(item.components[2]:GetText());
+                    AssetBrowser.OnThumbnailDoubleClick(item.ID, item.components[2]:GetText());
                 end);
             
                 item.components[1]:GetFrame():SetScript("OnDragStart", function (self, button, down)
-                    AssetBrowser.OnThumbnailDrag(item.components[2]:GetText());
+                    AssetBrowser.OnThumbnailDrag(item.ID);
                 end);
             
                 -- image --
@@ -240,6 +240,9 @@ function AssetBrowser.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
 			refreshItem = function(entry, item)
 				-- object name text --
 				item.components[2]:SetText(entry["N"]);
+
+                -- object ID --
+                item.ID = entry.ID;
 
                 -- has model (file)
                 if (entry.fileID) then
@@ -304,7 +307,7 @@ function AssetBrowser.BuildFolderData(dir)
         for i = 1, fileCount, 1 do
             local fileName = dir["FN"][i];
             local fileID = dir["FI"][i];
-            data[idx] = { N = fileName, fileID = fileID };
+            data[idx] = { N = fileName, fileID = fileID, ID = fileID };
             idx = idx + 1;
         end
     end
@@ -319,7 +322,7 @@ function AssetBrowser.BuildCreatureData()
     for c in pairs(SceneMachine.creatureToDisplayID) do
         local d = SceneMachine.creatureToDisplayID[c];
         local n = SceneMachine.creatureData[c];
-        data[idx] = { N = n, displayID = d };
+        data[idx] = { N = n, displayID = d, ID = c };
         idx = idx + 1;
     end
 
@@ -335,7 +338,7 @@ function AssetBrowser.BuildSearchDataRecursive(value, dir)
             local fileName = dir["FN"][i];
             if (string.find(fileName:lower(), value)) then
                 local fileID = dir["FI"][i];
-                searchData[#searchData + 1] = { N = dir["FN"][i], fileID = fileID };
+                searchData[#searchData + 1] = { N = dir["FN"][i], fileID = fileID, ID = fileID };
             end
         end
     end
@@ -345,6 +348,16 @@ function AssetBrowser.BuildSearchDataRecursive(value, dir)
         local directoryCount = table.getn(dir["D"]);
         for i = 1, directoryCount, 1 do
             AssetBrowser.BuildSearchDataRecursive(value, dir["D"][i]);
+        end
+    end
+end
+
+function AssetBrowser.BuildCreatureSearchData(value)
+    for c in pairs(SceneMachine.creatureToDisplayID) do
+        local d = SceneMachine.creatureToDisplayID[c];
+        local n = SceneMachine.creatureData[c];
+        if (string.find(n:lower(), value)) then
+            searchData[#searchData + 1] = { N = n, displayID = d, ID = c };
         end
     end
 end
@@ -363,15 +376,15 @@ function AssetBrowser.RefreshBreadcrumb()
     end
 end
 
-function AssetBrowser.OnThumbnailDoubleClick(name)
+function AssetBrowser.OnThumbnailDoubleClick(ID, name)
     if (AssetBrowser.dataSource == "Models") then
         if (#searchData > 0) then
             -- File Scan
             local fileCount = #searchData;
             for i = 1, fileCount, 1 do
-                local fileName = searchData[i].N;
-                if (fileName == name) then
-                    local fileID = searchData[i].fileID;
+                local fileID = searchData[i].fileID;
+                if (fileID == ID) then
+                    local fileName = searchData[i].N;
                     SM.CreateObject(fileID, fileName, 0, 0, 0)
                     return;
                 end
@@ -397,9 +410,12 @@ function AssetBrowser.OnThumbnailDoubleClick(name)
             if (AssetBrowser.currentDirectory["FN"] ~= nil) then
                 local fileCount = table.getn(AssetBrowser.currentDirectory["FN"]);
                 for i = 1, fileCount, 1 do
-                    local fileName = AssetBrowser.currentDirectory["FN"][i];
-                    if (fileName == name) then
-                        local fileID = AssetBrowser.currentDirectory["FI"][i];
+
+
+                    
+                    local fileID = AssetBrowser.currentDirectory["FI"][i];
+                    if (fileID == ID) then
+                        local fileName = AssetBrowser.currentDirectory["FN"][i];
                         SM.CreateObject(fileID, fileName, 0, 0, 0)
                         return;
                     end
@@ -413,64 +429,116 @@ function AssetBrowser.OnThumbnailDoubleClick(name)
             -- File Scan
             local fileCount = #searchData;
             for i = 1, fileCount, 1 do
-                local fileName = searchData[i].N;
-                if (fileName == name) then
-                    local fileID = searchData[i].fileID;
-                    SM.CreateObject(fileID, fileName, 0, 0, 0)
+                local creatureID = searchData[i].ID;
+                local displayID = SceneMachine.creatureToDisplayID[creatureID];
+                local name = SceneMachine.creatureData[creatureID];
+                if (ID == creatureID) then
+                    SM.CreateCreature(displayID, name or "Creature", 0, 0, 0);
                     return;
                 end
             end
         else
-            local idx = 1;
             for c in pairs(SceneMachine.creatureToDisplayID) do
-                local displayID = SceneMachine.creatureToDisplayID[c];
-                print(displayID)
-                if (name == tostring(displayID)) then
-                    SM.CreateCreature(displayID, "Creature", 0, 0, 0);
+                local creatureID = c;
+                local displayID = SceneMachine.creatureToDisplayID[creatureID];
+                local name = SceneMachine.creatureData[creatureID];
+                if (ID == creatureID) then
+                    SM.CreateCreature(displayID, name or "Creature", 0, 0, 0);
                     return;
                 end
-                idx = idx + 1;
             end
         end
 
     end
 end
 
-function AssetBrowser.OnThumbnailDrag(name)
-    if (#searchData > 0) then
-        -- File Scan
-        local fileCount = #searchData;
-        for i = 1, fileCount, 1 do
-            local fileName = searchData[i].N;
-            if (fileName == name) then
-                local fileID = searchData[i].fileID;
-                local mouseRay = Camera.GetMouseRay();
-                local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
-                local object = SM.CreateObject(fileID, fileName, initialPosition.x, initialPosition.y, initialPosition.z);
-                local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
-                object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
-                SM.selectedObject = object;
-                Input.mouseState.LMB = true;
-                Input.mouseState.isDraggingAssetFromUI = true;
-                Gizmos.activeTransformGizmo = 1;
-                Gizmos.highlightedAxis = 4;
-                Gizmos.selectedAxis = 4;
-                Gizmos.OnLMBDown(Input.mouseX, Input.mouseY);
-                return;
-            end
-        end
-    else
-        -- File Scan
-        if (AssetBrowser.currentDirectory["FN"] ~= nil) then
-            local fileCount = table.getn(AssetBrowser.currentDirectory["FN"]);
+function AssetBrowser.OnThumbnailDrag(ID)
+    if (AssetBrowser.dataSource == "Models") then
+        if (#searchData > 0) then
+            -- File Scan
+            local fileCount = #searchData;
             for i = 1, fileCount, 1 do
-                local fileName = AssetBrowser.currentDirectory["FN"][i];
-                if fileName == name then
-                    local fileID = AssetBrowser.currentDirectory["FI"][i];
+                local fileID = searchData[i].fileID;
+                if (fileID == ID) then
+                    local fileName = searchData[i].N;
                     local mouseRay = Camera.GetMouseRay();
                     local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
                     local object = SM.CreateObject(fileID, fileName, initialPosition.x, initialPosition.y, initialPosition.z);
                     local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
+                    object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
+                    SM.selectedObject = object;
+                    Input.mouseState.LMB = true;
+                    Input.mouseState.isDraggingAssetFromUI = true;
+                    Gizmos.activeTransformGizmo = 1;
+                    Gizmos.highlightedAxis = 4;
+                    Gizmos.selectedAxis = 4;
+                    Gizmos.OnLMBDown(Input.mouseX, Input.mouseY);
+                    return;
+                end
+            end
+        else
+            -- File Scan
+            if (AssetBrowser.currentDirectory["FN"] ~= nil) then
+                local fileCount = table.getn(AssetBrowser.currentDirectory["FN"]);
+                for i = 1, fileCount, 1 do
+                    local fileID = AssetBrowser.currentDirectory["FI"][i];
+                    if fileID == ID then
+                        local fileName = AssetBrowser.currentDirectory["FN"][i];
+                        local mouseRay = Camera.GetMouseRay();
+                        local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
+                        local object = SM.CreateObject(fileID, fileName, initialPosition.x, initialPosition.y, initialPosition.z);
+                        local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
+                        object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
+                        SM.selectedObject = object;
+                        Input.mouseState.LMB = true;
+                        Input.mouseState.isDraggingAssetFromUI = true;
+                        Gizmos.activeTransformGizmo = 1;
+                        Gizmos.highlightedAxis = 4;
+                        Gizmos.selectedAxis = 4;
+                        Gizmos.OnLMBDown(Input.mouseX, Input.mouseY);
+                        return;
+                    end
+                end
+            end
+        end
+    end
+
+    if (AssetBrowser.dataSource == "Creatures") then
+        if (#searchData > 0) then
+            -- File Scan
+            local fileCount = #searchData;
+            for i = 1, fileCount, 1 do
+                local creatureID = searchData[i].ID;
+                if (creatureID == ID) then
+                    local name = searchData[i].N;
+                    local displayID = SceneMachine.creatureToDisplayID[creatureID];
+                    local object = SM.CreateCreature(displayID, name or "Creature", 0, 0, 0);
+                    --local object = SM.CreateObject(fileID, fileName, initialPosition.x, initialPosition.y, initialPosition.z);
+                    local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
+                    local mouseRay = Camera.GetMouseRay();
+                    local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
+                    object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
+                    SM.selectedObject = object;
+                    Input.mouseState.LMB = true;
+                    Input.mouseState.isDraggingAssetFromUI = true;
+                    Gizmos.activeTransformGizmo = 1;
+                    Gizmos.highlightedAxis = 4;
+                    Gizmos.selectedAxis = 4;
+                    Gizmos.OnLMBDown(Input.mouseX, Input.mouseY);
+                    return;
+                end
+            end
+        else
+            -- File Scan
+            for c in pairs(SceneMachine.creatureToDisplayID) do
+                local creatureID = c;
+                local displayID = SceneMachine.creatureToDisplayID[creatureID];
+                local name = SceneMachine.creatureData[creatureID];
+                if (ID == creatureID) then
+                    local object = SM.CreateCreature(displayID, name or "Creature", 0, 0, 0);
+                    local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
+                    local mouseRay = Camera.GetMouseRay();
+                    local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
                     object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
                     SM.selectedObject = object;
                     Input.mouseState.LMB = true;
@@ -490,11 +558,19 @@ function AssetBrowser.SearchModelList(value)
     if (value == nil or value == "") then
         -- clear search
         searchData = {};
-        AssetBrowser.gridList:SetData(AssetBrowser.BuildFolderData(AssetBrowser.currentDirectory));
+        if (AssetBrowser.dataSource == "Models") then
+            AssetBrowser.gridList:SetData(AssetBrowser.BuildFolderData(AssetBrowser.currentDirectory));
+        elseif (AssetBrowser.dataSource == "Creatures") then
+            AssetBrowser.gridList:SetData(AssetBrowser.BuildCreatureData());
+        end
     else
         -- search
         searchData = {};
-        AssetBrowser.BuildSearchDataRecursive(value:lower(), SceneMachine.modelData[1]);
+        if (AssetBrowser.dataSource == "Models") then
+            AssetBrowser.BuildSearchDataRecursive(value:lower(), SceneMachine.modelData[1]);
+        elseif (AssetBrowser.dataSource == "Creatures") then
+            AssetBrowser.BuildCreatureSearchData(value:lower());
+        end
         AssetBrowser.gridList:SetData(searchData);
     end
     AssetBrowser.RefreshBreadcrumb();
