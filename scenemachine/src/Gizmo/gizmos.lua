@@ -562,6 +562,10 @@ function Gizmos.OnLMBDown(x, y)
                 Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.forward);
             end
         end
+
+        if (not Gizmos.previousIPoint) then
+            Gizmos.previousIPoint = { x = 0, y = 0, z = 0 };
+        end
     end
 end
 

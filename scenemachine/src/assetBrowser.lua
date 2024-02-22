@@ -8,6 +8,8 @@ local Camera = SceneMachine.Camera;
 local Vector3 = SceneMachine.Vector3;
 local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
+local SH = Editor.SceneHierarchy;
+local OP = Editor.ObjectProperties;
 
 local searchData = {};
 
@@ -41,9 +43,9 @@ function AssetBrowser.Create(parent, w, h, startLevel)
     table.insert(AssetBrowser.breadcrumb, AssetBrowser.currentDirectory);
 
     -- DEBUG --
-    AssetBrowser.OnThumbnailDoubleClick(nil, "World");
-    AssetBrowser.OnThumbnailDoubleClick(nil, "Expansion07");
-    AssetBrowser.OnThumbnailDoubleClick(nil, "Doodads");
+    --AssetBrowser.OnThumbnailDoubleClick(nil, "World");
+    --AssetBrowser.OnThumbnailDoubleClick(nil, "Expansion07");
+    --AssetBrowser.OnThumbnailDoubleClick(nil, "Doodads");
     --AssetBrowser.OnThumbnailDoubleClick(nil, "Kultiraszone");
 end
 
@@ -56,6 +58,8 @@ function AssetBrowser.OnChangeTab(idx)
         AssetBrowser.tabs[1]:Show();
         AssetBrowser.currentDirectory = SceneMachine.modelData[1];
         AssetBrowser.gridList:SetData(AssetBrowser.BuildFolderData(AssetBrowser.currentDirectory));
+        AssetBrowser.ClearBreadcrumb();
+        AssetBrowser.RefreshBreadcrumb();
         AssetBrowser.dataSource = "Models";
     elseif (idx == 2) then
         -- Creatures --
@@ -63,6 +67,8 @@ function AssetBrowser.OnChangeTab(idx)
         AssetBrowser.tabs[1]:Show();
         AssetBrowser.tabs[2]:Hide();
         AssetBrowser.gridList:SetData(AssetBrowser.BuildCreatureData());
+        AssetBrowser.ClearBreadcrumb();
+        AssetBrowser.RefreshBreadcrumb();
         AssetBrowser.dataSource = "Creatures";
     elseif (idx == 3) then
         -- Debug --
@@ -269,6 +275,11 @@ function AssetBrowser.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
     );
 end
 
+function AssetBrowser.ClearBreadcrumb()
+    AssetBrowser.breadcrumb = {};
+    table.insert(AssetBrowser.breadcrumb, AssetBrowser.currentDirectory);
+end
+
 function AssetBrowser.UpOneFolder()
     if (#searchData > 0) then
         -- clear search
@@ -367,7 +378,7 @@ function AssetBrowser.RefreshBreadcrumb()
         AssetBrowser.toolbar.breadCrumb:SetText(#searchData .. " Results");
     else
         local str = "";
-        for i=2, table.getn(AssetBrowser.breadcrumb), 1 do
+        for i=2, #AssetBrowser.breadcrumb, 1 do
             if AssetBrowser.breadcrumb[i] ~= nil then
                 str = str .. ">" .. AssetBrowser.breadcrumb[i]["N"];
             end
@@ -385,7 +396,11 @@ function AssetBrowser.OnThumbnailDoubleClick(ID, name)
                 local fileID = searchData[i].fileID;
                 if (fileID == ID) then
                     local fileName = searchData[i].N;
-                    SM.CreateObject(fileID, fileName, 0, 0, 0)
+                    local object = SM.CreateObject(fileID, fileName, 0, 0, 0);
+                    SM.selectedObject = object;
+                    Editor.lastSelectedType = "obj";
+                    SH.RefreshHierarchy();
+                    OP.Refresh();
                     return;
                 end
             end
@@ -410,13 +425,14 @@ function AssetBrowser.OnThumbnailDoubleClick(ID, name)
             if (AssetBrowser.currentDirectory["FN"] ~= nil) then
                 local fileCount = table.getn(AssetBrowser.currentDirectory["FN"]);
                 for i = 1, fileCount, 1 do
-
-
-                    
                     local fileID = AssetBrowser.currentDirectory["FI"][i];
                     if (fileID == ID) then
                         local fileName = AssetBrowser.currentDirectory["FN"][i];
-                        SM.CreateObject(fileID, fileName, 0, 0, 0)
+                        local object = SM.CreateObject(fileID, fileName, 0, 0, 0);
+                        SM.selectedObject = object;
+                        Editor.lastSelectedType = "obj";
+                        SH.RefreshHierarchy();
+                        OP.Refresh();
                         return;
                     end
                 end
@@ -433,7 +449,11 @@ function AssetBrowser.OnThumbnailDoubleClick(ID, name)
                 local displayID = SceneMachine.creatureToDisplayID[creatureID];
                 local name = SceneMachine.creatureData[creatureID];
                 if (ID == creatureID) then
-                    SM.CreateCreature(displayID, name or "Creature", 0, 0, 0);
+                    local object = SM.CreateCreature(displayID, name or "Creature", 0, 0, 0);
+                    SM.selectedObject = object;
+                    Editor.lastSelectedType = "obj";
+                    SH.RefreshHierarchy();
+                    OP.Refresh();
                     return;
                 end
             end
@@ -443,7 +463,11 @@ function AssetBrowser.OnThumbnailDoubleClick(ID, name)
                 local displayID = SceneMachine.creatureToDisplayID[creatureID];
                 local name = SceneMachine.creatureData[creatureID];
                 if (ID == creatureID) then
-                    SM.CreateCreature(displayID, name or "Creature", 0, 0, 0);
+                    local object = SM.CreateCreature(displayID, name or "Creature", 0, 0, 0);
+                    SM.selectedObject = object;
+                    Editor.lastSelectedType = "obj";
+                    SH.RefreshHierarchy();
+                    OP.Refresh();
                     return;
                 end
             end
@@ -467,6 +491,9 @@ function AssetBrowser.OnThumbnailDrag(ID)
                     local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
                     object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
                     SM.selectedObject = object;
+                    Editor.lastSelectedType = "obj";
+                    SH.RefreshHierarchy();
+                    OP.Refresh();
                     Input.mouseState.LMB = true;
                     Input.mouseState.isDraggingAssetFromUI = true;
                     Gizmos.activeTransformGizmo = 1;
@@ -490,6 +517,9 @@ function AssetBrowser.OnThumbnailDrag(ID)
                         local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
                         object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
                         SM.selectedObject = object;
+                        Editor.lastSelectedType = "obj";
+                        SH.RefreshHierarchy();
+                        OP.Refresh();
                         Input.mouseState.LMB = true;
                         Input.mouseState.isDraggingAssetFromUI = true;
                         Gizmos.activeTransformGizmo = 1;
@@ -519,6 +549,9 @@ function AssetBrowser.OnThumbnailDrag(ID)
                     local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
                     object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
                     SM.selectedObject = object;
+                    Editor.lastSelectedType = "obj";
+                    SH.RefreshHierarchy();
+                    OP.Refresh();
                     Input.mouseState.LMB = true;
                     Input.mouseState.isDraggingAssetFromUI = true;
                     Gizmos.activeTransformGizmo = 1;
@@ -541,6 +574,9 @@ function AssetBrowser.OnThumbnailDrag(ID)
                     local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
                     object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
                     SM.selectedObject = object;
+                    Editor.lastSelectedType = "obj";
+                    SH.RefreshHierarchy();
+                    OP.Refresh();
                     Input.mouseState.LMB = true;
                     Input.mouseState.isDraggingAssetFromUI = true;
                     Gizmos.activeTransformGizmo = 1;

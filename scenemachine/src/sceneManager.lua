@@ -384,6 +384,10 @@ function SM.Clear()
 end
 
 function SM.ObjectHasTrack(obj)
+    if (not obj) then
+        return false;
+    end
+    
     if (AM.loadedTimeline) then
 		for i in pairs(AM.loadedTimeline.tracks) do
 			if (AM.loadedTimeline.tracks[i].objectID == obj.id) then
