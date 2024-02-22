@@ -272,9 +272,8 @@ function Input.OnClickUp(LMB, RMB, MMB, x, y)
         -- open RMB renderer context menu --
         local w, h = Renderer.projectionFrame:GetSize();
         if (x > 0 and y > 0 and x < w / Renderer.scale and y < h / Renderer.scale) then
-            local scale = SceneMachine.mainWindow:GetEffectiveScale();
-            local rx = (Input.mouseX * Renderer.scale) + (Renderer.projectionFrame:GetLeft() - SceneMachine.mainWindow:GetLeft());
-            local ry = (Input.mouseY * Renderer.scale) - 485;
+            local rx = (x * Renderer.scale) + (Renderer.projectionFrame:GetLeft() - SceneMachine.mainWindow:GetLeft());
+            local ry = ((y * Renderer.scale) - h) + (Renderer.projectionFrame:GetTop() - SceneMachine.mainWindow:GetTop());
             Editor.OpenContextMenu(rx, ry);
         end
     elseif (MMB) then

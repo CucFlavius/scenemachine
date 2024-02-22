@@ -1275,8 +1275,11 @@ function AM.TimelineTabButton_OnClick(index)
 end
 
 function AM.TimelineTabButton_OnRightClick(index, x, y)
-    local gpoint, grelativeTo, grelativePoint, gxOfs, gyOfs = AM.parentFrame:GetPoint(1);
-    gyOfs = gyOfs - (SceneMachine.mainWindow:GetHeight() - AM.parentFrame:GetHeight());
+    --local gpoint, grelativeTo, grelativePoint, gxOfs, gyOfs = AM.parentFrame:GetPoint(1);
+    --gyOfs = gyOfs - (SceneMachine.mainWindow:GetHeight() - AM.parentFrame:GetHeight());
+
+    local rx = x + (AM.parentFrame:GetLeft() - SceneMachine.mainWindow:GetLeft());
+    local ry = (y * Renderer.scale) + (AM.parentFrame:GetTop() - SceneMachine.mainWindow:GetTop());
 
 	local menuOptions = {
         [1] = { ["Name"] = "Rename", ["Action"] = function() AM.Button_RenameTimeline(index, x) end },
@@ -1284,7 +1287,8 @@ function AM.TimelineTabButton_OnRightClick(index, x, y)
         [3] = { ["Name"] = "Delete", ["Action"] = function() AM.Button_DeleteTimeline(index) end },
 	};
 
-    SceneMachine.mainWindow:PopupWindowMenu(x + gxOfs, y + gyOfs, menuOptions);
+    --SceneMachine.mainWindow:PopupWindowMenu(x + gxOfs, y + gyOfs, menuOptions);
+    SceneMachine.mainWindow:PopupWindowMenu(rx, ry, menuOptions);
 end
 
 function AM.Button_RenameTimeline(index, x)
@@ -1551,7 +1555,7 @@ function AM.RefreshTimelineTabs()
                     elseif (button == "RightButton") then
                         local point, relativeTo, relativePoint, xOfs, yOfs = tabPool[i]:GetPoint(1);
                         AM.TimelineTabButton_OnClick(i);
-                        AM.TimelineTabButton_OnRightClick(i, xOfs, -5);
+                        AM.TimelineTabButton_OnRightClick(i, xOfs, -20);
                     end
                 end);
             else

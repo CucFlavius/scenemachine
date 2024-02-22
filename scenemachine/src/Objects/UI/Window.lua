@@ -109,7 +109,7 @@ end
 
 function Window:CreateMenu(parent)
 	local popup = CreateFrame("Button", "Zee.WindowAPI.Button", parent)
-	popup:SetPoint("CENTER", self:GetFrame(), "CENTER", 0, 0);
+	popup:SetPoint("TOPLEFT", self:GetFrame(), "TOPLEFT", 0, 0);
 	popup:SetWidth(self:GetWidth());
 	popup:SetHeight(self:GetHeight() - 30);
 	popup:SetFrameStrata("FULLSCREEN_DIALOG");

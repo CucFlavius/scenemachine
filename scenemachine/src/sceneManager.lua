@@ -57,8 +57,10 @@ function SM.RefreshSceneTabs()
                         SM.SceneTabButtonOnClick(i);
                     elseif (button == "RightButton") then
                         local point, relativeTo, relativePoint, xOfs, yOfs = tabPool[i]:GetPoint(1);
+                        --local xOfs = tabPool[i]:GetLeft();
+                        --local yOfs = tabPool[i]:GetTop();
                         SM.SceneTabButtonOnClick(i);
-                        SM.SceneTabButtonOnRightClick(i, xOfs, -5);
+                        SM.SceneTabButtonOnRightClick(i, xOfs, 0);
                     end
                 end);
             else
@@ -98,7 +100,8 @@ end
 
 function SM.SceneTabButtonOnRightClick(index, x, y)
     -- open rmb menu with option to delete, edit, rename the scene
-    local gpoint, grelativeTo, grelativePoint, gxOfs, gyOfs = SM.groupBG:GetPoint(1);
+    local rx = x + (Renderer.projectionFrame:GetLeft() - SceneMachine.mainWindow:GetLeft());
+    local ry = (y * Renderer.scale) + (Renderer.projectionFrame:GetTop() - SceneMachine.mainWindow:GetTop());
 
 	local menuOptions = {
         [1] = { ["Name"] = "Rename", ["Action"] = function() SM.Button_RenameScene(index, x) end },
@@ -106,7 +109,7 @@ function SM.SceneTabButtonOnRightClick(index, x, y)
         [3] = { ["Name"] = "Delete", ["Action"] = function() SM.Button_DeleteScene(index) end },
 	};
 
-    SceneMachine.mainWindow:PopupWindowMenu(x + gxOfs, y + gyOfs, menuOptions);
+    SceneMachine.mainWindow:PopupWindowMenu(rx, ry, menuOptions);
 end
 
 function SM.Button_RenameScene(index, x)
