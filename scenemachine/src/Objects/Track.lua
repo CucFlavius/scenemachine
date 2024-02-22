@@ -123,7 +123,6 @@ function Track:SortKeyframes()
 end
 
 function Track:SampleKeyframes(timeMS)
-
     local pos = self:SamplePositionKey(timeMS);
     local rot = self:SampleRotationKey(timeMS);
     local scale = self:SampleScaleKey(timeMS);
@@ -132,15 +131,19 @@ end
 
 function Track:SamplePositionKey(timeMS)
     if (not self.keyframes) then
-        return Vector3.zero;
+        return nil;
     end
 
     if (#self.keyframes == 0) then
-        return Vector3.zero;
+        return nil;
     end
 
     if (#self.keyframes == 1) then
-        return self.keyframes[1].position;
+        if (self.keyframes[1].time == timeMS) then
+            return self.keyframes[1].position;
+        else
+            return nil;
+        end
     end
 
     local idx = 1;
@@ -152,24 +155,19 @@ function Track:SamplePositionKey(timeMS)
                 idx = i;
                 break;
             end
-        else
-            idx = 1;
-            break;
+        end
+        if (i == numTimes) then
+            return self.keyframes[#self.keyframes].position;
+        end
+        if (i == 1 and timeMS < self.keyframes[1].time) then
+            return self.keyframes[1].position;
         end
     end
 
     local t1 = self.keyframes[idx].time;
     local t2 = self.keyframes[idx + 1].time;
 
-    if (t1 ~= t2) then
-        r = Track:InterpolateAutoBezier(t1, t2, timeMS);
-    end
-
-    if (r >= 1) then
-        return self.keyframes[#self.keyframes].position;
-    elseif(r < 0) then
-        return self.keyframes[1].position;
-    end
+    local r = Track:InterpolateAutoBezier(t1, t2, timeMS);
 
     return Vector3.Interpolate(self.keyframes[idx].position, self.keyframes[idx + 1].position, r);
 end
@@ -200,15 +198,19 @@ end
 
 function Track:SampleRotationKey(timeMS)
     if (not self.keyframes) then
-        return Quaternion.identity;
+        return nil;
     end
 
     if (#self.keyframes == 0) then
-        return Quaternion.identity;
+        return nil;
     end
 
     if (#self.keyframes == 1) then
-        return self.keyframes[1].rotation;
+        if (self.keyframes[1].time == timeMS) then
+            return self.keyframes[1].rotation;
+        else
+            return nil;
+        end
     end
 
     local idx = 1;
@@ -220,38 +222,38 @@ function Track:SampleRotationKey(timeMS)
                 idx = i;
                 break;
             end
-        else
-            idx = 1;
-            break;
+        end
+        if (i == numTimes) then
+            return self.keyframes[#self.keyframes].rotation;
+        end
+        if (i == 1 and timeMS < self.keyframes[1].time) then
+            return self.keyframes[1].rotation;
         end
     end
 
     local t1 = self.keyframes[idx].time;
     local t2 = self.keyframes[idx + 1].time;
 
-    if (t1 ~= t2) then
-        r = (timeMS - t1) / (t2 - t1);
-    end
-    if (r >= 1) then
-        return self.keyframes[#self.keyframes].rotation;
-    elseif(r < 0) then
-        return self.keyframes[1].rotation;
-    end
+    local r = (timeMS - t1) / (t2 - t1);
     
     return Quaternion.Interpolate(self.keyframes[idx].rotation, self.keyframes[idx + 1].rotation, r);
 end
 
 function Track:SampleScaleKey(timeMS)
     if (not self.keyframes) then
-        return 1;
+        return nil;
     end
 
     if (#self.keyframes == 0) then
-        return 1;
+        return nil;
     end
 
     if (#self.keyframes == 1) then
-        return self.keyframes[1].scale;
+        if (self.keyframes[1].time == timeMS) then
+            return self.keyframes[1].scale;
+        else
+            return nil;
+        end
     end
 
     local idx = 1;
@@ -263,24 +265,19 @@ function Track:SampleScaleKey(timeMS)
                 idx = i;
                 break;
             end
-        else
-            idx = 1;
-            break;
+        end
+        if (i == numTimes) then
+            return self.keyframes[#self.keyframes].scale;
+        end
+        if (i == 1 and timeMS < self.keyframes[1].time) then
+            return self.keyframes[1].scale;
         end
     end
 
     local t1 = self.keyframes[idx].time;
     local t2 = self.keyframes[idx + 1].time;
 
-    if (t1 ~= t2) then
-        r = (timeMS - t1) / (t2 - t1);
-    end
-
-    if (r >= 1) then
-        return self.keyframes[#self.keyframes].scale;
-    elseif(r < 0) then
-        return self.keyframes[1].scale;
-    end
+    local r = (timeMS - t1) / (t2 - t1);
 
     local v1 = self.keyframes[idx].scale;
     local v2 = self.keyframes[idx + 1].scale;
