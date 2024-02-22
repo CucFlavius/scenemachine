@@ -139,10 +139,11 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         self1:ClearFocus();
         Editor.ui.focused = false;
     end);
+    local creatureDisplayID = 4;
     local testButton = UI.Button:New(0, -93, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "TEST");
     testButton:SetScript("OnClick", function(_, button, up)
         GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
-        GameTooltip:SetHyperlink(format("unit:Creature-0-0-0-0-%d-0", 4))
+        GameTooltip:SetHyperlink(format("unit:Creature-0-0-0-0-%d-0", creatureDisplayID))
         for i=1, GameTooltip:NumLines() do 
             print(_G["GameTooltipTextLeft"..i]:GetText())
         end

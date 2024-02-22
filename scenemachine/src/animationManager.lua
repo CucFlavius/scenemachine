@@ -1284,7 +1284,7 @@ function AM.TimelineTabButton_OnRightClick(index, x, y)
         [3] = { ["Name"] = "Delete", ["Action"] = function() AM.Button_DeleteTimeline(index) end },
 	};
 
-    SceneMachine.mainWindow.PopupWindowMenu(x + gxOfs, y + gyOfs, menuOptions);
+    SceneMachine.mainWindow:PopupWindowMenu(x + gxOfs, y + gyOfs, menuOptions);
 end
 
 function AM.Button_RenameTimeline(index, x)

@@ -1,0 +1,9 @@
+{
+    "Lua.diagnostics.globals": [
+        "AddonCompartmentFrame",
+        "GameTooltip_SetDefaultAnchor",
+        "MainStatusTrackingBarContainer",
+        "ReloadUI",
+        "MouseIsOver"
+    ]
+}
