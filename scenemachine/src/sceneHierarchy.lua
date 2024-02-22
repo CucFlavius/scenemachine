@@ -89,5 +89,6 @@ function SH.SelectObject(object)
     -- also select track if available
     if (SM.selectedObject ~= nil) then
         AM.SelectTrackOfObject(SM.selectedObject);
+		Editor.lastSelectedType = "obj";
     end
 end

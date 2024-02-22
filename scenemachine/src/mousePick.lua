@@ -81,6 +81,7 @@ function MousePick.Pick(x, y)
     -- also select track
     if (SM.selectedObject ~= nil) then
         AM.SelectTrackOfObject(SM.selectedObject);
+        Editor.lastSelectedType = "obj";
     else
         AM.SelectTrack(-1);
     end

@@ -127,7 +127,7 @@ function Editor.Initialize()
     end);
     SceneMachine.Input.AddKeyBind("DELETE",function()
         if (Editor.ui.focused == false) then
-            SM.DeleteObject(SM.selectedObject);
+            Editor.DeleteLastSelected();
         end
     end, nil);
     SceneMachine.Input.AddKeyBind("F",function() CC.FocusObject(SM.selectedObject); end, nil);
@@ -205,6 +205,18 @@ function Editor.Toggle()
         Editor:Hide();
     else
         Editor:Show();
+    end
+end
+
+function Editor.DeleteLastSelected()
+    if (Editor.lastSelectedType == "obj") then
+        SM.DeleteObject(SM.selectedObject);
+    elseif (Editor.lastSelectedType == "track") then
+        AM.RemoveTrack(AM.selectedTrack);
+    elseif (Editor.lastSelectedType == "anim") then
+        AM.RemoveAnim(AM.selectedTrack, AM.selectedAnim);
+    elseif (Editor.lastSelectedType == "key") then
+        AM.RemoveKey(AM.selectedTrack, AM.selectedKey);
     end
 end
 

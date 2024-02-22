@@ -918,6 +918,7 @@ function AM.CreateWorkArea(x, y, w, h, parent, startLevel)
             AM.SelectAnimation(-1);
             AM.SelectTrack(-1);
             AM.SelectKeyframe(-1);
+            SH.SelectObject(nil);
         end
     end)
 
@@ -1098,6 +1099,7 @@ function AM.GenerateAnimationElement(index, x, y, w, h, parent, R, G, B, A)
     element:SetScript("OnClick", function (self, button, down)
         if (button == "LeftButton" and down) then
             AM.SelectAnimation(index);
+            AM.SelectKeyframe(-1);
         end
     end)
 
@@ -1432,6 +1434,8 @@ function AM.SelectTrack(index)
     end
 
     AM.selectedTrack = AM.loadedTimeline.tracks[index];
+
+    Editor.lastSelectedType = "track";
 
     -- also select object
     local obj = AM.GetObjectOfTrack(AM.selectedTrack);
@@ -2077,6 +2081,8 @@ function AM.SelectAnimation(index)
     AM.SelectTrack(animElement.trackIdx);
     AM.selectedAnim = anim;
 
+    Editor.lastSelectedType = "anim";
+
     AM.animationSelectionBox:ClearAllPoints();
     AM.animationSelectionBox:SetParent(animElement);
     AM.animationSelectionBox:SetPoint("LEFT", animElement, "LEFT", 0, 0);
@@ -2254,6 +2260,7 @@ function AM.SelectKeyframe(index)
     local track = AM.loadedTimeline.tracks[keyframeElement.trackIdx];
     local keyIndex = keyframeElement.keyIdx;
 
+    Editor.lastSelectedType = "key";
     AM.selectedKey = track.keyframes[keyIndex];
     AM.selectedTrack = track;
     AM.RefreshWorkspace();
