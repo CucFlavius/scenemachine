@@ -41,11 +41,13 @@ function AssetBrowser.Create(parent, w, h, startLevel)
     table.insert(AssetBrowser.breadcrumb, AssetBrowser.currentDirectory);
 
     -- DEBUG --
-    AssetBrowser.OnThumbnailClick("World");
-    AssetBrowser.OnThumbnailClick("Expansion07");
-    AssetBrowser.OnThumbnailClick("Doodads");
-    --AssetBrowser.OnThumbnailClick("Kultiraszone");
+    AssetBrowser.OnThumbnailDoubleClick("World");
+    AssetBrowser.OnThumbnailDoubleClick("Expansion07");
+    AssetBrowser.OnThumbnailDoubleClick("Doodads");
+    --AssetBrowser.OnThumbnailDoubleClick("Kultiraszone");
 end
+
+AssetBrowser.dataSource = "Models";
 
 function AssetBrowser.OnChangeTab(idx)
     if (idx == 1) then
@@ -54,15 +56,18 @@ function AssetBrowser.OnChangeTab(idx)
         AssetBrowser.tabs[1]:Show();
         AssetBrowser.currentDirectory = SceneMachine.modelData[1];
         AssetBrowser.gridList:SetData(AssetBrowser.BuildFolderData(AssetBrowser.currentDirectory));
+        AssetBrowser.dataSource = "Models";
     elseif (idx == 2) then
         -- Creatures --
         AssetBrowser.toolbar:Hide();
         AssetBrowser.tabs[1]:Show();
         AssetBrowser.tabs[2]:Hide();
         AssetBrowser.gridList:SetData(AssetBrowser.BuildCreatureData());
+        AssetBrowser.dataSource = "Creatures";
     elseif (idx == 3) then
         -- Debug --
         AssetBrowser.tabs[1]:Hide();
+        AssetBrowser.dataSource = nil;
     end
 end
 
@@ -215,7 +220,7 @@ function AssetBrowser.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
 
                 -- on double click --
                 item.components[1]:GetFrame():SetScript("OnDoubleClick", function (self, button, down)
-                    AssetBrowser.OnThumbnailClick(item.components[2]:GetText());
+                    AssetBrowser.OnThumbnailDoubleClick(item.components[2]:GetText());
                 end);
             
                 item.components[1]:GetFrame():SetScript("OnDragStart", function (self, button, down)
@@ -313,7 +318,8 @@ function AssetBrowser.BuildCreatureData()
 
     for c in pairs(SceneMachine.creatureToDisplayID) do
         local d = SceneMachine.creatureToDisplayID[c];
-        data[idx] = { N = tostring(c), displayID = d };
+        local n = SceneMachine.creatureData[c];
+        data[idx] = { N = n, displayID = d };
         idx = idx + 1;
     end
 
@@ -357,47 +363,76 @@ function AssetBrowser.RefreshBreadcrumb()
     end
 end
 
-function AssetBrowser.OnThumbnailClick(name)
-    if (#searchData > 0) then
-        -- File Scan
-        local fileCount = #searchData;
-        for i = 1, fileCount, 1 do
-            local fileName = searchData[i].N;
-            if (fileName == name) then
-                local fileID = searchData[i].fileID;
-                SM.CreateObject(fileID, fileName, 0, 0, 0)
-                return;
-            end
-        end
-    else
-        -- Directory scan
-        if (AssetBrowser.currentDirectory["D"] ~= nil) then
-            local directoryCount = table.getn(AssetBrowser.currentDirectory["D"]);
-            for i = 1, directoryCount, 1 do
-                local dirName = AssetBrowser.currentDirectory["D"][i]["N"];
-                if (dirName == name) then
-                    AssetBrowser.currentPage = 1;
-                    AssetBrowser.currentDirectory = AssetBrowser.currentDirectory["D"][i];
-                    table.insert(AssetBrowser.breadcrumb, AssetBrowser.currentDirectory);
-                    AssetBrowser.RefreshBreadcrumb();
-                    AssetBrowser.gridList:SetData(AssetBrowser.BuildFolderData(AssetBrowser.currentDirectory));
-                    return;
-                end
-            end
-        end
-
-        -- File Scan
-        if (AssetBrowser.currentDirectory["FN"] ~= nil) then
-            local fileCount = table.getn(AssetBrowser.currentDirectory["FN"]);
+function AssetBrowser.OnThumbnailDoubleClick(name)
+    if (AssetBrowser.dataSource == "Models") then
+        if (#searchData > 0) then
+            -- File Scan
+            local fileCount = #searchData;
             for i = 1, fileCount, 1 do
-                local fileName = AssetBrowser.currentDirectory["FN"][i];
+                local fileName = searchData[i].N;
                 if (fileName == name) then
-                    local fileID = AssetBrowser.currentDirectory["FI"][i];
+                    local fileID = searchData[i].fileID;
                     SM.CreateObject(fileID, fileName, 0, 0, 0)
                     return;
                 end
             end
+        else
+            -- Directory scan
+            if (AssetBrowser.currentDirectory["D"] ~= nil) then
+                local directoryCount = table.getn(AssetBrowser.currentDirectory["D"]);
+                for i = 1, directoryCount, 1 do
+                    local dirName = AssetBrowser.currentDirectory["D"][i]["N"];
+                    if (dirName == name) then
+                        AssetBrowser.currentPage = 1;
+                        AssetBrowser.currentDirectory = AssetBrowser.currentDirectory["D"][i];
+                        table.insert(AssetBrowser.breadcrumb, AssetBrowser.currentDirectory);
+                        AssetBrowser.RefreshBreadcrumb();
+                        AssetBrowser.gridList:SetData(AssetBrowser.BuildFolderData(AssetBrowser.currentDirectory));
+                        return;
+                    end
+                end
+            end
+
+            -- File Scan
+            if (AssetBrowser.currentDirectory["FN"] ~= nil) then
+                local fileCount = table.getn(AssetBrowser.currentDirectory["FN"]);
+                for i = 1, fileCount, 1 do
+                    local fileName = AssetBrowser.currentDirectory["FN"][i];
+                    if (fileName == name) then
+                        local fileID = AssetBrowser.currentDirectory["FI"][i];
+                        SM.CreateObject(fileID, fileName, 0, 0, 0)
+                        return;
+                    end
+                end
+            end
         end
+    end
+
+    if (AssetBrowser.dataSource == "Creatures") then
+        if (#searchData > 0) then
+            -- File Scan
+            local fileCount = #searchData;
+            for i = 1, fileCount, 1 do
+                local fileName = searchData[i].N;
+                if (fileName == name) then
+                    local fileID = searchData[i].fileID;
+                    SM.CreateObject(fileID, fileName, 0, 0, 0)
+                    return;
+                end
+            end
+        else
+            local idx = 1;
+            for c in pairs(SceneMachine.creatureToDisplayID) do
+                local displayID = SceneMachine.creatureToDisplayID[c];
+                print(displayID)
+                if (name == tostring(displayID)) then
+                    SM.CreateCreature(displayID, "Creature", 0, 0, 0);
+                    return;
+                end
+                idx = idx + 1;
+            end
+        end
+
     end
 end
 

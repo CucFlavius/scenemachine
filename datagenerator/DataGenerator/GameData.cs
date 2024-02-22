@@ -18,6 +18,7 @@ namespace DataGenerator
         Dictionary<int, int> creatureModelDataToFileID;
         Dictionary<int, int> creatureDisplayInfoToCreatureModelData;
         Dictionary<int, int> creatureToDisplayInfo;
+        Dictionary<int, string> creatureData;
 
         private Stopwatch _sw;
 
@@ -105,8 +106,9 @@ namespace DataGenerator
             Console.WriteLine("{0} completed in {1}", "Load CreatureDisplayInfo.db2", _sw.Elapsed);
         }
 
-        public void GetCreatureToDisplayInfo()
+        public void GetCreatureData()
         {
+            this.creatureData = new Dictionary<int, string>();
             this.creatureToDisplayInfo = new Dictionary<int, int>();
             _sw = Stopwatch.StartNew();
 
@@ -122,6 +124,9 @@ namespace DataGenerator
             {
                 var val = row.FieldAs<int[]>("DisplayID");
                 this.creatureToDisplayInfo.Add(row.ID, val[0]);
+
+                var val2 = row.FieldAs<string>("Name_lang");
+                this.creatureData.Add(row.ID, val2);
             }
 
             Console.WriteLine("{0} completed in {1}", "Load Creature.db2", _sw.Elapsed);
@@ -167,11 +172,11 @@ namespace DataGenerator
             sw.WriteLine("}");
         }
 
-        public void GenerateCreatureData(string outputPath)
+        public void GenerateCreatureDisplayData(string outputPath)
         {
             if (creatureToDisplayInfo == null)
             {
-                GetCreatureToDisplayInfo();
+                GetCreatureData();
             }
 
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -188,7 +193,31 @@ namespace DataGenerator
 
             sw.WriteLine("}");
         }
-        
+
+        public void GenerateCreatureData(string outputPath)
+        {
+            if (creatureData == null)
+            {
+                GetCreatureData();
+            }
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Generate Creature Data");
+            Console.ResetColor();
+            using var sw = new StreamWriter(outputPath);
+
+            sw.WriteLine("SceneMachine.creatureData={");
+
+            foreach (var item in creatureData)
+            {
+                var name = item.Value.Replace('\"', '|');
+                sw.WriteLine($"[{item.Key}]=\"{name}\",");
+            }
+
+            sw.WriteLine("}");
+        }
+
+
         List<(ushort, ushort, uint)>? GetAnimDataFromM2(int fileID)
         {
             try

@@ -11,6 +11,7 @@ namespace DataGenerator
         const string DATA_FILE_NAME = "data.lua";
         const string ANIMATION_DATA_FILE_NAME = "animdata.lua";
         const string CREATURE_TO_DISPLAY_DATA_FILE_NAME = "creature2display.lua";
+        const string CREATURE_DATA_FILE_NAME = "creature.lua";
         const string LISTFILE_URL = "https://github.com/wowdev/wow-listfile/releases/latest/download/community-listfile-withcapitals.csv";
         const string LISTFILE_PATH = "community-listfile-withcapitals.csv";
 
@@ -26,18 +27,17 @@ namespace DataGenerator
 
         static void Main(string[] args)
         {
+            // File-list data
             //DownloadLatestListfile();
             //GenerateAddonModelData();
 
+            // Database data
             string installPath = @"D:\Games\World of Warcraft\";
             string product = "wow"; // wow (release), wowt (ptr)
-
             GameData data = new GameData(installPath, product, LISTFILE_PATH);
-            //data.BuildM2FileIDList();
-            //data.GetCreatureModelData();
-            //data.GetCreatureDisplayInfo();
             //data.GenerateAnimationData($"{ADDON_DATA_PATH}\\{ANIMATION_DATA_FILE_NAME}");
-            data.GenerateCreatureData($"{ADDON_DATA_PATH}\\{CREATURE_TO_DISPLAY_DATA_FILE_NAME}");
+            data.GenerateCreatureData($"{ADDON_DATA_PATH}\\{CREATURE_DATA_FILE_NAME}");
+            data.GenerateCreatureDisplayData($"{ADDON_DATA_PATH}\\{CREATURE_TO_DISPLAY_DATA_FILE_NAME}");
         }
 
         static void DownloadLatestListfile()
