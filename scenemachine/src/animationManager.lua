@@ -2280,6 +2280,22 @@ function AM.SelectTrackOfObject(obj)
     AM.RefreshWorkspace();
 end
 
+function AM.TrackHasAnims(track)
+    if (track.animations and #track.animations > 0) then
+        return true;
+    end
+
+    return false;
+end
+
+function AM.TrackHasKeyframes(track)
+    if (track.keyframes and #track.keyframes > 0) then
+        return true;
+    end
+
+    return false;
+end
+
 function AM.Play()
     AM.playing = true;
 

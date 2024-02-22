@@ -383,6 +383,18 @@ function SM.Clear()
     OP.Refresh();
 end
 
+function SM.ObjectHasTrack(obj)
+    if (AM.loadedTimeline) then
+		for i in pairs(AM.loadedTimeline.tracks) do
+			if (AM.loadedTimeline.tracks[i].objectID == obj.id) then
+				return true;
+			end
+		end
+	end
+
+    return false;
+end
+
 function SM.DeleteObject(object)
     if (object == nil) then
         return;

@@ -210,9 +210,31 @@ end
 
 function Editor.DeleteLastSelected()
     if (Editor.lastSelectedType == "obj") then
-        SM.DeleteObject(SM.selectedObject);
+        if (SM.ObjectHasTrack(SM.selectedObject)) then
+            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),
+                "Delete Object", "The object contains an animation track, are you sure you want to delete?",
+                true, true, function() SM.DeleteObject(SM.selectedObject); end, function() end);
+        else
+            SM.DeleteObject(SM.selectedObject);
+        end
     elseif (Editor.lastSelectedType == "track") then
-        AM.RemoveTrack(AM.selectedTrack);
+        local hasAnims = AM.TrackHasAnims(AM.selectedTrack);
+        local hasKeyframes = AM.TrackHasKeyframes(AM.selectedTrack);
+        if (hasAnims and hasKeyframes) then
+            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),
+                "Delete Track", "The track contains animations and keyframes, are you sure you want to delete?",
+                true, true, function() AM.RemoveTrack(AM.selectedTrack); end, function() end);
+        elseif (hasAnims) then
+            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),
+                "Delete Track", "The track contains animations, are you sure you want to delete?",
+                true, true, function() AM.RemoveTrack(AM.selectedTrack); end, function() end);
+        elseif (hasKeyframes) then
+            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),
+                "Delete Track", "The track contains keyframes, are you sure you want to delete?",
+                true, true, function() AM.RemoveTrack(AM.selectedTrack); end, function() end);
+        else
+            AM.RemoveTrack(AM.selectedTrack);
+        end
     elseif (Editor.lastSelectedType == "anim") then
         AM.RemoveAnim(AM.selectedTrack, AM.selectedAnim);
     elseif (Editor.lastSelectedType == "key") then
