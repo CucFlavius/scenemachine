@@ -105,7 +105,7 @@ function Editor.Initialize()
             if button == "RightButton" then Editor.ResetWindow() end
         end,
         OnTooltipShow = function(tt)
-            tt:AddLine("SceneMachine")
+            tt:AddLine("SceneMachine\n- Click to open\n- Right click to reset window")
         end,
     });
 
