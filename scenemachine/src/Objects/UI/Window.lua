@@ -90,12 +90,12 @@ function Window:WindowCreateMenuBar(menu)
 	for m = 1, #menu, 1 do
 		menubar.buttons[m] = UI.Button:New((m - 1) * 50, 0, 50, 15, menubar:GetFrame(), "LEFT", "LEFT", menu[m]["Name"]);
 		menubar.buttons[m]:SetScript("OnClick", function ()
-			self:PopupWindowMenu((m - 1) * 50, 0, menu[m]["Options"]);
+			self:PopupWindowMenu((m - 1) * 50, -20, menu[m]["Options"]);
 		end);
 		menubar.buttons[m]:EnableMouse(true);
 		menubar.buttons[m]:HookScript("OnEnter", function ()
 			if (self.menuIsOpen == true) then
-				self:PopupWindowMenu((m - 1) * 50, 0, menu[m]["Options"]);
+				self:PopupWindowMenu((m - 1) * 50, -20, menu[m]["Options"]);
 			end
 		end);
 	end
