@@ -28,13 +28,13 @@ local f = CreateFrame("Frame")
 local function onevent(self, event, arg1, ...)
     if(event == "ADDON_LOADED" and arg1 == "scenemachine") then
         f:UnregisterEvent("ADDON_LOADED");
-        f:UnregisterEvent("PLAYER_LOGIN");
+        --f:UnregisterEvent("PLAYER_LOGIN");
 		SceneMachine.Start();
     end
 end
 
 f:RegisterEvent("ADDON_LOADED")
-f:RegisterEvent("PLAYER_LOGIN")
+--f:RegisterEvent("PLAYER_LOGIN")
 f:SetScript("OnEvent", onevent)
 
 ------------------------
@@ -84,7 +84,7 @@ local function SG_UpdateLoop ()
 		CameraController.Update();
 		Input.Update();
 		Gizmos.Update();
-		Renderer.RenderGizmos();
+		Renderer.Update();
 		AM.Update(SceneMachine.deltaTime);
 		if (Debug) then Debug.FlushLinePool(); end
 	end

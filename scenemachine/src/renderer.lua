@@ -17,6 +17,9 @@ local floor = math.floor;
 Renderer.FrameBufferSize = 1;
 Renderer.FrameBufferFrames = {};
 Renderer.actors = {};
+Renderer.delayedUnitsQueue = {};
+Renderer.delayedUnitsQueueHasItems = false;
+Renderer.delayedUnitsQueueTimer = 0;
 SceneMachine.UsedFrames = 1;
 SceneMachine.CulledFrames = 1;
 SceneMachine.lineThickness = 2;
@@ -110,8 +113,11 @@ function Renderer.AddActor(fileID, X, Y, Z, type)
     elseif (type == SceneMachine.ObjectType.Creature) then
         actor:SetModelByCreatureDisplayID(fileID);
     elseif (type == SceneMachine.ObjectType.Character) then
-        print("unit")
-        actor:SetModelByUnit("player");
+        local worked = actor:SetModelByUnit("player");
+        if (not worked) then
+            Renderer.delayedUnitsQueueHasItems = true;
+            Renderer.delayedUnitsQueue[#Renderer.delayedUnitsQueue + 1] = { actor = actor, unit = "player"};
+        end
     end
     actor:SetPosition(X, Y, Z);
 
@@ -155,6 +161,31 @@ local function NearPlaneFaceCullingLine(vert, planePositionX, planePositionY, pl
         return false
     else
         return true
+    end
+end
+
+function Renderer.Update()
+    Renderer.RenderGizmos();
+    Renderer.CheckQueuedTasks();
+end
+
+function Renderer.CheckQueuedTasks()
+    if (Renderer.delayedUnitsQueueHasItems) then
+        Renderer.delayedUnitsQueueTimer = Renderer.delayedUnitsQueueTimer + 1;
+        if (Renderer.delayedUnitsQueueTimer >= 50) then
+            Renderer.delayedUnitsQueueTimer = 0;
+            for i = 1, #Renderer.delayedUnitsQueue, 1 do
+                local item = Renderer.delayedUnitsQueue[i];
+                local worked = item.actor:SetModelByUnit(item.unit);
+                if (worked) then
+                    table.remove(Renderer.delayedUnitsQueue, i);
+                end
+            end
+
+            if #Renderer.delayedUnitsQueue == 0 then
+                Renderer.delayedUnitsQueueHasItems = false;
+            end
+        end
     end
 end
 
