@@ -102,6 +102,7 @@ function Editor.Initialize()
         icon = Resources.textures["Icon32"],
         OnClick = function(_, button)
             if button == "LeftButton" then Editor.Toggle() end
+            if button == "RightButton" then Editor.ResetWindow() end
         end,
         OnTooltipShow = function(tt)
             tt:AddLine("SceneMachine")
