@@ -22,22 +22,22 @@ namespace DataGenerator
             "Root/Creature",
             "Root/Interiors",
             "Root/Spell",
-            "Root/Test",
+            //"Root/Test",
         };
 
         static void Main(string[] args)
         {
             // File-list data
             //DownloadLatestListfile();
-            //GenerateAddonModelData();
+            GenerateAddonModelData();
 
             // Database data
             string installPath = @"D:\Games\World of Warcraft\";
             string product = "wow"; // wow (release), wowt (ptr)
-            GameData data = new GameData(installPath, product, LISTFILE_PATH);
+            //GameData data = new GameData(installPath, product, LISTFILE_PATH);
             //data.GenerateAnimationData($"{ADDON_DATA_PATH}\\{ANIMATION_DATA_FILE_NAME}");
-            data.GenerateCreatureData($"{ADDON_DATA_PATH}\\{CREATURE_DATA_FILE_NAME}");
-            data.GenerateCreatureDisplayData($"{ADDON_DATA_PATH}\\{CREATURE_TO_DISPLAY_DATA_FILE_NAME}");
+            //data.GenerateCreatureData($"{ADDON_DATA_PATH}\\{CREATURE_DATA_FILE_NAME}");
+            //data.GenerateCreatureDisplayData($"{ADDON_DATA_PATH}\\{CREATURE_TO_DISPLAY_DATA_FILE_NAME}");
         }
 
         static void DownloadLatestListfile()

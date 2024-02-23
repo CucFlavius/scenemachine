@@ -10,7 +10,7 @@ local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
 local SH = Editor.SceneHierarchy;
 local OP = Editor.ObjectProperties;
-
+local Debug = {};
 local searchData = {};
 
 local c1 = { 0.1757, 0.1757, 0.1875 };
@@ -78,8 +78,8 @@ function AssetBrowser.OnChangeTab(idx)
 end
 
 function AssetBrowser.CreateDebugTab(parent, w, h)
-    local creatureDisplayIDText = UI.Label:New(0, -5, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "CreatureDisplayID", 9);
-    local creatureDisplayIDEditBox = UI.TextBox:New(w * 0.3, -5, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "41918");
+    local creatureDisplayIDText = UI.Label:New(0, -5, 100, 20, parent, "TOPLEFT", "TOPLEFT", "CreatureDisplayID", 9);
+    local creatureDisplayIDEditBox = UI.TextBox:New(100, -5, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "41918");
     creatureDisplayIDEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
         local valText = self1:GetText();
@@ -94,8 +94,8 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         Editor.ui.focused = false;
     end);
 
-    local creatureIDText = UI.Label:New(0, -27, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "CreatureID", 9);
-    local creatureIDEditBox = UI.TextBox:New(w * 0.3, -27, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    local creatureIDText = UI.Label:New(0, -27, 100, 20, parent, "TOPLEFT", "TOPLEFT", "CreatureID", 9);
+    local creatureIDEditBox = UI.TextBox:New(100, -27, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     creatureIDEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
         local valText = self1:GetText();
@@ -113,8 +113,8 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         Editor.ui.focused = false;
     end);
 
-    local creatureAnimationText = UI.Label:New(0, -49, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimID", 9);
-    local creatureAnimationEditBox = UI.TextBox:New(w * 0.3, -49, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    local creatureAnimationText = UI.Label:New(0, -49, 100, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimID", 9);
+    local creatureAnimationEditBox = UI.TextBox:New(100, -49, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     creatureAnimationEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
         local valText = self1:GetText();
@@ -132,8 +132,8 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         Editor.ui.focused = false;
     end);
 
-    local creatureAnimationKitText = UI.Label:New(0, -71, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimKitID", 9);
-    local creatureAnimationKitEditBox = UI.TextBox:New(w * 0.3, -71, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    local creatureAnimationKitText = UI.Label:New(0, -71, 100, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimKitID", 9);
+    local creatureAnimationKitEditBox = UI.TextBox:New(100, -71, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     creatureAnimationKitEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
         local valText = self1:GetText();
@@ -151,12 +151,41 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         Editor.ui.focused = false;
     end);
     
-    local characterButton = UI.Button:New(0, -93, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "Create Character");
+    local characterButton = UI.Button:New(0, -93, 100, 20, parent, "TOPLEFT", "TOPLEFT", "Create Character");
     characterButton:SetScript("OnClick", function(_, button, up)
         SM.CreateCharacter(0, 0, 0);
     end);
 
-    local testButton = UI.Button:New(0, -113, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "TEST");
+    local undressButton = UI.Button:New(0, -113, 100, 20, parent, "TOPLEFT", "TOPLEFT", "Undress");
+    local creatureDisplayID = 4;
+    undressButton:SetScript("OnClick", function(_, button, up)
+        if (SM.selectedObject) then
+            SM.selectedObject.actor:Undress(true);
+        end
+    end);
+
+    local dressButton = UI.Button:New(0, -133, 150, 20, parent, "TOPLEFT", "TOPLEFT", "Dress with current items");
+    local creatureDisplayID = 4;
+    dressButton:SetScript("OnClick", function(_, button, up)
+        if (SM.selectedObject) then
+            SM.selectedObject.actor:Dress();
+        end
+    end);
+
+    local testButton = UI.Button:New(0, -153, 100, 20, parent, "TOPLEFT", "TOPLEFT", "TEST");
+    local creatureDisplayID = 4;
+    testButton:SetScript("OnClick", function(_, button, up)
+        if (SM.selectedObject) then
+            --Debug.TablePrint(SM.selectedObject.actor:GetItemTransmogInfo(1));
+            --print(SM.selectedObject.actor:GetAutoDress());
+
+            SM.selectedObject.actor:SetCustomRace(1)
+            --SM.selectedObject.actor:TryOn(39);
+        end
+    end);
+
+    --[[
+    local testButton = UI.Button:New(0, -113, 100, 20, parent, "TOPLEFT", "TOPLEFT", "TEST");
     local creatureDisplayID = 4;
     testButton:SetScript("OnClick", function(_, button, up)
         GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
@@ -167,6 +196,32 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         GameTooltip:Hide();
     end);
     --]]
+end
+
+
+function Debug.TablePrint(tbl)
+	local indent = 4;
+	local toprint = string.rep(" ", indent) .. "{\r\n"
+	indent = indent + 2
+	for k, v in pairs(tbl) do
+		toprint = toprint .. string.rep(" ", indent)
+		if (type(k) == "number") then
+			toprint = toprint .. "[" .. k .. "] = "
+		elseif (type(k) == "string") then
+			toprint = toprint  .. k ..  "= "   
+		end
+		if (type(v) == "number") then
+			toprint = toprint .. v .. ",\r\n"
+		elseif (type(v) == "string") then
+			toprint = toprint .. "\"" .. v .. "\",\r\n"
+		elseif (type(v) == "table") then
+			toprint = toprint .. tprint(v, indent + 2) .. ",\r\n"
+		else
+			toprint = toprint .. "\"" .. tostring(v) .. "\",\r\n"
+		end
+	end
+	toprint = toprint .. string.rep(" ", indent-2) .. "}"
+	print(toprint)
 end
 
 function AssetBrowser.CreateToolbar(parent, y, w, startLevel)
