@@ -187,7 +187,7 @@ function Editor.Show()
     SceneMachine.mainWindow:Show();
     local screenHeight = GetScreenHeight();
     --Input.KeyboardListener:SetPropagateKeyboardInput(false);
-    Editor.ResetWindow();
+    --Editor.ResetWindow();
     if (SceneMachine.mainWindow:GetTop() + 20 > screenHeight) then
         Editor.ResetWindow();
     end
@@ -204,9 +204,9 @@ end
 
 function Editor.Toggle()
     if (Editor.isOpen) then
-        Editor:Hide();
+        Editor.Hide();
     else
-        Editor:Show();
+        Editor.Show();
     end
 end
 
@@ -272,6 +272,8 @@ function Editor.CreateMainWindow(startLevel)
     SceneMachine.mainWindow.titleBar_text:ClearAllPoints();
     SceneMachine.mainWindow.titleBar_text:SetPoint("LEFT", 25, 0);
     SceneMachine.mainWindow:SetFrameLevel(startLevel);
+
+    SceneMachine.mainWindow:GetFrame():SetResizeBounds(640, 480, 1920, 1080);
 
     SceneMachine.mainWindow.TitleBarIcon = UI.ImageBox:New(5/2, -5/2, 15, 15, SceneMachine.mainWindow.titleBar, "TOPLEFT", "TOPLEFT", Resources.textures["Icon32"]);
 	SceneMachine.mainWindow.TitleBarIcon:SetFrameLevel(startLevel + 1);
