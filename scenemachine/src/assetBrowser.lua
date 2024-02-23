@@ -150,8 +150,14 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         self1:ClearFocus();
         Editor.ui.focused = false;
     end);
+    
+    local characterButton = UI.Button:New(0, -93, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "Create Character");
+    characterButton:SetScript("OnClick", function(_, button, up)
+        SM.CreateCharacter(0, 0, 0);
+    end);
+
+    local testButton = UI.Button:New(0, -113, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "TEST");
     local creatureDisplayID = 4;
-    local testButton = UI.Button:New(0, -93, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "TEST");
     testButton:SetScript("OnClick", function(_, button, up)
         GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
         GameTooltip:SetHyperlink(format("unit:Creature-0-0-0-0-%d-0", creatureDisplayID))
@@ -160,6 +166,7 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         end
         GameTooltip:Hide();
     end);
+    --]]
 end
 
 function AssetBrowser.CreateToolbar(parent, y, w, startLevel)

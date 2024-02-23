@@ -5,6 +5,7 @@ SceneMachine.ObjectType = {};
 SceneMachine.ObjectType.Group = 0;
 SceneMachine.ObjectType.Model = 1;
 SceneMachine.ObjectType.Creature = 2;
+SceneMachine.ObjectType.Character = 3;
 
 SceneMachine.Object = 
 {
@@ -64,8 +65,30 @@ function Object:NewCreature(name, displayID, position, rotation, scale)
         class = "Object",
         id = math.random(99999999);
         visible = true,
-        frozen = false, -- could check here if path is skybox and freeze automagically
+        frozen = false,
         type = SceneMachine.ObjectType.Creature,
+    };
+
+	setmetatable(v, Object)
+	return v
+end
+
+function Object:NewCharacter(name, position, rotation, scale)
+	local v = 
+    {
+        fileID = -1,
+        displayID = -1,
+        name = name or "Character",
+        position = position or Vector3:New(),
+        rotation = rotation or Vector3:New(),
+        scale = scale or 1,	
+        alpha = 1,
+        actor = nil,
+        class = "Object",
+        id = math.random(99999999);
+        visible = true,
+        frozen = false,
+        type = SceneMachine.ObjectType.Character,
     };
 
 	setmetatable(v, Object)

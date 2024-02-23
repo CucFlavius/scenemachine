@@ -221,6 +221,8 @@ function SM.LoadScene(index)
                 id = object.fileID;
             elseif(object.type == SceneMachine.ObjectType.Creature) then
                 id = object.displayID;
+            elseif(object.type == SceneMachine.ObjectType.Character) then
+                id = -1;
             end
             local actor = Renderer.AddActor(id, object.position.x, object.position.y, object.position.z, object.type);
             object:SetActor(actor);
@@ -339,6 +341,25 @@ function SM.CreateCreature(_displayID, _name, _x, _y, _z)
     -- Create actor
     if (object.fileID ~= nil) then
         local actor = Renderer.AddActor(object.displayID, object.position.x, object.position.y, object.position.z, SceneMachine.ObjectType.Creature);
+        object:SetActor(actor);
+    end
+
+    -- Refresh
+    SH.RefreshHierarchy();
+    OP.Refresh();
+
+    return object;
+end
+
+function SM.CreateCharacter(_x, _y, _z)
+    local object = SceneMachine.Object:NewCharacter(UnitName("player"), { x = _x, y = _y, z = _z });
+
+    local scene = SM.loadedScene;
+    scene.objects[#scene.objects + 1] = object;
+
+    -- Create actor
+    if (object.fileID ~= nil) then
+        local actor = Renderer.AddActor(-1, object.position.x, object.position.y, object.position.z, SceneMachine.ObjectType.Character);
         object:SetActor(actor);
     end
 

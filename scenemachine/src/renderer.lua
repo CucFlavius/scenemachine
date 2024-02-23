@@ -109,6 +109,8 @@ function Renderer.AddActor(fileID, X, Y, Z, type)
         actor:SetModelByFileID(fileID);
     elseif (type == SceneMachine.ObjectType.Creature) then
         actor:SetModelByCreatureDisplayID(fileID);
+    elseif (type == SceneMachine.ObjectType.Character) then
+        actor:SetModelByUnit("player");
     end
     actor:SetPosition(X, Y, Z);
 
