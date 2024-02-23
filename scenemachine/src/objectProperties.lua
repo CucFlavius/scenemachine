@@ -101,6 +101,9 @@ function OP.ToggleTransformFields(enabled)
 end
 
 function OP.SetPosX(value)
+    if (not value) then
+        return;
+    end
     if (SM.selectedObject == nil) then
         return;
     end
@@ -109,6 +112,9 @@ function OP.SetPosX(value)
 end
 
 function OP.SetPosY(value)
+    if (not value) then
+        return;
+    end
     if (SM.selectedObject == nil) then
         return;
     end
@@ -117,6 +123,9 @@ function OP.SetPosY(value)
 end
 
 function OP.SetPosZ(value)
+    if (not value) then
+        return;
+    end
     if (SM.selectedObject == nil) then
         return;
     end
@@ -125,6 +134,9 @@ function OP.SetPosZ(value)
 end
 
 function OP.SetRotX(value)
+    if (not value) then
+        return;
+    end
     if (SM.selectedObject == nil) then
         return;
     end
@@ -133,6 +145,9 @@ function OP.SetRotX(value)
 end
 
 function OP.SetRotY(value)
+    if (not value) then
+        return;
+    end
     if (SM.selectedObject == nil) then
         return;
     end
@@ -141,6 +156,9 @@ function OP.SetRotY(value)
 end
 
 function OP.SetRotZ(value)
+    if (not value) then
+        return;
+    end
     if (SM.selectedObject == nil) then
         return;
     end
@@ -149,6 +167,9 @@ function OP.SetRotZ(value)
 end
 
 function OP.SetScale(value)
+    if (not value) then
+        return;
+    end
     if (SM.selectedObject == nil) then
         return;
     end
@@ -156,6 +177,9 @@ function OP.SetScale(value)
 end
 
 function OP.SetAlpha(value)
+    if (not value) then
+        return;
+    end
     if (SM.selectedObject == nil) then
         return;
     end

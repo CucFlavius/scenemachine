@@ -37,19 +37,27 @@ function Input.Initialize()
     Input.KeyboardListener:SetPropagateKeyboardInput(true);
     Input.KeyboardListener:SetScript("OnKeyDown", function(self, key)
 			if Input.Keys[key] ~= nil then
-                if Input.Keys[key].OnKeyDown ~= nil then
+                if (Input.Keys[key].OnKeyDown) then
                     if (Editor.isOpen) then
 				        Input.Keys[key].OnKeyDown();
                         self:SetPropagateKeyboardInput(false);
+                    end
+                else
+                    if (Editor.isOpen) then
+                        self:SetPropagateKeyboardInput(true);
                     end
                 end
 			end
         end);
 		Input.KeyboardListener:SetScript("OnKeyUp", function(self, key)
 			if Input.Keys[key] ~= nil then
-                if Input.Keys[key].OnKeyUp ~= nil then
+                if (Input.Keys[key].OnKeyUp) then
                     if (Editor.isOpen) then
 				        Input.Keys[key].OnKeyUp();
+                        self:SetPropagateKeyboardInput(true);
+                    end
+                else
+                    if (Editor.isOpen) then
                         self:SetPropagateKeyboardInput(true);
                     end
                 end

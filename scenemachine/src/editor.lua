@@ -131,8 +131,8 @@ function Editor.Initialize()
         if (Editor.ui.focused == false) then
             Editor.DeleteLastSelected();
         end
-    end, nil);
-    SceneMachine.Input.AddKeyBind("F",function() CC.FocusObject(SM.selectedObject); end, nil);
+    end);
+    SceneMachine.Input.AddKeyBind("F",function() CC.FocusObject(SM.selectedObject); end);
     SceneMachine.Input.AddKeyBind("1", function() Gizmos.activeTransformGizmo = 0; end);
     SceneMachine.Input.AddKeyBind("2", function() Gizmos.activeTransformGizmo = 1; end);
     SceneMachine.Input.AddKeyBind("3", function() Gizmos.activeTransformGizmo = 2; end);
