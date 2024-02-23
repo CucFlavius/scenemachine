@@ -70,12 +70,7 @@ function Gizmos.Update()
     Gizmos.UpdateGizmoTransform();
 end
 
-function round(num, numDecimalPlaces)
-    local mult = 10^(numDecimalPlaces or 0)
-    return math.floor(num * mult + 0.5) / mult
-end
-
-function indexOfSmallestValue(tbl)
+local function indexOfSmallestValue(tbl)
     if #tbl ~= 3 then
         error("Input table must have exactly 3 values.")
     end
@@ -237,8 +232,6 @@ function Gizmos.SelectionCheck(mouseX, mouseY)
             end
         end
     end
-
-    return selected;
 end
 
 function Gizmos.VisibilityCheck()

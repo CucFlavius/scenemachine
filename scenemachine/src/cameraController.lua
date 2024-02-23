@@ -50,8 +50,8 @@ function CC.Initialize()
     SceneMachine.Input.Initialize();
 end
 
-function clampAngle(angle)
-    local twoPi = 2 * math.pi
+local twoPi = 2 * math.pi
+local function clampAngle(angle)
     angle = angle % twoPi  -- Ensure the angle is within [0, 2π)
     if angle < 0 then
         angle = angle + twoPi  -- Make sure the angle is positive

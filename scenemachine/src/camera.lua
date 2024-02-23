@@ -24,7 +24,7 @@ Camera.width = 100.0;
 Camera.height = 100.0;
 Camera.aspectRatio = 1.0;
 Camera.fov = math.rad(70);
-Camera.nearClip = 0.1;
+Camera.nearClip = 0.01;
 Camera.farClip = 1000.0;
 
 Camera.projectionMatrix = Matrix:New();
@@ -46,7 +46,7 @@ function Camera.Update()
     Camera.up:Set(Renderer.projectionFrame:GetCameraUp());
     Camera.right:Set(Renderer.projectionFrame:GetCameraRight());
 
-    Camera.projectionMatrix:CreatePerspectiveFieldOfView(Camera.fov, Camera.aspectRatio, 0.01, 1000);
+    Camera.projectionMatrix:CreatePerspectiveFieldOfView(Camera.fov, Camera.aspectRatio, Camera.nearClip, Camera.farClip);
     Camera.viewMatrix:LookAt(Camera.position, Camera.position + Camera.forward, Vector3.up);
 
     -- Calculate camera near plane -- 
