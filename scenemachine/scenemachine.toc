@@ -8,6 +8,6 @@
 ## X-eMail: cucflavius@gmail.com
 ## X-Website: none
 ## X-License: MIT
-## Version: 0.6.2 Beta
+## Version: 0.6.3 Beta
 
 src\code.xml
