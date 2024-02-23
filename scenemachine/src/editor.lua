@@ -283,7 +283,7 @@ function Editor.CreateRightPanel(startLevel)
     local rightPanel = UI.Rectangle:New(0, -Editor.toolbarHeight, scenemachine_settings.rightPanelW, Editor.height - Editor.toolbarHeight, SceneMachine.mainWindow:GetFrame(), "TOPRIGHT", "TOPRIGHT", 0.1171, 0.1171, 0.1171, 1);
     rightPanel:SetPoint("BOTTOMRIGHT", SceneMachine.mainWindow:GetFrame(), "BOTTOMRIGHT", 0, 0);
     rightPanel:SetFrameLevel(startLevel);
-    rightPanel.frame:SetResizeBounds(200, 100, 1000, 200);
+    rightPanel.frame:SetResizeBounds(200, 100, 650, 200);
     rightPanel.frame:SetResizable(true);
     rightPanel.frame:SetUserPlaced(true);
 
@@ -317,7 +317,7 @@ function Editor.CreateLeftPanel(startLevel)
     leftPanel:SetPoint("BOTTOMLEFT", SceneMachine.mainWindow:GetFrame(), "BOTTOMLEFT", 0, 0);
     leftPanel:SetFrameLevel(startLevel);
 
-	leftPanel.frame:SetResizeBounds(200, 100, 1000, 200);
+	leftPanel.frame:SetResizeBounds(200, 100, 600, 200);
     leftPanel.frame:SetResizable(true);
     leftPanel.frame:SetUserPlaced(true);
     

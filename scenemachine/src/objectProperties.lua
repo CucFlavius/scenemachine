@@ -15,6 +15,7 @@ function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
     groupBG:SetFrameLevel(startLevel);
     groupBG.frame:SetResizable(true);
     groupBG.frame:SetUserPlaced(true);
+    groupBG.frame:SetResizeBounds(120, 20, 800, 500);
 
     Editor.horizontalSeparatorL = UI.Rectangle:New(0, 6, 0, 6, groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", 1,1,1,0);
     Editor.horizontalSeparatorL:SetPoint("TOPRIGHT", leftPanel:GetFrame(), "TOPRIGHT", 0, 0);
