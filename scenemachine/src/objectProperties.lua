@@ -43,7 +43,7 @@ function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
     groupContent:SetPoint("BOTTOMRIGHT", groupBG:GetFrame(), "BOTTOMRIGHT", 0, 0);
     groupContent:SetFrameLevel(startLevel + 2);
 
-    local collapseList = UI.CollapsableList:New(0, 0, w - 6, h - 20, { 71, 27, 49 }, groupContent:GetFrame(), "TOPLEFT", "TOPLEFT", { "Transform", "Actor Properties", "Scene properties (temp)", }, c1[1], c1[2], c1[3], 1);
+    local collapseList = UI.CollapsableList:New(0, 0, w - 6, h - 20, { 71, 27, 71 }, groupContent:GetFrame(), "TOPLEFT", "TOPLEFT", { "Transform", "Actor Properties", "Scene properties (temp)", }, c1[1], c1[2], c1[3], 1);
     collapseList:SetPoint("BOTTOMRIGHT", groupContent:GetFrame(), "BOTTOMRIGHT", 0, 0);
     collapseList:SetFrameLevel(startLevel + 3);
     
@@ -58,6 +58,7 @@ function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
     local scenePropertyGroup = collapseList.bars[3].panel:GetFrame();
     OP.ambientColorField = UI.PropertyFieldColor:New(-5, 20, scenePropertyGroup, "Ambient Color", 0, 0, 0, 1, OP.SetAmbientColor);
     OP.diffuseColorField = UI.PropertyFieldColor:New(-27, 20, scenePropertyGroup, "Diffuse Color", 0, 0, 0, 1, OP.SetDiffuseColor);
+    OP.backgroundColorField = UI.PropertyFieldColor:New(-49, 20, scenePropertyGroup, "Background Color", 0.554,0.554,0.554,1, OP.SetBackgroundColor);
 
     OP.Refresh();
 end
@@ -172,4 +173,9 @@ end
 
 function OP.SetDiffuseColor(R, G, B, A)
     Renderer.projectionFrame:SetLightDiffuseColor(R, G, B);
+end
+
+-- Renderer.backgroundFrame.texture:SetColorTexture(0.554,0.554,0.554,1);
+function OP.SetBackgroundColor(R, G, B, A)
+    Renderer.backgroundFrame.texture:SetColorTexture(R, G, B, 1);
 end
