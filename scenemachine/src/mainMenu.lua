@@ -1,6 +1,20 @@
 local Editor = SceneMachine.Editor;
 local MainMenu = Editor.MainMenu;
+local UI = SceneMachine.UI;
+local Resources = SceneMachine.Resources;
 
+function MainMenu.OpenKeyboardShortcuts()
+    if (not Editor.KeyboardShortcutsWindow) then
+        Editor.KeyboardShortcutsWindow = UI.Window:New(0, 0, 900, 450, SceneMachine.mainWindow:GetFrame(), "CENTER", "CENTER", "Keyboard Shortcuts");
+        Editor.KeyboardShortcutsWindow:SetFrameStrata(Editor.SUB_FRAME_STRATA);
+        Editor.KeyboardShortcutsWindow.resizeFrame:Hide();
+
+        Editor.KeyboardShortcutsPicture = UI.ImageBox:New(0, 0, 1024, 512, Editor.KeyboardShortcutsWindow:GetFrame(), "TOPLEFT", "TOPLEFT", Resources.textures["KeyboardShortcuts"]);
+        Editor.KeyboardShortcutsPicture:SetPoint("BOTTOMRIGHT", Editor.KeyboardShortcutsWindow:GetFrame(), "BOTTOMRIGHT", 0, 0);
+    end
+
+    Editor.KeyboardShortcutsWindow:Show();
+end
 
 function MainMenu.Create()
 	local menu = 
@@ -33,7 +47,8 @@ function MainMenu.Create()
         {
             ["Name"] = "Help",
             ["Options"] = {
-                { ["Name"] = "About", ["Action"] = nil },
+                { ["Name"] = "Keyboard Shortcuts", ["Action"] = MainMenu.OpenKeyboardShortcuts },
+                --{ ["Name"] = "About", ["Action"] = nil },
             },
         },
     };

@@ -155,6 +155,10 @@ function Input.Update()
         local animSelectWindow = AM.animSelectWindow:IsVisible();
         local projectManager = PM.window:IsVisible();
         local colorPicker = Editor.ColorPicker.window:IsVisible();
+        local keyboardShortcuts = nil;
+        if (Editor.KeyboardShortcutsWindow) then
+            keyboardShortcuts = Editor.KeyboardShortcutsWindow:IsVisible();
+        end
         local sceneScript = nil;
         if (Editor.importSSWindow) then
             sceneScript = Editor.importSSWindow:IsVisible();
@@ -163,7 +167,7 @@ function Input.Update()
         if (Editor.messageBox) then
             messageBox = Editor.messageBox:IsVisible();
         end
-        if (animSelectWindow or projectManager or colorPicker or sceneScript or messageBox) then
+        if (animSelectWindow or projectManager or colorPicker or sceneScript or messageBox or keyboardShortcuts) then
             return;
         end
     end
