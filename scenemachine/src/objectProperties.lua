@@ -199,7 +199,6 @@ function OP.SetDiffuseColor(R, G, B, A)
     Renderer.projectionFrame:SetLightDiffuseColor(R, G, B);
 end
 
--- Renderer.backgroundFrame.texture:SetColorTexture(0.554,0.554,0.554,1);
 function OP.SetBackgroundColor(R, G, B, A)
     Renderer.backgroundFrame.texture:SetColorTexture(R, G, B, 1);
 end

@@ -31,8 +31,9 @@ end
 function CollapsableList:Build()
     self.frame = UI.Rectangle:New(self.x, self.y, self.w, self.h, self.parent, self.point, self.parentPoint, 0, 0, 0, 0);   -- viewport
     self.frame:SetClipsChildren(true);
+
     self.list = UI.Rectangle:New(self.x, self.y, self.w, self:GetTotalHeight(), self.frame:GetFrame(), self.point, self.parentPoint, 0, 0, 0, 0);
-    self.list:SetPoint("BOTTOMRIGHT", self.frame:GetFrame(), "BOTTOMRIGHT", 0, 0);
+    self.list:SetPoint("BOTTOMRIGHT", self.frame:GetFrame(), "BOTTOMRIGHT", -16, 0);
     self.bars = {};
     for c = 1, #self.titles, 1 do
         self.bars[c] = UI.CollapsableBox:New(self.x, self.y, self.w, self.sizesY[c], self.list:GetFrame(),
@@ -40,29 +41,52 @@ function CollapsableList:Build()
                                             self.R, self.G, self.B, self.A, self);
     end
 
+    self.scrollbar = UI.Scrollbar:New(0, 0, 16, self.h, self.frame:GetFrame(), function(v) self:SetPosition(v); end);
+    self.scrollbar:SetPoint("BOTTOMRIGHT", self.frame:GetFrame(), "BOTTOMRIGHT", 0, 0);
+
+    self.frame:GetFrame():SetScript("OnSizeChanged",
+    function(_, width, height)
+        self.viewportHeight = height;
+        self.scrollbar:Resize(height, self:GetVisibleHeight());
+    end);
+
     self:Sort();
+end
+
+function CollapsableList:SetPosition(value)
+    local min = 0;
+    local max = self:GetVisibleHeight() - self.frame:GetHeight();
+    local pos = value * max;
+    self.list:ClearAllPoints();
+    self.list:SetPoint("TOPLEFT", self.frame:GetFrame(), "TOPLEFT", 0, pos);
+    self.list:SetPoint("BOTTOMRIGHT", self.frame:GetFrame(), "BOTTOMRIGHT", -16, pos + max);
+end
+
+function CollapsableList:GetVisibleHeight()
+    
+    local h = 0;
+    for _, childFrame in ipairs({ self.list:GetFrame():GetChildren() }) do
+        local ch = childFrame:GetChildren();
+        local visible = ch:IsVisible();
+        local height = ch:GetHeight();
+        if (visible) then
+            h = h + height + 12;
+        else
+            h = h + 12;
+        end
+    end
+
+    return h;
 end
 
 function CollapsableList:GetTotalHeight()
     local h = 0;
     for c = 1, #self.sizesY, 1 do
-        h = h + self.sizesY[c];
+        h = h + self.sizesY[c] + 12;
     end
     return h;
 end
---[[
-function CollapsableList:Hide()
-    for c = 1, #self.titles, 1 do
-        self.bars[c]:Hide();
-    end
-end
 
-function CollapsableList:Show()
-    for c = 1, #self.titles, 1 do
-        self.bars[c]:Show();
-    end
-end
---]]
 CollapsableList.__tostring = function(self)
 	return string.format("CollapsableList( %.3f, %.3f, %.3f, %.3f, %s )", self.x, self.y, self.w, self.h, self.parent);
 end

@@ -44,9 +44,11 @@ function CollapsableBox:Build()
         if (bar.isCollapsed) then
             list:Sort();
             panel:Hide();
+            list.scrollbar:Resize(list.viewportHeight, list:GetVisibleHeight());
         else
             list:Sort();
             panel:Show();
+            list.scrollbar:Resize(list.viewportHeight, list:GetVisibleHeight());
         end
     end);
 
