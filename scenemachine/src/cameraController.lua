@@ -17,6 +17,8 @@ CC.Action.TurnLeft = false;			-- true if turn right key is pressed
 CC.Action.TurnRight = false;		-- true if turn right key is pressed
 CC.Action.MoveForward = false;		-- true if move forward key pressed
 CC.Action.MoveBackward = false;		-- true if move backward key is pressed
+CC.Action.MoveUp = false;
+CC.Action.MoveDown = false;
 CC.Action.StrafeLeft = false;		-- true if strafe left key is pressed
 CC.Action.StrafeRight = false;		-- true if strafe right key is pressed
 CC.Action.ShiftSpeed = false;
@@ -104,6 +106,12 @@ function CC.Update()
 		CC.position.x = CC.position.x + (CC.moveSpeed * CC.acceleration * cosDir);
 		CC.position.y = CC.position.y + (CC.moveSpeed * CC.acceleration * sinDir);
 	end
+	if CC.Action.MoveUp then
+		CC.position.z = CC.position.z + (CC.moveSpeed * CC.acceleration);
+	end
+	if CC.Action.MoveDown then
+		CC.position.z = CC.position.z - (CC.moveSpeed * CC.acceleration);
+	end
 
 	SceneMachine.Camera.position:SetVector3(CC.position);
     
@@ -123,7 +131,7 @@ function CC.Update()
     end
 
 	-- handle focus
-	if (CC.Action.MoveForward or CC.Action.MoveBackward or CC.Action.StrafeLeft or CC.Action.StrafeRight) then
+	if (CC.Action.MoveForward or CC.Action.MoveBackward or CC.Action.StrafeLeft or CC.Action.StrafeRight or CC.Action.MoveUp or CC.Action.MoveDown) then
 		-- cancel focus if any movement key is pressed
 		CC.Focus.focusing = false;
 	end
