@@ -22,6 +22,8 @@ AM.currentCrop = {
     max = 0.3;
 };
 
+AM.keyframeGroups = {};
+
 AM.inputState = {
     minFramePosStart = 0;
     maxFramePosStart = 0;
@@ -44,7 +46,7 @@ AM.loadedTimelineIndex = 1;
 AM.loadedTimeline = nil;
 AM.selectedTrack = nil;
 AM.selectedAnim = nil;
-AM.selectedKey = nil;
+AM.selectedKeys = {};
 
 AM.TrackPoolSize = 10;
 AM.usedTracks = 0;
@@ -60,7 +62,13 @@ AM.usedKeyframes = 0;
 AM.selectedAnimID = -1;
 AM.selectedAnimVariant = 0;
 
-AM.uiMode = 0;      -- 0 = keyframe/anims, 1 = curve view
+AM.Mode = {
+    Tracks = 0,
+    Keyframes = 1,
+    Curves = 2,
+}
+
+AM.uiMode = AM.Mode.Keyframes;
 
 AM.CurvePoolSize = 30;
 AM.usedCurveLines = 0;
@@ -604,7 +612,11 @@ function AM.CreateAnimationManager(x, y, w, h, parent, startLevel)
         AM.RefreshTimebar();
         AM.RefreshWorkspace();
         if (AM.workAreaScrollbar) then
-            AM.workAreaScrollbar:Resize(height - 106, AM.workAreaList:GetHeight());
+            if (AM.uiMode == AM.Mode.Tracks) then
+                AM.workAreaScrollbar:Resize(height - 106, AM.workAreaList:GetHeight());
+            elseif (AM.uiMode == AM.Mode.Keyframes) then
+                AM.workAreaScrollbar:Resize(height - 106, AM.keyframeAreaList:GetHeight());
+            end
         end
         if (AM.TimeSliderBar) then
             AM.TimeSliderBar:SetHeight(height - 80);
@@ -638,16 +650,16 @@ function AM.CreateAnimationManager(x, y, w, h, parent, startLevel)
     local workAreaY = -(timebarH + timelineTabH + toolbarH + keyframeBarH);
     local workAreaW = w - 20;
     local workAreaH = h - (timelineTabH + timebarH + cropperBarH + bottomPad + toolbarH + keyframeBarH);
+    local curveViewH = h - (timelineTabH + timebarH + cropperBarH + bottomPad + toolbarH);
+    local curveViewY = -(timebarH + timelineTabH + toolbarH);
     AM.CreateTimebar(0, timebarY, w, timebarH, AM.groupBG:GetFrame(), startLevel + 3);
     AM.CreateTimeSlider(workAreaH, startLevel + 5);
     AM.CreateToolbar(0, toolbarY, w, toolbarH, AM.groupBG:GetFrame(), startLevel + 3);
-    AM.CreateKeyframeBar(keyframeBarX, keyframeBarY, keyframeBarW, keyframeBarH, AM.groupBG:GetFrame(), startLevel + 3)
+    AM.CreateMainKeyframeBar(keyframeBarX, keyframeBarY, keyframeBarW, keyframeBarH, AM.groupBG:GetFrame(), startLevel + 3)
     AM.CreateWorkArea(workAreaX - 6, workAreaY, workAreaW, workAreaH, AM.groupBG:GetFrame(), startLevel + 3);
-    AM.CreateCropperBar(0, cropperBarY, w - 14, cropperBarH, AM.groupBG:GetFrame(), startLevel + 3);
-
-    local curveViewH = h - (timelineTabH + timebarH + cropperBarH + bottomPad + toolbarH);
-    local curveViewY = -(timebarH + timelineTabH + toolbarH);
+    AM.CreateKeyframeView(workAreaX - 6, workAreaY, workAreaW, workAreaH, AM.groupBG:GetFrame(), startLevel + 3);
     AM.CreateCurveView(workAreaX - 6, curveViewY, workAreaW, curveViewH, AM.groupBG:GetFrame(), startLevel + 3);
+    AM.CreateCropperBar(0, cropperBarY, w - 14, cropperBarH, AM.groupBG:GetFrame(), startLevel + 3);
 
     AM.CreateAnimationSelectWindow(0, 0, 300, 500);
 
@@ -771,14 +783,14 @@ function AM.CreateTimebar(x, y, w, h, parent, startLevel)
     end
 end
 
-function AM.CreateKeyframeBar(x, y, w, h, parent, startLevel)
-    AM.KeyframeBar = UI.Rectangle:New(0, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 0.5);
-    AM.KeyframeBar:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, y);
-    AM.KeyframeBar:SetFrameLevel(startLevel);
+function AM.CreateMainKeyframeBar(x, y, w, h, parent, startLevel)
+    AM.mainKeyframeBar = UI.Rectangle:New(0, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 0.5);
+    AM.mainKeyframeBar:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, y);
+    AM.mainKeyframeBar:SetFrameLevel(startLevel);
 
     AM.KeyframePool = {};
     for i = 1, AM.KeyframePoolSize, 1 do
-        AM.KeyframePool[i] = AM.GenerateKeyframeElement(i, 0, 0, AM.keyframeElementH, AM.keyframeElementH, AM.KeyframeBar:GetFrame(), 0.5, 0.5, 0.5, 1);
+        AM.KeyframePool[i] = AM.GenerateKeyframeElement(i, 0, 0, AM.keyframeElementH, AM.keyframeElementH, AM.mainKeyframeBar:GetFrame(), 0.5, 0.5, 0.5, 1);
         AM.KeyframePool[i]:SetFrameLevel(startLevel + 1);
         AM.KeyframePool[i]:Hide();
     end
@@ -788,7 +800,7 @@ function AM.GenerateKeyframeElement(index, x, y, w, h, parent, R, G, B, A)
     local element = CreateFrame("Button", "AM.KeyframeElement"..index, parent)
 	element:SetPoint("LEFT", parent, "LEFT", x, y);
 	element:SetSize(w, h);
-    element:SetFrameLevel(10);
+    element:SetFrameLevel(100);
     element.ntex = element:CreateTexture();
     element.ntex:SetTexture(Resources.textures["Keyframe"]);
     element.ntex:SetTexCoord(0, 0.25, 0, 0.25);
@@ -805,7 +817,7 @@ function AM.GenerateKeyframeElement(index, x, y, w, h, parent, R, G, B, A)
     end);
     element:SetScript("OnClick", function (self, button, down)
         if (button == "LeftButton" and down) then
-            AM.SelectKeyframe(index);
+            AM.SelectKeyAtIndex(index);
         end
     end)
 
@@ -816,8 +828,8 @@ function AM.GetAvailableKeyframeElement()
     local i = AM.usedKeyframes + 1;
     AM.usedKeyframes = AM.usedKeyframes + 1;
 
-    if (i >= #AM.KeyframePool) then
-        AM.KeyframePool[i] = AM.GenerateKeyframeElement(i, 0, 0, AM.keyframeElementH, AM.keyframeElementH, AM.KeyframeBar:GetFrame(), 0.5, 0.5, 0.5, 1);
+    if (i > #AM.KeyframePool) then
+        AM.KeyframePool[i] = AM.GenerateKeyframeElement(i, 0, 0, AM.keyframeElementH, AM.keyframeElementH, AM.mainKeyframeBar:GetFrame(), 0.5, 0.5, 0.5, 1);
     end
 
     return AM.KeyframePool[i];
@@ -876,8 +888,13 @@ function AM.CreateToolbar(x, y, w, h, parent, startLevel)
         { type = "Button", name = "AddAnim", icon = toolbar:GetIcon("addanim"), action = function(self) AM.OpenAddAnimationWindow(AM.selectedTrack); end },
         { type = "Button", name = "RemoveAnim", icon = toolbar:GetIcon("removeanim"), action = function(self) AM.RemoveAnim(AM.selectedTrack, AM.selectedAnim); end },
         { type = "Separator" },
-        { type = "Button", name = "AddKey", icon = toolbar:GetIcon("addkey"), action = function(self) AM.AddKey(AM.selectedTrack); end },
-        { type = "Button", name = "RemoveKey", icon = toolbar:GetIcon("removekey"), action = function(self) AM.RemoveKey(AM.selectedTrack, AM.selectedKey); end },
+        { type = "Button", name = "AddFullKey", icon = toolbar:GetIcon("addkey"), action = function(self) AM.AddFullKey(AM.selectedTrack); end },
+        { type = "Button", name = "AddPosKey", icon = toolbar:GetIcon("move"), action = function(self) AM.AddPosKey(AM.selectedTrack); end },
+        { type = "Button", name = "RemoveKey", icon = toolbar:GetIcon("removekey"), action = function(self) 
+            for i = 1, #AM.selectedKeys, 1 do
+                AM.RemoveKey(AM.selectedTrack, AM.selectedKeys[i]);
+            end
+        end },
         { type = "DragHandle" },
         { type = "Button", name = "SeekToStart", icon = toolbar:GetIcon("skiptoend", true), action = function(self) AM.SeekToStartButton_OnClick(); end },
         { type = "Button", name = "SkipOneFrameBack", icon = toolbar:GetIcon("skiponeframe", true), action = function(self) AM.SkipFrameBackwardButton_OnClick(); end },
@@ -887,7 +904,9 @@ function AM.CreateToolbar(x, y, w, h, parent, startLevel)
         { type = "Separator" },
         { type = "Toggle", name = "Loop", iconOn = toolbar:GetIcon("loop"), iconOff = toolbar:GetIcon("loopoff"), action = function(self, on) AM.LoopToggle_OnClick(on); end, default = true },
         { type = "Separator" },
-        { type = "Button", name = "UIMode", icon = toolbar:GetIcon("scale"), action = function(self) AM.ToggleUIMode(); end },
+        { type = "Button", name = "UIModeTrack", icon = toolbar:GetIcon("scale"), action = function(self) AM.Button_SetModeToTracks(); end },
+        { type = "Button", name = "UIModeKeyframe", icon = toolbar:GetIcon("scale"), action = function(self) AM.Button_SetModeToKeyframes(); end },
+        { type = "Button", name = "UIModeCurve", icon = toolbar:GetIcon("scale"), action = function(self) AM.Button_SetModeToCurves(); end },
     });
     mainGroup:SetFrameLevel(startLevel + 1);
     AM.mainToolbar = toolbar;
@@ -917,7 +936,7 @@ function AM.CreateWorkArea(x, y, w, h, parent, startLevel)
         if (button == "LeftButton" and down) then
             AM.SelectAnimation(-1);
             AM.SelectTrack(-1);
-            AM.SelectKeyframe(-1);
+            AM.SelectKeyAtIndex(-1);
             SH.SelectObject(nil);
         end
     end)
@@ -995,31 +1014,102 @@ function AM.CreateWorkArea(x, y, w, h, parent, startLevel)
 	AM.workAreaScrollbar = UI.Scrollbar:New(0, y, 16, h, AM.groupBG:GetFrame(),
 	function(value)
 		-- on scroll
-        --AM.workAreaScrollbar:Resize(AM.groupBG:GetHeight() - 106, AM.workAreaList:GetHeight());
-        local height = AM.workAreaList:GetHeight() - AM.workAreaViewport:GetHeight();
-        local pos = value * height;
-        --AM.workAreaList:SetSinglePoint("TOPLEFT", 0, math.floor(pos));
-        AM.workAreaList:ClearAllPoints();
-        AM.workAreaList:SetPoint("TOPLEFT", AM.workAreaViewport, "TOPLEFT", 0, math.floor(pos));
-        AM.workAreaList:SetPoint("TOPRIGHT", AM.workAreaViewport, "TOPRIGHT", 0, math.floor(pos));
+        if (AM.uiMode == AM.Mode.Tracks) then
+            local height = AM.workAreaList:GetHeight() - AM.workAreaViewport:GetHeight();
+            local pos = value * height;
+            AM.workAreaList:ClearAllPoints();
+            AM.workAreaList:SetPoint("TOPLEFT", AM.workAreaViewport, "TOPLEFT", 0, math.floor(pos));
+            AM.workAreaList:SetPoint("TOPRIGHT", AM.workAreaViewport, "TOPRIGHT", 0, math.floor(pos));
+        elseif (AM.uiMode == AM.Mode.Keyframes) then
+            local height = AM.keyframeAreaList:GetHeight() - AM.keyframeViewport:GetHeight();
+            local pos = value * height;
+            AM.keyframeAreaList:ClearAllPoints();
+            AM.keyframeAreaList:SetPoint("TOPLEFT", AM.keyframeViewport, "TOPLEFT", 0, math.floor(pos));
+            AM.keyframeAreaList:SetPoint("TOPRIGHT", AM.keyframeViewport, "TOPRIGHT", 0, math.floor(pos));
+        end
 	end);
     AM.workAreaScrollbar:SetPoint("BOTTOMRIGHT", AM.groupBG:GetFrame(), "BOTTOMRIGHT", 0, 20);
     AM.workAreaScrollbar:SetFrameLevel(startLevel + 6);
 
     AM.workAreaCreated = true;
-    AM.RefreshWorkspace();
 end
 
-function AM.CreateCurveView(x, y, w, h, parent)
-    AM.curveViewBG = UI.Rectangle:New(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 1);
+function AM.CreateKeyframeView(x, y, w, h, parent, startLevel)
+    AM.keyframeViewBG = UI.Rectangle:New(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 0);
+    AM.keyframeViewBG:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", 0, 20);
+    AM.keyframeViewBG:GetFrame():SetClipsChildren(true);
+    AM.keyframeViewBG:SetFrameLevel(startLevel + 1);
 
+    AM.keyframeViewport = CreateFrame("Button", "AM.keyframeViewport", AM.keyframeViewBG:GetFrame())
+	AM.keyframeViewport:SetPoint("TOPLEFT", AM.keyframeViewBG:GetFrame(), "TOPLEFT", 0, 0);
+    AM.keyframeViewport:SetPoint("BOTTOMRIGHT", AM.keyframeViewBG:GetFrame(), "BOTTOMRIGHT", -10, 0);
+	AM.keyframeViewport:SetSize(w, h);
+    AM.keyframeViewport.ntex = AM.keyframeViewport:CreateTexture();
+    AM.keyframeViewport.ntex:SetColorTexture(c4[2], c4[3], c4[3], 1);
+    AM.keyframeViewport.ntex:SetAllPoints();
+    AM.keyframeViewport:SetNormalTexture(AM.keyframeViewport.ntex);
+    AM.keyframeViewport:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
+    AM.keyframeViewport:SetFrameLevel(startLevel + 1);
+
+    AM.keyframeAreaList = UI.Rectangle:New(0, 0, w, h, AM.keyframeViewport, "TOPLEFT", "TOPLEFT",  c4[1], c4[2], c4[3], 1);
+    AM.keyframeAreaList:SetPoint("TOPRIGHT", AM.keyframeViewport, "TOPRIGHT", -6, 0);
+    AM.keyframeAreaList:SetFrameLevel(startLevel + 2);
+
+    AM.keyframeBars = {};
+    local barSize = 16;
+    local barCount = 7;
+    AM.keyframeAreaList:SetHeight(barSize * barCount + (barSize * 3));
+    
+    local positionText = UI.Label:New(0, 0, 200, barSize, AM.keyframeAreaList:GetFrame(), "TOPLEFT", "TOPLEFT", "Position");
+    AM.keyframeBars[1] = AM.CreateKeyframeBarElement(0, -barSize, barSize, AM.keyframeAreaList:GetFrame());
+    AM.keyframeBars[2] = AM.CreateKeyframeBarElement(0, -barSize * 2, barSize, AM.keyframeAreaList:GetFrame());
+    AM.keyframeBars[3] = AM.CreateKeyframeBarElement(0, -barSize * 3, barSize, AM.keyframeAreaList:GetFrame());
+
+    local rotationText = UI.Label:New(0, -barSize * 4, 200, barSize, AM.keyframeAreaList:GetFrame(), "TOPLEFT", "TOPLEFT", "Rotation");
+    AM.keyframeBars[4] = AM.CreateKeyframeBarElement(0, -barSize * 5, barSize, AM.keyframeAreaList:GetFrame());
+    AM.keyframeBars[5] = AM.CreateKeyframeBarElement(0, -barSize * 6, barSize, AM.keyframeAreaList:GetFrame());
+    AM.keyframeBars[6] = AM.CreateKeyframeBarElement(0, -barSize * 7, barSize, AM.keyframeAreaList:GetFrame());
+
+    local scaleText = UI.Label:New(0, -barSize * 8, 200, barSize, AM.keyframeAreaList:GetFrame(), "TOPLEFT", "TOPLEFT", "Scale");
+    AM.keyframeBars[7] = AM.CreateKeyframeBarElement(0, -barSize * 9, barSize, AM.keyframeAreaList:GetFrame());
+end
+
+function AM.CreateKeyframeBarElement(x, y, h, parent)
+    local element = CreateFrame("Button", "AM.KeyframeBarElement", parent)
+    element:SetPoint("TOPLEFT", parent, "TOPLEFT", x, y);
+    element:SetPoint("TOPRIGHT", parent, "TOPRIGHT", x, y);
+    element:SetHeight(h);
+    element:SetFrameLevel(8);
+    element.ntex = element:CreateTexture();
+    element.ntex:SetTexture(Resources.textures["Animation"]);
+    element.ntex:SetTexCoord(0, 0.5, 0, 0.5);    -- (left,right,top,bottom)
+    element.ntex:SetAllPoints();
+    element.ntex:SetVertexColor(0.2, 0.2, 0.2, 1);
+    element:SetNormalTexture(element.ntex);
+    element:SetScript("OnClick", function (self, button, down)
+        --[[
+        if (AM.loadedTimeline) then
+            AM.SelectTrack(index);
+        end
+        --]]
+    end)
+
+    return element;
+end
+
+function AM.CreateCurveView(x, y, w, h, parent, startLevel)
+    AM.curveViewBG = UI.Rectangle:New(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 1);
+    AM.curveViewBG:SetFrameLevel(startLevel);
+
+    --[[
     -- create line pool
     AM.CurvePool = {};
     for i = 1, AM.CurvePoolSize, 1 do
         AM.CurvePool[i] = AM.CreateCurveLineElement();
     end
+    --]]
 end
-
+--[[
 function AM.CreateCurveLineElement()
     local line = AM.curveViewBG:GetFrame():CreateLine(nil, nil, nil);
     line:SetThickness(1 + Editor.pmult);
@@ -1039,7 +1129,7 @@ function AM.GetAvailableCurvePoolLineElement()
 
     return AM.CurvePool[i];
 end
-
+--]]
 function AM.GenerateTrackElement(index, x, y, w, h, parent, R, G, B, A)
     local element = CreateFrame("Button", "AM.TrackElement"..index, parent)
 	element:SetPoint("TOPLEFT", parent, "TOPLEFT", x + 6, y);
@@ -1068,7 +1158,7 @@ function AM.GetAvailableTrackElement()
     local i = AM.usedTracks + 1;
     AM.usedTracks = AM.usedTracks + 1;
 
-    if (i >= #AM.TrackPool) then
+    if (i > #AM.TrackPool) then
         AM.TrackPool[i] = AM.GenerateTrackElement(i, 0, -((AM.trackElementH + Editor.pmult) * (i - 1)), 10, AM.trackElementH, AM.workAreaList:GetFrame());
     end
 
@@ -1099,7 +1189,7 @@ function AM.GenerateAnimationElement(index, x, y, w, h, parent, R, G, B, A)
     element:SetScript("OnClick", function (self, button, down)
         if (button == "LeftButton" and down) then
             AM.SelectAnimation(index);
-            AM.SelectKeyframe(-1);
+            AM.SelectKeyAtIndex(-1);
         end
     end)
 
@@ -1173,7 +1263,7 @@ function AM.GetAvailableAnimationElement()
     local i = AM.usedAnimations + 1;
     AM.usedAnimations = AM.usedAnimations + 1;
 
-    if (i >= #AM.AnimationPool) then
+    if (i > #AM.AnimationPool) then
         AM.AnimationPool[i] = AM.GenerateAnimationElement(i, 0, 0, AM.trackElementH, AM.trackElementH, AM.workAreaList:GetFrame(), 0, 0, 0, 1);
     end
 
@@ -1430,7 +1520,7 @@ function AM.SelectTrack(index)
     end
 
     if (AM.loadedTimeline.tracks[index] ~= AM.selectedTrack) then
-        AM.SelectKeyframe(-1);
+        AM.SelectKeyAtIndex(-1);
     end
 
     AM.selectedTrack = AM.loadedTimeline.tracks[index];
@@ -1700,14 +1790,13 @@ function AM.RefreshWorkspace()
     AM.usedAnimations = 0;
     AM.usedKeyframes = 0;
     AM.usedCurveLines = 0;
-
     AM.trackSelectionBox:Hide();
 
-    if (AM.uiMode == 0) then
+    if (AM.uiMode == AM.Mode.Tracks) then
         -- load tracks
         local usedTracks = 0;
         local usedAnimations = 0;
-        local usedKeyframes = 0;
+        local usedKeys = 0;
         if (AM.loadedTimeline) then
             if (not AM.loadedTimeline.tracks) then
                 AM.loadedTimeline.tracks = {};
@@ -1787,65 +1876,21 @@ function AM.RefreshWorkspace()
                         end
                     end
 
-                    -- keyframes
-                    if (track.keyframes) then
-                        --print(track.name .. " " .. #track.keyframes)
-                        for k = 1, #track.keyframes, 1 do
-                            local keyframeElement = AM.GetAvailableKeyframeElement();
-                            usedKeyframes = usedKeyframes + 1;
-                            local startMS = AM.currentCrop.min * AM.loadedTimeline.duration;
-                            local endMS = AM.currentCrop.max * AM.loadedTimeline.duration;
-                            local xMS = track.keyframes[k].time;
-
-                            -- check if ghost key
-                            local keyAlpha = 1.0;
-                            if (track ~= AM.selectedTrack) then
-                                -- ghost frame (of another track)
-                                keyAlpha = 0.3;
-                                keyframeElement:RegisterForClicks();
-                            else
-                                keyframeElement:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
-                            end
-
-                            -- check if on screen or cropped out
-                            -- check if the point are on screen
-                            if (xMS >= startMS and xMS <= endMS) then
-                                local xNorm = (xMS - startMS) / (endMS - startMS);
-                                xNorm = max(0, xNorm);
-                                xNorm = min(1, xNorm);
-                
-                                local startP = math.floor(trackElementW * xNorm + 10);
-
-                                keyframeElement:ClearAllPoints();
-                                keyframeElement:SetPoint("CENTER", AM.KeyframeBar:GetFrame(), "LEFT", startP, 0);
-                                keyframeElement.ntex:SetVertexColor(0.5, 0.5, 0.5, keyAlpha);
-                                -- use alpha to desaturate the animation bars
-                                -- so that they don't draw more attention than the scene
-                                -- calculate an alpha value based on percieved R,G,B
-                            
-                                keyframeElement:Show();
-                
-                                -- store some information for lookup
-                                keyframeElement.trackIdx = t;
-                                keyframeElement.keyIdx = k;
-
-                                if (track.keyframes[k] == AM.selectedKey and track == AM.selectedTrack) then
-                                    keyframeElement.ntex:SetVertexColor(1, 1, 1, keyAlpha);
-                                end
-                            else
-                                keyframeElement:Hide();
-                            end
-                        end
-                    end
-
                     -- keyframes: hide unused
-                    for i = usedKeyframes + 1, #AM.KeyframePool, 1 do
+                    for i = usedKeys + 1, #AM.KeyframePool, 1 do
                         if (AM.KeyframePool[i]) then
                             AM.KeyframePool[i]:Hide();
                         end
                     end
 
                     if (track == AM.selectedTrack) then
+                        -- keyframes
+                        local startMS = AM.currentCrop.min * AM.loadedTimeline.duration;
+                        local endMS = AM.currentCrop.max * AM.loadedTimeline.duration;
+                        local barWidth = AM.keyframeBars[1]:GetWidth();
+                        usedKeys = usedKeys + AM.RefreshGroupKeyframes(track, startMS, endMS, barWidth, t);
+
+                        -- Show track selection box on the left
                         AM.trackSelectionBox:Show();
                         AM.trackSelectionBox:SetSinglePoint("TOPLEFT", 0, (t - 1) * -(AM.trackElementH + Editor.pmult));
                     end
@@ -1876,7 +1921,54 @@ function AM.RefreshWorkspace()
         -- resize scrollbar
         AM.workAreaScrollbar:Resize(AM.groupBG:GetHeight() - 106, workAreaListHeight);
 
-    elseif (AM.uiMode == 1) then
+    elseif (AM.uiMode == AM.Mode.Keyframes) then
+        -- load tracks
+        local usedKeys = 0;
+        if (AM.loadedTimeline) then
+            if (not AM.loadedTimeline.tracks) then
+                AM.loadedTimeline.tracks = {};
+            end
+
+            -- tracks
+            if (AM.loadedTimeline.tracks) then
+                for t = 1, #AM.loadedTimeline.tracks, 1 do
+                    local track = AM.loadedTimeline.tracks[t];
+
+                    if (AM.selectedTrack == track) then
+                        local startMS = AM.currentCrop.min * AM.loadedTimeline.duration;
+                        local endMS = AM.currentCrop.max * AM.loadedTimeline.duration;
+                        local barWidth = AM.keyframeBars[1]:GetWidth();
+
+                        -- keyframes
+                        usedKeys = usedKeys + AM.RefreshKeyframes(track.keysPx, startMS, endMS, barWidth, t, 1);
+                        usedKeys = usedKeys + AM.RefreshKeyframes(track.keysPy, startMS, endMS, barWidth, t, 2);
+                        usedKeys = usedKeys + AM.RefreshKeyframes(track.keysPz, startMS, endMS, barWidth, t, 3);
+
+                        usedKeys = usedKeys + AM.RefreshKeyframes(track.keysRx, startMS, endMS, barWidth, t, 4);
+                        usedKeys = usedKeys + AM.RefreshKeyframes(track.keysRy, startMS, endMS, barWidth, t, 5);
+                        usedKeys = usedKeys + AM.RefreshKeyframes(track.keysRz, startMS, endMS, barWidth, t, 6);
+
+                        usedKeys = usedKeys + AM.RefreshKeyframes(track.keysS, startMS, endMS, barWidth, t, 7);
+
+                        usedKeys = usedKeys + AM.RefreshGroupKeyframes(track, startMS, endMS, barWidth, t);
+                    end
+                end
+            end
+        end
+        
+        -- keyframes: hide unused
+        --print (usedKeys .. " " .. #AM.KeyframePool)
+        for i = usedKeys + 1, #AM.KeyframePool, 1 do
+            if (AM.KeyframePool[i]) then
+                AM.KeyframePool[i]:Hide();
+            end
+        end
+
+        -- resize scrollbar
+        if (AM.keyframeAreaList) then
+            AM.workAreaScrollbar:Resize(AM.keyframeViewport:GetHeight(), AM.keyframeAreaList:GetHeight());
+        end
+    elseif (AM.uiMode == AM.Mode.Curves) then
         local usedLines = 0;
         local viewScale = 20;
         if (AM.loadedTimeline and AM.selectedTrack) then
@@ -1884,6 +1976,7 @@ function AM.RefreshWorkspace()
             --local trackElement = AM.GetAvailableTrackElement();
             --local trackElementW = trackElement:GetWidth() - 6;
             local trackElementW = AM.workAreaList:GetWidth() - 6;
+            --[[
             if (track.keyframes) then
                 local linePreviousX = nil;
                 local linePreviousY = nil;
@@ -1961,13 +2054,13 @@ function AM.RefreshWorkspace()
                     end
                 end
             end
-
             -- lines: hide unused
             for i = usedLines, #AM.CurvePool, 1 do
                 if (AM.CurvePool[i]) then
                     AM.CurvePool[i]:Hide();
                 end
             end
+            --]]
         end
     end
 
@@ -1977,6 +2070,136 @@ function AM.RefreshWorkspace()
         local currentTime = AM.TimeValueToString(AM.loadedTimeline.currentTime or 0);
         AM.timerTextBox:SetText(currentTime .. "-" .. totalTime);
     end
+end
+
+function AM.RefreshKeyframes(keys, startMS, endMS, barWidth, trackIndex, componentIndex)
+    local usedKeys = 0;
+    if (keys) then
+        for k = 1, #keys, 1 do
+            local keyTime = keys[k].time;
+            
+            -- check if on screen or cropped out
+            -- check if the point are on screen
+            if (keyTime >= startMS and keyTime <= endMS) then
+                local keyframeElement = AM.GetAvailableKeyframeElement();
+
+                local xNorm = (keyTime - startMS) / (endMS - startMS);
+                xNorm = min(1, max(0, xNorm));
+
+                local startP = math.floor(barWidth * xNorm) - (xNorm * AM.keyframeElementH / 2) + 6;
+
+                keyframeElement:ClearAllPoints();
+                keyframeElement:SetParent(AM.keyframeBars[componentIndex]);
+                keyframeElement:SetPoint("CENTER", AM.keyframeBars[componentIndex], "LEFT", startP, 0);
+                keyframeElement:Show();
+
+                -- store some information for lookup
+                keyframeElement.trackIdx = trackIndex;
+                keyframeElement.keyIdx = k;
+                keyframeElement.componentIdx = componentIndex;
+
+                keyframeElement.ntex:SetVertexColor(0.5, 0.5, 0.5, 1);
+                for i = 1, #AM.selectedKeys, 1 do
+                    if (keys[k] == AM.selectedKeys[i]) then
+                        keyframeElement.ntex:SetVertexColor(1, 1, 1, 1);
+                    end
+                end
+
+                usedKeys = usedKeys + 1;
+            end
+        end
+    end
+
+    return usedKeys;
+end
+
+function AM.RefreshGroupKeyframes(track, startMS, endMS, barWidth, trackIndex)
+    local usedKeys = 0;
+    AM.keyframeGroups = {};
+
+    for i = 1, #track.keysPx, 1 do
+        local key = track.keysPx[i];
+        if (key.time >= startMS and key.time <= endMS) then
+            AM.keyframeGroups[key.time] = AM.keyframeGroups[key.time] or {};
+            AM.keyframeGroups[key.time].px = key;
+        end
+    end
+
+    for i = 1, #track.keysPy, 1 do
+        local key = track.keysPy[i];
+        if (key.time >= startMS and key.time <= endMS) then
+            AM.keyframeGroups[key.time] = AM.keyframeGroups[key.time] or {};
+            AM.keyframeGroups[key.time].py = key;
+        end
+    end
+
+    for i = 1, #track.keysPz, 1 do
+        local key = track.keysPz[i];
+        if (key.time >= startMS and key.time <= endMS) then
+            AM.keyframeGroups[key.time] = AM.keyframeGroups[key.time] or {};
+            AM.keyframeGroups[key.time].pz = key;
+        end
+    end
+
+    for i = 1, #track.keysRx, 1 do
+        local key = track.keysRx[i];
+        if (key.time >= startMS and key.time <= endMS) then
+            AM.keyframeGroups[key.time] = AM.keyframeGroups[key.time] or {};
+            AM.keyframeGroups[key.time].rx = key;
+        end
+    end
+
+    for i = 1, #track.keysRy, 1 do
+        local key = track.keysRy[i];
+        if (key.time >= startMS and key.time <= endMS) then
+            AM.keyframeGroups[key.time] = AM.keyframeGroups[key.time] or {};
+            AM.keyframeGroups[key.time].ry = key;
+        end
+    end
+
+    for i = 1, #track.keysRz, 1 do
+        local key = track.keysRz[i];
+        if (key.time >= startMS and key.time <= endMS) then
+            AM.keyframeGroups[key.time] = AM.keyframeGroups[key.time] or {};
+            AM.keyframeGroups[key.time].rz = key;
+        end
+    end
+
+    for i = 1, #track.keysS, 1 do
+        local key = track.keysS[i];
+        if (key.time >= startMS and key.time <= endMS) then
+            AM.keyframeGroups[key.time] = AM.keyframeGroups[key.time] or {};
+            AM.keyframeGroups[key.time].s = key;
+        end
+    end
+
+    for keyTime, value in pairs(AM.keyframeGroups) do
+        local keyframeElement = AM.GetAvailableKeyframeElement();
+        local xNorm = (keyTime - startMS) / (endMS - startMS);
+        xNorm = min(1, max(0, xNorm));
+
+        local startP = math.floor(barWidth * xNorm) - (xNorm * AM.keyframeElementH / 2) + 10;
+
+        keyframeElement:ClearAllPoints();
+        keyframeElement:SetParent(AM.mainKeyframeBar:GetFrame());
+        keyframeElement:SetPoint("CENTER", AM.mainKeyframeBar:GetFrame(), "LEFT", startP, 0);
+        keyframeElement:Show();
+
+        -- store some information for lookup
+        keyframeElement.trackIdx = trackIndex;
+        keyframeElement.componentIdx = -1;
+        keyframeElement.time = keyTime;
+
+        if (AM.selectedKeyGroup == keyTime) then
+            keyframeElement.ntex:SetVertexColor(1, 1, 1, 1);
+        else
+            keyframeElement.ntex:SetVertexColor(0.5, 0.5, 0.5, 1);
+        end
+
+        usedKeys = usedKeys + 1;
+    end
+
+    return usedKeys;
 end
 
 function AM.TimeValueToString(duration)
@@ -2098,7 +2321,7 @@ end
 function AM.SetTime(timeMS)
 
     -- force time selection to 30 fps ticks
-    --timeMS = floor(floor(timeMS / 33.3333) * 33.3333);
+    timeMS = floor(floor(timeMS / 33.3333) * 33.3333);
 
     -- move ze slider
     local groupBgH = AM.timebarGroup:GetWidth() - 26;
@@ -2144,20 +2367,22 @@ function AM.SetTime(timeMS)
                 end
 
                 -- animate keyframes
-                if (track.keyframes and #track.keyframes > 0) then
-                    local pos, rot, scale = track:SampleKeyframes(timeMS);
-                    if (pos) then
-                        obj:SetPositionVector3(pos);
-                    end
-                    if (rot) then
-                        obj:SetRotationQuaternion(rot);
-                    end
-                    if (scale) then
-                        obj:SetScale(scale);
-                    end
-                else
-                    -- no keyframes, don't animate
-                end
+                local currentPos = obj:GetPosition();
+                local posX = track:SamplePositionXKey(timeMS) or currentPos.x;
+                local posY = track:SamplePositionYKey(timeMS) or currentPos.y;
+                local posZ = track:SamplePositionZKey(timeMS) or currentPos.z;
+                obj:SetPosition(posX, posY, posZ);
+
+                local currentRot = obj:GetRotation();
+                local rotX = track:SampleRotationXKey(timeMS) or currentRot.x;
+                local rotY = track:SampleRotationYKey(timeMS) or currentRot.y;
+                local rotZ = track:SampleRotationZKey(timeMS) or currentRot.z;
+                obj:SetRotation(rotX, rotY, rotZ);
+
+                local currentScale = obj:GetScale();
+                local scale = track:SampleScaleKey(timeMS) or currentScale;
+                obj:SetScale(scale);
+
             end
         end
     end
@@ -2213,19 +2438,29 @@ function AM.OpenAddAnimationWindow(track)
     AM.animSelectWindow:Show();
 end
 
-function AM.AddKey(track)
+function AM.AddFullKey(track)
     if (not track) then
         return;
-    end
-
-    if (not track.keyframes) then
-        track.keyframes = {};
     end
 
     local timeMS = AM.loadedTimeline.currentTime;
     local obj = AM.GetObjectOfTrack(track);
     if (obj) then
-        track:AddKeyframe(timeMS, obj:GetPosition(), obj:GetRotation(), obj:GetScale());
+        track:AddFullKeyframe(timeMS, obj:GetPosition(), obj:GetRotation(), obj:GetScale());
+    end
+
+    AM.RefreshWorkspace();
+end
+
+function AM.AddPosKey(track)
+    if (not track) then
+        return;
+    end
+
+    local timeMS = AM.loadedTimeline.currentTime;
+    local obj = AM.GetObjectOfTrack(track);
+    if (obj) then
+        track:AddPositionKeyframe(timeMS, obj:GetPosition());
     end
 
     AM.RefreshWorkspace();
@@ -2240,23 +2475,70 @@ function AM.RemoveKey(track, key)
         return;
     end
 
-    if (not track.keyframes) then
-        track.keyframes = {};
-        return;
+    if (track.keysPx) then
+        for i in pairs(track.keysPx) do
+            if (track.keysPx[i] == key) then
+                table.remove(track.keysPx, i);
+            end
+        end
     end
 
-    for i in pairs(track.keyframes) do
-        if (track.keyframes[i] == key) then
-            table.remove(track.keyframes, i);
+    if (track.keysPy) then
+        for i in pairs(track.keysPy) do
+            if (track.keysPy[i] == key) then
+                table.remove(track.keysPy, i);
+            end
+        end
+    end
+
+    if (track.keysPz) then
+        for i in pairs(track.keysPz) do
+            if (track.keysPz[i] == key) then
+                table.remove(track.keysPz, i);
+            end
+        end
+    end
+
+    if (track.keysRx) then
+        for i in pairs(track.keysRx) do
+            if (track.keysRx[i] == key) then
+                table.remove(track.keysRx, i);
+            end
+        end
+    end
+
+    if (track.keysRy) then
+        for i in pairs(track.keysRy) do
+            if (track.keysRy[i] == key) then
+                table.remove(track.keysRy, i);
+            end
+        end
+    end
+
+    if (track.keysRz) then
+        for i in pairs(track.keysRz) do
+            if (track.keysRz[i] == key) then
+                table.remove(track.keysRz, i);
+            end
+        end
+    end
+
+    if (track.keysS) then
+        for i in pairs(track.keysS) do
+            if (track.keysS[i] == key) then
+                table.remove(track.keysS, i);
+            end
         end
     end
 
     AM.RefreshWorkspace();
 end
 
-function AM.SelectKeyframe(index)
+function AM.SelectKeyAtIndex(index)
+    
+    AM.selectedKeys = {};
+
     if (index < 0) then
-        AM.selectedKey = nil;
         AM.RefreshWorkspace();
         return;
     end
@@ -2265,9 +2547,58 @@ function AM.SelectKeyframe(index)
     local keyframeElement = AM.KeyframePool[index];
     local track = AM.loadedTimeline.tracks[keyframeElement.trackIdx];
     local keyIndex = keyframeElement.keyIdx;
-
+    local keyTime = keyframeElement.time;
+    local component = keyframeElement.componentIdx;
     Editor.lastSelectedType = "key";
-    AM.selectedKey = track.keyframes[keyIndex];
+
+    if (component == -1) then
+        AM.selectedKeyGroup = keyTime;
+        local grp = AM.keyframeGroups[keyTime];
+        if (grp) then
+            if (grp.px) then
+                AM.selectedKeys[1] = grp.px;
+            end
+            if (grp.py) then
+                AM.selectedKeys[2] = grp.py;
+            end
+            if (grp.pz) then
+                AM.selectedKeys[3] = grp.pz;
+            end
+
+            if (grp.rx) then
+                AM.selectedKeys[4] = grp.rx;
+            end
+            if (grp.ry) then
+                AM.selectedKeys[5] = grp.ry;
+            end
+            if (grp.rz) then
+                AM.selectedKeys[6] = grp.rz;
+            end
+
+            if (grp.s) then
+                AM.selectedKeys[7] = grp.s;
+            end
+        end
+    else
+        if (component == 1) then
+            AM.selectedKeys[1] = track.keysPx[keyIndex];
+        elseif (component == 2) then
+            AM.selectedKeys[1] = track.keysPy[keyIndex];
+        elseif (component == 3) then
+            AM.selectedKeys[1] = track.keysPz[keyIndex];
+        elseif (component == 4) then
+            AM.selectedKeys[1] = track.keysRx[keyIndex];
+        elseif (component == 5) then
+            AM.selectedKeys[1] = track.keysRy[keyIndex];
+        elseif (component == 6) then
+            AM.selectedKeys[1] = track.keysRz[keyIndex];
+        elseif (component == 7) then
+            AM.selectedKeys[1] = track.keysS[keyIndex];
+        end
+
+        AM.selectedKeyGroup = AM.selectedKeys[1].time;
+    end
+
     AM.selectedTrack = track;
     AM.RefreshWorkspace();
 end
@@ -2377,28 +2708,36 @@ function AM.LoopToggle_OnClick(on)
 end
 
 function AM.ChangeUIMode(mode)
-    if (mode == 0) then
-        -- switch to key view
-        AM.uiMode = 0;
-        AM.KeyframeBar:Show();
+
+    AM.mainKeyframeBar:Hide();
+    AM.workAreaBG:Hide();
+    AM.curveViewBG:Hide();
+    AM.keyframeViewBG:Hide();
+
+    if (mode == AM.Mode.Tracks) then
+        -- switch to tracks view
+        AM.mainKeyframeBar:Show();
         AM.workAreaBG:Show();
-        AM.curveViewBG:Hide();
-    elseif (mode == 1) then
+    elseif (mode == AM.Mode.Keyframes) then
+        AM.mainKeyframeBar:Show();
+        AM.keyframeViewBG:Show();
+    elseif (mode == AM.Mode.Curves) then
         -- switch to curve view
-        AM.uiMode = 1;
-        AM.KeyframeBar:Hide();
-        AM.workAreaBG:Hide();
         AM.curveViewBG:Show();
     end
 
+    AM.uiMode = mode;
     AM.RefreshWorkspace();
 end
 
-function AM.ToggleUIMode()
-    if (AM.uiMode == 0) then
-        AM.uiMode = 1;
-    elseif (AM.uiMode == 1) then
-        AM.uiMode = 0;
-    end
-    AM.ChangeUIMode(AM.uiMode)
+function AM.Button_SetModeToTracks()
+    AM.ChangeUIMode(AM.Mode.Tracks);
+end
+
+function AM.Button_SetModeToKeyframes()
+    AM.ChangeUIMode(AM.Mode.Keyframes);
+end
+
+function AM.Button_SetModeToCurves()
+    AM.ChangeUIMode(AM.Mode.Curves);
 end

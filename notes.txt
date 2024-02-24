@@ -1,2 +1,10 @@
 -- notes :
 -- world/expansion01/doodads/m2lights/m2_light_lightblue.m2
+
+-- scale_obj_box_gray001 0.0725
+-- scale_obj_sphere_gray001 0.03625
+-- scale_obj_cylinder_gray003 0.03625
+-- scale_obj_cone_gray003 0.03625
+-- scale_obj_pyramid_gray002 0.0725
+-- scale_obj_ramp_gray002 0.0725
+-- scale_obj_rectangle_gray001 0.0725

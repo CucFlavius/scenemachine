@@ -241,7 +241,9 @@ function Editor.DeleteLastSelected()
     elseif (Editor.lastSelectedType == "anim") then
         AM.RemoveAnim(AM.selectedTrack, AM.selectedAnim);
     elseif (Editor.lastSelectedType == "key") then
-        AM.RemoveKey(AM.selectedTrack, AM.selectedKey);
+        for i = 1, #AM.selectedKeys, 1 do
+            AM.RemoveKey(AM.selectedTrack, AM.selectedKeys[i]);
+        end
     end
 end
 
