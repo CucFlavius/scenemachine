@@ -2098,12 +2098,35 @@ function AM.RefreshKeyframes(keys, startMS, endMS, barWidth, trackIndex, compone
                 keyframeElement.keyIdx = k;
                 keyframeElement.componentIdx = componentIndex;
 
-                keyframeElement.ntex:SetVertexColor(0.5, 0.5, 0.5, 1);
+                local R = 1.0;
+                local G = 1.0;
+                local B = 1.0;
+                local A = 0.4;
+                if (componentIndex == 1 or componentIndex == 4) then
+                    R = 1.0;
+                    G = 0.4;
+                    B = 0.4;
+                elseif (componentIndex == 2 or componentIndex == 5) then
+                    R = 0.4;
+                    G = 1.0;
+                    B = 0.4;
+                elseif (componentIndex == 3 or componentIndex == 6) then
+                    R = 0.4;
+                    G = 0.4;
+                    B = 1.0;
+                elseif (componentIndex == 7) then
+                    R = 1.0;
+                    G = 1.0;
+                    B = 0.4;
+                end
+                
                 for i = 1, #AM.selectedKeys, 1 do
                     if (keys[k] == AM.selectedKeys[i]) then
-                        keyframeElement.ntex:SetVertexColor(1, 1, 1, 1);
+                        A = 1.0;
                     end
                 end
+
+                keyframeElement.ntex:SetVertexColor(R, G, B, A);
 
                 usedKeys = usedKeys + 1;
             end
