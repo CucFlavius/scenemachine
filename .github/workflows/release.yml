@@ -13,3 +13,5 @@ jobs:
 
       - name: Create Package
         uses: BigWigsMods/packager@v2
+        env:
+          GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
