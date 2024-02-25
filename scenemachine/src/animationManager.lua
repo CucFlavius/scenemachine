@@ -2092,11 +2092,13 @@ function AM.RefreshKeyframes(keys, startMS, endMS, barWidth, trackIndex, compone
                 keyframeElement:SetParent(AM.keyframeBars[componentIndex]);
                 keyframeElement:SetPoint("CENTER", AM.keyframeBars[componentIndex], "LEFT", startP, 0);
                 keyframeElement:Show();
-
+                keyframeElement.ntex:SetTexCoord(AM.KeyframeInterpolationToTexCoords(keys[k].interpolationIn, keys[k].interpolationOut));
+                
                 -- store some information for lookup
                 keyframeElement.trackIdx = trackIndex;
                 keyframeElement.keyIdx = k;
                 keyframeElement.componentIdx = componentIndex;
+                
 
                 local R = 1.0;
                 local G = 1.0;
@@ -2134,6 +2136,37 @@ function AM.RefreshKeyframes(keys, startMS, endMS, barWidth, trackIndex, compone
     end
 
     return usedKeys;
+end
+
+function AM.KeyframeInterpolationToTexCoords(interpolationIn, interpolationOut)
+    interpolationIn = interpolationIn or Track.Interpolation.Bezier;
+    interpolationOut = interpolationOut or Track.Interpolation.Bezier;
+
+    if (interpolationIn == Track.Interpolation.Bezier) then
+        if (interpolationOut == Track.Interpolation.Bezier) then
+            return 0.75, 1, 0, 0.25;
+        elseif (interpolationOut == Track.Interpolation.Linear) then
+            return 0.25, 0.5, 0, 0.25;
+        elseif (interpolationOut == Track.Interpolation.Step) then
+            return 0.5, 0.75, 0.25, 0.5;
+        end
+    elseif (interpolationIn == Track.Interpolation.Linear) then
+        if (interpolationOut == Track.Interpolation.Bezier) then
+            return 0.5, 0.75, 0, 0.25;
+        elseif (interpolationOut == Track.Interpolation.Linear) then
+            return 0, 0.25, 0, 0.25;
+        elseif (interpolationOut == Track.Interpolation.Step) then
+            return 0.25, 0.5, 0.25, 0.5;
+        end
+    elseif (interpolationIn == Track.Interpolation.Step) then
+        if (interpolationOut == Track.Interpolation.Bezier) then
+            return 0.75, 1, 0.25, 0.5;
+        elseif (interpolationOut == Track.Interpolation.Linear) then
+            return 0, 0.25, 0.25, 0.5;
+        elseif (interpolationOut == Track.Interpolation.Step) then
+            return 0, 0.25, 0.5, 0.75;
+        end
+    end
 end
 
 function AM.RefreshGroupKeyframes(track, startMS, endMS, barWidth, trackIndex)
@@ -2367,8 +2400,6 @@ function AM.SetTime(timeMS, rounded)
     -- update timer
     if (AM.loadedTimeline) then
         AM.loadedTimeline.currentTime = timeMS;
-
-        print (AM.loadedTimeline.currentTime);
 
         local totalTime = AM.TimeValueToString(AM.loadedTimeline.duration);
         local currentTime = AM.TimeValueToString(AM.loadedTimeline.currentTime or 0);

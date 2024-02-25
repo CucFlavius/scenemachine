@@ -12,6 +12,12 @@ SceneMachine.Track =
 
 local Track = SceneMachine.Track;
 
+Track.Interpolation = {
+    Bezier = 1,
+    Linear = 2,
+    Step = 3,
+}
+
 setmetatable(Track, Track)
 
 local fields = {}
@@ -173,9 +179,12 @@ function Track:SampleAnimation(timeMS)
     return -1, -1
 end
 
-function Track:AddKeyframe(time, value, keyframes)
+function Track:AddKeyframe(time, value, keyframes, interpolationIn, interpolationOut)
     if (not keyframes) then keyframes = {}; end
 
+    interpolationIn = interpolationIn or Track.Interpolation.Bezier;
+    interpolationOut = interpolationOut or Track.Interpolation.Bezier;
+    
     for i = 1, #keyframes, 1 do
         if (keyframes[i].time == time) then
             keyframes[i].value = value;
@@ -183,7 +192,7 @@ function Track:AddKeyframe(time, value, keyframes)
         end
     end
 
-    keyframes[#keyframes + 1] = { time = time, value = value };
+    keyframes[#keyframes + 1] = { time = time, value = value, interpolationIn = interpolationIn, interpolationOut = interpolationOut};
 end
 
 function Track:AddFullKeyframe(time, position, rotation, scale)
@@ -279,6 +288,9 @@ function Track:SampleKey(timeMS, keys)
 
     local t1 = keys[idx].time;
     local t2 = keys[idx + 1].time;
+
+    local i1 = keys[idx].interpolationIn or Track.Interpolation.Bezier;
+    local i2 = keys[idx + 1].interpolationOut or Track.Interpolation.Bezier;
 
     local r = Track:InterpolateAutoBezier(t1, t2, timeMS);
 
