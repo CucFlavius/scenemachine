@@ -87,7 +87,9 @@ function Track:ImportData(data)
             local key = data.keysPx[k];
             self.keysPx[k] = {
                 time = key.time,
-                value = key.value
+                value = key.value,
+                interpolationIn = key.interpolationIn,
+                interpolationOut = key.interpolationOut,
             };
         end
     end
@@ -98,7 +100,9 @@ function Track:ImportData(data)
             local key = data.keysPy[k];
             self.keysPy[k] = {
                 time = key.time,
-                value = key.value
+                value = key.value,
+                interpolationIn = key.interpolationIn,
+                interpolationOut = key.interpolationOut,
             };
         end
     end
@@ -109,7 +113,9 @@ function Track:ImportData(data)
             local key = data.keysPz[k];
             self.keysPz[k] = {
                 time = key.time,
-                value = key.value
+                value = key.value,
+                interpolationIn = key.interpolationIn,
+                interpolationOut = key.interpolationOut,
             };
         end
     end
@@ -120,7 +126,9 @@ function Track:ImportData(data)
             local key = data.keysRx[k];
             self.keysRx[k] = {
                 time = key.time,
-                value = key.value
+                value = key.value,
+                interpolationIn = key.interpolationIn,
+                interpolationOut = key.interpolationOut,
             };
         end
     end
@@ -131,7 +139,9 @@ function Track:ImportData(data)
             local key = data.keysRy[k];
             self.keysRy[k] = {
                 time = key.time,
-                value = key.value
+                value = key.value,
+                interpolationIn = key.interpolationIn,
+                interpolationOut = key.interpolationOut,
             };
         end
     end
@@ -142,7 +152,9 @@ function Track:ImportData(data)
             local key = data.keysRz[k];
             self.keysRz[k] = {
                 time = key.time,
-                value = key.value
+                value = key.value,
+                interpolationIn = key.interpolationIn,
+                interpolationOut = key.interpolationOut,
             };
         end
     end
@@ -153,7 +165,9 @@ function Track:ImportData(data)
             local key = data.keysS[k];
             self.keysS[k] = {
                 time = key.time,
-                value = key.value
+                value = key.value,
+                interpolationIn = key.interpolationIn,
+                interpolationOut = key.interpolationOut,
             };
         end
     end
@@ -195,28 +209,28 @@ function Track:AddKeyframe(time, value, keyframes, interpolationIn, interpolatio
     keyframes[#keyframes + 1] = { time = time, value = value, interpolationIn = interpolationIn, interpolationOut = interpolationOut};
 end
 
-function Track:AddFullKeyframe(time, position, rotation, scale)
-    self:AddPositionKeyframe(time, position);
-    self:AddRotationKeyframe(time, rotation);
-    self:AddScaleKeyframe(time, scale);
+function Track:AddFullKeyframe(time, position, rotation, scale, interpolationIn, interpolationOut)
+    self:AddPositionKeyframe(time, position, interpolationIn, interpolationOut);
+    self:AddRotationKeyframe(time, rotation, interpolationIn, interpolationOut);
+    self:AddScaleKeyframe(time, scale, interpolationIn, interpolationOut);
 end
 
-function Track:AddPositionKeyframe(time, position)
-    self:AddKeyframe(time, position.x, self.keysPx);
-    self:AddKeyframe(time, position.y, self.keysPy);
-    self:AddKeyframe(time, position.z, self.keysPz);
+function Track:AddPositionKeyframe(time, position, interpolationIn, interpolationOut)
+    self:AddKeyframe(time, position.x, self.keysPx, interpolationIn, interpolationOut);
+    self:AddKeyframe(time, position.y, self.keysPy, interpolationIn, interpolationOut);
+    self:AddKeyframe(time, position.z, self.keysPz, interpolationIn, interpolationOut);
     self:SortPositionKeyframes();
 end
 
-function Track:AddRotationKeyframe(time, rotation)
-    self:AddKeyframe(time, rotation.x, self.keysRx);
-    self:AddKeyframe(time, rotation.y, self.keysRy);
-    self:AddKeyframe(time, rotation.z, self.keysRz);
+function Track:AddRotationKeyframe(time, rotation, interpolationIn, interpolationOut)
+    self:AddKeyframe(time, rotation.x, self.keysRx, interpolationIn, interpolationOut);
+    self:AddKeyframe(time, rotation.y, self.keysRy, interpolationIn, interpolationOut);
+    self:AddKeyframe(time, rotation.z, self.keysRz, interpolationIn, interpolationOut);
     self:SortRotationKeyframes();
 end
 
-function Track:AddScaleKeyframe(time, scale)
-    self:AddKeyframe(time, scale, self.keysS);
+function Track:AddScaleKeyframe(time, scale, interpolationIn, interpolationOut)
+    self:AddKeyframe(time, scale, self.keysS, interpolationIn, interpolationOut);
     self:SortScaleKeyframes();
 end
 
@@ -289,10 +303,39 @@ function Track:SampleKey(timeMS, keys)
     local t1 = keys[idx].time;
     local t2 = keys[idx + 1].time;
 
-    local i1 = keys[idx].interpolationIn or Track.Interpolation.Bezier;
-    local i2 = keys[idx + 1].interpolationOut or Track.Interpolation.Bezier;
+    local i1 = keys[idx].interpolationOut;
+    local i2 = keys[idx + 1].interpolationIn;
 
-    local r = Track:InterpolateAutoBezier(t1, t2, timeMS);
+    local r = 0;
+    if (i1 == i2) then
+        if (i1 == Track.Interpolation.Bezier) then
+            r = Track:InterpolateAutoBezier(t1, t2, timeMS);
+        elseif (i1 == Track.Interpolation.Linear) then
+            r = Track:InterpolateLinear(t1, t2, timeMS);
+        elseif (i1 == Track.Interpolation.Step) then
+            r = Track:InterpolateStep(t1, t2, timeMS);
+        end
+    else
+        if (i1 == Track.Interpolation.Step or i2 == Track.Interpolation.Step) then
+            r = Track:InterpolateStep(t1, t2, timeMS);
+        else
+            local alpha = Track:InterpolateLinear(t1, t2, timeMS);
+            local A = 0;
+            local B = 0;
+            if (i1 == Track.Interpolation.Bezier) then
+                A = Track:InterpolateAutoBezier(t1, t2, timeMS);
+            elseif (i1 == Track.Interpolation.Linear) then
+                A = Track:InterpolateLinear(t1, t2, timeMS);
+            end
+
+            if (i2 == Track.Interpolation.Bezier) then
+                B = Track:InterpolateAutoBezier(t1, t2, timeMS);
+            elseif (i2 == Track.Interpolation.Linear) then
+                B = Track:InterpolateLinear(t1, t2, timeMS);
+            end
+            r = (A + (B - A) * alpha);
+        end
+    end
 
     local v1 = keys[idx].value;
     local v2 = keys[idx + 1].value;
@@ -350,6 +393,14 @@ function Track:InterpolateAutoBezier(tA, tB, timeMS)
            (t3 - t2) * nextTangent;
 
     return p;
+end
+
+function Track:InterpolateStep(t1, t2, timeMS)
+    if (timeMS == t2) then
+        return 1;
+    end
+
+    return 0;
 end
 
 function Track:SampleRotationKey(timeMS)

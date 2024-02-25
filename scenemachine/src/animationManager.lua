@@ -93,6 +93,8 @@ AM.colors = {
 AM.playing = false;
 AM.loopPlay = true;
 AM.lastKeyedTime = 0;
+AM.currentInterpolationIn = Track.Interpolation.Bezier;
+AM.currentInterpolationOut = Track.Interpolation.Bezier;
 
 local c1 = { 0.1757, 0.1757, 0.1875 };
 local c2 = { 0.242, 0.242, 0.25 };
@@ -897,6 +899,8 @@ function AM.CreateToolbar(x, y, w, h, parent, startLevel)
         { type = "Separator" },
         { type = "SplitButton", name = "InterpolationIn", icons = { toolbar:GetIcon("ismooth"), toolbar:GetIcon("ilinear"), toolbar:GetIcon("istep") },
                 action = function(v) AM.Button_SetInterpolationIn(v); end },
+        { type = "SplitButton", name = "InterpolationOut", icons = { toolbar:GetIcon("osmooth"), toolbar:GetIcon("olinear"), toolbar:GetIcon("ostep") },
+                action = function(v) AM.Button_SetInterpolationOut(v); end },
         --{ type = "Button", name = "AddPosKey", icon = toolbar:GetIcon("move"), action = function(self) AM.AddPosKey(AM.selectedTrack); end },
         { type = "DragHandle" },
         { type = "Button", name = "SeekToStart", icon = toolbar:GetIcon("skiptoend", true), action = function(self) AM.SeekToStartButton_OnClick(); end },
@@ -1515,6 +1519,7 @@ function AM.SelectTrack(index)
     if (index == -1) then
         AM.selectedTrack = nil;
         AM.SelectAnimation(-1);
+        AM.SelectKeyAtIndex(-1);
         return;
     end
 
@@ -2088,8 +2093,9 @@ function AM.RefreshKeyframes(keys, startMS, endMS, barWidth, trackIndex, compone
 
                 local xNorm = (keyTime - startMS) / (endMS - startMS);
                 xNorm = min(1, max(0, xNorm));
-
+                
                 local startP = math.floor(barWidth * xNorm) - (xNorm * AM.keyframeElementH / 2) + 6;
+                if (xNorm > 0) then startP = startP + 1; end
 
                 keyframeElement:ClearAllPoints();
                 keyframeElement:SetParent(AM.keyframeBars[componentIndex]);
@@ -2238,10 +2244,12 @@ function AM.RefreshGroupKeyframes(track, startMS, endMS, barWidth, trackIndex)
         xNorm = min(1, max(0, xNorm));
 
         local startP = math.floor(barWidth * xNorm) - (xNorm * AM.keyframeElementH / 2) + 10;
+        if (xNorm > 0) then startP = startP + 1; end
 
         keyframeElement:ClearAllPoints();
         keyframeElement:SetParent(AM.mainKeyframeBar:GetFrame());
         keyframeElement:SetPoint("CENTER", AM.mainKeyframeBar:GetFrame(), "LEFT", startP, 0);
+        keyframeElement.ntex:SetTexCoord(0, 0.25, 0, 0.25);
         keyframeElement:Show();
 
         -- store some information for lookup
@@ -2510,7 +2518,7 @@ function AM.AddFullKey(track)
     local timeMS = AM.loadedTimeline.currentTime;
     local obj = AM.GetObjectOfTrack(track);
     if (obj) then
-        track:AddFullKeyframe(timeMS, obj:GetPosition(), obj:GetRotation(), obj:GetScale());
+        track:AddFullKeyframe(timeMS, obj:GetPosition(), obj:GetRotation(), obj:GetScale(), AM.currentInterpolationIn, AM.currentInterpolationOut);
     end
 
     AM.RefreshWorkspace();
@@ -2524,7 +2532,7 @@ function AM.AddPosKey(track)
     local timeMS = AM.loadedTimeline.currentTime;
     local obj = AM.GetObjectOfTrack(track);
     if (obj) then
-        track:AddPositionKeyframe(timeMS, obj:GetPosition());
+        track:AddPositionKeyframe(timeMS, obj:GetPosition(), AM.currentInterpolationIn, AM.currentInterpolationOut);
     end
 
     AM.RefreshWorkspace();
@@ -2601,6 +2609,7 @@ end
 function AM.SelectKeyAtIndex(index)
     
     AM.selectedKeys = {};
+    AM.selectedKeyGroup = -1;
 
     if (index < 0) then
         AM.RefreshWorkspace();
@@ -2878,5 +2887,43 @@ function AM.Button_SetModeToCurves()
 end
 
 function AM.Button_SetInterpolationIn(value)
-    print(value);
+    local interpolation = Track.Interpolation.Bezier;
+    if (value == 1) then
+        interpolation = Track.Interpolation.Bezier;
+    elseif (value == 2) then
+        interpolation = Track.Interpolation.Linear;
+    elseif (value == 3) then
+        interpolation = Track.Interpolation.Step;
+    end
+
+    AM.currentInterpolationIn = interpolation;
+
+    if (AM.selectedKeys) then
+        for i = 1, #AM.selectedKeys, 1 do
+            AM.selectedKeys[i].interpolationIn = interpolation;
+        end
+    end
+
+    AM.RefreshWorkspace();
+end
+
+function AM.Button_SetInterpolationOut(value)
+    local interpolation = Track.Interpolation.Bezier;
+    if (value == 1) then
+        interpolation = Track.Interpolation.Bezier;
+    elseif (value == 2) then
+        interpolation = Track.Interpolation.Linear;
+    elseif (value == 3) then
+        interpolation = Track.Interpolation.Step;
+    end
+
+    AM.currentInterpolationOut = interpolation;
+
+    if (AM.selectedKeys) then
+        for i = 1, #AM.selectedKeys, 1 do
+            AM.selectedKeys[i].interpolationOut = interpolation;
+        end
+    end
+
+    AM.RefreshWorkspace();
 end
