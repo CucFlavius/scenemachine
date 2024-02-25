@@ -875,7 +875,7 @@ function AM.GetNeedle()
 end
 
 function AM.CreateToolbar(x, y, w, h, parent, startLevel)
-    local toolbar = UI.Toolbar:New(x, y, w, h, parent, 0.16, SceneMachine.mainWindow);
+    local toolbar = UI.Toolbar:New(x, y, w, h, parent, SceneMachine.mainWindow, Resources.iconData["AnimToolbar"]);
     toolbar:SetFrameLevel(startLevel);
     local mainGroup = toolbar:CreateGroup(x, 0, w, h,
     {

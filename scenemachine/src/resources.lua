@@ -30,6 +30,7 @@ function Resources.Initialize(resourcePath)
     Resources.textures["EyeIcon"] = Resources.texturesPath .. "\\eyeIcon.png";
     Resources.textures["ScrollBar"] = Resources.texturesPath .. "\\scrollBar.png";
     Resources.textures["Toolbar"] = Resources.texturesPath .. "\\toolbar.png";
+    Resources.textures["ToolbarAnimation"] = Resources.texturesPath .. "\\toolbarAnimation.png";
     Resources.textures["DropShadow"] = Resources.texturesPath .. "\\dropShadowSquare.png";
     Resources.textures["CornerResize"] = Resources.texturesPath .. "\\cornerResize.png";
     Resources.textures["CursorResizeH"] = "interface\\cursor\\crosshair\\ui-cursor-move.blp";--Resources.texturesPath .. "\\resizeCursorHorizontal.png";
@@ -37,4 +38,39 @@ function Resources.Initialize(resourcePath)
     Resources.textures["CursorResize"] = "interface\\cursor\\crosshair\\ui-cursor-sizeright.blp";--Resources.texturesPath .. "\\resizeCursorBoth.png.crosshair";
     Resources.textures["ColorPicker"] = Resources.texturesPath .. "\\colorPickerV2.png";
     Resources.textures["KeyboardShortcuts"] = Resources.texturesPath .. "\\keyboardShortcuts.png";
+
+    -- Icons --
+    Resources.iconData = {};
+
+    Resources.iconData["MainToolbar"] = {
+        texture = Resources.textures["Toolbar"];
+        rows = 8,
+        columns = 8,
+        coords = {
+            { "select", "move", "rotate", "scale", "worldpivot", "localpivot", "centerpivot", "basepivot" },
+            { "projects", "", "", "", "", "", "", "" },
+            { "", "", "", "", "", "", "", "" },
+            { "", "", "", "", "", "", "", "" },
+            { "", "", "", "", "", "", "", "" },
+            { "", "", "", "", "", "", "", "" },
+            { "", "", "", "", "", "", "", "" },
+            { "", "", "", "", "", "", "", "" },
+        };
+    }
+
+    Resources.iconData["AnimToolbar"] = {
+        texture = Resources.textures["ToolbarAnimation"];
+        rows = 6,
+        columns = 6,
+        coords = {
+            { "play", "pause", "fastforward", "skiponeframe", "skiptoend", "" },
+            { "addkey", "removekey", "addanim", "removeanim", "addobj", "removeobj" },
+            { "loop", "loopoff", "timesettings", "", "", "" },
+            { "", "", "", "", "", "" },
+            { "", "", "", "", "", ""},
+            { "", "", "", "", "", "" },
+            { "", "", "", "", "", "" },
+            { "", "", "", "", "", "" },
+        };
+    }
 end

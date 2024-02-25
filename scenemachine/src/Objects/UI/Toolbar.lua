@@ -5,7 +5,7 @@ local Toolbar = UI.Toolbar;
 Toolbar.__index = Toolbar;
 setmetatable(Toolbar, UI.Element)
 
-function Toolbar:New(x, y, w, h, parent, iconCrop, window)
+function Toolbar:New(x, y, w, h, parent, window, iconData)
 	local v =
     {
         x = x or 0,
@@ -13,10 +13,10 @@ function Toolbar:New(x, y, w, h, parent, iconCrop, window)
         w = w or 20,
         h = h or 20,
         parent = parent or nil,
-        iconCrop = iconCrop or 0,
         window = window or nil,
         groups = {},
         visible = true,
+        iconData = iconData or {},
     };
 
 	setmetatable(v, Toolbar);
@@ -27,31 +27,18 @@ end
 function Toolbar:Build()
     self.frame = UI.Rectangle:New(self.x, self.y, self.w, self.h, self.parent, "TOPLEFT", "TOPLEFT", 0.1757, 0.1757, 0.1875, 1);
     self.frame:SetPoint("TOPRIGHT", self.parent, "TOPRIGHT", 0, 0);
-
-    self.iconsTexture = Resources.textures["Toolbar"];
-
-    self.iconCoordMap = {
-        { "select", "move", "rotate", "scale", "worldpivot", "localpivot", "centerpivot", "basepivot" },
-        { "projects", "", "", "", "", "", "", "" },
-        { "", "", "", "", "", "", "", "" },
-        { "", "", "", "", "", "", "", "" },
-        { "", "", "", "", "", "", "", "" },
-        { "", "", "", "", "", "", "", "" },
-        { "", "addanim", "removeanim", "addkey", "removekey", "loop", "loopoff", "" },
-        { "timesettings", "addobj", "removeobj", "play", "pause", "fastforward", "skiponeframe", "skiptoend" },
-    };
-
+    self.iconsTexture = self.iconData.texture;
+    self.iconCoordMap = self.iconData.coords;
     self.iconCoordLookup = {};
 
-    local div = 1 / 8;
-    local iconCropDiv = self.iconCrop * div;
-    for x = 1, 8, 1 do
-        for y = 1, 8, 1 do
-            self.iconCoordLookup[self.iconCoordMap[y][x]] = { div * (x - 1) + iconCropDiv, div * x - iconCropDiv, div * (y - 1) + iconCropDiv, div * y - iconCropDiv };
+    local divX = 1 / self.iconData.rows;
+    local divY = 1 / self.iconData.columns;
+    for x = 1, self.iconData.rows, 1 do
+        for y = 1, self.iconData.columns, 1 do
+            self.iconCoordLookup[self.iconCoordMap[y][x]] = { divX * (x - 1), divX * x, divY * (y - 1), divY * y };
         end
     end
 end
-
 
 function Toolbar:GetIcon(name, mirrorX)
     mirrorX = mirrorX or false;

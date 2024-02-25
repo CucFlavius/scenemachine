@@ -23,6 +23,7 @@ Structures
 	<Script file="UI/TextBox.lua"/>
 	<Script file="UI/ImageBox.lua"/>
 	<Script file="UI/Button.lua"/>
+	<Script file="UI/SplitButton.lua"/>
 	<Script file="UI/CollapsableBox.lua"/>
 	<Script file="UI/CollapsableList.lua"/>
 	<Script file="UI/Dropdown.lua"/>

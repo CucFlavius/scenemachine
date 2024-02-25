@@ -54,7 +54,7 @@ function Editor.Initialize()
     -- Create all of the UI --
     Editor.CreateMainWindow(1);
     Editor.MainMenu.Create();
-    local toolbar = UI.Toolbar:New(0, -15, Editor.width, 30, SceneMachine.mainWindow:GetFrame(), 0, SceneMachine.mainWindow);
+    local toolbar = UI.Toolbar:New(0, -15, Editor.width, 30, SceneMachine.mainWindow:GetFrame(), SceneMachine.mainWindow, Resources.iconData["MainToolbar"]);
     toolbar:SetFrameLevel(2);
     Editor.mainToolbar = toolbar;
     Editor.mainToolbar.transformGroup = toolbar:CreateGroup(0, 0, Editor.width, 30,
