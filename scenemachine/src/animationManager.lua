@@ -127,7 +127,7 @@ function AM.Update(deltaTime)
                 end
             end
 
-            AM.SetTime(nextTime);
+            AM.SetTime(nextTime, false);
         end
     end
 
@@ -2341,10 +2341,15 @@ function AM.SelectAnimation(index)
     AM.RefreshWorkspace();
 end
 
-function AM.SetTime(timeMS)
+function AM.SetTime(timeMS, rounded)
+    if (rounded == nil) then
+        rounded = true;
+    end
 
     -- force time selection to 30 fps ticks
-    timeMS = floor(floor(timeMS / 33.3333) * 33.3333);
+    if rounded then
+        timeMS = floor(floor(timeMS / 33.3333) * 33.3333);
+    end
 
     -- move ze slider
     local groupBgH = AM.timebarGroup:GetWidth() - 26;
@@ -2362,6 +2367,8 @@ function AM.SetTime(timeMS)
     -- update timer
     if (AM.loadedTimeline) then
         AM.loadedTimeline.currentTime = timeMS;
+
+        print (AM.loadedTimeline.currentTime);
 
         local totalTime = AM.TimeValueToString(AM.loadedTimeline.duration);
         local currentTime = AM.TimeValueToString(AM.loadedTimeline.currentTime or 0);
@@ -2649,7 +2656,31 @@ function AM.TrackHasAnims(track)
 end
 
 function AM.TrackHasKeyframes(track)
-    if (track.keyframes and #track.keyframes > 0) then
+    if (track.keysPx and #track.keysPx > 0) then
+        return true;
+    end
+
+    if (track.keysPy and #track.keysPy > 0) then
+        return true;
+    end
+
+    if (track.keysPz and #track.keysPz > 0) then
+        return true;
+    end
+
+    if (track.keysRx and #track.keysRx > 0) then
+        return true;
+    end
+
+    if (track.keysRy and #track.keysRy > 0) then
+        return true;
+    end
+
+    if (track.keysRz and #track.keysRz > 0) then
+        return true;
+    end
+
+    if (track.keysS and #track.keysS > 0) then
         return true;
     end
 
@@ -2670,8 +2701,51 @@ function AM.Play()
                     AM.lastKeyedTime = animEnd;
                 end
             end
-            if (track.keyframes and #track.keyframes > 0) then
-                local keyEnd = track.keyframes[#track.keyframes].time;
+
+            if (track.keysPx and #track.keysPx > 0) then
+                local keyEnd = track.keysPx[#track.keysPx].time;
+                if (keyEnd > AM.lastKeyedTime) then
+                    AM.lastKeyedTime = keyEnd;
+                end
+            end
+
+            if (track.keysPy and #track.keysPy > 0) then
+                local keyEnd = track.keysPy[#track.keysPy].time;
+                if (keyEnd > AM.lastKeyedTime) then
+                    AM.lastKeyedTime = keyEnd;
+                end
+            end
+
+            if (track.keysPz and #track.keysPz > 0) then
+                local keyEnd = track.keysPz[#track.keysPz].time;
+                if (keyEnd > AM.lastKeyedTime) then
+                    AM.lastKeyedTime = keyEnd;
+                end
+            end
+
+            if (track.keysRx and #track.keysRx > 0) then
+                local keyEnd = track.keysRx[#track.keysRx].time;
+                if (keyEnd > AM.lastKeyedTime) then
+                    AM.lastKeyedTime = keyEnd;
+                end
+            end
+
+            if (track.keysRy and #track.keysRy > 0) then
+                local keyEnd = track.keysRy[#track.keysRy].time;
+                if (keyEnd > AM.lastKeyedTime) then
+                    AM.lastKeyedTime = keyEnd;
+                end
+            end
+
+            if (track.keysRz and #track.keysRz > 0) then
+                local keyEnd = track.keysRz[#track.keysRz].time;
+                if (keyEnd > AM.lastKeyedTime) then
+                    AM.lastKeyedTime = keyEnd;
+                end
+            end
+
+            if (track.keysS and #track.keysS > 0) then
+                local keyEnd = track.keysS[#track.keysS].time;
                 if (keyEnd > AM.lastKeyedTime) then
                     AM.lastKeyedTime = keyEnd;
                 end
@@ -2686,6 +2760,10 @@ end
 
 function AM.Pause()
     AM.playing = false;
+
+    if (AM.loadedTimeline) then
+        AM.SetTime(AM.loadedTimeline.currentTime);
+    end
 end
 
 function AM.PlayToggle_OnClick(on)
@@ -2708,7 +2786,7 @@ end
 
 function AM.SkipFrameForwardButton_OnClick()
     if (AM.loadedTimeline) then
-        local nextTime = AM.loadedTimeline.currentTime + 33.3333;
+        local nextTime = AM.loadedTimeline.currentTime + 35;
         if (nextTime > AM.loadedTimeline.duration) then
             nextTime = AM.loadedTimeline.duration;
         end
@@ -2718,7 +2796,7 @@ end
 
 function AM.SkipFrameBackwardButton_OnClick()
     if (AM.loadedTimeline) then
-        local nextTime = AM.loadedTimeline.currentTime - 33.3333;
+        local nextTime = AM.loadedTimeline.currentTime - 33;
         if (nextTime < 0) then
             nextTime = 0;
         end
