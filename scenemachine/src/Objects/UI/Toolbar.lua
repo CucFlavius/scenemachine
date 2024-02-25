@@ -76,6 +76,15 @@ function Toolbar:CreateGroup(x, y, w, h, components)
             end
             group.components[c]:SetScript("OnClick", component.action);
             x = x + buttonW;
+        elseif (component.type == "SplitButton") then
+            local icons = {};
+            local coords = {};
+            for i = 1, #component.icons, 1 do
+                icons[i] = component.icons[i][1];
+                coords[i] = component.icons[i][2];
+            end
+            group.components[c] = UI.SplitButton:New(x, 0, buttonW, buttonH, group:GetFrame(), "LEFT", "LEFT", icons, coords, component.action);
+            x = x + buttonW;
         elseif (component.type == "Toggle") then
             if (component.default) then
                 group.components[c] = UI.Button:New(x, 0, buttonW, buttonH, group:GetFrame(), "LEFT", "LEFT", nil, component.iconOn[1], component.iconOn[2]);

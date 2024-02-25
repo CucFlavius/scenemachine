@@ -11,7 +11,7 @@ UI.SplitButton.State = {
     Pressed = 2
 }
 
-function SplitButton:New(x, y, w, h, parent, point, parentPoint, text, iconTexture, texcoords)
+function SplitButton:New(x, y, w, h, parent, point, parentPoint, iconTextures, texcoords, action)
 	local v = 
     {
         x = x or 0,
@@ -21,10 +21,11 @@ function SplitButton:New(x, y, w, h, parent, point, parentPoint, text, iconTextu
         parent = parent or nil,
         point = point or "TOPLEFT",
         parentPoint = parentPoint or "TOPLEFT",
-        text = text or nil,
-        iconTexture = iconTexture or nil,
-        texcoords = texcoords or {0, 1, 0, 1},
+        iconTextures = iconTextures or {},
+        texcoords = texcoords or {},
         visible = true,
+        action = action,
+        currentOption = 1,
     };
 
 	setmetatable(v, SplitButton);
@@ -34,53 +35,46 @@ end
 
 function SplitButton:Build()
     -- main SplitButton frame
-	self.frame = CreateFrame("SplitButton", "SceneMachine.UI.SplitButton.frame", self.parent);
-	self.frame:SetPoint(self.point, self.parent, self.parentPoint, self.x, self.y);
-	self.frame:SetSize(self.w, self.h);
 
-    -- normal texture
-    self.ntex = self.frame:CreateTexture();
-    self.ntex:SetColorTexture(0.1757, 0.1757, 0.1875, 1);
-	self.ntex:SetAllPoints();
-	self.frame:SetNormalTexture(self.ntex);
-    
-    -- highlight texture
-    self.htex = self.frame:CreateTexture();
-    self.htex:SetColorTexture(0.242, 0.242, 0.25, 1);
-    self.htex:SetAllPoints();
-    self.frame:SetHighlightTexture(self.htex);
+    self.splitButton = UI.Button:New(self.x, self.y, self.w, self.h, self.parent, self.point, self.parentPoint, nil, self.iconTextures[1], self.texcoords[1]);
+    self.frame = self.splitButton:GetFrame();
 
-    -- pressed texture
-    self.ptex = self.frame:CreateTexture();
-    self.ptex:SetColorTexture(0, 0.4765, 0.7968, 1);
-    self.ptex:SetAllPoints();
-	self.frame:SetPushedTexture(self.ptex);
+    local corner = UI.Rectangle:New(-2, 2, 5, 5, self.frame, "BOTTOMRIGHT", "BOTTOMRIGHT", 1, 1, 1, 1);
+    corner:SetFrameLevel(self.frame:GetFrameLevel() + 2);
+    corner:SetVertexOffset(1, 5, 0);
 
-	-- icon --
-	if (self.iconTexture) then
-		local iconSize = self.w - 4;    -- icon paddin 4
-		self.icon = UI.ImageBox:New(0, 0, iconSize, iconSize, self.frame, "CENTER", "CENTER", self.iconTexture, self.texcoords);
-	end
+    self.popup = UI.Rectangle:New(self.x, 0, self.w, self.h * #self.iconTextures, self.parent:GetParent(), "TOPLEFT", "BOTTOMLEFT", 0, 0, 0, 1);
+    self.popup:SetFrameLevel(self.frame:GetFrameLevel() + 100);
+    self.popup:Hide();
 
-	-- text --
-	if (self.text) then
-		self.textField = self.frame:CreateFontString("Zee.WindowAPI.SplitButton.textField");
-		self.textField:SetFont(Resources.defaultFont, 9, "NORMAL");
-		self.textField:SetAllPoints(self.frame);
-		self.textField:SetText(self.text);
-	end
-end
-
-function SplitButton:SetText(text)
-    self.text = text;
-
-    if (not self.textField) then
-		self.textField = self.frame:CreateFontString("Zee.WindowAPI.SplitButton.textField");
-		self.textField:SetFont(Resources.defaultFont, 9, "NORMAL");
-		self.textField:SetAllPoints(self.frame);
+    self.options = {};
+    for b = 1, #self.iconTextures, 1 do
+        self.options[b] = UI.Button:New(0, -(b - 1) * self.h, self.w, self.h, self.popup:GetFrame(), "TOPLEFT", "TOPLEFT", nil, self.iconTextures[b], self.texcoords[b]);
     end
-    
-    self.textField:SetText(text);
+
+    self.splitButton:SetScript("OnMouseDown", function()
+        self.holdTimer = C_Timer.NewTimer(0.5, function()
+            self.popup:Show();
+        end);
+    end);
+
+    self.splitButton:SetScript("OnMouseUp", function()
+        if (self.holdTimer) then
+            self.holdTimer:Cancel();
+            for b = 1, #self.iconTextures, 1 do
+                if (MouseIsOver(self.options[b]:GetFrame())) then
+                    self.splitButton.icon:SetTexCoords(self.texcoords[b]);
+                    self.currentOption = b;
+                    self.popup:Hide();
+                    self.action(self.currentOption);
+                    return;
+                end
+            end
+        end
+        
+        self.popup:Hide();
+        self.action(self.currentOption);
+    end);
 end
 
 function SplitButton:SetColor(state, R, G, B, A)

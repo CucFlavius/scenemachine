@@ -889,12 +889,15 @@ function AM.CreateToolbar(x, y, w, h, parent, startLevel)
         { type = "Button", name = "RemoveAnim", icon = toolbar:GetIcon("removeanim"), action = function(self) AM.RemoveAnim(AM.selectedTrack, AM.selectedAnim); end },
         { type = "Separator" },
         { type = "Button", name = "AddFullKey", icon = toolbar:GetIcon("addkey"), action = function(self) AM.AddFullKey(AM.selectedTrack); end },
-        { type = "Button", name = "AddPosKey", icon = toolbar:GetIcon("move"), action = function(self) AM.AddPosKey(AM.selectedTrack); end },
         { type = "Button", name = "RemoveKey", icon = toolbar:GetIcon("removekey"), action = function(self) 
             for i = 1, #AM.selectedKeys, 1 do
                 AM.RemoveKey(AM.selectedTrack, AM.selectedKeys[i]);
             end
         end },
+        { type = "Separator" },
+        { type = "SplitButton", name = "InterpolationIn", icons = { toolbar:GetIcon("ismooth"), toolbar:GetIcon("ilinear"), toolbar:GetIcon("istep") },
+                action = function(v) AM.Button_SetInterpolationIn(v); end },
+        --{ type = "Button", name = "AddPosKey", icon = toolbar:GetIcon("move"), action = function(self) AM.AddPosKey(AM.selectedTrack); end },
         { type = "DragHandle" },
         { type = "Button", name = "SeekToStart", icon = toolbar:GetIcon("skiptoend", true), action = function(self) AM.SeekToStartButton_OnClick(); end },
         { type = "Button", name = "SkipOneFrameBack", icon = toolbar:GetIcon("skiponeframe", true), action = function(self) AM.SkipFrameBackwardButton_OnClick(); end },
@@ -2872,4 +2875,8 @@ end
 
 function AM.Button_SetModeToCurves()
     AM.ChangeUIMode(AM.Mode.Curves);
+end
+
+function AM.Button_SetInterpolationIn(value)
+    print(value);
 end

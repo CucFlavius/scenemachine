@@ -65,7 +65,7 @@ function Resources.Initialize(resourcePath)
         coords = {
             { "play", "pause", "fastforward", "skiponeframe", "skiptoend", "" },
             { "addkey", "removekey", "addanim", "removeanim", "addobj", "removeobj" },
-            { "loop", "loopoff", "timesettings", "", "", "" },
+            { "loop", "loopoff", "timesettings", "ismooth", "ilinear", "istep" },
             { "", "", "", "", "", "" },
             { "", "", "", "", "", ""},
             { "", "", "", "", "", "" },
