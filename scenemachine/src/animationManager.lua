@@ -68,7 +68,7 @@ AM.Mode = {
     Curves = 2,
 }
 
-AM.uiMode = AM.Mode.Keyframes;
+AM.uiMode = AM.Mode.Tracks;
 
 AM.CurvePoolSize = 30;
 AM.usedCurveLines = 0;
@@ -882,6 +882,7 @@ function AM.CreateToolbar(x, y, w, h, parent, startLevel)
     local mainGroup = toolbar:CreateGroup(x, 0, w, h,
     {
         { type = "DragHandle" },
+        { type = "Dropdown", name = "UIMode", width = 100, options = { "Tracks", "Keyframes", "Curves (debug only)" }, action = function(index) AM.Dropdown_SetUIMode(index); end },
         { type = "Button", name = "TimeSettings", icon = toolbar:GetIcon("timesettings"), action = function(self) end },
         { type = "Separator" },
         { type = "Button", name = "AddObject", icon = toolbar:GetIcon("addobj"), action = function(self) AM.AddTrack(SM.selectedObject); end },
@@ -911,9 +912,9 @@ function AM.CreateToolbar(x, y, w, h, parent, startLevel)
         { type = "Separator" },
         { type = "Toggle", name = "Loop", iconOn = toolbar:GetIcon("loop"), iconOff = toolbar:GetIcon("loopoff"), action = function(self, on) AM.LoopToggle_OnClick(on); end, default = true },
         { type = "Separator" },
-        { type = "Button", name = "UIModeTrack", icon = toolbar:GetIcon("scale"), action = function(self) AM.Button_SetModeToTracks(); end },
-        { type = "Button", name = "UIModeKeyframe", icon = toolbar:GetIcon("scale"), action = function(self) AM.Button_SetModeToKeyframes(); end },
-        { type = "Button", name = "UIModeCurve", icon = toolbar:GetIcon("scale"), action = function(self) AM.Button_SetModeToCurves(); end },
+        --{ type = "Button", name = "UIModeTrack", icon = toolbar:GetIcon("scale"), action = function(self) AM.Button_SetModeToTracks(); end },
+        --{ type = "Button", name = "UIModeKeyframe", icon = toolbar:GetIcon("scale"), action = function(self) AM.Button_SetModeToKeyframes(); end },
+        --{ type = "Button", name = "UIModeCurve", icon = toolbar:GetIcon("scale"), action = function(self) AM.Button_SetModeToCurves(); end },
     });
     mainGroup:SetFrameLevel(startLevel + 1);
     AM.mainToolbar = toolbar;
@@ -2849,6 +2850,16 @@ end
 
 function AM.LoopToggle_OnClick(on)
     AM.loopPlay = on;
+end
+
+function AM.Dropdown_SetUIMode(index)
+    if (index == 1) then
+        AM.ChangeUIMode(AM.Mode.Tracks);
+    elseif(index == 2) then
+        AM.ChangeUIMode(AM.Mode.Keyframes);
+    elseif(index == 3) then
+        AM.ChangeUIMode(AM.Mode.Curves);
+    end
 end
 
 function AM.ChangeUIMode(mode)

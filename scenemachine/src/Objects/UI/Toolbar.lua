@@ -54,6 +54,7 @@ function Toolbar:CreateGroup(x, y, w, h, components)
     group:SetPoint("TOPRIGHT", self.frame:GetFrame(), "TOPRIGHT", 0, 0);
     group:SetClipsChildren(true);
     group.components = {};
+    local currentLevel = group:GetFrameLevel();
 
     local x = 0;
     local buttonW = h;
@@ -64,9 +65,11 @@ function Toolbar:CreateGroup(x, y, w, h, components)
         
         if (component.type == "Separator") then
             group.components[c] = UI.Rectangle:New(x + 2, 0, 1, 20, group:GetFrame(), "LEFT", "LEFT", 0.242, 0.242, 0.25, 1);
+            group.components[c]:SetFrameLevel(currentLevel + 1);
             x = x + 6;
         elseif (component.type == "DragHandle") then
             group.components[c] = UI.Rectangle:New(x + 2, 0, 5, 20, group:GetFrame(), "LEFT", "LEFT", 0.242, 0.242, 0.25, 1);
+            group.components[c]:SetFrameLevel(currentLevel + 1);
             x = x + 9;
         elseif (component.type == "Button") then
             if (component.icon ~= nil) then
@@ -104,7 +107,7 @@ function Toolbar:CreateGroup(x, y, w, h, components)
             end);
             x = x + buttonW;
         elseif (component.type == "Dropdown") then
-            group.components[c] = UI.Dropdown:New(x, 0, component.width, buttonH, group:GetFrame(), "LEFT", "LEFT", component.options, component.action, self.window);
+            group.components[c] = UI.Dropdown:New(x, 0, component.width, 22, group:GetFrame(), "LEFT", "LEFT", component.options, component.action, self.window);
             x = x + component.width;
         end
 

@@ -1,6 +1,7 @@
 local UI = SceneMachine.UI;
 UI.Dropdown = {};
 local Dropdown = UI.Dropdown;
+local Resources = SceneMachine.Resources;
 Dropdown.__index = Dropdown;
 setmetatable(Dropdown, UI.Element)
 
@@ -26,35 +27,35 @@ function Dropdown:New(x, y, w, h, parent, point, parentPoint, optionNames, onSel
 end
 
 function Dropdown:Build()
-	local pad = 5;
-	local height = self.h - (pad * 2);
-
 	self.frame = UI.Rectangle:New(self.x, self.y, self.w, self.h, self.parent, self.point, self.parentPoint, 0, 0, 0, 0);
-	self.button = UI.Button:New(pad, -pad, self.w - pad, height, self.frame:GetFrame(), "TOPLEFT", "TOPLEFT", "");
+	self.button = UI.Button:New(0, 0, self.w, self.h, self.frame:GetFrame(), "TOPLEFT", "TOPLEFT", "");
 	self.button:SetJustifyH("LEFT");
 	self.button:SetColor(UI.Button.State.Normal, 0.242, 0.242, 0.25, 1);
 
-	local arrowSize = 4.0;
-	local arrow = UI.Rectangle:New(-8, -8, arrowSize, arrowSize, self.button:GetFrame(), "TOPRIGHT", "TOPRIGHT", 0.9, 0.9, 0.9, 1);
-	arrow:SetVertexOffset(LOWER_LEFT_VERTEX, arrowSize / 2, 0);
-	arrow:SetVertexOffset(UPPER_LEFT_VERTEX, -arrowSize / 8, 0);
-	arrow:SetVertexOffset(LOWER_RIGHT_VERTEX, -arrowSize / 2, 0);
-	arrow:SetVertexOffset(UPPER_RIGHT_VERTEX, arrowSize / 8, 0);
+	local arrowSize = 8;
+	local arrow = UI.ImageBox:New(-arrowSize / 2, 0, arrowSize, arrowSize, self.button:GetFrame(), "RIGHT", "RIGHT", Resources.textures["ArrowDown"]);
+	arrow:SetFrameLevel(self.button:GetFrameLevel() + 2);
 
 	self.options = {};
 
 	for o = 1, #self.optionNames, 1 do
-		self.options[o] = { ["Name"] = self.optionNames[o], ["Action"] = function() self.onSelect(o); end };
+		self.options[o] = { ["Name"] = self.optionNames[o], ["Action"] = function() self.button:SetText("  " .. self.optionNames[o]); self.onSelect(o); end };
+	end
+
+	if (#self.optionNames > 0) then
+		self.button:SetText("  " .. self.optionNames[1]);
 	end
 
     self.button:SetScript("OnClick", function ()
-	    self.window:PopupWindowMenu(self.x, self.y - height, self.options);
+		local rx = self.x + (self.parent:GetLeft() - SceneMachine.mainWindow:GetLeft());
+		local ry = self.y + (self.parent:GetBottom() - SceneMachine.mainWindow:GetTop());
+	    self.window:PopupWindowMenu(rx, ry, self.options);
 	end);
 end
 
 function Dropdown:SetOptions(newOptions)
     for o = 1, #newOptions, 1 do
-        self.options[o] = { ["Name"] = newOptions[o], ["Action"] = function() self.onSelect(o); end };
+        self.options[o] = { ["Name"] = newOptions[o], ["Action"] = function() self.button:SetText("  " .. self.optionNames[o]); self.onSelect(o); end };
     end
 end
 
