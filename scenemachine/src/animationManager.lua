@@ -68,7 +68,15 @@ AM.Mode = {
     Curves = 2,
 }
 
+AM.KeyAddMode = {
+    All = 0,
+    Position = 1,
+    Rotation = 2,
+    Scale = 3
+}
+
 AM.uiMode = AM.Mode.Tracks;
+AM.keyAddMode = AM.KeyAddMode.All;
 
 AM.CurvePoolSize = 30;
 AM.usedCurveLines = 0;
@@ -881,43 +889,42 @@ function AM.CreateToolbar(x, y, w, h, parent, startLevel)
     toolbar:SetFrameLevel(startLevel);
     local mainGroup = toolbar:CreateGroup(x, 0, w, h,
     {
-        { type = "DragHandle" },
         { type = "Dropdown", name = "UIMode", width = 100, options = { "Tracks", "Keyframes", "Curves (debug only)" }, action = function(index) AM.Dropdown_SetUIMode(index); end },
-        { type = "Button", name = "TimeSettings", icon = toolbar:GetIcon("timesettings"), action = function(self) end },
-        { type = "Separator" },
+        { type = "Separator", name = "Separator1" },
         { type = "Button", name = "AddObject", icon = toolbar:GetIcon("addobj"), action = function(self) AM.AddTrack(SM.selectedObject); end },
         { type = "Button", name = "RemoveObject", icon = toolbar:GetIcon("removeobj"), action = function(self) AM.RemoveTrack(AM.selectedTrack) end },
-        { type = "Separator" },
+        { type = "Separator", name = "Separator2" },
         { type = "Button", name = "AddAnim", icon = toolbar:GetIcon("addanim"), action = function(self) AM.OpenAddAnimationWindow(AM.selectedTrack); end },
         { type = "Button", name = "RemoveAnim", icon = toolbar:GetIcon("removeanim"), action = function(self) AM.RemoveAnim(AM.selectedTrack, AM.selectedAnim); end },
-        { type = "Separator" },
-        { type = "Button", name = "AddFullKey", icon = toolbar:GetIcon("addkey"), action = function(self) AM.AddFullKey(AM.selectedTrack); end },
+        { type = "Separator", name = "Separator3" },
+        { type = "SplitButton", name = "AddKey", icons = { toolbar:GetIcon("addkey"), toolbar:GetIcon("addposkey"), toolbar:GetIcon("addrotkey"), toolbar:GetIcon("addscalekey") },
+                splitaction = function(v) AM.Button_SetKeyAddMode(v); end,
+                action = function() AM.Button_AddKey(); end },
         { type = "Button", name = "RemoveKey", icon = toolbar:GetIcon("removekey"), action = function(self) 
             for i = 1, #AM.selectedKeys, 1 do
                 AM.RemoveKey(AM.selectedTrack, AM.selectedKeys[i]);
             end
         end },
-        { type = "Separator" },
+        { type = "Separator", name = "Separator4" },
         { type = "SplitButton", name = "InterpolationIn", icons = { toolbar:GetIcon("ismooth"), toolbar:GetIcon("ilinear"), toolbar:GetIcon("istep") },
-                action = function(v) AM.Button_SetInterpolationIn(v); end },
+                splitaction = function(v) AM.Button_SetInterpolationInMode(v); end,
+                action = function() AM.Button_SetKeyInterpolationIn(); end },
         { type = "SplitButton", name = "InterpolationOut", icons = { toolbar:GetIcon("osmooth"), toolbar:GetIcon("olinear"), toolbar:GetIcon("ostep") },
-                action = function(v) AM.Button_SetInterpolationOut(v); end },
-        --{ type = "Button", name = "AddPosKey", icon = toolbar:GetIcon("move"), action = function(self) AM.AddPosKey(AM.selectedTrack); end },
+                splitaction = function(v) AM.Button_SetInterpolationOutMode(v); end,
+                action = function() AM.Button_SetKeyInterpolationOut(); end },
         { type = "DragHandle" },
         { type = "Button", name = "SeekToStart", icon = toolbar:GetIcon("skiptoend", true), action = function(self) AM.SeekToStartButton_OnClick(); end },
         { type = "Button", name = "SkipOneFrameBack", icon = toolbar:GetIcon("skiponeframe", true), action = function(self) AM.SkipFrameBackwardButton_OnClick(); end },
         { type = "Toggle", name = "PlayPause", iconOn = toolbar:GetIcon("pause"), iconOff = toolbar:GetIcon("play"), action = function(self, on) AM.PlayToggle_OnClick(on); end, default = false },
         { type = "Button", name = "SkipOneFrameForward", icon = toolbar:GetIcon("skiponeframe"), action = function(self) AM.SkipFrameForwardButton_OnClick(); end },
         { type = "Button", name = "SeekToEnd", icon = toolbar:GetIcon("skiptoend"), action = function(self) AM.SeekToEndButton_OnClick(); end },
-        { type = "Separator" },
+        { type = "Separator", name = "Separator5" },
         { type = "Toggle", name = "Loop", iconOn = toolbar:GetIcon("loop"), iconOff = toolbar:GetIcon("loopoff"), action = function(self, on) AM.LoopToggle_OnClick(on); end, default = true },
-        { type = "Separator" },
-        --{ type = "Button", name = "UIModeTrack", icon = toolbar:GetIcon("scale"), action = function(self) AM.Button_SetModeToTracks(); end },
-        --{ type = "Button", name = "UIModeKeyframe", icon = toolbar:GetIcon("scale"), action = function(self) AM.Button_SetModeToKeyframes(); end },
-        --{ type = "Button", name = "UIModeCurve", icon = toolbar:GetIcon("scale"), action = function(self) AM.Button_SetModeToCurves(); end },
+        { type = "Separator", name = "Separator6" },
     });
     mainGroup:SetFrameLevel(startLevel + 1);
     AM.mainToolbar = toolbar;
+    AM.mainToolbarGroup = mainGroup;
 
     -- timer
     AM.timerTextBox = UI.Label:New(0, 0, 90, h, mainGroup:GetFrame(), "RIGHT", "RIGHT", "00:00 / 00:00", 16, Resources.fonts["Digital"]);
@@ -2083,6 +2090,7 @@ end
 
 function AM.RefreshKeyframes(keys, startMS, endMS, barWidth, trackIndex, componentIndex)
     local usedKeys = 0;
+
     if (keys) then
         for k = 1, #keys, 1 do
             local keyTime = keys[k].time;
@@ -2132,8 +2140,8 @@ function AM.RefreshKeyframes(keys, startMS, endMS, barWidth, trackIndex, compone
                     B = 0.4;
                 end
                 
-                for i = 1, #AM.selectedKeys, 1 do
-                    if (keys[k] == AM.selectedKeys[i]) then
+                for c = 1, #AM.selectedKeys, 1 do
+                    if (keys[k] == AM.selectedKeys[c]) then
                         A = 1.0;
                     end
                 end
@@ -2539,6 +2547,34 @@ function AM.AddPosKey(track)
     AM.RefreshWorkspace();
 end
 
+function AM.AddRotKey(track)
+    if (not track) then
+        return;
+    end
+
+    local timeMS = AM.loadedTimeline.currentTime;
+    local obj = AM.GetObjectOfTrack(track);
+    if (obj) then
+        track:AddRotationKeyframe(timeMS, obj:GetRotation(), AM.currentInterpolationIn, AM.currentInterpolationOut);
+    end
+
+    AM.RefreshWorkspace();
+end
+
+function AM.AddScaleKey(track)
+    if (not track) then
+        return;
+    end
+
+    local timeMS = AM.loadedTimeline.currentTime;
+    local obj = AM.GetObjectOfTrack(track);
+    if (obj) then
+        track:AddScaleKeyframe(timeMS, obj:GetScale(), AM.currentInterpolationIn, AM.currentInterpolationOut);
+    end
+
+    AM.RefreshWorkspace();
+end
+
 function AM.RemoveKey(track, key)
     if (not track) then
         return;
@@ -2608,7 +2644,7 @@ function AM.RemoveKey(track, key)
 end
 
 function AM.SelectKeyAtIndex(index)
-    
+
     AM.selectedKeys = {};
     AM.selectedKeyGroup = -1;
 
@@ -2620,37 +2656,39 @@ function AM.SelectKeyAtIndex(index)
     -- find which track and elements were just selected
     local keyframeElement = AM.KeyframePool[index];
     local track = AM.loadedTimeline.tracks[keyframeElement.trackIdx];
-    local keyIndex = keyframeElement.keyIdx;
-    local keyTime = keyframeElement.time;
-    local component = keyframeElement.componentIdx;
+    local keyIndex = keyframeElement.keyIdx;        -- only available in regular keys
+    local keyTime = keyframeElement.time;           -- only available in keygroups
+    local component = keyframeElement.componentIdx; -- available in regular keys, or -1
+
     Editor.lastSelectedType = "key";
 
     if (component == -1) then
         AM.selectedKeyGroup = keyTime;
+        --print(keyTime)
         local grp = AM.keyframeGroups[keyTime];
         if (grp) then
             if (grp.px) then
-                AM.selectedKeys[1] = grp.px;
+                AM.selectedKeys[#AM.selectedKeys + 1] = grp.px;
             end
             if (grp.py) then
-                AM.selectedKeys[2] = grp.py;
+                AM.selectedKeys[#AM.selectedKeys + 1] = grp.py;
             end
             if (grp.pz) then
-                AM.selectedKeys[3] = grp.pz;
+                AM.selectedKeys[#AM.selectedKeys + 1] = grp.pz;
             end
 
             if (grp.rx) then
-                AM.selectedKeys[4] = grp.rx;
+                AM.selectedKeys[#AM.selectedKeys + 1] = grp.rx;
             end
             if (grp.ry) then
-                AM.selectedKeys[5] = grp.ry;
+                AM.selectedKeys[#AM.selectedKeys + 1] = grp.ry;
             end
             if (grp.rz) then
-                AM.selectedKeys[6] = grp.rz;
+                AM.selectedKeys[#AM.selectedKeys + 1] = grp.rz;
             end
 
             if (grp.s) then
-                AM.selectedKeys[7] = grp.s;
+                AM.selectedKeys[#AM.selectedKeys + 1] = grp.s;
             end
         end
     else
@@ -2669,6 +2707,7 @@ function AM.SelectKeyAtIndex(index)
         elseif (component == 7) then
             AM.selectedKeys[1] = track.keysS[keyIndex];
         end
+        --print(AM.selectedKeys[1].time);
 
         AM.selectedKeyGroup = AM.selectedKeys[1].time;
     end
@@ -2873,15 +2912,40 @@ function AM.ChangeUIMode(mode)
         -- switch to tracks view
         AM.mainKeyframeBar:Show();
         AM.workAreaBG:Show();
+        AM.mainToolbar:ToggleGroupComponent(AM.mainToolbarGroup, "AddObject", true);
+        AM.mainToolbar:ToggleGroupComponent(AM.mainToolbarGroup, "RemoveObject", true);
+        AM.mainToolbar:ToggleGroupComponent(AM.mainToolbarGroup, "AddAnim", true);
+        AM.mainToolbar:ToggleGroupComponent(AM.mainToolbarGroup, "RemoveAnim", true);
+        AM.mainToolbar:ToggleGroupComponent(AM.mainToolbarGroup, "AddKey", true);
+        AM.mainToolbar:ToggleGroupComponent(AM.mainToolbarGroup, "RemoveKey", true);
+        AM.mainToolbar:ToggleGroupComponent(AM.mainToolbarGroup, "InterpolationIn", false);
+        AM.mainToolbar:ToggleGroupComponent(AM.mainToolbarGroup, "InterpolationOut", false);
     elseif (mode == AM.Mode.Keyframes) then
+        AM.mainToolbar:ToggleGroupComponent(AM.mainToolbarGroup, "AddObject", false);
+        AM.mainToolbar:ToggleGroupComponent(AM.mainToolbarGroup, "RemoveObject", false);
+        AM.mainToolbar:ToggleGroupComponent(AM.mainToolbarGroup, "AddAnim", false);
+        AM.mainToolbar:ToggleGroupComponent(AM.mainToolbarGroup, "RemoveAnim", false);
+        AM.mainToolbar:ToggleGroupComponent(AM.mainToolbarGroup, "AddKey", true);
+        AM.mainToolbar:ToggleGroupComponent(AM.mainToolbarGroup, "RemoveKey", true);
+        AM.mainToolbar:ToggleGroupComponent(AM.mainToolbarGroup, "InterpolationIn", true);
+        AM.mainToolbar:ToggleGroupComponent(AM.mainToolbarGroup, "InterpolationOut", true);
         AM.mainKeyframeBar:Show();
         AM.keyframeViewBG:Show();
     elseif (mode == AM.Mode.Curves) then
         -- switch to curve view
+        AM.mainToolbar:ToggleGroupComponent(AM.mainToolbarGroup, "AddObject", false);
+        AM.mainToolbar:ToggleGroupComponent(AM.mainToolbarGroup, "RemoveObject", false);
+        AM.mainToolbar:ToggleGroupComponent(AM.mainToolbarGroup, "AddAnim", false);
+        AM.mainToolbar:ToggleGroupComponent(AM.mainToolbarGroup, "RemoveAnim", false);
+        AM.mainToolbar:ToggleGroupComponent(AM.mainToolbarGroup, "AddKey", false);
+        AM.mainToolbar:ToggleGroupComponent(AM.mainToolbarGroup, "RemoveKey", false);
+        AM.mainToolbar:ToggleGroupComponent(AM.mainToolbarGroup, "InterpolationIn", false);
+        AM.mainToolbar:ToggleGroupComponent(AM.mainToolbarGroup, "InterpolationOut", false);
         AM.curveViewBG:Show();
     end
 
     AM.uiMode = mode;
+    AM.mainToolbar:RefreshGroup(AM.mainToolbarGroup);
     AM.RefreshWorkspace();
 end
 
@@ -2897,7 +2961,7 @@ function AM.Button_SetModeToCurves()
     AM.ChangeUIMode(AM.Mode.Curves);
 end
 
-function AM.Button_SetInterpolationIn(value)
+function AM.Button_SetInterpolationInMode(value)
     local interpolation = Track.Interpolation.Bezier;
     if (value == 1) then
         interpolation = Track.Interpolation.Bezier;
@@ -2908,17 +2972,9 @@ function AM.Button_SetInterpolationIn(value)
     end
 
     AM.currentInterpolationIn = interpolation;
-
-    if (AM.selectedKeys) then
-        for i = 1, #AM.selectedKeys, 1 do
-            AM.selectedKeys[i].interpolationIn = interpolation;
-        end
-    end
-
-    AM.RefreshWorkspace();
 end
 
-function AM.Button_SetInterpolationOut(value)
+function AM.Button_SetInterpolationOutMode(value)
     local interpolation = Track.Interpolation.Bezier;
     if (value == 1) then
         interpolation = Track.Interpolation.Bezier;
@@ -2929,12 +2985,53 @@ function AM.Button_SetInterpolationOut(value)
     end
 
     AM.currentInterpolationOut = interpolation;
+end
 
+function AM.Button_SetKeyInterpolationIn()
     if (AM.selectedKeys) then
         for i = 1, #AM.selectedKeys, 1 do
-            AM.selectedKeys[i].interpolationOut = interpolation;
+            AM.selectedKeys[i].interpolationIn = AM.currentInterpolationIn;
         end
     end
 
     AM.RefreshWorkspace();
+end
+
+function AM.Button_SetKeyInterpolationOut()
+    if (AM.selectedKeys) then
+        for i = 1, #AM.selectedKeys, 1 do
+            AM.selectedKeys[i].interpolationOut = AM.currentInterpolationOut;
+        end
+    end
+
+    AM.RefreshWorkspace();
+end
+
+function AM.Button_SetKeyAddMode(value)
+    local mode = AM.KeyAddMode.All;
+
+    if (value == 1) then
+        mode = AM.KeyAddMode.All;
+    elseif (value == 2) then
+        mode = AM.KeyAddMode.Position;
+    elseif (value == 3) then
+        mode = AM.KeyAddMode.Rotation;
+    elseif (value == 4) then
+        mode = AM.KeyAddMode.Scale;
+    end
+
+    AM.keyAddMode = mode;
+end
+
+function AM.Button_AddKey()
+
+    if (AM.keyAddMode == AM.KeyAddMode.All) then
+        AM.AddFullKey(AM.selectedTrack);
+    elseif (AM.keyAddMode == AM.KeyAddMode.Position) then
+        AM.AddPosKey(AM.selectedTrack);
+    elseif (AM.keyAddMode == AM.KeyAddMode.Rotation) then
+        AM.AddRotKey(AM.selectedTrack);
+    elseif (AM.keyAddMode == AM.KeyAddMode.Scale) then
+        AM.AddScaleKey(AM.selectedTrack);
+    end
 end

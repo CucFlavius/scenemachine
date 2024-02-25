@@ -54,6 +54,7 @@ function Toolbar:CreateGroup(x, y, w, h, components)
     group:SetPoint("TOPRIGHT", self.frame:GetFrame(), "TOPRIGHT", 0, 0);
     group:SetClipsChildren(true);
     group.components = {};
+    group.h = h;
     local currentLevel = group:GetFrameLevel();
 
     local x = 0;
@@ -86,7 +87,7 @@ function Toolbar:CreateGroup(x, y, w, h, components)
                 icons[i] = component.icons[i][1];
                 coords[i] = component.icons[i][2];
             end
-            group.components[c] = UI.SplitButton:New(x, 0, buttonW, buttonH, group:GetFrame(), "LEFT", "LEFT", icons, coords, component.action);
+            group.components[c] = UI.SplitButton:New(x, 0, buttonW, buttonH, group:GetFrame(), "LEFT", "LEFT", icons, coords, component.splitaction, component.action);
             x = x + buttonW;
         elseif (component.type == "Toggle") then
             if (component.default) then
@@ -117,6 +118,71 @@ function Toolbar:CreateGroup(x, y, w, h, components)
 
     self.groups[#self.groups + 1] = group;
     return group;
+end
+
+function Toolbar:ToggleGroupComponent(group, name, on)
+    for c = 1, #group.components, 1 do
+        local component = group.components[c];
+        if (component.name == name) then
+            if (on) then
+                component:Show();
+            else
+                component:Hide();
+            end
+        end
+    end
+end
+
+function Toolbar:RefreshGroup(group)
+    local currentLevel = group:GetFrameLevel();
+
+    local x = 0;
+    local buttonW = group.h;
+    local buttonH = group.h;
+
+    for c = 1, #group.components, 1 do
+        local component = group.components[c];
+        if (group.components[c]:IsVisible()) then
+
+            if (component.type == "Separator") then
+                component.x = x + 2;
+                component:ClearAllPoints();
+                component:SetPoint("LEFT", group:GetFrame(), "LEFT", x + 2, 0);
+                component:SetFrameLevel(currentLevel + 1);
+                x = x + 6;
+            elseif (component.type == "DragHandle") then
+                component.x = x + 2;
+                component:ClearAllPoints();
+                component:SetPoint("LEFT", group:GetFrame(), "LEFT", x + 2, 0);
+                component:SetFrameLevel(currentLevel + 1);
+                x = x + 9;
+            elseif (component.type == "Button") then
+                component.x = x;
+                component:ClearAllPoints();
+                component:SetPoint("LEFT", group:GetFrame(), "LEFT", x, 0);
+                component:SetFrameLevel(currentLevel + 1);
+                x = x + buttonW;
+            elseif (component.type == "SplitButton") then
+                component.x = x;
+                component:ClearAllPoints();
+                component:SetPoint("LEFT", group:GetFrame(), "LEFT", x, 0);
+                component:SetFrameLevel(currentLevel + 1);
+                x = x + buttonW;
+            elseif (component.type == "Toggle") then
+                component.x = x;
+                component:ClearAllPoints();
+                component:SetPoint("LEFT", group:GetFrame(), "LEFT", x, 0);
+                component:SetFrameLevel(currentLevel + 1);
+                x = x + buttonW;
+            elseif (component.type == "Dropdown") then
+                component.x = x;
+                component:ClearAllPoints();
+                component:SetPoint("LEFT", group:GetFrame(), "LEFT", x, 0);
+                component:SetFrameLevel(currentLevel + 1);
+                x = x + component:GetWidth();
+            end
+        end
+    end
 end
 
 Toolbar.__tostring = function(self)

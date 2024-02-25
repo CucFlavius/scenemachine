@@ -11,7 +11,7 @@ UI.SplitButton.State = {
     Pressed = 2
 }
 
-function SplitButton:New(x, y, w, h, parent, point, parentPoint, iconTextures, texcoords, action)
+function SplitButton:New(x, y, w, h, parent, point, parentPoint, iconTextures, texcoords, splitaction, action)
 	local v = 
     {
         x = x or 0,
@@ -24,6 +24,7 @@ function SplitButton:New(x, y, w, h, parent, point, parentPoint, iconTextures, t
         iconTextures = iconTextures or {},
         texcoords = texcoords or {},
         visible = true,
+        splitaction = splitaction,
         action = action,
         currentOption = 1,
     };
@@ -54,6 +55,8 @@ function SplitButton:Build()
 
     self.splitButton:SetScript("OnMouseDown", function()
         self.holdTimer = C_Timer.NewTimer(0.5, function()
+            self.popup:ClearAllPoints();
+            self.popup:SetPoint("TOPLEFT", self.parent:GetParent(), "BOTTOMLEFT", self.x, 0);
             self.popup:Show();
         end);
     end);
@@ -66,7 +69,7 @@ function SplitButton:Build()
                     self.splitButton.icon:SetTexCoords(self.texcoords[b]);
                     self.currentOption = b;
                     self.popup:Hide();
-                    self.action(self.currentOption);
+                    self.splitaction(self.currentOption);
                     return;
                 end
             end
