@@ -499,7 +499,7 @@ function AM.Update(deltaTime)
                 AM.inputState.mousePosStartX = savePrevMouse;
             end
 
-            AM.SetTime(AM.loadedTimeline.currentTime);
+            AM.SetTime(AM.loadedTimeline.currentTime, false);
             AM.RefreshWorkspace();
         end
     end
@@ -557,7 +557,7 @@ function AM.Update(deltaTime)
                 AM.inputState.mousePosStartX = savePrevMouse;
             end
 
-            AM.SetTime(AM.loadedTimeline.currentTime);
+            AM.SetTime(AM.loadedTimeline.currentTime, false);
             AM.RefreshWorkspace();
         end
     end
@@ -615,7 +615,7 @@ function AM.Update(deltaTime)
                 AM.inputState.mousePosStartX = savePrevMouse;
             end
 
-            AM.SetTime(AM.loadedTimeline.currentTime);
+            AM.SetTime(AM.loadedTimeline.currentTime, false);
             AM.RefreshWorkspace();
         end
     end
@@ -3065,7 +3065,7 @@ function AM.Pause()
     AM.playing = false;
 
     if (AM.loadedTimeline) then
-        AM.SetTime(AM.loadedTimeline.currentTime);
+        AM.SetTime(AM.loadedTimeline.currentTime, false);
     end
 end
 
