@@ -178,8 +178,8 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         if (SM.selectedObject) then
             --Debug.TablePrint(SM.selectedObject.actor:GetItemTransmogInfo(1));
             --print(SM.selectedObject.actor:GetAutoDress());
-
-            SM.selectedObject.actor:SetCustomRace(1)
+            --SM.selectedObject.actor:SetModelByPath("Interface\\AddOns\\scenemachine\\res\\xyz.m2");
+            --SM.selectedObject.actor:SetCustomRace(1)
             --SM.selectedObject.actor:TryOn(39);
         end
     end);

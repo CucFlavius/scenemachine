@@ -179,6 +179,7 @@ function Renderer.CheckQueuedTasks()
                 local worked = item.actor:SetModelByUnit(item.unit);
                 if (worked) then
                     table.remove(Renderer.delayedUnitsQueue, i);
+                    return;
                 end
             end
 

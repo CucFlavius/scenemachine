@@ -35,6 +35,7 @@ AM.inputState = {
     movingMax = false;
     movingCenter = false;
     movingTime = false;
+    movingKeyframe = false;
     movingAnim = -1;
     movingAnimHandleL = -1;
     movingAnimHandleR = -1;
@@ -47,6 +48,7 @@ AM.loadedTimeline = nil;
 AM.selectedTrack = nil;
 AM.selectedAnim = nil;
 AM.selectedKeys = {};
+--AM.toOverrideKeys = nil;
 
 AM.TrackPoolSize = 10;
 AM.usedTracks = 0;
@@ -75,7 +77,7 @@ AM.KeyAddMode = {
     Scale = 3
 }
 
-AM.uiMode = AM.Mode.Tracks;
+AM.uiMode = AM.Mode.Keyframes;
 AM.keyAddMode = AM.KeyAddMode.All;
 
 AM.CurvePoolSize = 30;
@@ -239,7 +241,6 @@ function AM.Update(deltaTime)
     end
 
     if (AM.inputState.movingTime) then
-        
         local groupBgH = AM.timebarGroup:GetWidth() - 26;
         local mouseDiff = (AM.inputState.timebarFramePosStart + 10) - Input.mouseXRaw * Renderer.scale;
         local newPoint = -mouseDiff;
@@ -255,6 +256,82 @@ function AM.Update(deltaTime)
         timeMS = max(startMS, min(endMS, timeMS));  -- clamp
 
         AM.SetTime(math.floor(timeMS));
+    end
+
+    if (AM.inputState.movingKeyframe) then
+        local groupBgH = AM.timebarGroup:GetWidth() - 26;
+        local mouseDiff = (AM.inputState.timebarFramePosStart + 5) - Input.mouseXRaw * Renderer.scale;
+        local newPoint = -mouseDiff;
+
+        -- Scroll the items list --
+        local newPointNormalized = newPoint / groupBgH;
+        local totalTimeMS = AM.loadedTimeline.duration;
+        local startMS = AM.currentCrop.min * totalTimeMS;
+        local endMS = AM.currentCrop.max * totalTimeMS;
+        local lengthMS = endMS - startMS;
+
+        if (not AM.inputState.timeStart) then
+            AM.inputState.timeStart = AM.selectedKeys[1].time;
+        end
+
+        local timeChangeMS = startMS + (newPointNormalized * lengthMS);
+        local timeMS = AM.inputState.timeStart + timeChangeMS;
+        local maxT = math.floor(math.floor(totalTimeMS / 33.3333) * 33.3333);
+        timeMS = math.floor(math.floor(timeMS / 33.3333) * 33.3333);
+        timeMS = min(maxT ,max(0, timeMS));
+
+        for k = 1, #AM.selectedKeys, 1 do
+            AM.selectedKeys[k].time = timeMS;
+            AM.selectedKeyGroup = timeMS;
+        end
+
+        AM.RefreshWorkspace();
+
+        --[[
+        if (AM.inputState.timeStart) then
+            local timeOffsetMS = timeMS - AM.inputState.timeStart;
+            local dif = 0;
+            if (math.abs(timeOffsetMS) > 33.3333) then
+                
+                local roundTimeOffsetMS = 0;
+                if (timeOffsetMS > 0) then
+                    roundTimeOffsetMS = math.floor(math.floor(timeOffsetMS / 33.3333) * 33.3333);
+                    dif = roundTimeOffsetMS - timeOffsetMS;
+                else
+                    roundTimeOffsetMS = math.ceil(math.ceil(timeOffsetMS / 33.3333) * 33.3333);
+                    dif = roundTimeOffsetMS - timeOffsetMS;
+                end
+
+                --if (AM.keyframeGroups[AM.selectedKeys[1].time + roundTimeOffsetMS]) then
+                --    AM.toOverrideKeys = {};
+                --else
+                --    AM.toOverrideKeys = nil;
+                --end
+
+                for k = 1, #AM.selectedKeys, 1 do
+                    AM.selectedKeys[k].time = AM.selectedKeys[k].time + roundTimeOffsetMS;
+                    AM.selectedKeyGroup = AM.selectedKeys[k].time;
+
+                    --if (AM.toOverrideKeys) then
+                    --    AM.toOverrideKeys[k] = AM.selectedKeys[k];
+                    --    print(AM.selectedKeys[k].time);
+                    --end
+
+                    local maxT = math.floor(math.floor(totalTimeMS / 33.3333) * 33.3333);
+                    if (AM.selectedKeys[k].time < 0) then
+                        AM.selectedKeys[k].time = 0;
+                    elseif (AM.selectedKeys[k].time > maxT) then
+                        AM.selectedKeys[k].time = maxT;
+                    else
+                        AM.inputState.timeStart = timeMS + dif;
+                    end
+                end
+            end
+        else
+            AM.inputState.timeStart = timeMS;
+        end
+        --]]
+        AM.RefreshWorkspace();
     end
 
     if (AM.inputState.movingAnim ~= -1) then
@@ -819,11 +896,14 @@ function AM.GenerateKeyframeElement(index, x, y, w, h, parent, R, G, B, A)
     element:SetNormalTexture(element.ntex);
     element:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
     element:SetScript("OnMouseDown", function(self, button)
-        --AM.inputState.movingAnim = index;
-        --AM.inputState.mousePosStartX = Input.mouseXRaw;
+        AM.inputState.movingKeyframe = true;
+        AM.inputState.timebarFramePosStart = element:GetLeft();
+        AM.inputState.mousePosStartX = Input.mouseXRaw;
     end);
     element:SetScript("OnMouseUp", function(self, button)
-        --AM.inputState.movingAnim = -1;
+        AM.inputState.movingKeyframe = false;
+        AM.inputState.timeStart = nil;
+        AM.OnFinishedKeyRetiming();
     end);
     element:SetScript("OnClick", function (self, button, down)
         if (button == "LeftButton" and down) then
@@ -1966,6 +2046,14 @@ function AM.RefreshWorkspace()
 
                         usedKeys = usedKeys + AM.RefreshKeyframes(track.keysS, startMS, endMS, barWidth, t, 7);
 
+                        AM.SolveKeyOverrides(AM.selectedTrack.keysPx);
+                        AM.SolveKeyOverrides(AM.selectedTrack.keysPy);
+                        AM.SolveKeyOverrides(AM.selectedTrack.keysPz);
+                        AM.SolveKeyOverrides(AM.selectedTrack.keysRx);
+                        AM.SolveKeyOverrides(AM.selectedTrack.keysRy);
+                        AM.SolveKeyOverrides(AM.selectedTrack.keysRz);
+                        AM.SolveKeyOverrides(AM.selectedTrack.keysS);
+
                         usedKeys = usedKeys + AM.RefreshGroupKeyframes(track, startMS, endMS, barWidth, t);
                     end
                 end
@@ -3034,4 +3122,38 @@ function AM.Button_AddKey()
     elseif (AM.keyAddMode == AM.KeyAddMode.Scale) then
         AM.AddScaleKey(AM.selectedTrack);
     end
+end
+
+function AM.SolveKeyOverrides(keys)
+    for a = 1, #AM.selectedKeys, 1 do
+        local key = AM.selectedKeys[a];
+        local grp = AM.keyframeGroups[key.time];
+        if (grp) then
+            if (grp.px ~= key and grp.py ~= key and grp.pz ~= key and grp.rx ~= key and grp.ry ~= key and grp.rz ~= key and grp.s ~= key) then
+                print(key.time);
+            end
+        end
+        --[[
+        for i = 1, #keys, 1 do
+            if (keys[i].time == AM.selectedKeys[a].time) then
+                if (keys[i] ~= AM.selectedKeys[a]) then
+                    print("y")
+                    table.remove(keys, i);
+                    return;
+                end
+            end
+        end
+        --]]
+    end
+end
+
+function AM.OnFinishedKeyRetiming()
+    -- check for any time overlaps
+    AM.SolveKeyOverrides(AM.selectedTrack.keysPx);
+    AM.SolveKeyOverrides(AM.selectedTrack.keysPy);
+    AM.SolveKeyOverrides(AM.selectedTrack.keysPz);
+    AM.SolveKeyOverrides(AM.selectedTrack.keysRx);
+    AM.SolveKeyOverrides(AM.selectedTrack.keysRy);
+    AM.SolveKeyOverrides(AM.selectedTrack.keysRz);
+    AM.SolveKeyOverrides(AM.selectedTrack.keysS);
 end
