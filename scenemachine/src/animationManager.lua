@@ -286,7 +286,7 @@ function AM.Update(deltaTime)
         local previousTime = AM.selectedKeys[1].time;
         
         local timeChangeMS = startMS + (newPointNormalized * lengthMS);
-        local timeMS = AM.inputState.timeStart + timeChangeMS;
+        local timeMS = AM.inputState.timeStart + timeChangeMS - startMS;
         local maxT = math.floor(math.floor(totalTimeMS / 33.3333) * 33.3333);
         timeMS = math.floor(math.floor(timeMS / 33.3333) * 33.3333);
         timeMS = min(maxT ,max(0, timeMS));
@@ -313,7 +313,6 @@ function AM.Update(deltaTime)
                         AM.toOverrideKeys[#AM.toOverrideKeys + 1] = grp.s;
                     end
                 end
-                --AM.toOverrideKeys = { grp.px, grp.py, grp.pz, grp.rx, grp.ry, grp.rz, grp.s };
             end
         end
 
@@ -980,10 +979,10 @@ function AM.CreateToolbar(x, y, w, h, parent, startLevel)
             end
         end },
         { type = "Separator", name = "Separator4" },
-        { type = "SplitButton", name = "InterpolationIn", icons = { toolbar:GetIcon("ismooth"), toolbar:GetIcon("ilinear"), toolbar:GetIcon("istep") },
+        { type = "SplitButton", name = "InterpolationIn", icons = { toolbar:GetIcon("ismooth"), toolbar:GetIcon("ilinear"), toolbar:GetIcon("istep"), toolbar:GetIcon("islow"), toolbar:GetIcon("ifast") },
                 splitaction = function(v) AM.Button_SetInterpolationInMode(v); end,
                 action = function() AM.Button_SetKeyInterpolationIn(); end },
-        { type = "SplitButton", name = "InterpolationOut", icons = { toolbar:GetIcon("osmooth"), toolbar:GetIcon("olinear"), toolbar:GetIcon("ostep") },
+        { type = "SplitButton", name = "InterpolationOut", icons = { toolbar:GetIcon("osmooth"), toolbar:GetIcon("olinear"), toolbar:GetIcon("ostep"), toolbar:GetIcon("oslow"), toolbar:GetIcon("ofast") },
                 splitaction = function(v) AM.Button_SetInterpolationOutMode(v); end,
                 action = function() AM.Button_SetKeyInterpolationOut(); end },
         { type = "DragHandle" },
@@ -1553,17 +1552,6 @@ function AM.AddTrack(object)
         AM.loadedTimeline.tracks = {};
     end
 
-    -- check if we already have a track for this object
-    --[[
-    if (AM.loadedTimeline) then
-		for i in pairs(AM.loadedTimeline.tracks) do
-			if (AM.loadedTimeline.tracks[i].objectID == object.id) then
-				AM.SelectTrack(i);
-				return;
-			end
-		end
-	end
-    --]]
     -- even simpler, when adding a track the selected object would have current track selected anyway
     if (AM.selectedTrack) then
         if (AM.selectedTrack.objectID == object.id) then
@@ -1673,11 +1661,14 @@ function AM.DeleteTimeline()
     -- delete it
     table.remove(SM.loadedScene.timelines, index);
 
-    -- if this was the only scene then create a new default one
-    if (#SM.loadedScene.timelines == 1) then
-        AM.CreateDefaultTimeline();
+    -- if this was the only timeline then create a new default one
+    if (#SM.loadedScene.timelines == 0) then
+        SM.loadedScene.timelines[1] = AM.CreateDefaultTimeline();
         AM.LoadTimeline(1);
     end
+
+    AM.selectedTrack = nil;
+    AM.selectedKeys = nil;
 
     -- refresh ui
     AM.RefreshTimelineTabs();
@@ -2230,33 +2221,94 @@ function AM.RefreshKeyframes(keys, startMS, endMS, barWidth, trackIndex, compone
     return usedKeys;
 end
 
+function AM.KeyframeInterpolationIndexToTexCoords(idx, flipX, flipY)
+    local x = math.fmod(idx, 4);
+    local y = math.floor(idx / 4);
+    local d = 0.25;
+
+    local x1 = x * d;
+    local x2 = (x + 1) * d;
+    local y1 = y * d;
+    local y2 = (y + 1) * d;
+
+    if (flipX and flipY) then
+        return x2, x1, y2, y1;
+    end
+
+    if (flipX) then
+        return x2, x1, y1, y2;
+    end
+
+    if (flipY) then
+        return x1, x2, y2, y1;
+    end
+
+    return x1, x2, y1, y2;
+end
+
 function AM.KeyframeInterpolationToTexCoords(interpolationIn, interpolationOut)
     interpolationIn = interpolationIn or Track.Interpolation.Bezier;
     interpolationOut = interpolationOut or Track.Interpolation.Bezier;
 
     if (interpolationIn == Track.Interpolation.Bezier) then
         if (interpolationOut == Track.Interpolation.Bezier) then
-            return 0.75, 1, 0, 0.25;
+            return AM.KeyframeInterpolationIndexToTexCoords(2);
         elseif (interpolationOut == Track.Interpolation.Linear) then
-            return 0.25, 0.5, 0, 0.25;
+            return AM.KeyframeInterpolationIndexToTexCoords(4);
         elseif (interpolationOut == Track.Interpolation.Step) then
-            return 0.5, 0.75, 0.25, 0.5;
+            return AM.KeyframeInterpolationIndexToTexCoords(3);
+        elseif (interpolationOut == Track.Interpolation.Slow) then
+            return AM.KeyframeInterpolationIndexToTexCoords(10, true, true);
+        elseif (interpolationOut == Track.Interpolation.Fast) then
+            return AM.KeyframeInterpolationIndexToTexCoords(10, true);
         end
     elseif (interpolationIn == Track.Interpolation.Linear) then
         if (interpolationOut == Track.Interpolation.Bezier) then
-            return 0.5, 0.75, 0, 0.25;
+            return AM.KeyframeInterpolationIndexToTexCoords(4, true);
         elseif (interpolationOut == Track.Interpolation.Linear) then
-            return 0, 0.25, 0, 0.25;
+            return AM.KeyframeInterpolationIndexToTexCoords(0);
         elseif (interpolationOut == Track.Interpolation.Step) then
-            return 0.25, 0.5, 0.25, 0.5;
+            return AM.KeyframeInterpolationIndexToTexCoords(1);
+        elseif (interpolationOut == Track.Interpolation.Slow) then
+            return AM.KeyframeInterpolationIndexToTexCoords(11, true, true);
+        elseif (interpolationOut == Track.Interpolation.Fast) then
+            return AM.KeyframeInterpolationIndexToTexCoords(11, true);
         end
     elseif (interpolationIn == Track.Interpolation.Step) then
         if (interpolationOut == Track.Interpolation.Bezier) then
-            return 0.75, 1, 0.25, 0.5;
+            return AM.KeyframeInterpolationIndexToTexCoords(3, true);
         elseif (interpolationOut == Track.Interpolation.Linear) then
-            return 0, 0.25, 0.25, 0.5;
+            return AM.KeyframeInterpolationIndexToTexCoords(1, true);
         elseif (interpolationOut == Track.Interpolation.Step) then
-            return 0, 0.25, 0.5, 0.75;
+            return AM.KeyframeInterpolationIndexToTexCoords(5);
+        elseif (interpolationOut == Track.Interpolation.Slow) then
+            return AM.KeyframeInterpolationIndexToTexCoords(9, true, true);
+        elseif (interpolationOut == Track.Interpolation.Fast) then
+            return AM.KeyframeInterpolationIndexToTexCoords(9, true);
+        end
+    elseif (interpolationIn == Track.Interpolation.Slow) then
+        if (interpolationOut == Track.Interpolation.Bezier) then
+            return AM.KeyframeInterpolationIndexToTexCoords(10);
+        elseif (interpolationOut == Track.Interpolation.Linear) then
+            return AM.KeyframeInterpolationIndexToTexCoords(11);
+        elseif (interpolationOut == Track.Interpolation.Step) then
+            return AM.KeyframeInterpolationIndexToTexCoords(9);
+        elseif (interpolationOut == Track.Interpolation.Slow) then
+            return AM.KeyframeInterpolationIndexToTexCoords(12);
+        elseif (interpolationOut == Track.Interpolation.Fast) then
+            return AM.KeyframeInterpolationIndexToTexCoords(8);
+        end
+    elseif (interpolationIn == Track.Interpolation.Fast) then
+        if (interpolationOut == Track.Interpolation.Bezier) then
+            return AM.KeyframeInterpolationIndexToTexCoords(10, false, true);
+        elseif (interpolationOut == Track.Interpolation.Linear) then
+            return AM.KeyframeInterpolationIndexToTexCoords(11, false, true);
+        elseif (interpolationOut == Track.Interpolation.Step) then
+            return AM.KeyframeInterpolationIndexToTexCoords(9, false, true);
+        elseif (interpolationOut == Track.Interpolation.Slow) then
+            return AM.KeyframeInterpolationIndexToTexCoords(8, false, true);
+        elseif (interpolationOut == Track.Interpolation.Fast) then
+            return AM.KeyframeInterpolationIndexToTexCoords(12, false, true);
         end
     end
 end
@@ -2544,6 +2596,8 @@ function AM.SetTime(timeMS, rounded)
 end
 
 function AM.GetObjectOfTrack(track)
+    if (not track) then return nil; end
+
     if (track.objectID) then
         if (not SM.loadedScene.objects) then
             return nil;
@@ -2571,8 +2625,12 @@ function AM.GetTimeNormalized(timeMS)
 end
 
 function AM.OpenAddAnimationWindow(track)
-
     if (not track) then
+        if (SM.selectedObject) then
+            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),
+                "No Track", "The object doesn't have an animation track, do you want to add one?",
+            true, true, function() AM.AddTrack(SM.selectedObject) AM.OpenAddAnimationWindow(AM.selectedTrack) end, function() end);
+        end
         return;
     end
 
@@ -2588,13 +2646,22 @@ function AM.OpenAddAnimationWindow(track)
     end
 
     local animData = SceneMachine.animationData[obj.fileID];
-    AM.animScrollList:SetData(animData);
-    AM.animSelectWindow.filterBox:SetText("");
-    AM.animSelectWindow:Show();
+    if (animData) then
+        AM.animScrollList:SetData(animData);
+        AM.animSelectWindow.filterBox:SetText("");
+        AM.animSelectWindow:Show();
+    else
+        print("SceneMachine.animationData is missing key " .. obj.fileID);
+    end
 end
 
 function AM.AddFullKey(track)
     if (not track) then
+        if (SM.selectedObject) then
+            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),
+                "No Track", "The object doesn't have an animation track, do you want to add one?",
+            true, true, function() AM.AddTrack(SM.selectedObject); AM.AddFullKey(SM.selectedTrack); end, function() end);
+        end
         return;
     end
 
@@ -2609,6 +2676,11 @@ end
 
 function AM.AddPosKey(track)
     if (not track) then
+        if (SM.selectedObject) then
+            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),
+                "No Track", "The object doesn't have an animation track, do you want to add one?",
+            true, true, function() AM.AddTrack(SM.selectedObject); AM.AddPosKey(SM.selectedTrack); end, function() end);
+        end
         return;
     end
 
@@ -2623,6 +2695,11 @@ end
 
 function AM.AddRotKey(track)
     if (not track) then
+        if (SM.selectedObject) then
+            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),
+                "No Track", "The object doesn't have an animation track, do you want to add one?",
+            true, true, function() AM.AddTrack(SM.selectedObject); AM.AddRotKey(SM.selectedTrack); end, function() end);
+        end
         return;
     end
 
@@ -2637,6 +2714,11 @@ end
 
 function AM.AddScaleKey(track)
     if (not track) then
+        if (SM.selectedObject) then
+            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),
+                "No Track", "The object doesn't have an animation track, do you want to add one?",
+            true, true, function() AM.AddTrack(SM.selectedObject); AM.AddScaleKey(SM.selectedTrack); end, function() end);
+        end
         return;
     end
 
@@ -3052,6 +3134,10 @@ function AM.Button_SetInterpolationInMode(value)
         interpolation = Track.Interpolation.Linear;
     elseif (value == 3) then
         interpolation = Track.Interpolation.Step;
+    elseif (value == 4) then
+        interpolation = Track.Interpolation.Slow;
+    elseif (value == 5) then
+        interpolation = Track.Interpolation.Fast;
     end
 
     AM.currentInterpolationIn = interpolation;
@@ -3065,6 +3151,10 @@ function AM.Button_SetInterpolationOutMode(value)
         interpolation = Track.Interpolation.Linear;
     elseif (value == 3) then
         interpolation = Track.Interpolation.Step;
+    elseif (value == 4) then
+        interpolation = Track.Interpolation.Slow;
+    elseif (value == 5) then
+        interpolation = Track.Interpolation.Fast;
     end
 
     AM.currentInterpolationOut = interpolation;
@@ -3107,7 +3197,6 @@ function AM.Button_SetKeyAddMode(value)
 end
 
 function AM.Button_AddKey()
-
     if (AM.keyAddMode == AM.KeyAddMode.All) then
         AM.AddFullKey(AM.selectedTrack);
     elseif (AM.keyAddMode == AM.KeyAddMode.Position) then

@@ -488,7 +488,7 @@ function Editor.OpenMessageBox( window, title, message, hasYesButton, hasNoButto
         Editor.messageBox.yesButton:Show();
         Editor.messageBox.yesButton:SetScript("OnClick", function (self, button, down)
             Editor.messageBox:Hide();
-            if (onYesButton ~= nil) then
+            if (onYesButton) then
                 onYesButton();
             end
         end);
@@ -500,7 +500,7 @@ function Editor.OpenMessageBox( window, title, message, hasYesButton, hasNoButto
         Editor.messageBox.noButton:Show();
         Editor.messageBox.noButton:SetScript("OnClick", function (self, button, down)
             Editor.messageBox:Hide();
-            if (onNoButton ~= nil) then
+            if (onNoButton) then
                 onNoButton();
             end
         end);

@@ -16,6 +16,8 @@ Track.Interpolation = {
     Bezier = 1,
     Linear = 2,
     Step = 3,
+    Slow = 4,
+    Fast = 5,
 }
 
 setmetatable(Track, Track)
@@ -306,14 +308,19 @@ function Track:SampleKey(timeMS, keys)
     local i1 = keys[idx].interpolationOut;
     local i2 = keys[idx + 1].interpolationIn;
 
+    print (i1, i2)
     local r = 0;
     if (i1 == i2) then
         if (i1 == Track.Interpolation.Bezier) then
-            r = Track:InterpolateAutoBezier(t1, t2, timeMS);
+            r = Track:InterpolateBezierAuto(t1, t2, timeMS);
         elseif (i1 == Track.Interpolation.Linear) then
             r = Track:InterpolateLinear(t1, t2, timeMS);
         elseif (i1 == Track.Interpolation.Step) then
             r = Track:InterpolateStep(t1, t2, timeMS);
+        elseif (i1 == Track.Interpolation.Slow) then
+            r = Track:InterpolateBezierSlow(t1, t2, timeMS);
+        elseif (i1 == Track.Interpolation.Fast) then
+            r = Track:InterpolateBezierFast(t1, t2, timeMS);
         end
     else
         if (i1 == Track.Interpolation.Step or i2 == Track.Interpolation.Step) then
@@ -323,16 +330,25 @@ function Track:SampleKey(timeMS, keys)
             local A = 0;
             local B = 0;
             if (i1 == Track.Interpolation.Bezier) then
-                A = Track:InterpolateAutoBezier(t1, t2, timeMS);
+                A = Track:InterpolateBezierAuto(t1, t2, timeMS);
             elseif (i1 == Track.Interpolation.Linear) then
                 A = Track:InterpolateLinear(t1, t2, timeMS);
+            elseif (i1 == Track.Interpolation.Slow) then
+                A = Track:InterpolateBezier(t1, t2, timeMS, 0, 1, 0, 2);
+            elseif (i1 == Track.Interpolation.Fast) then
+                A = Track:InterpolateBezier(t1, t2, timeMS, 0, 1, 2, 0);
             end
 
             if (i2 == Track.Interpolation.Bezier) then
-                B = Track:InterpolateAutoBezier(t1, t2, timeMS);
+                B = Track:InterpolateBezierAuto(t1, t2, timeMS);
             elseif (i2 == Track.Interpolation.Linear) then
                 B = Track:InterpolateLinear(t1, t2, timeMS);
+            elseif (i2 == Track.Interpolation.Slow) then
+                B = Track:InterpolateBezier(t1, t2, timeMS, 0, 1, 2, 0);
+            elseif (i2 == Track.Interpolation.Fast) then
+                B = Track:InterpolateBezier(t1, t2, timeMS, 0, 1, 0, 2);
             end
+
             r = (A + (B - A) * alpha);
         end
     end
@@ -375,18 +391,38 @@ function Track:InterpolateLinear(t1, t2, timeMS)
     return (timeMS - t1) / (t2 - t1);
 end
 
-function Track:InterpolateAutoBezier(tA, tB, timeMS)
-    local t = (timeMS - tA) / (tB - tA)
-    
-    --t = interpolationValue
-    local t2 = t * t
-    local t3 = t2 * t
+function Track:InterpolateBezierAuto(tA, tB, timeMS)
     
     local previousPoint = 0;
     local nextPoint = 1;
-    local previousTangent = 0--tA + (tB - tA) / 3
-    local nextTangent = 0--tB - (tB - tA) / 3
+    local previousTangent = 0;
+    local nextTangent = 0;
+    
+    return Track:InterpolateBezier(tA, tB, timeMS, previousPoint, nextPoint, previousTangent, nextTangent);
+end
 
+function Track:InterpolateBezierSlow(tA, tB, timeMS)
+    local previousPoint = 0;
+    local nextPoint = 1;
+    local previousTangent = 0;
+    local nextTangent = 2;
+    
+    return Track:InterpolateBezier(tA, tB, timeMS, previousPoint, nextPoint, previousTangent, nextTangent);
+end
+
+function Track:InterpolateBezierFast(tA, tB, timeMS)
+    local previousPoint = 0;
+    local nextPoint = 1;
+    local previousTangent = 2;
+    local nextTangent = 0;
+    
+    return Track:InterpolateBezier(tA, tB, timeMS, previousPoint, nextPoint, previousTangent, nextTangent);
+end
+
+function Track:InterpolateBezier(tA, tB, timeMS, previousPoint, nextPoint, previousTangent, nextTangent)
+    local t = (timeMS - tA) / (tB - tA)
+    local t2 = t * t
+    local t3 = t2 * t
     local p = (2 * t3 - 3 * t2 + 1) * previousPoint +
            (t3 - 2 * t2 + t) * previousTangent +
            (-2 * t3 + 3 * t2) * nextPoint +
