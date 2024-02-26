@@ -308,7 +308,6 @@ function Track:SampleKey(timeMS, keys)
     local i1 = keys[idx].interpolationOut;
     local i2 = keys[idx + 1].interpolationIn;
 
-    print (i1, i2)
     local r = 0;
     if (i1 == i2) then
         if (i1 == Track.Interpolation.Bezier) then

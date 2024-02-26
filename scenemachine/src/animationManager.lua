@@ -861,13 +861,22 @@ function AM.CreateTimebar(x, y, w, h, parent, startLevel)
 end
 
 function AM.CreateMainKeyframeBar(x, y, w, h, parent, startLevel)
-    AM.mainKeyframeBar = UI.Rectangle:New(0, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 0.5);
+    AM.mainKeyframeBar = CreateFrame("Button", "AM.mainKeyframeBar", parent)
+	AM.mainKeyframeBar:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, y);
     AM.mainKeyframeBar:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, y);
+	AM.mainKeyframeBar:SetSize(w, h);
+    AM.mainKeyframeBar.ntex = AM.mainKeyframeBar:CreateTexture();
+    AM.mainKeyframeBar.ntex:SetColorTexture(0, 0, 0, 0.5);
+    AM.mainKeyframeBar.ntex:SetAllPoints();
+    AM.mainKeyframeBar:SetNormalTexture(AM.mainKeyframeBar.ntex);
+    AM.mainKeyframeBar:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
     AM.mainKeyframeBar:SetFrameLevel(startLevel);
+    AM.mainKeyframeBar:SetScript("OnClick", function() AM.SelectKeyAtIndex(-1); end);
+
 
     AM.KeyframePool = {};
     for i = 1, AM.KeyframePoolSize, 1 do
-        AM.KeyframePool[i] = AM.GenerateKeyframeElement(i, 0, 0, AM.keyframeElementH, AM.keyframeElementH, AM.mainKeyframeBar:GetFrame(), 0.5, 0.5, 0.5, 1);
+        AM.KeyframePool[i] = AM.GenerateKeyframeElement(i, 0, 0, AM.keyframeElementH, AM.keyframeElementH, AM.mainKeyframeBar, 0.5, 0.5, 0.5, 1);
         AM.KeyframePool[i]:SetFrameLevel(startLevel + 1);
         AM.KeyframePool[i]:Hide();
     end
@@ -901,6 +910,7 @@ function AM.GenerateKeyframeElement(index, x, y, w, h, parent, R, G, B, A)
     element:SetScript("OnClick", function (self, button, down)
         if (button == "LeftButton" and down) then
             AM.SelectKeyAtIndex(index);
+            AM.SelectAnimation(-1);
         end
     end)
 
@@ -912,7 +922,7 @@ function AM.GetAvailableKeyframeElement()
     AM.usedKeyframes = AM.usedKeyframes + 1;
 
     if (i > #AM.KeyframePool) then
-        AM.KeyframePool[i] = AM.GenerateKeyframeElement(i, 0, 0, AM.keyframeElementH, AM.keyframeElementH, AM.mainKeyframeBar:GetFrame(), 0.5, 0.5, 0.5, 1);
+        AM.KeyframePool[i] = AM.GenerateKeyframeElement(i, 0, 0, AM.keyframeElementH, AM.keyframeElementH, AM.mainKeyframeBar, 0.5, 0.5, 0.5, 1);
     end
 
     return AM.KeyframePool[i];
@@ -1138,6 +1148,7 @@ function AM.CreateKeyframeView(x, y, w, h, parent, startLevel)
     AM.keyframeViewport:SetNormalTexture(AM.keyframeViewport.ntex);
     AM.keyframeViewport:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
     AM.keyframeViewport:SetFrameLevel(startLevel + 1);
+    AM.keyframeViewport:SetScript("OnClick", function() AM.SelectKeyAtIndex(-1); end);
 
     AM.keyframeAreaList = UI.Rectangle:New(0, 0, w, h, AM.keyframeViewport, "TOPLEFT", "TOPLEFT",  c4[1], c4[2], c4[3], 1);
     AM.keyframeAreaList:SetPoint("TOPRIGHT", AM.keyframeViewport, "TOPRIGHT", -6, 0);
@@ -1174,14 +1185,8 @@ function AM.CreateKeyframeBarElement(x, y, h, parent)
     element.ntex:SetAllPoints();
     element.ntex:SetVertexColor(0.2, 0.2, 0.2, 1);
     element:SetNormalTexture(element.ntex);
-    element:SetScript("OnClick", function (self, button, down)
-        --[[
-        if (AM.loadedTimeline) then
-            AM.SelectTrack(index);
-        end
-        --]]
-    end)
-
+    element:SetScript("OnClick", function() AM.SelectKeyAtIndex(-1); end);
+    
     return element;
 end
 
@@ -1614,6 +1619,7 @@ function AM.SelectTrack(index)
     end
 
     AM.SelectAnimation(-1);
+    AM.SelectKeyAtIndex(-1);
     AM.RefreshTimebar();
     AM.RefreshWorkspace();
 end
@@ -2382,8 +2388,8 @@ function AM.RefreshGroupKeyframes(track, startMS, endMS, barWidth, trackIndex)
         if (xNorm > 0) then startP = startP + 1; end
 
         keyframeElement:ClearAllPoints();
-        keyframeElement:SetParent(AM.mainKeyframeBar:GetFrame());
-        keyframeElement:SetPoint("CENTER", AM.mainKeyframeBar:GetFrame(), "LEFT", startP, 0);
+        keyframeElement:SetParent(AM.mainKeyframeBar);
+        keyframeElement:SetPoint("CENTER", AM.mainKeyframeBar, "LEFT", startP, 0);
         keyframeElement.ntex:SetTexCoord(0, 0.25, 0, 0.25);
         keyframeElement:Show();
 
