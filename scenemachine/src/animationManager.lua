@@ -2591,11 +2591,25 @@ function AM.SetTime(timeMS, rounded)
             if (obj) then
                 -- animate object
                 local animID, variationID, animMS = track:SampleAnimation(timeMS);
-                local animSpeed = 0;
-                if (animID ~= -1) then
-                    obj.actor:SetAnimation(animID, variationID, animSpeed, animMS / 1000);
+
+                if (AM.playing) then
+                    -- Sample playback
+                    local animSpeed = 1;
+                    if (obj.currentAnimID ~= animID or obj.currentAnimVariationID ~= variationID) then
+                        obj.actor:SetAnimation(animID, variationID, animSpeed, animMS / 1000);
+                        obj.currentAnimID = animID;
+                        obj.currentAnimVariationID = variationID;
+                    end
                 else
-                    -- stop playback
+                    -- Sample single key
+                    local animSpeed = 0;
+                    obj.currentAnimID = nil;
+                    obj.currentAnimVariationID = nil;
+                    if (animID ~= -1) then
+                        obj.actor:SetAnimation(animID, variationID, animSpeed, animMS / 1000);
+                    else
+                        -- stop playback
+                    end
                 end
 
                 -- animate keyframes
