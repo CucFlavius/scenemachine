@@ -260,6 +260,14 @@ function AM.Update(deltaTime)
     end
 
     if (AM.inputState.movingKeyframe) then
+
+        if (not Input.mouseState.LMB) then
+            AM.inputState.movingKeyframe = false;
+            AM.inputState.timeStart = nil;
+            AM.OnFinishedKeyRetiming();
+            return;
+        end
+
         local groupBgH = AM.timebarGroup:GetWidth() - 26;
         local mouseDiff = (AM.inputState.timebarFramePosStart + 5) - Input.mouseXRaw * Renderer.scale;
         local newPoint = -mouseDiff;
@@ -879,9 +887,12 @@ function AM.GenerateKeyframeElement(index, x, y, w, h, parent, R, G, B, A)
     element:SetNormalTexture(element.ntex);
     element:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
     element:SetScript("OnMouseDown", function(self, button)
-        AM.inputState.movingKeyframe = true;
-        AM.inputState.timebarFramePosStart = element:GetLeft();
-        AM.inputState.mousePosStartX = Input.mouseXRaw;
+        if (button == "LeftButton") then
+            AM.inputState.movingKeyframe = true;
+            AM.inputState.timebarFramePosStart = element:GetLeft();
+            AM.inputState.timeStart = nil;
+            AM.inputState.mousePosStartX = Input.mouseXRaw;
+        end
     end);
     element:SetScript("OnMouseUp", function(self, button)
         AM.inputState.movingKeyframe = false;
