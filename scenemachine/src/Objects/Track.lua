@@ -7,7 +7,14 @@ SceneMachine.Track =
     objectID = nil, -- keeping a reference for when loading saved data
     name = "New Track",
     animations = {},
-    keyframes = {},
+    keysPx = {},
+    keysPy = {},
+    keysPz = {},
+    keysRx = {},
+    keysRy = {},
+    keysRz = {},
+    keysS = {},
+    keysA = {},
 }
 
 local Track = SceneMachine.Track;
@@ -37,6 +44,7 @@ function Track:New(object)
         keysRy = {},
         keysRz = {},
         keysS = {},
+        keysA = {},
     };
     
     if (object) then
@@ -59,6 +67,7 @@ function Track:ExportData()
         keysRy = self.keysRy;
         keysRz = self.keysRz;
         keysS = self.keysS;
+        keysA = self.keysA;
     };
 
     return data;
@@ -173,6 +182,19 @@ function Track:ImportData(data)
             };
         end
     end
+
+    if (data.keysA) then
+        self.keysA = {};
+        for k in pairs(data.keysA) do
+            local key = data.keysA[k];
+            self.keysA[k] = {
+                time = key.time,
+                value = key.value,
+                interpolationIn = key.interpolationIn,
+                interpolationOut = key.interpolationOut,
+            }
+        end
+    end
 end
 
 function Track:SampleAnimation(timeMS)
@@ -211,10 +233,11 @@ function Track:AddKeyframe(time, value, keyframes, interpolationIn, interpolatio
     keyframes[#keyframes + 1] = { time = time, value = value, interpolationIn = interpolationIn, interpolationOut = interpolationOut};
 end
 
-function Track:AddFullKeyframe(time, position, rotation, scale, interpolationIn, interpolationOut)
+function Track:AddFullKeyframe(time, position, rotation, scale, alpha, interpolationIn, interpolationOut)
     self:AddPositionKeyframe(time, position, interpolationIn, interpolationOut);
     self:AddRotationKeyframe(time, rotation, interpolationIn, interpolationOut);
     self:AddScaleKeyframe(time, scale, interpolationIn, interpolationOut);
+    self:AddAlphaKeyframe(time, alpha, interpolationIn, interpolationOut);
 end
 
 function Track:AddPositionKeyframe(time, position, interpolationIn, interpolationOut)
@@ -234,6 +257,11 @@ end
 function Track:AddScaleKeyframe(time, scale, interpolationIn, interpolationOut)
     self:AddKeyframe(time, scale, self.keysS, interpolationIn, interpolationOut);
     self:SortScaleKeyframes();
+end
+
+function Track:AddAlphaKeyframe(time, scale, interpolationIn, interpolationOut)
+    self:AddKeyframe(time, scale, self.keysA, interpolationIn, interpolationOut);
+    self:SortAlphaKeyframes();
 end
 
 function Track:SortPositionKeyframes()
@@ -263,6 +291,12 @@ end
 function Track:SortScaleKeyframes()
     if (self.keysS) then
         table.sort(self.keysS, function(a,b) return a.time < b.time end)
+    end
+end
+
+function Track:SortAlphaKeyframes()
+    if (self.keysA) then
+        table.sort(self.keysA, function(a,b) return a.time < b.time end)
     end
 end
 
@@ -384,6 +418,10 @@ end
 
 function Track:SampleScaleKey(timeMS)
     return Track:SampleKey(timeMS, self.keysS);
+end
+
+function Track:SampleAlphaKey(timeMS)
+    return Track:SampleKey(timeMS, self.keysA);
 end
 
 function Track:InterpolateLinear(t1, t2, timeMS)

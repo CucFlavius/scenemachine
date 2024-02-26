@@ -78,7 +78,7 @@ AM.KeyAddMode = {
     Scale = 3
 }
 
-AM.uiMode = AM.Mode.Keyframes;
+AM.uiMode = AM.Mode.Tracks;
 AM.keyAddMode = AM.KeyAddMode.All;
 
 AM.CurvePoolSize = 30;
@@ -311,6 +311,8 @@ function AM.Update(deltaTime)
                         AM.toOverrideKeys[#AM.toOverrideKeys + 1] = grp.rz;
                     elseif(AM.selectedKeyComponents[c] == 7) then
                         AM.toOverrideKeys[#AM.toOverrideKeys + 1] = grp.s;
+                    elseif(AM.selectedKeyComponents[c] == 8) then
+                        AM.toOverrideKeys[#AM.toOverrideKeys + 1] = grp.a;
                     end
                 end
             end
@@ -1156,8 +1158,8 @@ function AM.CreateKeyframeView(x, y, w, h, parent, startLevel)
 
     AM.keyframeBars = {};
     local barSize = 16;
-    local barCount = 7;
-    AM.keyframeAreaList:SetHeight(barSize * barCount + (barSize * 3));
+    local barCount = 12;
+    AM.keyframeAreaList:SetHeight(barSize * barCount);
     
     local positionText = UI.Label:New(0, 0, 200, barSize, AM.keyframeAreaList:GetFrame(), "TOPLEFT", "TOPLEFT", "Position");
     AM.keyframeBars[1] = AM.CreateKeyframeBarElement(0, -barSize, barSize, AM.keyframeAreaList:GetFrame());
@@ -1171,6 +1173,9 @@ function AM.CreateKeyframeView(x, y, w, h, parent, startLevel)
 
     local scaleText = UI.Label:New(0, -barSize * 8, 200, barSize, AM.keyframeAreaList:GetFrame(), "TOPLEFT", "TOPLEFT", "Scale");
     AM.keyframeBars[7] = AM.CreateKeyframeBarElement(0, -barSize * 9, barSize, AM.keyframeAreaList:GetFrame());
+
+    local alphaText = UI.Label:New(0, -barSize * 10, 200, barSize, AM.keyframeAreaList:GetFrame(), "TOPLEFT", "TOPLEFT", "Alpha");
+    AM.keyframeBars[8] = AM.CreateKeyframeBarElement(0, -barSize * 11, barSize, AM.keyframeAreaList:GetFrame());
 end
 
 function AM.CreateKeyframeBarElement(x, y, h, parent)
@@ -2037,6 +2042,8 @@ function AM.RefreshWorkspace()
 
                         usedKeys = usedKeys + AM.RefreshKeyframes(track.keysS, startMS, endMS, barWidth, t, 7);
 
+                        usedKeys = usedKeys + AM.RefreshKeyframes(track.keysA, startMS, endMS, barWidth, t, 8);
+
                         usedKeys = usedKeys + AM.RefreshGroupKeyframes(track, startMS, endMS, barWidth, t);
                     end
                 end
@@ -2209,6 +2216,10 @@ function AM.RefreshKeyframes(keys, startMS, endMS, barWidth, trackIndex, compone
                     R = 1.0;
                     G = 1.0;
                     B = 0.4;
+                elseif (componentIndex == 8) then
+                    R = 1.0;
+                    G = 1.0;
+                    B = 1.0;
                 end
                 
                 for c = 1, #AM.selectedKeys, 1 do
@@ -2376,6 +2387,14 @@ function AM.RefreshGroupKeyframes(track, startMS, endMS, barWidth, trackIndex)
         if (key.time >= startMS and key.time <= endMS) then
             AM.keyframeGroups[key.time] = AM.keyframeGroups[key.time] or {};
             AM.keyframeGroups[key.time].s = key;
+        end
+    end
+
+    for i = 1, #track.keysA, 1 do
+        local key = track.keysA[i];
+        if (key.time >= startMS and key.time <= endMS) then
+            AM.keyframeGroups[key.time] = AM.keyframeGroups[key.time] or {};
+            AM.keyframeGroups[key.time].a = key;
         end
     end
 
@@ -2596,6 +2615,10 @@ function AM.SetTime(timeMS, rounded)
                 local scale = track:SampleScaleKey(timeMS) or currentScale;
                 obj:SetScale(scale);
 
+                local currentAlpha = obj:GetAlpha();
+                local alpha = track:SampleAlphaKey(timeMS) or currentAlpha;
+                obj:SetAlpha(alpha);
+
             end
         end
     end
@@ -2666,7 +2689,7 @@ function AM.AddFullKey(track)
         if (SM.selectedObject) then
             Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),
                 "No Track", "The object doesn't have an animation track, do you want to add one?",
-            true, true, function() AM.AddTrack(SM.selectedObject); AM.AddFullKey(SM.selectedTrack); end, function() end);
+            true, true, function() AM.AddTrack(SM.selectedObject); AM.AddFullKey(AM.selectedTrack); end, function() end);
         end
         return;
     end
@@ -2674,7 +2697,7 @@ function AM.AddFullKey(track)
     local timeMS = AM.loadedTimeline.currentTime;
     local obj = AM.GetObjectOfTrack(track);
     if (obj) then
-        track:AddFullKeyframe(timeMS, obj:GetPosition(), obj:GetRotation(), obj:GetScale(), AM.currentInterpolationIn, AM.currentInterpolationOut);
+        track:AddFullKeyframe(timeMS, obj:GetPosition(), obj:GetRotation(), obj:GetScale(), obj:GetAlpha(), AM.currentInterpolationIn, AM.currentInterpolationOut);
     end
 
     AM.RefreshWorkspace();
@@ -2685,7 +2708,7 @@ function AM.AddPosKey(track)
         if (SM.selectedObject) then
             Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),
                 "No Track", "The object doesn't have an animation track, do you want to add one?",
-            true, true, function() AM.AddTrack(SM.selectedObject); AM.AddPosKey(SM.selectedTrack); end, function() end);
+            true, true, function() AM.AddTrack(SM.selectedObject); AM.AddPosKey(AM.selectedTrack); end, function() end);
         end
         return;
     end
@@ -2704,7 +2727,7 @@ function AM.AddRotKey(track)
         if (SM.selectedObject) then
             Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),
                 "No Track", "The object doesn't have an animation track, do you want to add one?",
-            true, true, function() AM.AddTrack(SM.selectedObject); AM.AddRotKey(SM.selectedTrack); end, function() end);
+            true, true, function() AM.AddTrack(SM.selectedObject); AM.AddRotKey(AM.selectedTrack); end, function() end);
         end
         return;
     end
@@ -2723,7 +2746,7 @@ function AM.AddScaleKey(track)
         if (SM.selectedObject) then
             Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),
                 "No Track", "The object doesn't have an animation track, do you want to add one?",
-            true, true, function() AM.AddTrack(SM.selectedObject); AM.AddScaleKey(SM.selectedTrack); end, function() end);
+            true, true, function() AM.AddTrack(SM.selectedObject); AM.AddScaleKey(AM.selectedTrack); end, function() end);
         end
         return;
     end
@@ -2802,6 +2825,14 @@ function AM.RemoveKey(track, key)
         end
     end
 
+    if (track.keysA) then
+        for i in pairs(track.keysA) do
+            if (track.keysA[i] == key) then
+                table.remove(track.keysA, i);
+            end
+        end
+    end
+
     AM.RefreshWorkspace();
 end
 
@@ -2860,6 +2891,11 @@ function AM.SelectKeyAtIndex(index)
                 AM.selectedKeys[#AM.selectedKeys + 1] = grp.s;
                 AM.selectedKeyComponents[#AM.selectedKeyComponents + 1] = 7;
             end
+
+            if (grp.a) then
+                AM.selectedKeys[#AM.selectedKeys + 1] = grp.a;
+                AM.selectedKeyComponents[#AM.selectedKeyComponents + 1] = 8;
+            end
         end
     else
         if (component == 1) then
@@ -2876,6 +2912,8 @@ function AM.SelectKeyAtIndex(index)
             AM.selectedKeys[1] = track.keysRz[keyIndex];
         elseif (component == 7) then
             AM.selectedKeys[1] = track.keysS[keyIndex];
+        elseif (component == 8) then
+            AM.selectedKeys[1] = track.keysA[keyIndex];
         end
         --print(AM.selectedKeys[1].time);
 
@@ -2935,6 +2973,10 @@ function AM.TrackHasKeyframes(track)
     end
 
     if (track.keysS and #track.keysS > 0) then
+        return true;
+    end
+
+    if (track.keysA and #track.keysA > 0) then
         return true;
     end
 
@@ -3000,6 +3042,13 @@ function AM.Play()
 
             if (track.keysS and #track.keysS > 0) then
                 local keyEnd = track.keysS[#track.keysS].time;
+                if (keyEnd > AM.lastKeyedTime) then
+                    AM.lastKeyedTime = keyEnd;
+                end
+            end
+
+            if (track.keysA and #track.keysA > 0) then
+                local keyEnd = track.keysA[#track.keysA].time;
                 if (keyEnd > AM.lastKeyedTime) then
                     AM.lastKeyedTime = keyEnd;
                 end
