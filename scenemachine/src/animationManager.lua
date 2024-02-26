@@ -48,7 +48,8 @@ AM.loadedTimeline = nil;
 AM.selectedTrack = nil;
 AM.selectedAnim = nil;
 AM.selectedKeys = {};
---AM.toOverrideKeys = nil;
+AM.selectedKeyComponents = {};
+AM.toOverrideKeys = nil;
 
 AM.TrackPoolSize = 10;
 AM.usedTracks = 0;
@@ -274,63 +275,45 @@ function AM.Update(deltaTime)
             AM.inputState.timeStart = AM.selectedKeys[1].time;
         end
 
+        local previousTime = AM.selectedKeys[1].time;
+        
         local timeChangeMS = startMS + (newPointNormalized * lengthMS);
         local timeMS = AM.inputState.timeStart + timeChangeMS;
         local maxT = math.floor(math.floor(totalTimeMS / 33.3333) * 33.3333);
         timeMS = math.floor(math.floor(timeMS / 33.3333) * 33.3333);
         timeMS = min(maxT ,max(0, timeMS));
 
+        if (previousTime ~= timeMS) then
+            AM.toOverrideKeys = nil;
+            if (AM.keyframeGroups[timeMS]) then
+                local grp = AM.keyframeGroups[timeMS];
+                AM.toOverrideKeys = {};
+                for c = 1, #AM.selectedKeyComponents, 1 do
+                    if (AM.selectedKeyComponents[c] == 1) then
+                        AM.toOverrideKeys[#AM.toOverrideKeys + 1] = grp.px;
+                    elseif(AM.selectedKeyComponents[c] == 2) then
+                        AM.toOverrideKeys[#AM.toOverrideKeys + 1] = grp.py;
+                    elseif(AM.selectedKeyComponents[c] == 3) then
+                        AM.toOverrideKeys[#AM.toOverrideKeys + 1] = grp.pz;
+                    elseif(AM.selectedKeyComponents[c] == 4) then
+                        AM.toOverrideKeys[#AM.toOverrideKeys + 1] = grp.rx;
+                    elseif(AM.selectedKeyComponents[c] == 5) then
+                        AM.toOverrideKeys[#AM.toOverrideKeys + 1] = grp.ry;
+                    elseif(AM.selectedKeyComponents[c] == 6) then
+                        AM.toOverrideKeys[#AM.toOverrideKeys + 1] = grp.rz;
+                    elseif(AM.selectedKeyComponents[c] == 7) then
+                        AM.toOverrideKeys[#AM.toOverrideKeys + 1] = grp.s;
+                    end
+                end
+                --AM.toOverrideKeys = { grp.px, grp.py, grp.pz, grp.rx, grp.ry, grp.rz, grp.s };
+            end
+        end
+
         for k = 1, #AM.selectedKeys, 1 do
             AM.selectedKeys[k].time = timeMS;
             AM.selectedKeyGroup = timeMS;
         end
 
-        AM.RefreshWorkspace();
-
-        --[[
-        if (AM.inputState.timeStart) then
-            local timeOffsetMS = timeMS - AM.inputState.timeStart;
-            local dif = 0;
-            if (math.abs(timeOffsetMS) > 33.3333) then
-                
-                local roundTimeOffsetMS = 0;
-                if (timeOffsetMS > 0) then
-                    roundTimeOffsetMS = math.floor(math.floor(timeOffsetMS / 33.3333) * 33.3333);
-                    dif = roundTimeOffsetMS - timeOffsetMS;
-                else
-                    roundTimeOffsetMS = math.ceil(math.ceil(timeOffsetMS / 33.3333) * 33.3333);
-                    dif = roundTimeOffsetMS - timeOffsetMS;
-                end
-
-                --if (AM.keyframeGroups[AM.selectedKeys[1].time + roundTimeOffsetMS]) then
-                --    AM.toOverrideKeys = {};
-                --else
-                --    AM.toOverrideKeys = nil;
-                --end
-
-                for k = 1, #AM.selectedKeys, 1 do
-                    AM.selectedKeys[k].time = AM.selectedKeys[k].time + roundTimeOffsetMS;
-                    AM.selectedKeyGroup = AM.selectedKeys[k].time;
-
-                    --if (AM.toOverrideKeys) then
-                    --    AM.toOverrideKeys[k] = AM.selectedKeys[k];
-                    --    print(AM.selectedKeys[k].time);
-                    --end
-
-                    local maxT = math.floor(math.floor(totalTimeMS / 33.3333) * 33.3333);
-                    if (AM.selectedKeys[k].time < 0) then
-                        AM.selectedKeys[k].time = 0;
-                    elseif (AM.selectedKeys[k].time > maxT) then
-                        AM.selectedKeys[k].time = maxT;
-                    else
-                        AM.inputState.timeStart = timeMS + dif;
-                    end
-                end
-            end
-        else
-            AM.inputState.timeStart = timeMS;
-        end
-        --]]
         AM.RefreshWorkspace();
     end
 
@@ -2046,14 +2029,6 @@ function AM.RefreshWorkspace()
 
                         usedKeys = usedKeys + AM.RefreshKeyframes(track.keysS, startMS, endMS, barWidth, t, 7);
 
-                        AM.SolveKeyOverrides(AM.selectedTrack.keysPx);
-                        AM.SolveKeyOverrides(AM.selectedTrack.keysPy);
-                        AM.SolveKeyOverrides(AM.selectedTrack.keysPz);
-                        AM.SolveKeyOverrides(AM.selectedTrack.keysRx);
-                        AM.SolveKeyOverrides(AM.selectedTrack.keysRy);
-                        AM.SolveKeyOverrides(AM.selectedTrack.keysRz);
-                        AM.SolveKeyOverrides(AM.selectedTrack.keysS);
-
                         usedKeys = usedKeys + AM.RefreshGroupKeyframes(track, startMS, endMS, barWidth, t);
                     end
                 end
@@ -2734,6 +2709,7 @@ end
 function AM.SelectKeyAtIndex(index)
 
     AM.selectedKeys = {};
+    AM.selectedKeyComponents = {};
     AM.selectedKeyGroup = -1;
 
     if (index < 0) then
@@ -2757,26 +2733,33 @@ function AM.SelectKeyAtIndex(index)
         if (grp) then
             if (grp.px) then
                 AM.selectedKeys[#AM.selectedKeys + 1] = grp.px;
+                AM.selectedKeyComponents[#AM.selectedKeyComponents + 1] = 1;
             end
             if (grp.py) then
                 AM.selectedKeys[#AM.selectedKeys + 1] = grp.py;
+                AM.selectedKeyComponents[#AM.selectedKeyComponents + 1] = 2;
             end
             if (grp.pz) then
                 AM.selectedKeys[#AM.selectedKeys + 1] = grp.pz;
+                AM.selectedKeyComponents[#AM.selectedKeyComponents + 1] = 3;
             end
 
             if (grp.rx) then
                 AM.selectedKeys[#AM.selectedKeys + 1] = grp.rx;
+                AM.selectedKeyComponents[#AM.selectedKeyComponents + 1] = 4;
             end
             if (grp.ry) then
                 AM.selectedKeys[#AM.selectedKeys + 1] = grp.ry;
+                AM.selectedKeyComponents[#AM.selectedKeyComponents + 1] = 5;
             end
             if (grp.rz) then
                 AM.selectedKeys[#AM.selectedKeys + 1] = grp.rz;
+                AM.selectedKeyComponents[#AM.selectedKeyComponents + 1] = 6;
             end
 
             if (grp.s) then
                 AM.selectedKeys[#AM.selectedKeys + 1] = grp.s;
+                AM.selectedKeyComponents[#AM.selectedKeyComponents + 1] = 7;
             end
         end
     else
@@ -2798,6 +2781,7 @@ function AM.SelectKeyAtIndex(index)
         --print(AM.selectedKeys[1].time);
 
         AM.selectedKeyGroup = AM.selectedKeys[1].time;
+        AM.selectedKeyComponents[#AM.selectedKeyComponents + 1] = component;
     end
 
     AM.selectedTrack = track;
@@ -3124,36 +3108,15 @@ function AM.Button_AddKey()
     end
 end
 
-function AM.SolveKeyOverrides(keys)
-    for a = 1, #AM.selectedKeys, 1 do
-        local key = AM.selectedKeys[a];
-        local grp = AM.keyframeGroups[key.time];
-        if (grp) then
-            if (grp.px ~= key and grp.py ~= key and grp.pz ~= key and grp.rx ~= key and grp.ry ~= key and grp.rz ~= key and grp.s ~= key) then
-                print(key.time);
-            end
-        end
-        --[[
-        for i = 1, #keys, 1 do
-            if (keys[i].time == AM.selectedKeys[a].time) then
-                if (keys[i] ~= AM.selectedKeys[a]) then
-                    print("y")
-                    table.remove(keys, i);
-                    return;
-                end
-            end
-        end
-        --]]
-    end
-end
-
 function AM.OnFinishedKeyRetiming()
     -- check for any time overlaps
-    AM.SolveKeyOverrides(AM.selectedTrack.keysPx);
-    AM.SolveKeyOverrides(AM.selectedTrack.keysPy);
-    AM.SolveKeyOverrides(AM.selectedTrack.keysPz);
-    AM.SolveKeyOverrides(AM.selectedTrack.keysRx);
-    AM.SolveKeyOverrides(AM.selectedTrack.keysRy);
-    AM.SolveKeyOverrides(AM.selectedTrack.keysRz);
-    AM.SolveKeyOverrides(AM.selectedTrack.keysS);
+    if (AM.toOverrideKeys) then
+        for i = 1, #AM.toOverrideKeys, 1 do
+            if (AM.toOverrideKeys[i]) then
+                AM.RemoveKey(AM.selectedTrack, AM.toOverrideKeys[i]);
+            end
+        end
+
+        AM.toOverrideKeys = nil;
+    end
 end
