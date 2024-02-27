@@ -134,7 +134,7 @@ function Editor.Initialize()
         icon = Resources.textures["Icon32"],
         OnClick = function(_, button)
             if button == "LeftButton" then Editor.Toggle() end
-            if button == "RightButton" then Editor.ResetWindow() end
+            if button == "RightButton" then Editor.ResetWindow(); Editor.SetScale(90); end
         end,
         OnTooltipShow = function(tt)
             tt:AddLine("SceneMachine\n- Click to open\n- Right click to reset window")
@@ -219,11 +219,13 @@ end
 function Editor.Show()
     SceneMachine.mainWindow:Show();
     local screenHeight = GetScreenHeight();
-    --Input.KeyboardListener:SetPropagateKeyboardInput(false);
-    --Editor.ResetWindow();
+
     if (SceneMachine.mainWindow:GetTop() + 20 > screenHeight) then
         Editor.ResetWindow();
     end
+
+    Editor.SetScale(scenemachine_settings.editor_scale);
+
     scenemachine_settings.editor_is_open = true;
     Editor.isOpen = true;
 end
@@ -279,14 +281,20 @@ function Editor.SetScale(percent)
     local n = percent / 100;
     Editor.scale = n * (1 / UIParent:GetScale());
     SceneMachine.mainWindow:SetScale(Editor.scale);
+    scenemachine_settings.editor_scale = percent;
+
+    local maxW = GetScreenWidth() - 50;
+    local maxH = GetScreenHeight() - 50;
+    local w = min(maxW, SceneMachine.mainWindow:GetWidth());
+    local h = min(maxH, SceneMachine.mainWindow:GetHeight());
+    print(w, h)
+    SceneMachine.mainWindow:SetSize(w / n, h / n);
 end
 
 function Editor.ResetWindow()
     SceneMachine.mainWindow:ClearAllPoints();
     SceneMachine.mainWindow:SetPoint("CENTER", nil, "CENTER", 0, 0);
     SceneMachine.mainWindow:SetSize(Editor.width, Editor.height);
-
-    Editor.SetScale(90);
 end
 
 function Editor.CreateMainWindow(startLevel)

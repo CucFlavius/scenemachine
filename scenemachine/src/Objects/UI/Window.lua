@@ -37,6 +37,7 @@ function Window:Build()
 	self.frame:EnableMouse(true);
 	--self.frame:SetUserPlaced(true);
     --self.frame:SetIgnoreParentScale(true);
+	self.frame:SetClampedToScreen(true);
 
 	-- title bar frame --
 	self.titleBar = CreateFrame("Frame", "UI.Window.titleBar ".. self.title.. " TitleBar", self.frame);
@@ -54,6 +55,7 @@ function Window:Build()
 	self.titleBar:RegisterForDrag("LeftButton");
 	self.titleBar:SetScript("OnDragStart", function() self.frame:StartMoving(); end);
 	self.titleBar:SetScript("OnDragStop", function() self.frame:StopMovingOrSizing(); end);
+	self.frame:SetClampedToScreen(true);
 
 	-- Close Button --
 	self.closeButton = UI.Button:New(-1, -1, 20 - 1, 20 - 1, self.titleBar, "TOPRIGHT", "TOPRIGHT",

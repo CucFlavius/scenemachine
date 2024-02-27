@@ -12,4 +12,5 @@ function Settings.Initialize()
     scenemachine_settings.rightPanelW = scenemachine_settings.rightPanelW or 300;
     scenemachine_settings.propertiesPanelH = scenemachine_settings.propertiesPanelH or 200;
     scenemachine_settings.animationManagerH = scenemachine_settings.animationManagerH or 220;
+    scenemachine_settings.editor_scale = scenemachine_settings.editor_scale or 100;
 end
