@@ -88,10 +88,14 @@ function OP.Refresh()
     OP.alphaField:Set(OP.Truncate(alpha, 3));
 
     if (Renderer.projectionFrame) then
-        local r, g, b = Renderer.projectionFrame:GetLightAmbientColor();
-        OP.ambientColorField:Set(r, g, b, 1);
-        local r, g, b = Renderer.projectionFrame:GetLightDiffuseColor();
-        OP.diffuseColorField:Set(r, g, b, 1);
+        --local r, g, b = Renderer.projectionFrame:GetLightAmbientColor();
+        local amb = SM.loadedScene.properties.ambientColor;
+        OP.ambientColorField:Set(amb[1], amb[2], amb[3], 1);
+        --local r, g, b = Renderer.projectionFrame:GetLightDiffuseColor();
+        local dif = SM.loadedScene.properties.diffuseColor;
+        OP.diffuseColorField:Set(dif[1], dif[2], dif[3], 1);
+        local bg = SM.loadedScene.properties.backgroundColor;
+        OP.backgroundColorField:Set(bg[1], bg[2], bg[3], 1);
     end
 end
 
