@@ -41,7 +41,7 @@ function MousePick.Pick(x, y)
 
             if (ray:IntersectsBoundingBox(bb, object:GetPosition(), object:GetRotation(), object:GetScale())) then
                 MousePick.selectionList[idx] = object;
-                print(xMin, yMin, zMin, xMax, yMax, zMax)
+                --print(xMin, yMin, zMin, xMax, yMax, zMax)
                 idx = idx + 1;
             end
         end

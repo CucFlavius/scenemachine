@@ -304,6 +304,7 @@ function Track:SortKeyframes()
     self:SortPositionKeyframes();
     self:SortRotationKeyframes();
     self:SortScaleKeyframes();
+    self:SortAlphaKeyframes();
 end
 
 function Track:SampleKey(timeMS, keys)

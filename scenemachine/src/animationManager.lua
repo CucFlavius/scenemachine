@@ -65,6 +65,7 @@ AM.usedKeyframes = 0;
 
 AM.selectedAnimID = -1;
 AM.selectedAnimVariant = 0;
+AM.clonedKeys = {};
 
 AM.Mode = {
     Tracks = 0,
@@ -899,6 +900,10 @@ function AM.GenerateKeyframeElement(index, x, y, w, h, parent, R, G, B, A)
     element:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
     element:SetScript("OnMouseDown", function(self, button)
         if (button == "LeftButton") then
+            if (SceneMachine.Input.ShiftModifier) then
+                -- clone keys
+                AM.CloneSelectedKeys();
+            end
             AM.inputState.movingKeyframe = true;
             AM.inputState.timebarFramePosStart = element:GetLeft();
             AM.inputState.timeStart = nil;
@@ -918,6 +923,79 @@ function AM.GenerateKeyframeElement(index, x, y, w, h, parent, R, G, B, A)
     end)
 
     return element;
+end
+
+function AM.CloneSelectedKeys()
+    AM.clonedKeys = {};
+    for i = 1, #AM.selectedKeys, 1 do
+        local key = AM.selectedKeys[i];
+        local newKey = {
+            time = key.time,
+            value = key.value,
+            interpolationIn = key.interpolationIn,
+            interpolationOut = key.interpolationOut,
+        }
+
+        if (AM.keyframeGroups[AM.selectedKeyGroup].px == key) then
+            if (AM.selectedTrack.keysPx) then
+                AM.selectedTrack.keysPx[#AM.selectedTrack.keysPx + 1] = newKey;
+                AM.clonedKeys[i] = newKey;
+            end
+        end
+        if (AM.keyframeGroups[AM.selectedKeyGroup].py == key) then
+            if (AM.selectedTrack.keysPy) then
+                AM.selectedTrack.keysPy[#AM.selectedTrack.keysPy + 1] = newKey;
+                AM.clonedKeys[i] = newKey;
+            end
+        end
+        if (AM.keyframeGroups[AM.selectedKeyGroup].pz == key) then
+            if (AM.selectedTrack.keysPz) then
+                AM.selectedTrack.keysPz[#AM.selectedTrack.keysPz + 1] = newKey;
+                AM.clonedKeys[i] = newKey;
+            end
+        end
+        
+        if (AM.keyframeGroups[AM.selectedKeyGroup].rx == key) then
+            if (AM.selectedTrack.keysRx) then
+                local newKey = {
+                    time = key.time,
+                    value = key.value,
+                    interpolationIn = key.interpolationIn,
+                    interpolationOut = key.interpolationOut,
+                }
+                AM.selectedTrack.keysRx[#AM.selectedTrack.keysRx + 1] = newKey;
+                AM.clonedKeys[i] = newKey;
+            end
+        end
+        if (AM.keyframeGroups[AM.selectedKeyGroup].ry == key) then
+            if (AM.selectedTrack.keysRy) then
+                AM.selectedTrack.keysRy[#AM.selectedTrack.keysRy + 1] = newKey;
+                AM.clonedKeys[i] = newKey;
+            end
+        end
+        if (AM.keyframeGroups[AM.selectedKeyGroup].rz == key) then
+            if (AM.selectedTrack.keysRz) then
+                AM.selectedTrack.keysRz[#AM.selectedTrack.keysRz + 1] = newKey;
+                AM.clonedKeys[i] = newKey;
+            end
+        end
+
+        if (AM.keyframeGroups[AM.selectedKeyGroup].s == key) then
+            if (AM.selectedTrack.keysS) then
+                AM.selectedTrack.keysS[#AM.selectedTrack.keysS + 1] = newKey;
+                AM.clonedKeys[i] = newKey;
+            end
+        end
+
+        if (AM.keyframeGroups[AM.selectedKeyGroup].a == key) then
+            if (AM.selectedTrack.keysA) then
+                AM.selectedTrack.keysA[#AM.selectedTrack.keysA + 1] = newKey;
+                AM.clonedKeys[i] = newKey;
+            end
+        end
+    end
+    
+    AM.selectedTrack:SortKeyframes();
 end
 
 function AM.GetAvailableKeyframeElement()
@@ -2639,7 +2717,9 @@ function AM.SetTime(timeMS, rounded)
                     -- Sample playback
                     local animSpeed = 1;
                     if (obj.currentAnimID ~= animID or obj.currentAnimVariationID ~= variationID) then
-                        obj.actor:SetAnimation(animID, variationID, animSpeed, animMS / 1000);
+                        if (animID ~= -1) then
+                            obj.actor:SetAnimation(animID, variationID, animSpeed, animMS / 1000);
+                        end
                         obj.currentAnimID = animID;
                         obj.currentAnimVariationID = variationID;
                     end
@@ -3326,4 +3406,15 @@ function AM.OnFinishedKeyRetiming()
 
         AM.toOverrideKeys = nil;
     end
+
+    if (AM.clonedKeys and #AM.clonedKeys > 0) then
+        if (AM.clonedKeys[1].time == AM.selectedKeys[1].time) then
+            for i = 1, #AM.clonedKeys, 1 do
+                AM.RemoveKey(AM.selectedTrack, AM.clonedKeys[i]);
+            end
+        end
+        AM.clonedKeys = nil;
+    end
+
+    AM.selectedTrack:SortKeyframes();
 end
