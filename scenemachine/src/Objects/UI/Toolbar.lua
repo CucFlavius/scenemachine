@@ -114,6 +114,8 @@ function Toolbar:CreateGroup(x, y, w, h, components)
 
         group.components[c].type = component.type;
         group.components[c].name = component.name;
+        group.components[c].tooltip = component.tooltip;
+        group.components[c].tooltipDetailed = component.tooltipDetailed;
     end
 
     self.groups[#self.groups + 1] = group;

@@ -1,4 +1,5 @@
 local UI = SceneMachine.UI;
+local L = SceneMachine.Editor.localization;
 UI.PropertyFieldFloat = {};
 local PropertyFieldFloat = UI.PropertyFieldFloat;
 local Resources = SceneMachine.Resources;
@@ -34,6 +35,7 @@ function PropertyFieldFloat:Build()
         self.field:SetText(tostring(self.default));
         self.onSetValue(self.default);
     end);
+    resetButton.tooltip = L["OP_TT_RESET_VALUE"];
 end
 
 function PropertyFieldFloat:Set(value)

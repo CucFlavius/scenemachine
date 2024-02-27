@@ -1,4 +1,5 @@
 local UI = SceneMachine.UI;
+local L = SceneMachine.Editor.localization;
 UI.PropertyFieldVector3 = {};
 local PropertyFieldVector3 = UI.PropertyFieldVector3;
 local Resources = SceneMachine.Resources;
@@ -29,8 +30,11 @@ function PropertyFieldVector3:Build()
     local fieldPad = 2;
 
     self.xField = self:BuildFloatField(self.onSetValueX, self.default[1]);
+    self.xField.tooltip = L["OP_TT_X_FIELD"];
     self.yField = self:BuildFloatField(self.onSetValueY, self.default[2]);
+    self.yField.tooltip = L["OP_TT_Y_FIELD"];
     self.zField = self:BuildFloatField(self.onSetValueZ, self.default[3]);
+    self.zField.tooltip = L["OP_TT_Z_FIELD"];
 
     self.fieldGroup:SetScript("OnSizeChanged", function(_, width, height)
         local sizeW = ((width - 20) - (fieldPad * 3)) / 3;
@@ -51,6 +55,7 @@ function PropertyFieldVector3:Build()
         self.onSetValueY(self.default[2]);
         self.onSetValueZ(self.default[3]);
     end);
+    resetButton.tooltip = L["OP_TT_RESET_VALUE"];
 end
 
 function PropertyFieldVector3:Set(x, y, z)

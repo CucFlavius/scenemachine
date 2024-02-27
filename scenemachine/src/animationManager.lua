@@ -975,37 +975,79 @@ function AM.CreateToolbar(x, y, w, h, parent, startLevel)
     toolbar:SetFrameLevel(startLevel);
     local mainGroup = toolbar:CreateGroup(x, 0, w, h,
     {
-        { type = "Dropdown", name = "UIMode", width = 100, options = { L["AM_TOOLBAR_TRACKS"], L["AM_TOOLBAR_KEYFRAMES"], L["AM_TOOLBAR_CURVES"] }, action = function(index) AM.Dropdown_SetUIMode(index); end },
+        {
+            type = "Dropdown", name = "UIMode", width = 100, options = { L["AM_TOOLBAR_TRACKS"], L["AM_TOOLBAR_KEYFRAMES"], L["AM_TOOLBAR_CURVES"] },
+            action = function(index) AM.Dropdown_SetUIMode(index); end, tooltip = L["AM_TOOLBAR_TT_UIMODE"], tooltipDetailed = L["AM_TOOLBAR_TTD_UIMODE"],
+        },
         { type = "Separator", name = "Separator1" },
-        { type = "Button", name = "AddObject", icon = toolbar:GetIcon("addobj"), action = function(self) AM.AddTrack(SM.selectedObject); end },
-        { type = "Button", name = "RemoveObject", icon = toolbar:GetIcon("removeobj"), action = function(self) AM.RemoveTrack(AM.selectedTrack) end },
+        {
+            type = "Button", name = "AddObject", icon = toolbar:GetIcon("addobj"), action = function(self) AM.AddTrack(SM.selectedObject); end,
+            tooltip = L["AM_TOOLBAR_TT_ADD_TRACK"], tooltipDetailed = L["AM_TOOLBAR_TTD_ADD_TRACK"],
+        },
+        { 
+            type = "Button", name = "RemoveObject", icon = toolbar:GetIcon("removeobj"), action = function(self) AM.RemoveTrack(AM.selectedTrack) end,
+            tooltip = L["AM_TOOLBAR_TT_REMOVE_TRACK"],
+        },
         { type = "Separator", name = "Separator2" },
-        { type = "Button", name = "AddAnim", icon = toolbar:GetIcon("addanim"), action = function(self) AM.OpenAddAnimationWindow(AM.selectedTrack); end },
-        { type = "Button", name = "RemoveAnim", icon = toolbar:GetIcon("removeanim"), action = function(self) AM.RemoveAnim(AM.selectedTrack, AM.selectedAnim); end },
+        { 
+            type = "Button", name = "AddAnim", icon = toolbar:GetIcon("addanim"), action = function(self) AM.OpenAddAnimationWindow(AM.selectedTrack); end,
+            tooltip = L["AM_TOOLBAR_TT_ADD_ANIMATION"], tooltipDetailed = L["AM_TOOLBAR_TTD_ADD_ANIMATION"],
+        },
+        {
+            type = "Button", name = "RemoveAnim", icon = toolbar:GetIcon("removeanim"), action = function(self) AM.RemoveAnim(AM.selectedTrack, AM.selectedAnim); end,
+            tooltip = L["AM_TOOLBAR_TT_REMOVE_ANIMATION"],
+        },
         { type = "Separator", name = "Separator3" },
-        { type = "SplitButton", name = "AddKey", icons = { toolbar:GetIcon("addkey"), toolbar:GetIcon("addposkey"), toolbar:GetIcon("addrotkey"), toolbar:GetIcon("addscalekey") },
-                splitaction = function(v) AM.Button_SetKeyAddMode(v); end,
-                action = function() AM.Button_AddKey(); end },
+        {
+            type = "SplitButton", name = "AddKey", icons = { toolbar:GetIcon("addkey"), toolbar:GetIcon("addposkey"), toolbar:GetIcon("addrotkey"), toolbar:GetIcon("addscalekey") },
+            splitaction = function(v) AM.Button_SetKeyAddMode(v); end, action = function() AM.Button_AddKey(); end,
+            tooltip = L["AM_TOOLBAR_TT_ADD_KEYFRAME"], tooltipDetailed = L["AM_TOOLBAR_TTD_ADD_KEYFRAME"],
+        },
         { type = "Button", name = "RemoveKey", icon = toolbar:GetIcon("removekey"), action = function(self) 
             for i = 1, #AM.selectedKeys, 1 do
                 AM.RemoveKey(AM.selectedTrack, AM.selectedKeys[i]);
-            end
-        end },
+            end end,
+            tooltip = L["AM_TOOLBAR_TT_REMOVE_KEYFRAME"],
+        },
         { type = "Separator", name = "Separator4" },
-        { type = "SplitButton", name = "InterpolationIn", icons = { toolbar:GetIcon("ismooth"), toolbar:GetIcon("ilinear"), toolbar:GetIcon("istep"), toolbar:GetIcon("islow"), toolbar:GetIcon("ifast") },
-                splitaction = function(v) AM.Button_SetInterpolationInMode(v); end,
-                action = function() AM.Button_SetKeyInterpolationIn(); end },
-        { type = "SplitButton", name = "InterpolationOut", icons = { toolbar:GetIcon("osmooth"), toolbar:GetIcon("olinear"), toolbar:GetIcon("ostep"), toolbar:GetIcon("oslow"), toolbar:GetIcon("ofast") },
-                splitaction = function(v) AM.Button_SetInterpolationOutMode(v); end,
-                action = function() AM.Button_SetKeyInterpolationOut(); end },
+        {
+            type = "SplitButton", name = "InterpolationIn",
+            icons = { toolbar:GetIcon("ismooth"), toolbar:GetIcon("ilinear"), toolbar:GetIcon("istep"), toolbar:GetIcon("islow"), toolbar:GetIcon("ifast") },
+            splitaction = function(v) AM.Button_SetInterpolationInMode(v); end, action = function() AM.Button_SetKeyInterpolationIn(); end,
+            tooltip = L["AM_TOOLBAR_TT_SET_INTERPOLATION_IN"], tooltipDetailed = L["AM_TOOLBAR_TTD_SET_INTERPOLATION_IN"],
+        },
+        {
+            type = "SplitButton", name = "InterpolationOut",
+            icons = { toolbar:GetIcon("osmooth"), toolbar:GetIcon("olinear"), toolbar:GetIcon("ostep"), toolbar:GetIcon("oslow"), toolbar:GetIcon("ofast") },
+            splitaction = function(v) AM.Button_SetInterpolationOutMode(v); end, action = function() AM.Button_SetKeyInterpolationOut(); end,
+            tooltip = L["AM_TOOLBAR_TT_SET_INTERPOLATION_OUT"], tooltipDetailed = L["AM_TOOLBAR_TTD_SET_INTERPOLATION_OUT"],
+        },
         { type = "DragHandle" },
-        { type = "Button", name = "SeekToStart", icon = toolbar:GetIcon("skiptoend", true), action = function(self) AM.SeekToStartButton_OnClick(); end },
-        { type = "Button", name = "SkipOneFrameBack", icon = toolbar:GetIcon("skiponeframe", true), action = function(self) AM.SkipFrameBackwardButton_OnClick(); end },
-        { type = "Toggle", name = "PlayPause", iconOn = toolbar:GetIcon("pause"), iconOff = toolbar:GetIcon("play"), action = function(self, on) AM.PlayToggle_OnClick(on); end, default = false },
-        { type = "Button", name = "SkipOneFrameForward", icon = toolbar:GetIcon("skiponeframe"), action = function(self) AM.SkipFrameForwardButton_OnClick(); end },
-        { type = "Button", name = "SeekToEnd", icon = toolbar:GetIcon("skiptoend"), action = function(self) AM.SeekToEndButton_OnClick(); end },
+        {
+            type = "Button", name = "SeekToStart", icon = toolbar:GetIcon("skiptoend", true), action = function(self) AM.SeekToStartButton_OnClick(); end,
+            tooltip = L["AM_TOOLBAR_TT_SEEK_TO_START"],
+        },
+        {
+            type = "Button", name = "SkipOneFrameBack", icon = toolbar:GetIcon("skiponeframe", true), action = function(self) AM.SkipFrameBackwardButton_OnClick(); end,
+            tooltip = L["AM_TOOLBAR_TT_SKIP_FRAME_BACK"],
+        },
+        {
+            type = "Toggle", name = "PlayPause", iconOn = toolbar:GetIcon("pause"), iconOff = toolbar:GetIcon("play"), action = function(self, on) AM.PlayToggle_OnClick(on); end,
+            default = false, tooltip = L["AM_TOOLBAR_TT_PLAY_PAUSE"],
+        },
+        {
+            type = "Button", name = "SkipOneFrameForward", icon = toolbar:GetIcon("skiponeframe"), action = function(self) AM.SkipFrameForwardButton_OnClick(); end,
+            tooltip = L["AM_TOOLBAR_TT_SKIP_FRAME_FORWARD"],
+        },
+        {
+            type = "Button", name = "SeekToEnd", icon = toolbar:GetIcon("skiptoend"), action = function(self) AM.SeekToEndButton_OnClick(); end,
+            tooltip = L["AM_TOOLBAR_TT_SEEK_TO_END"],
+        },
         { type = "Separator", name = "Separator5" },
-        { type = "Toggle", name = "Loop", iconOn = toolbar:GetIcon("loop"), iconOff = toolbar:GetIcon("loopoff"), action = function(self, on) AM.LoopToggle_OnClick(on); end, default = true },
+        {
+            type = "Toggle", name = "Loop", iconOn = toolbar:GetIcon("loop"), iconOff = toolbar:GetIcon("loopoff"), action = function(self, on) AM.LoopToggle_OnClick(on); end,
+            default = true, tooltip = L["AM_TOOLBAR_TT_LOOP"],
+        },
         { type = "Separator", name = "Separator6" },
     });
     mainGroup:SetFrameLevel(startLevel + 1);

@@ -234,6 +234,7 @@ function AssetBrowser.CreateToolbar(parent, y, w, startLevel)
     AssetBrowser.toolbar.upOneFolderButton = UI.Button:New(0, 0, h - 2, h - 2, AssetBrowser.toolbar:GetFrame(), "LEFT", "LEFT", nil, Resources.textures["FolderUpIcon"]);
     AssetBrowser.toolbar.upOneFolderButton:SetScript("OnClick", function (self, button, down) AssetBrowser.UpOneFolder(); end)
     AssetBrowser.toolbar.upOneFolderButton:SetFrameLevel(startLevel + 1);
+    AssetBrowser.toolbar.upOneFolderButton.tooltip = L["AB_TOOLBAR_TT_UP_ONE_FOLDER"];
 
     AssetBrowser.toolbar.breadCrumb = UI.Label:New(h, 0, w - h, h, AssetBrowser.toolbar:GetFrame(), "TOPLEFT", "TOPLEFT", L["AB_BREADCRUMB"], 9);
     AssetBrowser.toolbar.breadCrumb:SetFrameLevel(startLevel + 1);

@@ -46,6 +46,20 @@ function TextBox:Build()
 	self.frame:SetScript('OnMouseDown', function() self.frame:SetFocus(); end);
 	self.frame:SetScript("OnEditFocusGained", function() Editor.ui.focused = true; end);
 	self.frame:SetScript("OnEditFocusLost", function() Editor.ui.focused = false; end);
+
+    self.frame:SetScript("OnEnter", function ()
+		if (self.tooltip) then
+			self.holdTimer = C_Timer.NewTimer(Editor.ui.tooltipDelay, function()
+				Editor.ui:ShowTooltip(self.w / 2, 0, self.frame, self.tooltip, self.tooltipDetailed);
+			end);
+		end
+	end);
+	self.frame:SetScript("OnLeave", function ()
+        if (self.holdTimer) then
+            self.holdTimer:Cancel();
+            Editor.ui:HideTooltip();
+        end
+	end);
 end
 
 function TextBox:SetScript(handler, func)

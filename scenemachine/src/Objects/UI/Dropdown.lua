@@ -1,4 +1,5 @@
 local UI = SceneMachine.UI;
+local Editor = SceneMachine.Editor;
 UI.Dropdown = {};
 local Dropdown = UI.Dropdown;
 local Resources = SceneMachine.Resources;
@@ -51,6 +52,20 @@ function Dropdown:Build()
 		local ry = self.y + (self.parent:GetBottom() - SceneMachine.mainWindow:GetTop());
 	    self.window:PopupWindowMenu(rx, ry, self.options);
 	end);
+	self.button:SetScript("OnEnter", function ()
+		if (self.tooltip) then
+			self.holdTimer = C_Timer.NewTimer(Editor.ui.tooltipDelay, function()
+				Editor.ui:ShowTooltip(self.w / 2, 0, self.frame:GetFrame(), self.tooltip, self.tooltipDetailed);
+			end);
+		end
+	end);
+	self.button:SetScript("OnLeave", function ()
+        if (self.holdTimer) then
+            self.holdTimer:Cancel();
+            Editor.ui:HideTooltip();
+        end
+	end);
+
 end
 
 function Dropdown:SetOptions(newOptions)

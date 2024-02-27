@@ -1,5 +1,6 @@
 local Resources = SceneMachine.Resources;
 local UI = SceneMachine.UI;
+local Editor = SceneMachine.Editor;
 UI.Button = {};
 local Button = UI.Button;
 Button.__index = Button;
@@ -69,6 +70,20 @@ function Button:Build()
 		self.textField:SetAllPoints(self.frame);
 		self.textField:SetText(self.text);
 	end
+
+    self.frame:SetScript("OnEnter", function ()
+		if (self.tooltip) then
+			self.holdTimer = C_Timer.NewTimer(Editor.ui.tooltipDelay, function()
+				Editor.ui:ShowTooltip(self.w / 2, 0, self.frame, self.tooltip, self.tooltipDetailed);
+			end);
+		end
+	end);
+	self.frame:SetScript("OnLeave", function ()
+        if (self.holdTimer) then
+            self.holdTimer:Cancel();
+            Editor.ui:HideTooltip();
+        end
+	end);
 end
 
 function Button:SetText(text)

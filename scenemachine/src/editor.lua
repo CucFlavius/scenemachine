@@ -61,22 +61,53 @@ function Editor.Initialize()
     Editor.mainToolbar.transformGroup = toolbar:CreateGroup(0, 0, Editor.width, 30,
         {
             { type = "DragHandle" },
-            { type = "Button", name = "Project", icon = toolbar:GetIcon("projects"), action = function(self) Editor.ProjectManager.OpenWindow() end },
-            { type = "Dropdown", name = "ProjectList", width = 200, options = {}, action = function(index) Editor.ProjectManager.LoadProjectByIndex(index); end },
+            {
+                type = "Button", name = "Project", icon = toolbar:GetIcon("projects"), action = function(self) Editor.ProjectManager.OpenWindow() end,
+                tooltip = L["EDITOR_TOOLBAR_TT_OPEN_PROJECT_MANAGER"],
+            },
+            {
+                type = "Dropdown", name = "ProjectList", width = 200, options = {}, action = function(index) Editor.ProjectManager.LoadProjectByIndex(index); end,
+                tooltip = L["EDITOR_TOOLBAR_TT_PROJECT_LIST"],
+            },
             { type = "Separator" },
-            { type = "Button", name = "Select", icon = toolbar:GetIcon("select"), action = function(self) Gizmos.activeTransformGizmo = 0; end },
-            { type = "Button", name = "Move", icon = toolbar:GetIcon("move"), action = function(self) Gizmos.activeTransformGizmo = 1; end },
-            { type = "Button", name = "Rotate", icon = toolbar:GetIcon("rotate"), action = function(self) Gizmos.activeTransformGizmo = 2; end },
-            { type = "Button", name = "Scale", icon = toolbar:GetIcon("scale"), action = function(self) Gizmos.activeTransformGizmo = 3; end },
+            {
+                type = "Button", name = "Select", icon = toolbar:GetIcon("select"), action = function(self) Gizmos.activeTransformGizmo = 0; end,
+                tooltip = L["EDITOR_TOOLBAR_TT_SELECT_TOOL"],
+            },
+            {
+                type = "Button", name = "Move", icon = toolbar:GetIcon("move"), action = function(self) Gizmos.activeTransformGizmo = 1; end,
+                tooltip = L["EDITOR_TOOLBAR_TT_MOVE_TOOL"],
+            },
+            {
+                type = "Button", name = "Rotate", icon = toolbar:GetIcon("rotate"), action = function(self) Gizmos.activeTransformGizmo = 2; end,
+                tooltip = L["EDITOR_TOOLBAR_TT_ROTATE_TOOL"],
+            },
+            {
+                type = "Button", name = "Scale", icon = toolbar:GetIcon("scale"), action = function(self) Gizmos.activeTransformGizmo = 3; end,
+                tooltip = L["EDITOR_TOOLBAR_TT_SCALE_TOOL"],
+            },
             { type = "Separator" },
-            { type = "Button", name = "L", icon = toolbar:GetIcon("localpivot"), action = function(self) Gizmos.space = 1; print("Local Space"); end },
-            { type = "Button", name = "W", icon = toolbar:GetIcon("worldpivot"), action = function(self) Gizmos.space = 0; print("World Space"); end },
+            {
+                type = "Button", name = "L", icon = toolbar:GetIcon("localpivot"), action = function(self) Gizmos.space = 1; print("Local Space"); end,
+                tooltip = L["EDITOR_TOOLBAR_TT_PIVOT_LOCAL_SPACE"],
+            },
+            {
+                type = "Button", name = "W", icon = toolbar:GetIcon("worldpivot"), action = function(self) Gizmos.space = 0; print("World Space"); end,
+                tooltip = L["EDITOR_TOOLBAR_TT_PIVOT_WORLD_SPACE"],
+            },
             { type = "Separator" },
-            { type = "Button", name = "Center", icon = toolbar:GetIcon("centerpivot"), action = function(self) Gizmos.pivot = 0; print("Pivot Center"); end },
-            { type = "Button", name = "Base", icon = toolbar:GetIcon("basepivot"), action = function(self) Gizmos.pivot = 1; print("Pivot Base"); end },
+            {
+                type = "Button", name = "Center", icon = toolbar:GetIcon("centerpivot"), action = function(self) Gizmos.pivot = 0; print("Pivot Center"); end,
+                tooltip = L["EDITOR_TOOLBAR_TT_PIVOT_CENTER"],
+            },
+            {
+                type = "Button", name = "Base", icon = toolbar:GetIcon("basepivot"), action = function(self) Gizmos.pivot = 1; print("Pivot Base"); end,
+                tooltip = L["EDITOR_TOOLBAR_TT_PIVOT_BASE"],
+            },
             { type = "Separator" },
         }
     );
+
     Editor.mainToolbar.transformGroup:SetFrameLevel(3);
 
     Editor.CreateRightPanel(2);

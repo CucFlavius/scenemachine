@@ -1,5 +1,6 @@
 local Resources = SceneMachine.Resources;
 local UI = SceneMachine.UI;
+local Editor = SceneMachine.Editor;
 UI.SplitButton = {};
 local SplitButton = UI.SplitButton;
 SplitButton.__index = SplitButton;
@@ -78,6 +79,20 @@ function SplitButton:Build()
         self.popup:Hide();
         self.action(self.currentOption);
     end);
+
+    self.splitButton:SetScript("OnEnter", function ()
+		if (self.tooltip) then
+			self.holdTimer = C_Timer.NewTimer(Editor.ui.tooltipDelay, function()
+				Editor.ui:ShowTooltip(self.w / 2, 0, self.splitButton:GetFrame(), self.tooltip, self.tooltipDetailed);
+			end);
+		end
+	end);
+	self.splitButton:SetScript("OnLeave", function ()
+        if (self.holdTimer) then
+            self.holdTimer:Cancel();
+            Editor.ui:HideTooltip();
+        end
+	end);
 end
 
 function SplitButton:SetColor(state, R, G, B, A)
