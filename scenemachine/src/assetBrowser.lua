@@ -173,7 +173,30 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         end
     end);
 
-    local testButton = UI.Button:New(0, -153, 100, 20, parent, "TOPLEFT", "TOPLEFT", "TEST");
+    local dalaranButton = UI.Button:New(0, -153, 150, 20, parent, "TOPLEFT", "TOPLEFT", "Make Dalaran");
+    local dalaranIDs = { 1486995, 1486996, 1486997, 1486998, 1486999, 1487000, 1487001, 1487002, 1487010, 1487011, 1487012 };
+    dalaranButton:SetScript("OnClick", function(_, button, up)
+        local toDelete = {};
+        for i = 1, #SM.loadedScene.objects, 1 do
+            for j = 1, #dalaranIDs, 1 do
+                if (SM.loadedScene.objects[i].fileID == dalaranIDs[j]) then
+                    toDelete[#toDelete + 1] = SM.loadedScene.objects[i];
+                end
+            end
+        end
+
+        for i = 1, #toDelete, 1 do
+            SM.DeleteObject(toDelete[i]);
+        end
+
+        for i = 1, #dalaranIDs, 1 do
+            local obj = SM.CreateObject(dalaranIDs[i], "Dalaran_" .. i, 0, 0, 0);
+            local xMin, yMin, zMin, xMax, yMax, zMax = obj:GetActiveBoundingBox();
+            obj:SetPosition((xMin + xMax) / 2, (yMin + yMax) / 2, (zMin + zMax) / 2);
+        end
+    end);
+
+    local testButton = UI.Button:New(0, -173, 100, 20, parent, "TOPLEFT", "TOPLEFT", "TEST");
     local creatureDisplayID = 4;
     testButton:SetScript("OnClick", function(_, button, up)
         if (SM.selectedObject) then

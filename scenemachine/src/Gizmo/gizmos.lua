@@ -391,7 +391,7 @@ function Gizmos.MotionToTransform()
                     end
                 elseif (Gizmos.selectedAxis == 4) then
                     -- XY --
-                    iPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up);
+                    iPoint = mouseRay:PlaneIntersection(position, Gizmos.up);
                     if (iPoint ~= nil) then
                         px = px + (iPoint.x - Gizmos.previousIPoint.x)
                         py = py + (iPoint.y - Gizmos.previousIPoint.y)
@@ -399,7 +399,7 @@ function Gizmos.MotionToTransform()
                     end
                 elseif (Gizmos.selectedAxis == 5) then
                     -- XZ --
-                    iPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.right);
+                    iPoint = mouseRay:PlaneIntersection(position, Gizmos.right);
                     if (iPoint ~= nil) then
                         px = px + (iPoint.x - Gizmos.previousIPoint.x)
                         py = py + (iPoint.y - Gizmos.previousIPoint.y)
@@ -407,7 +407,7 @@ function Gizmos.MotionToTransform()
                     end
                 elseif (Gizmos.selectedAxis == 6) then
                     -- YZ --
-                    iPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.forward);
+                    iPoint = mouseRay:PlaneIntersection(position, Gizmos.forward);
                     if (iPoint ~= nil) then
                         px = px + (iPoint.x - Gizmos.previousIPoint.x)
                         py = py + (iPoint.y - Gizmos.previousIPoint.y)
@@ -537,22 +537,22 @@ function Gizmos.OnLMBDown(x, y)
         if (Gizmos.activeTransformGizmo == 1) then
             if (Gizmos.selectedAxis == 1) then
                 -- X --
-                Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Gizmos.previousIPoint;
+                Gizmos.previousIPoint = mouseRay:PlaneIntersection(position, Gizmos.up) or Gizmos.previousIPoint;
             elseif (Gizmos.selectedAxis == 2) then
                 -- Y --
-                Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Gizmos.previousIPoint;
+                Gizmos.previousIPoint = mouseRay:PlaneIntersection(position, Gizmos.up) or Gizmos.previousIPoint;
             elseif (Gizmos.selectedAxis == 3) then
                 -- Z --
-                Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.right) or Gizmos.previousIPoint;
+                Gizmos.previousIPoint = mouseRay:PlaneIntersection(position, Gizmos.right) or Gizmos.previousIPoint;
             elseif (Gizmos.selectedAxis == 4) then
                 -- XY --
-                Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up);
+                Gizmos.previousIPoint = mouseRay:PlaneIntersection(position, Gizmos.up);
             elseif (Gizmos.selectedAxis == 5) then
                 -- XZ --
-                Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.right);
+                Gizmos.previousIPoint = mouseRay:PlaneIntersection(position, Gizmos.right);
             elseif (Gizmos.selectedAxis == 6) then
                 -- YZ --
-                Gizmos.previousIPoint = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.forward);
+                Gizmos.previousIPoint = mouseRay:PlaneIntersection(position, Gizmos.forward);
             end
         end
 

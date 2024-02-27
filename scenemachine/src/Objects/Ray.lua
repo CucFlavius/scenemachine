@@ -93,6 +93,7 @@ function Ray:PlaneIntersection(planePoint, planeNormal)
     if t < 0 then
         return nil  -- Intersection point is behind the ray origin
     end
+    --t = abs(t);
 
     -- Calculate the intersection point
     local intersectionPoint = Vector3:New(

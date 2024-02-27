@@ -87,6 +87,11 @@ end
 function Window:WindowCreateMenuBar(menu)
 	local menubar = UI.Rectangle:New(0, 0, self:GetWidth(), 15, self:GetFrame(), "TOPLEFT", "TOPLEFT", 0.1757, 0.1757, 0.1875, 1);
 	menubar:SetPoint("TOPRIGHT", self:GetFrame(), "TOPRIGHT", 0, 0);
+	menubar:GetFrame():EnableMouse(true);
+	menubar:GetFrame():RegisterForDrag("LeftButton");
+	menubar:GetFrame():SetScript("OnDragStart", function() self.frame:StartMoving(); end);
+	menubar:GetFrame():SetScript("OnDragStop", function() self.frame:StopMovingOrSizing(); end);
+
 	menubar.buttons = {};
 
 	for m = 1, #menu, 1 do
