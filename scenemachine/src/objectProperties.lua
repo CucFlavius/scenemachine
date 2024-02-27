@@ -7,6 +7,7 @@ local OP = Editor.ObjectProperties;
 local Renderer = SceneMachine.Renderer;
 local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
+local L = Editor.localization;
 
 function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
     --local group = Editor.CreateGroup("Properties", h, leftPanel:GetFrame());
@@ -36,7 +37,7 @@ function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
     Editor.horizontalSeparatorL:GetFrame():SetScript('OnEnter', function() SetCursor(Resources.textures["CursorResizeV"]); end)
     Editor.horizontalSeparatorL:GetFrame():SetScript('OnLeave', function() ResetCursor(); end)
 
-    local groupTitleText = UI.Label:New(0, 0, w - 30, 20, groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", "   Properties", 9);
+    local groupTitleText = UI.Label:New(0, 0, w - 30, 20, groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", "   " .. L["OP_TITLE"], 9);
     groupTitleText:SetPoint("TOPRIGHT", groupBG:GetFrame(), "TOPRIGHT", 0, 0);
     groupTitleText:SetFrameLevel(startLevel + 1);
 
@@ -44,22 +45,22 @@ function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
     groupContent:SetPoint("BOTTOMRIGHT", groupBG:GetFrame(), "BOTTOMRIGHT", 0, 0);
     groupContent:SetFrameLevel(startLevel + 2);
 
-    local collapseList = UI.CollapsableList:New(0, 0, w - 6, h - 20, { 71, 27, 71 }, groupContent:GetFrame(), "TOPLEFT", "TOPLEFT", { "Transform", "Actor Properties", "Scene properties (temp)", }, c1[1], c1[2], c1[3], 1);
+    local collapseList = UI.CollapsableList:New(0, 0, w - 6, h - 20, { 71, 27, 71 }, groupContent:GetFrame(), "TOPLEFT", "TOPLEFT", { L["OP_TRANSFORM"], L["OP_ACTOR_PROPERTIES"], L["OP_SCENE_PROPERTIES"] }, c1[1], c1[2], c1[3], 1);
     collapseList:SetPoint("BOTTOMRIGHT", groupContent:GetFrame(), "BOTTOMRIGHT", 0, 0);
     collapseList:SetFrameLevel(startLevel + 3);
     
     local transformPropertyGroup = collapseList.bars[1].panel:GetFrame();
-    OP.positionField = UI.PropertyFieldVector3:New(-5, 20, transformPropertyGroup, "Position", {0, 0, 0}, OP.SetPosX, OP.SetPosY, OP.SetPosZ);
-    OP.rotationField = UI.PropertyFieldVector3:New(-27, 20, transformPropertyGroup, "Rotation", {0, 0, 0}, OP.SetRotX, OP.SetRotY, OP.SetRotZ);
-    OP.scaleField = UI.PropertyFieldFloat:New(-49, 20, transformPropertyGroup, "Scale", 1, OP.SetScale);
+    OP.positionField = UI.PropertyFieldVector3:New(-5, 20, transformPropertyGroup, L["POSITION"], {0, 0, 0}, OP.SetPosX, OP.SetPosY, OP.SetPosZ);
+    OP.rotationField = UI.PropertyFieldVector3:New(-27, 20, transformPropertyGroup, L["ROTATION"], {0, 0, 0}, OP.SetRotX, OP.SetRotY, OP.SetRotZ);
+    OP.scaleField = UI.PropertyFieldFloat:New(-49, 20, transformPropertyGroup, L["SCALE"], 1, OP.SetScale);
 
     local actorPropertyGroup = collapseList.bars[2].panel:GetFrame();
-    OP.alphaField = UI.PropertyFieldFloat:New(-5, 20, actorPropertyGroup, "Alpha", 1, OP.SetAlpha);
+    OP.alphaField = UI.PropertyFieldFloat:New(-5, 20, actorPropertyGroup, L["ALPHA"], 1, OP.SetAlpha);
 
     local scenePropertyGroup = collapseList.bars[3].panel:GetFrame();
-    OP.ambientColorField = UI.PropertyFieldColor:New(-5, 20, scenePropertyGroup, "Ambient Color", 0, 0, 0, 1, OP.SetAmbientColor);
-    OP.diffuseColorField = UI.PropertyFieldColor:New(-27, 20, scenePropertyGroup, "Diffuse Color", 0, 0, 0, 1, OP.SetDiffuseColor);
-    OP.backgroundColorField = UI.PropertyFieldColor:New(-49, 20, scenePropertyGroup, "Background Color", 0.554,0.554,0.554,1, OP.SetBackgroundColor);
+    OP.ambientColorField = UI.PropertyFieldColor:New(-5, 20, scenePropertyGroup, L["OP_AMBIENT_COLOR"], 0, 0, 0, 1, OP.SetAmbientColor);
+    OP.diffuseColorField = UI.PropertyFieldColor:New(-27, 20, scenePropertyGroup, L["OP_DIFFUSE_COLOR"], 0, 0, 0, 1, OP.SetDiffuseColor);
+    OP.backgroundColorField = UI.PropertyFieldColor:New(-49, 20, scenePropertyGroup, L["OP_BACKGROUND_COLOR"], 0.554,0.554,0.554,1, OP.SetBackgroundColor);
 
     OP.Refresh();
 end

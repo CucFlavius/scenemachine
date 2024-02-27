@@ -2,6 +2,8 @@ local Editor = SceneMachine.Editor;
 local MainMenu = Editor.MainMenu;
 local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
+local L = Editor.localization;
+local SM = Editor.SceneManager;
 
 function MainMenu.OpenKeyboardShortcuts()
     if (not Editor.KeyboardShortcutsWindow) then
@@ -20,35 +22,35 @@ function MainMenu.Create()
 	local menu = 
     {
         {
-            ["Name"] = "File",
+            ["Name"] = L["MM_FILE"],
             ["Options"] = {
-                { ["Name"] = "Project Manager", ["Action"] = function() Editor.ShowProjectManager() end },
-                { ["Name"] = "Import Scenescript", ["Action"] = function() Editor.ShowImportScenescript() end },
-                { ["Name"] = "Save", ["Action"] = function() Editor.Save() end },
+                { ["Name"] = L["MM_PROJECT_MANAGER"], ["Action"] = function() Editor.ShowProjectManager() end },
+                { ["Name"] = L["MM_IMPORT_SCENESCRIPT"], ["Action"] = function() Editor.ShowImportScenescript() end },
+                { ["Name"] = L["MM_SAVE"], ["Action"] = function() Editor.Save() end },
             },
         },
         {
-            ["Name"] = "Edit",
+            ["Name"] = L["MM_EDIT"],
             ["Options"] = {
-                { ["Name"] = "Clone Selected", ["Action"] = function() SM.CloneObject(SM.selectedObject, true); end },
-                { ["Name"] = "Delete Selected", ["Action"] = function() SM.DeleteObject(SM.selectedObject); end },
+                { ["Name"] = L["MM_CLONE_SELECTED"], ["Action"] = function() SM.CloneObject(SM.selectedObject, true); end },
+                { ["Name"] = L["MM_DELETE_SELECTED"], ["Action"] = function() SM.DeleteObject(SM.selectedObject); end },
             },
         },
         {
-            ["Name"] = "Options",
+            ["Name"] = L["MM_OPTIONS"],
             ["Options"] = {
-                { ["Name"] = "Set Scale 80%", ["Action"] = function() Editor.SetScale(80); end },
-                { ["Name"] = "Set Scale 90%", ["Action"] = function() Editor.SetScale(90); end },
-                { ["Name"] = "Set Scale 100%", ["Action"] = function() Editor.SetScale(100); end },
-                { ["Name"] = "Set Scale 110%", ["Action"] = function() Editor.SetScale(110); end },
-                { ["Name"] = "Set Scale 120%", ["Action"] = function() Editor.SetScale(120); end },
+                { ["Name"] = string.format(L["MM_SET_SCALE"], "80%"), ["Action"] = function() Editor.SetScale(80); end },
+                { ["Name"] = string.format(L["MM_SET_SCALE"], "90%"), ["Action"] = function() Editor.SetScale(90); end },
+                { ["Name"] = string.format(L["MM_SET_SCALE"], "100%"), ["Action"] = function() Editor.SetScale(100); end },
+                { ["Name"] = string.format(L["MM_SET_SCALE"], "110%"), ["Action"] = function() Editor.SetScale(110); end },
+                { ["Name"] = string.format(L["MM_SET_SCALE"], "120%"), ["Action"] = function() Editor.SetScale(120); end },
             },
         },
         {
-            ["Name"] = "Help",
+            ["Name"] = L["MM_HELP"],
             ["Options"] = {
-                { ["Name"] = "Keyboard Shortcuts", ["Action"] = MainMenu.OpenKeyboardShortcuts },
-                --{ ["Name"] = "About", ["Action"] = nil },
+                { ["Name"] = L["MM_KEYBOARD_SHORTCUTS"], ["Action"] = MainMenu.OpenKeyboardShortcuts },
+                --{ ["Name"] = L["MM_ABOUT"], ["Action"] = nil },
             },
         },
     };

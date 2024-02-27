@@ -1,6 +1,7 @@
 local UI = SceneMachine.UI;
 UI.PropertyFieldVector3 = {};
 local PropertyFieldVector3 = UI.PropertyFieldVector3;
+local Resources = SceneMachine.Resources;
 PropertyFieldVector3.__index = PropertyFieldVector3;
 setmetatable(PropertyFieldVector3, UI.PropertyField)
 
@@ -41,7 +42,7 @@ function PropertyFieldVector3:Build()
         self.zField:SetWidth(sizeW);
     end);
 
-    local resetButton = UI.Button:New(0, 0, 20, 20, self.fieldGroup, "TOPRIGHT", "TOPRIGHT", "R", nil);
+    local resetButton = UI.Button:New(0, 0, 20, 20, self.fieldGroup, "TOPRIGHT", "TOPRIGHT", nil,  Resources.textures["ResetIcon"]);
     resetButton:SetScript("OnClick", function(_)
         self.xField:SetText(tostring(self.default[1]));
         self.yField:SetText(tostring(self.default[2]));

@@ -9,6 +9,7 @@ local OP = Editor.ObjectProperties;
 local AM = Editor.AnimationManager;
 local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
+local L = Editor.localization;
 
 local tabButtonHeight = 20;
 local tabPool = {};
@@ -31,7 +32,7 @@ function SM.Create(x, y, w, h, parent, startLevel)
     SM.addSceneButtonTab.text:SetAllPoints(SM.addSceneButtonTab);
     SM.addSceneButtonTab:Hide();
 
-    SM.addSceneEditBox = UI.TextBox:New(0, 0, 100, tabButtonHeight, SM.groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", "Scene Name");
+    SM.addSceneEditBox = UI.TextBox:New(0, 0, 100, tabButtonHeight, SM.groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", L["SM_SCENE_NAME"]);
     SM.addSceneEditBox:Hide();
 
     SM.RefreshSceneTabs();
@@ -105,9 +106,9 @@ function SM.SceneTabButtonOnRightClick(index, x, y)
     local ry = (y * Renderer.scale) + (Renderer.projectionFrame:GetTop() - SceneMachine.mainWindow:GetTop());
 
 	local menuOptions = {
-        [1] = { ["Name"] = "Rename", ["Action"] = function() SM.Button_RenameScene(index, x) end },
-        [2] = { ["Name"] = "Edit", ["Action"] = function()  SM.Button_EditScene(index) end },
-        [3] = { ["Name"] = "Delete", ["Action"] = function() SM.Button_DeleteScene(index) end },
+        [1] = { ["Name"] = L["RENAME"], ["Action"] = function() SM.Button_RenameScene(index, x) end },
+        [2] = { ["Name"] = L["EDIT"], ["Action"] = function()  SM.Button_EditScene(index) end },
+        [3] = { ["Name"] = L["DELETE"], ["Action"] = function() SM.Button_DeleteScene(index) end },
 	};
 
     SceneMachine.mainWindow:PopupWindowMenu(rx, ry, menuOptions);
@@ -115,7 +116,7 @@ end
 
 function SM.Button_RenameScene(index, x)
     SM.addSceneEditBox:Show();
-    SM.addSceneEditBox:SetText("Scene " .. (#PM.currentProject.scenes));
+    SM.addSceneEditBox:SetText(string.format(L["SM_SCENE"], #PM.currentProject.scenes));
     SM.addSceneButtonTab:Hide();
     SM.addSceneEditBox:SetPoint("TOPLEFT", SM.groupBG:GetFrame(), "TOPLEFT", x, 0);
     SM.addSceneEditBox:SetFocus();
@@ -166,7 +167,7 @@ function SM.Button_EditScene(index)
 end
 
 function SM.Button_DeleteScene(index)
-    Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), "Delete Scene", "Are you sure you wish to continue?", true, true, function() SM.DeleteScene(index); end, function() end);
+    Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["SM_MSG_DELETE_SCENE_TITLE"], L["SM_MSG_DELETE_SCENE_MESSAGE"], true, true, function() SM.DeleteScene(index); end, function() end);
 end
 
 function SM.CreateScene(sceneName)

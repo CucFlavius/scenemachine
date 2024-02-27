@@ -1,6 +1,7 @@
 local UI = SceneMachine.UI;
 UI.PropertyFieldFloat = {};
 local PropertyFieldFloat = UI.PropertyFieldFloat;
+local Resources = SceneMachine.Resources;
 PropertyFieldFloat.__index = PropertyFieldFloat;
 setmetatable(PropertyFieldFloat, UI.PropertyField)
 
@@ -28,7 +29,7 @@ function PropertyFieldFloat:Build()
     self.field:SetPoint("TOPLEFT", self.fieldGroup, "TOPLEFT", 0, 0);
     self.field:SetPoint("BOTTOMRIGHT", self.fieldGroup, "BOTTOMRIGHT", -20 - fieldPad, 0);
 
-    local resetButton = UI.Button:New(0, 0, 20, 20, self.fieldGroup, "TOPRIGHT", "TOPRIGHT", "R", nil);
+    local resetButton = UI.Button:New(0, 0, 20, 20, self.fieldGroup, "TOPRIGHT", "TOPRIGHT", nil, Resources.textures["ResetIcon"]);
     resetButton:SetScript("OnClick", function(_)
         self.field:SetText(tostring(self.default));
         self.onSetValue(self.default);

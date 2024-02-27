@@ -13,6 +13,7 @@ local AM = Editor.AnimationManager;
 local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
 local ColorPicker = Editor.ColorPicker;
+local L = Editor.localization;
 
 Editor.width = 1280;
 Editor.height = 720;
@@ -214,8 +215,7 @@ end
 function Editor.DeleteLastSelected()
     if (Editor.lastSelectedType == "obj") then
         if (SM.ObjectHasTrack(SM.selectedObject)) then
-            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),
-                "Delete Object", "The object contains an animation track, are you sure you want to delete?",
+            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["EDITOR_MSG_DELETE_OBJECT_TITLE"], L["EDITOR_MSG_DELETE_OBJECT_MESSAGE"],
                 true, true, function() SM.DeleteObject(SM.selectedObject); end, function() end);
         else
             SM.DeleteObject(SM.selectedObject);
@@ -224,16 +224,13 @@ function Editor.DeleteLastSelected()
         local hasAnims = AM.TrackHasAnims(AM.selectedTrack);
         local hasKeyframes = AM.TrackHasKeyframes(AM.selectedTrack);
         if (hasAnims and hasKeyframes) then
-            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),
-                "Delete Track", "The track contains animations and keyframes, are you sure you want to delete?",
+            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["EDITOR_MSG_DELETE_TRACK_TITLE"], L["EDITOR_MSG_DELETE_TRACK_A_K_MESSAGE"],
                 true, true, function() AM.RemoveTrack(AM.selectedTrack); end, function() end);
         elseif (hasAnims) then
-            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),
-                "Delete Track", "The track contains animations, are you sure you want to delete?",
+            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["EDITOR_MSG_DELETE_TRACK_TITLE"], L["EDITOR_MSG_DELETE_TRACK_A_MESSAGE"],
                 true, true, function() AM.RemoveTrack(AM.selectedTrack); end, function() end);
         elseif (hasKeyframes) then
-            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),
-                "Delete Track", "The track contains keyframes, are you sure you want to delete?",
+            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["EDITOR_MSG_DELETE_TRACK_TITLE"], L["EDITOR_MSG_DELETE_TRACK_K_MESSAGE"],
                 true, true, function() AM.RemoveTrack(AM.selectedTrack); end, function() end);
         else
             AM.RemoveTrack(AM.selectedTrack);
@@ -267,7 +264,7 @@ function Editor.CreateMainWindow(startLevel)
     local w = Editor.width;
     local h = Editor.height;
     -- Window:New(x, y, w, h, parent, point, parentPoint, title)
-	SceneMachine.mainWindow = UI.Window:New(x, y, w, h, UIParent, "TOPLEFT", "TOPLEFT", "Scene Machine");
+	SceneMachine.mainWindow = UI.Window:New(x, y, w, h, UIParent, "TOPLEFT", "TOPLEFT", L["ADDON_NAME"]);
     SceneMachine.mainWindow.closeButton:SetScript("OnClick", function() Editor.Hide(); end);
 	SceneMachine.mainWindow:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
     SceneMachine.mainWindow:SetScale(Editor.scale);
@@ -412,7 +409,7 @@ function Editor.Save()
     scenemachine_projects = Editor.ProjectManager.projects;
 
     -- ask for restart / or restart --
-    Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),  "Save", "Saving requires a UI reload, continue?", true, true, function() ReloadUI(); end, function() end);
+    Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),  L["EDITOR_MSG_SAVE_TITLE"], L["EDITOR_MSG_SAVE_MESSAGE"], true, true, function() ReloadUI(); end, function() end);
 end
 
 function Editor.ShowProjectManager()
@@ -422,7 +419,7 @@ end
 function Editor.ShowImportScenescript()
     -- create
     if (not Editor.importSSWindow) then
-        Editor.importSSWindow = UI.Window:New(0, 0, 400, 400, SceneMachine.mainWindow:GetFrame(), "CENTER", "CENTER", "Editor.importSSWindow");
+        Editor.importSSWindow = UI.Window:New(0, 0, 400, 400, SceneMachine.mainWindow:GetFrame(), "CENTER", "CENTER", L["EDITOR_SCENESCRIPT_WINDOW_TITLE"]);
         Editor.importSSWindow:SetFrameStrata(Editor.SUB_FRAME_STRATA);
         Editor.importSSWindow.editBox = UI.TextBox:New(0, 0, 390, 390, Editor.importSSWindow:GetFrame(), "TOPLEFT", "TOPLEFT", "", 9);
         Editor.importSSWindow.editBox:SetMultiLine(true);
@@ -445,14 +442,14 @@ end
 
 function Editor.OpenContextMenu(x, y)
 	local menuOptions = {
-        { ["Name"] = "Select", ["Action"] = function() Gizmos.activeTransformGizmo = 0; end },
-        { ["Name"] = "Move", ["Action"] = function() Gizmos.activeTransformGizmo = 1; end },
-        { ["Name"] = "Rotate", ["Action"] = function() Gizmos.activeTransformGizmo = 2; end },
-        { ["Name"] = "Scale", ["Action"] = function() Gizmos.activeTransformGizmo = 3; end },
+        { ["Name"] = L["CM_SELECT"], ["Action"] = function() Gizmos.activeTransformGizmo = 0; end },
+        { ["Name"] = L["CM_MOVE"], ["Action"] = function() Gizmos.activeTransformGizmo = 1; end },
+        { ["Name"] = L["CM_ROTATE"], ["Action"] = function() Gizmos.activeTransformGizmo = 2; end },
+        { ["Name"] = L["CM_SCALE"], ["Action"] = function() Gizmos.activeTransformGizmo = 3; end },
         { ["Name"] = nil },
-        { ["Name"] = "Delete", ["Action"] = function() SM.DeleteObject(SM.selectedObject); end },
-        { ["Name"] = "Hide/Show", ["Action"] = function() SM.ToggleObjectVisibility(SM.selectedObject); end },
-        { ["Name"] = "Freeze/Unfreeze", ["Action"] = function()
+        { ["Name"] = L["CM_DELETE"], ["Action"] = function() SM.DeleteObject(SM.selectedObject); end },
+        { ["Name"] = L["CM_HIDE_SHOW"], ["Action"] = function() SM.ToggleObjectVisibility(SM.selectedObject); end },
+        { ["Name"] = L["CM_FREEZE_UNFREEZE"], ["Action"] = function()
             SM.ToggleObjectFreezeState(SM.selectedObject);
             if (SM.selectedObject) then
                 if (SM.selectedObject.frozen) then
@@ -472,8 +469,8 @@ function Editor.OpenMessageBox( window, title, message, hasYesButton, hasNoButto
         Editor.messageBox = UI.Window:New(0, 0, 300, 150, window, "CENTER", "CENTER", title);
         Editor.messageBox:SetFrameStrata(Editor.MESSAGE_BOX_FRAME_STRATA);
         Editor.messageBox.textBox = UI.Label:New(0, 10, 280, 100, Editor.messageBox:GetFrame(), "CENTER", "CENTER", message, 10);
-        Editor.messageBox.yesButton = UI.Button:New(-75, 10, 50, 25, Editor.messageBox:GetFrame(), "BOTTOMRIGHT", "BOTTOMRIGHT", "YES");
-        Editor.messageBox.noButton = UI.Button:New(-20, 10, 50, 25, Editor.messageBox:GetFrame(), "BOTTOMRIGHT", "BOTTOMRIGHT", "NO");
+        Editor.messageBox.yesButton = UI.Button:New(-75, 10, 50, 25, Editor.messageBox:GetFrame(), "BOTTOMRIGHT", "BOTTOMRIGHT", L["YES"]);
+        Editor.messageBox.noButton = UI.Button:New(-20, 10, 50, 25, Editor.messageBox:GetFrame(), "BOTTOMRIGHT", "BOTTOMRIGHT", L["NO"]);
         Editor.messageBox:GetFrame():SetResizable(false);
         Editor.messageBox.resizeFrame:Hide();
     end

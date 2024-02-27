@@ -2,6 +2,7 @@ local Editor = SceneMachine.Editor;
 local ColorPicker = Editor.ColorPicker;
 local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
+local L = Editor.localization;
 
 local saturationMax = 282;
 local saturationMin = 84;
@@ -213,7 +214,7 @@ function ColorPicker.Initialize(r, g, b)
     ColorPicker.b = b;
     ColorPicker.hue, ColorPicker.saturation, ColorPicker.lightness = RGBtoHSL(ColorPicker.r, ColorPicker.g, ColorPicker.b);
 
-    ColorPicker.window = UI.Window:New(0, 0, 350, 530, SceneMachine.mainWindow:GetFrame(),  "CENTER", "CENTER", "Color Picker")
+    ColorPicker.window = UI.Window:New(0, 0, 350, 530, SceneMachine.mainWindow:GetFrame(),  "CENTER", "CENTER", L["COLP_WINDOW_TITLE"]);
     ColorPicker.window:SetFrameStrata(Editor.SUB_FRAME_STRATA);
     ColorPicker.window:GetFrame():SetResizable(false);
     ColorPicker.window.resizeFrame:Hide();
@@ -286,9 +287,9 @@ function ColorPicker.Initialize(r, g, b)
 
     local width = 240;
     
-    local infoTextRGB = UI.Label:New(25, -350, 300, 20, ColorPicker.window:GetFrame(), "TOPLEFT", "TOPLEFT", "RGB (Red/Green/Blue):");
+    local infoTextRGB = UI.Label:New(25, -350, 300, 20, ColorPicker.window:GetFrame(), "TOPLEFT", "TOPLEFT", L["COLP_RGB_NAME"]);
 
-    ColorPicker.redScroll = ColorPicker.BuildSlider(25, -370, 300, 20, ColorPicker.window:GetFrame(), 8, "  R",
+    ColorPicker.redScroll = ColorPicker.BuildSlider(25, -370, 300, 20, ColorPicker.window:GetFrame(), 8, "  " .. L["COLP_R"],
     function(value)
         ColorPicker.r = value;
         ColorPicker.hue, ColorPicker.saturation, ColorPicker.lightness = RGBtoHSL(ColorPicker.r, ColorPicker.g, ColorPicker.b);
@@ -310,7 +311,7 @@ function ColorPicker.Initialize(r, g, b)
                                 Resources.textures["ColorPicker"], { 1, 0.5, 0.5 + 0.09375, 0.5 + 0.125 });
     ColorPicker.redScroll_Max:SetFrameLevel(11);
 
-    ColorPicker.greenScroll = ColorPicker.BuildSlider(25, -390, 300, 20, ColorPicker.window:GetFrame(), 8, "  G",
+    ColorPicker.greenScroll = ColorPicker.BuildSlider(25, -390, 300, 20, ColorPicker.window:GetFrame(), 8, "  " .. L["COLP_G"],
     function(value)
         ColorPicker.g = value;
         ColorPicker.hue, ColorPicker.saturation, ColorPicker.lightness = RGBtoHSL(ColorPicker.r, ColorPicker.g, ColorPicker.b);
@@ -332,7 +333,7 @@ function ColorPicker.Initialize(r, g, b)
                                 Resources.textures["ColorPicker"], { 1, 0.5, 0.5 + 0.09375, 0.5 + 0.125 });
     ColorPicker.greenScroll_Max:SetFrameLevel(11);
 
-    ColorPicker.blueScroll = ColorPicker.BuildSlider(25, -410, 300, 20, ColorPicker.window:GetFrame(), 8, "  B",
+    ColorPicker.blueScroll = ColorPicker.BuildSlider(25, -410, 300, 20, ColorPicker.window:GetFrame(), 8, "  " .. L["COLP_B"],
     function(value)
         ColorPicker.b = value;
         ColorPicker.hue, ColorPicker.saturation, ColorPicker.lightness = RGBtoHSL(ColorPicker.r, ColorPicker.g, ColorPicker.b);
@@ -354,10 +355,10 @@ function ColorPicker.Initialize(r, g, b)
                                 Resources.textures["ColorPicker"], { 1, 0.5, 0.5 + 0.09375, 0.5 + 0.125 });
     ColorPicker.blueScroll_Max:SetFrameLevel(11);
 
-    local infoTextHSL = UI.Label:New(25, -430, 300, 20, ColorPicker.window:GetFrame(), "TOPLEFT", "TOPLEFT", "HSL (Hue/Saturation/Lightness):");
+    local infoTextHSL = UI.Label:New(25, -430, 300, 20, ColorPicker.window:GetFrame(), "TOPLEFT", "TOPLEFT", L["COLP_HSL_NAME"]);
 
     -- Hue --
-    ColorPicker.hueScroll = ColorPicker.BuildSlider(25, -450, 300, 20, ColorPicker.window:GetFrame(), 8, "  H",
+    ColorPicker.hueScroll = ColorPicker.BuildSlider(25, -450, 300, 20, ColorPicker.window:GetFrame(), 8, "  " .. L["COLP_H"],
     function(value)
         ColorPicker.hue = value;
         ColorPicker.r, ColorPicker.g, ColorPicker.b = HSLtoRGB(ColorPicker.hue, ColorPicker.saturation, ColorPicker.lightness);
@@ -385,7 +386,7 @@ function ColorPicker.Initialize(r, g, b)
     ColorPicker.hueScroll_D:SetFrameLevel(12);
 
     -- Saturation --
-    ColorPicker.saturationScroll = ColorPicker.BuildSlider(25, -470, 300, 20, ColorPicker.window:GetFrame(), 8, "  S",
+    ColorPicker.saturationScroll = ColorPicker.BuildSlider(25, -470, 300, 20, ColorPicker.window:GetFrame(), 8, "  " .. L["COLP_S"],
     function(value)
         ColorPicker.saturation = value;
         ColorPicker.r, ColorPicker.g, ColorPicker.b = HSLtoRGB(ColorPicker.hue, ColorPicker.saturation, ColorPicker.lightness);
@@ -410,7 +411,7 @@ function ColorPicker.Initialize(r, g, b)
     ColorPicker.saturationScroll_D:SetFrameLevel(13);
 
     -- Lightness --
-    ColorPicker.lightnessScroll = ColorPicker.BuildSlider(25, -490, 300, 20, ColorPicker.window:GetFrame(), 8, "  L",
+    ColorPicker.lightnessScroll = ColorPicker.BuildSlider(25, -490, 300, 20, ColorPicker.window:GetFrame(), 8, "  " .. L["COLP_L"],
     function(value)
         ColorPicker.lightness = value;
         ColorPicker.r, ColorPicker.g, ColorPicker.b = HSLtoRGB(ColorPicker.hue, ColorPicker.saturation, ColorPicker.lightness);

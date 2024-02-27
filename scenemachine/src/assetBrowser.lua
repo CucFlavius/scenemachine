@@ -12,6 +12,7 @@ local SH = Editor.SceneHierarchy;
 local OP = Editor.ObjectProperties;
 local Debug = {};
 local searchData = {};
+local L = Editor.localization;
 
 local c1 = { 0.1757, 0.1757, 0.1875 };
 local c2 = { 0.242, 0.242, 0.25 };
@@ -234,8 +235,7 @@ function AssetBrowser.CreateToolbar(parent, y, w, startLevel)
     AssetBrowser.toolbar.upOneFolderButton:SetScript("OnClick", function (self, button, down) AssetBrowser.UpOneFolder(); end)
     AssetBrowser.toolbar.upOneFolderButton:SetFrameLevel(startLevel + 1);
 
-    AssetBrowser.toolbar.breadCrumb = UI.Label:New(h, 0, w - h, h, AssetBrowser.toolbar:GetFrame(),
-        "TOPLEFT", "TOPLEFT", "Breadcrumb", 9);
+    AssetBrowser.toolbar.breadCrumb = UI.Label:New(h, 0, w - h, h, AssetBrowser.toolbar:GetFrame(), "TOPLEFT", "TOPLEFT", L["AB_BREADCRUMB"], 9);
     AssetBrowser.toolbar.breadCrumb:SetFrameLevel(startLevel + 1);
 end
 
@@ -247,7 +247,7 @@ function AssetBrowser.CreateSearchBar(xMin, yMin, xMax, yMax, parent, startLevel
     AssetBrowser.searchBarBG:SetFrameLevel(startLevel);
     AssetBrowser.searchBarBG:SetHeight(h);
 
-    local searchLabel = UI.Label:New(5, 0, 50, h, AssetBrowser.searchBarBG:GetFrame(), "TOPLEFT", "TOPLEFT", "Search");
+    local searchLabel = UI.Label:New(5, 0, 50, h, AssetBrowser.searchBarBG:GetFrame(), "TOPLEFT", "TOPLEFT", L["SEARCH"]);
     searchLabel:SetFrameLevel(startLevel + 1);
 
     AssetBrowser.searchBar = UI.TextBox:New(50, 0, 1, 1, AssetBrowser.searchBarBG:GetFrame(), "TOPLEFT", "TOPLEFT", "");
@@ -437,7 +437,7 @@ end
 
 function AssetBrowser.RefreshBreadcrumb()
     if (#searchData > 0) then
-        AssetBrowser.toolbar.breadCrumb:SetText(#searchData .. " Results");
+        AssetBrowser.toolbar.breadCrumb:SetText(string.format(L["AB_RESULTS"], #searchData));
     else
         local str = "";
         for i=2, #AssetBrowser.breadcrumb, 1 do

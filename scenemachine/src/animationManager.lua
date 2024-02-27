@@ -8,6 +8,7 @@ local Input = SceneMachine.Input;
 local Track = SceneMachine.Track;
 local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
+local L = Editor.localization;
 
 local tabButtonHeight = 20;
 local tabPool = {};
@@ -710,7 +711,7 @@ function AM.CreateAnimationManager(x, y, w, h, parent, startLevel)
     AM.addTimelineButtonTab.text:SetAllPoints(AM.addTimelineButtonTab);
     AM.addTimelineButtonTab:Hide();
     --TextBox:New(x, y, w, h, parent, point, parentPoint, text, textHeight, textFont)
-    AM.addTimelineEditBox = UI.TextBox:New(0, 0, 100, tabButtonHeight, AM.groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", "Timeline Name");
+    AM.addTimelineEditBox = UI.TextBox:New(0, 0, 100, tabButtonHeight, AM.groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", L["AM_TIMELINE_NAME"]);
     AM.addTimelineEditBox:Hide();
     AM.addTimelineEditBox:SetFrameLevel(startLevel + 2);
 
@@ -750,7 +751,7 @@ function AM.CreateAnimationManager(x, y, w, h, parent, startLevel)
 end
 
 function AM.CreateAnimationSelectWindow(x, y, w, h)
-    AM.animSelectWindow = UI.Window:New(x, y, w, h, SceneMachine.mainWindow:GetFrame(), "CENTER", "CENTER", "AnimationList");
+    AM.animSelectWindow = UI.Window:New(x, y, w, h, SceneMachine.mainWindow:GetFrame(), "CENTER", "CENTER", L["AM_ANIMATION_LIST_WINDOW_TITLE"]);
     AM.animSelectWindow:SetFrameStrata(Editor.SUB_FRAME_STRATA);
 
     AM.animScrollList = UI.PooledScrollList:New(0, 0, w, h - 30, AM.animSelectWindow:GetFrame(), "TOPLEFT", "TOPLEFT");
@@ -800,7 +801,7 @@ function AM.CreateAnimationSelectWindow(x, y, w, h)
     AM.animScrollList:SetFrameLevel(10);
 	AM.animScrollList:MakePool();
 
-    AM.animSelectWindow.loadAnimBtn = UI.Button:New(5, 5, 60, 20, AM.animSelectWindow:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "Add Anim", nil);
+    AM.animSelectWindow.loadAnimBtn = UI.Button:New(5, 5, 60, 20, AM.animSelectWindow:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", L["AM_BUTTON_ADD_ANIMATION"], nil);
     AM.animSelectWindow.loadAnimBtn:SetScript("OnClick", function(_) AM.AddAnim(AM.selectedTrack, AM.selectedAnimID, AM.selectedAnimVariant); AM.animSelectWindow:Hide(); end);
     AM.animSelectWindow.filterBox = UI.TextBox:New(70, 5, 100, 20, AM.animSelectWindow:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "", 9);
     AM.animSelectWindow.filterBox:SetPoint("BOTTOMRIGHT", AM.animSelectWindow:GetFrame(), "BOTTOMRIGHT", -5, 0);
@@ -974,7 +975,7 @@ function AM.CreateToolbar(x, y, w, h, parent, startLevel)
     toolbar:SetFrameLevel(startLevel);
     local mainGroup = toolbar:CreateGroup(x, 0, w, h,
     {
-        { type = "Dropdown", name = "UIMode", width = 100, options = { "Tracks", "Keyframes", "Curves (debug only)" }, action = function(index) AM.Dropdown_SetUIMode(index); end },
+        { type = "Dropdown", name = "UIMode", width = 100, options = { L["AM_TOOLBAR_TRACKS"], L["AM_TOOLBAR_KEYFRAMES"], L["AM_TOOLBAR_CURVES"] }, action = function(index) AM.Dropdown_SetUIMode(index); end },
         { type = "Separator", name = "Separator1" },
         { type = "Button", name = "AddObject", icon = toolbar:GetIcon("addobj"), action = function(self) AM.AddTrack(SM.selectedObject); end },
         { type = "Button", name = "RemoveObject", icon = toolbar:GetIcon("removeobj"), action = function(self) AM.RemoveTrack(AM.selectedTrack) end },
@@ -1161,20 +1162,20 @@ function AM.CreateKeyframeView(x, y, w, h, parent, startLevel)
     local barCount = 12;
     AM.keyframeAreaList:SetHeight(barSize * barCount);
     
-    local positionText = UI.Label:New(0, 0, 200, barSize, AM.keyframeAreaList:GetFrame(), "TOPLEFT", "TOPLEFT", "Position");
+    local positionText = UI.Label:New(0, 0, 200, barSize, AM.keyframeAreaList:GetFrame(), "TOPLEFT", "TOPLEFT", L["POSITION"]);
     AM.keyframeBars[1] = AM.CreateKeyframeBarElement(0, -barSize, barSize, AM.keyframeAreaList:GetFrame());
     AM.keyframeBars[2] = AM.CreateKeyframeBarElement(0, -barSize * 2, barSize, AM.keyframeAreaList:GetFrame());
     AM.keyframeBars[3] = AM.CreateKeyframeBarElement(0, -barSize * 3, barSize, AM.keyframeAreaList:GetFrame());
 
-    local rotationText = UI.Label:New(0, -barSize * 4, 200, barSize, AM.keyframeAreaList:GetFrame(), "TOPLEFT", "TOPLEFT", "Rotation");
+    local rotationText = UI.Label:New(0, -barSize * 4, 200, barSize, AM.keyframeAreaList:GetFrame(), "TOPLEFT", "TOPLEFT", L["ROTATION"]);
     AM.keyframeBars[4] = AM.CreateKeyframeBarElement(0, -barSize * 5, barSize, AM.keyframeAreaList:GetFrame());
     AM.keyframeBars[5] = AM.CreateKeyframeBarElement(0, -barSize * 6, barSize, AM.keyframeAreaList:GetFrame());
     AM.keyframeBars[6] = AM.CreateKeyframeBarElement(0, -barSize * 7, barSize, AM.keyframeAreaList:GetFrame());
 
-    local scaleText = UI.Label:New(0, -barSize * 8, 200, barSize, AM.keyframeAreaList:GetFrame(), "TOPLEFT", "TOPLEFT", "Scale");
+    local scaleText = UI.Label:New(0, -barSize * 8, 200, barSize, AM.keyframeAreaList:GetFrame(), "TOPLEFT", "TOPLEFT", L["SCALE"]);
     AM.keyframeBars[7] = AM.CreateKeyframeBarElement(0, -barSize * 9, barSize, AM.keyframeAreaList:GetFrame());
 
-    local alphaText = UI.Label:New(0, -barSize * 10, 200, barSize, AM.keyframeAreaList:GetFrame(), "TOPLEFT", "TOPLEFT", "Alpha");
+    local alphaText = UI.Label:New(0, -barSize * 10, 200, barSize, AM.keyframeAreaList:GetFrame(), "TOPLEFT", "TOPLEFT", L["ALPHA"]);
     AM.keyframeBars[8] = AM.CreateKeyframeBarElement(0, -barSize * 11, barSize, AM.keyframeAreaList:GetFrame());
 end
 
@@ -1472,9 +1473,9 @@ function AM.TimelineTabButton_OnRightClick(index, x, y)
     local ry = (y * Renderer.scale) + (AM.parentFrame:GetTop() - SceneMachine.mainWindow:GetTop());
 
 	local menuOptions = {
-        [1] = { ["Name"] = "Rename", ["Action"] = function() AM.Button_RenameTimeline(index, x) end },
-        [2] = { ["Name"] = "Edit", ["Action"] = function()  AM.Button_EditTimeline(index) end },
-        [3] = { ["Name"] = "Delete", ["Action"] = function() AM.Button_DeleteTimeline(index) end },
+        [1] = { ["Name"] = L["RENAME"], ["Action"] = function() AM.Button_RenameTimeline(index, x) end },
+        [2] = { ["Name"] = L["EDIT"], ["Action"] = function()  AM.Button_EditTimeline(index) end },
+        [3] = { ["Name"] = L["DELETE"], ["Action"] = function() AM.Button_DeleteTimeline(index) end },
 	};
 
     --SceneMachine.mainWindow:PopupWindowMenu(x + gxOfs, y + gyOfs, menuOptions);
@@ -1483,7 +1484,7 @@ end
 
 function AM.Button_RenameTimeline(index, x)
     AM.addTimelineEditBox:Show();
-    AM.addTimelineEditBox:SetText("Timeline " .. (#SM.loadedScene.timelines));
+    AM.addTimelineEditBox:SetText(string.format(L["AM_TIMELINE"], #SM.loadedScene.timelines));
     AM.addTimelineButtonTab:Hide();
     AM.addTimelineEditBox:SetPoint("TOPLEFT", AM.groupBG:GetFrame(), "TOPLEFT", x, 0);
     AM.addTimelineEditBox:SetFocus();
@@ -1533,7 +1534,7 @@ function AM.Button_EditTimeline()
 end
 
 function AM.Button_DeleteTimeline()
-    Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), "Delete Timeline", "Are you sure you wish to continue?", true, true, function() AM.DeleteTimeline(index); end, function() end);
+    Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["AM_MSG_DELETE_TIMELINE_TITLE"], L["AM_MSG_DELETE_TIMELINE_MESSAGE"], true, true, function() AM.DeleteTimeline(index); end, function() end);
 end
 
 function AM.CreateTimeline(timelineName)
@@ -2670,8 +2671,7 @@ end
 function AM.OpenAddAnimationWindow(track)
     if (not track) then
         if (SM.selectedObject) then
-            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),
-                "No Track", "The object doesn't have an animation track, do you want to add one?",
+            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["AM_MSG_NO_TRACK_TITLE"], L["AM_MSG_NO_TRACK_MESSAGE"],
             true, true, function() AM.AddTrack(SM.selectedObject) AM.OpenAddAnimationWindow(AM.selectedTrack) end, function() end);
         end
         return;
@@ -2701,8 +2701,7 @@ end
 function AM.AddFullKey(track)
     if (not track) then
         if (SM.selectedObject) then
-            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),
-                "No Track", "The object doesn't have an animation track, do you want to add one?",
+            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["AM_MSG_NO_TRACK_TITLE"], L["AM_MSG_NO_TRACK_MESSAGE"],
             true, true, function() AM.AddTrack(SM.selectedObject); AM.AddFullKey(AM.selectedTrack); end, function() end);
         end
         return;
@@ -2720,8 +2719,7 @@ end
 function AM.AddPosKey(track)
     if (not track) then
         if (SM.selectedObject) then
-            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),
-                "No Track", "The object doesn't have an animation track, do you want to add one?",
+            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["AM_MSG_NO_TRACK_TITLE"], L["AM_MSG_NO_TRACK_MESSAGE"],
             true, true, function() AM.AddTrack(SM.selectedObject); AM.AddPosKey(AM.selectedTrack); end, function() end);
         end
         return;
@@ -2739,8 +2737,7 @@ end
 function AM.AddRotKey(track)
     if (not track) then
         if (SM.selectedObject) then
-            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),
-                "No Track", "The object doesn't have an animation track, do you want to add one?",
+            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["AM_MSG_NO_TRACK_TITLE"], L["AM_MSG_NO_TRACK_MESSAGE"],
             true, true, function() AM.AddTrack(SM.selectedObject); AM.AddRotKey(AM.selectedTrack); end, function() end);
         end
         return;
@@ -2758,8 +2755,7 @@ end
 function AM.AddScaleKey(track)
     if (not track) then
         if (SM.selectedObject) then
-            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(),
-                "No Track", "The object doesn't have an animation track, do you want to add one?",
+            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["AM_MSG_NO_TRACK_TITLE"], L["AM_MSG_NO_TRACK_MESSAGE"],
             true, true, function() AM.AddTrack(SM.selectedObject); AM.AddScaleKey(AM.selectedTrack); end, function() end);
         end
         return;

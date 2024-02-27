@@ -2,12 +2,15 @@
     <!-- Scene Machine -->
     <Script file="header.lua"/>
 
+    <Script file="Libraries/AceLocale-3.0/AceLocale-3.0.lua"/>
+
     <Script file="resources.lua"/>
     <Script file="..\res\data\creature.lua"/>
     <Script file="..\res\data\creature2display.lua"/>
     <Script file="..\res\data\data.lua"/>
     <Script file="..\res\data\animdata.lua"/>
     <Script file="..\res\data\animnames.lua"/>
+    <Include file="..\res\locale\enUS.lua"/>
 
     <Include file="Objects\Objects.xml"/>
 

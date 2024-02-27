@@ -64,12 +64,14 @@ local function SG_UpdateLoop ()
 	then
 		fps = GetFramerate();
 		UpdateCumulativeMovingAverageFPS(fps);
+		--[[
 		SceneMachine.StatsFrame.text:SetText(
 			--"FrameBuffer : " .. SceneMachine.UsedFrames .. "/" .. SceneMachine.Renderer.FrameBufferSize .. ", Culled : " .. SceneMachine.CulledFrames .. "\n" ..
 			"FPS : " .. floor(fps) .. " Avg. " .. floor(currentAvgFPS) .. "\n"
 			--"Time : " .. floor(SceneMachine.time) .. "\n" ..
 			--"Renderer : " .. tostring(Renderer.active)
 		);
+		--]]
 	end
 	
 	if SceneMachine.preRenderUpdateAction ~= nil then

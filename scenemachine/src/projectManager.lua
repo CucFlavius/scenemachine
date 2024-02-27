@@ -2,6 +2,7 @@ local Editor = SceneMachine.Editor;
 local PM = Editor.ProjectManager;
 local SM = Editor.SceneManager;
 local UI = SceneMachine.UI;
+local L = Editor.localization;
 
 local c1 = { 0.1757, 0.1757, 0.1875 };
 local c2 = { 0.242, 0.242, 0.25 };
@@ -31,24 +32,24 @@ function PM.CreateWindow()
      end);
 
     local buttonSpacing = 5;
-    PM.newProjectButton = UI.Button:New(10, 10, 60, 40, PM.projectListFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "New Project", nil);
+    PM.newProjectButton = UI.Button:New(10, 10, 60, 40, PM.projectListFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", L["PM_BUTTON_NEW_PROJECT"], nil);
     PM.newProjectButton:SetScript("OnClick", function(self) PM.ButtonNewProject() end);
-    PM.loadProjectButton = UI.Button:New(60 + (buttonSpacing) + 10, 10, 60, 40, PM.projectListFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "Load Project", nil);
+    PM.loadProjectButton = UI.Button:New(60 + (buttonSpacing) + 10, 10, 60, 40, PM.projectListFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", L["PM_BUTTON_LOAD_PROJECT"], nil);
     PM.loadProjectButton:SetScript("OnClick", function(self) PM.ButtonLoadProject() end);
-    PM.editProjectButton = UI.Button:New((60 * 2) + (buttonSpacing * 2) + 10, 10, 60, 40, PM.projectListFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "Edit Project", nil);
+    PM.editProjectButton = UI.Button:New((60 * 2) + (buttonSpacing * 2) + 10, 10, 60, 40, PM.projectListFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", L["PM_BUTTON_EDIT_PROJECT"], nil);
     PM.editProjectButton:SetScript("OnClick", function(self) PM.ButtonEditProject() end);
-    PM.deleteProjectButton = UI.Button:New((60 * 3) + (buttonSpacing * 3) + 10, 10, 60, 40, PM.projectListFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "Remove Project", nil);
+    PM.deleteProjectButton = UI.Button:New((60 * 3) + (buttonSpacing * 3) + 10, 10, 60, 40, PM.projectListFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", L["PM_BUTTON_REMOVE_PROJECT"], nil);
     PM.deleteProjectButton:SetScript("OnClick", function(self) PM.ButtonDeleteProject() end);
-    PM.saveDataButton = UI.Button:New((60 * 4) + (buttonSpacing * 4) + 10, 10, 60, 40, PM.projectListFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "Save Data", nil);
+    PM.saveDataButton = UI.Button:New((60 * 4) + (buttonSpacing * 4) + 10, 10, 60, 40, PM.projectListFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", L["PM_BUTTON_SAVE_DATA"], nil);
     PM.saveDataButton:SetScript("OnClick", function(self) Editor.Save() end);
 
     -- project edit frame --
     PM.projectEditFrame = UI.Rectangle:New(0, 0, managerWindowWidth, managerWindowHeight, PM.window:GetFrame(), "TOPLEFT", "TOPLEFT", 0, 0, 0, 0);
     PM.projectEditFrame_NameBox = UI.TextBox:New(10, -10, 300, 20, PM.projectEditFrame:GetFrame(), "TOPLEFT", "TOPLEFT", "", 12);
 
-    PM.saveEditProjectButton = UI.Button:New(10, 10, 60, 40, PM.projectEditFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "Save", nil);
+    PM.saveEditProjectButton = UI.Button:New(10, 10, 60, 40, PM.projectEditFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", L["BUTTON_SAVE"], nil);
     PM.saveEditProjectButton:SetScript("OnClick", function(self) PM.ButtonSaveEditProject() end);
-    PM.closeEditProjectButton = UI.Button:New(60 + 10 + 10, 10, 60, 40, PM.projectEditFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "Cancel", nil);
+    PM.closeEditProjectButton = UI.Button:New(60 + 10 + 10, 10, 60, 40, PM.projectEditFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", L["BUTTON_CANCEL"], nil);
     PM.closeEditProjectButton:SetScript("OnClick", function(self) PM.ButtonCancelEditProject() end);
 
     PM.window:Hide();
@@ -124,7 +125,7 @@ function PM.LoadProject(ID)
         return;
     end
 
-    SceneMachine.mainWindow:SetTitle("Scene Machine " .. Editor.version .. " - " .. PM.currentProject.name);
+    SceneMachine.mainWindow:SetTitle(string.format(L["EDITOR_MAIN_WINDOW_TITLE"], Editor.version, PM.currentProject.name));
 
     -- Load last scene
     if (PM.currentProject.lastOpenScene ~= nil) then
@@ -164,7 +165,7 @@ function PM.OpenWindow()
     PM.window:Show();
     PM.projectListFrame:Show();
     PM.projectEditFrame:Hide();
-    PM.window:SetTitle("Project Manager");
+    PM.window:SetTitle(L["PM_WINDOW_TITLE"]);
     PM.RefreshProjectWindow();
 end
 
@@ -184,9 +185,9 @@ end
 function PM.ButtonNewProject()
     PM.projectListFrame:Hide();
     PM.projectEditFrame:Show();
-    PM.window:SetTitle("New Project");
+    PM.window:SetTitle(L["PM_NEW_PROJECT"]);
 
-    PM.projectEditFrame_NameBox:SetText("Project Name");
+    PM.projectEditFrame_NameBox:SetText(L["PM_PROJECT_NAME"]);
 end
 
 function PM.ButtonLoadProject()
@@ -205,7 +206,7 @@ function PM.ButtonEditProject()
 
     PM.projectListFrame:Hide();
     PM.projectEditFrame:Show();
-    PM.window:SetTitle("Edit Project");
+    PM.window:SetTitle(L["PM_EDIT_PROJECT"]);
 
     -- fill in existing info --
     PM.projectEditFrame_NameBox:SetText(PM.projects[PM.selectedProjectID].name);
@@ -214,13 +215,13 @@ end
 function PM.ButtonCancelEditProject()
     PM.projectListFrame:Show();
     PM.projectEditFrame:Hide();
-    PM.window:SetTitle("Project Manager");
+    PM.window:SetTitle(L["PM_WINDOW_TITLE"]);
 end
 
 function PM.ButtonSaveEditProject()
     PM.projectListFrame:Show();
     PM.projectEditFrame:Hide();
-    PM.window:SetTitle("Project Manager");
+    PM.window:SetTitle(L["PM_WINDOW_TITLE"]);
 
     local projectName = PM.projectEditFrame_NameBox:GetText();
 
@@ -241,7 +242,7 @@ function PM.ButtonDeleteProject()
     end
 
     -- ask for restart / or restart --
-    Editor.OpenMessageBox(PM.window:GetFrame(), "Remove Project", "Removing the project will also remove all its scenes and data, continue?", true, true, function() PM.DeleteProject(PM.selectedProjectID) end, function() end);
+    Editor.OpenMessageBox(PM.window:GetFrame(), L["PM_MSG_DELETE_PROJECT_TITLE"], L["PM_MSG_DELETE_PROJECT_MESSAGE"], true, true, function() PM.DeleteProject(PM.selectedProjectID) end, function() end);
 end
 
 function PM.DeleteProject(ID)
