@@ -207,6 +207,16 @@ function SM.LoadScene(index)
         scene.timelines = {};
     end
 
+    if (scene.properties == nil) then
+        local ar, ag, ab = Renderer.projectionFrame:GetLightAmbientColor();
+        local dr, dg, db = Renderer.projectionFrame:GetLightDiffuseColor();
+        scene.properties = {
+            ambientColor = { ar, ag, ab, 1 },
+            diffuseColor = { dr, dg, db, 1 },
+            backgroundColor = { 0.554, 0.554, 0.554, 1 }
+        };
+    end
+
     -- create loaded scene (so that objects get loaded from data not referenced) --
     --SM.loadedScene.objects = {};
     --SM.loadedScene.name = scene.name;
@@ -256,6 +266,12 @@ function SM.LoadScene(index)
                 end
             end
         end
+    end
+
+    if (scene.properties) then
+        OP.SetAmbientColor(scene.properties.ambientColor[1], scene.properties.ambientColor[2], scene.properties.ambientColor[2], 1);
+        OP.SetDiffuseColor(scene.properties.diffuseColor[1], scene.properties.diffuseColor[2], scene.properties.diffuseColor[2], 1);
+        OP.SetBackgroundColor(scene.properties.backgroundColor[1], scene.properties.backgroundColor[2], scene.properties.backgroundColor[2], 1);
     end
 
     AM.RefreshTimelineTabs();

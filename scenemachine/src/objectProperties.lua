@@ -195,12 +195,15 @@ end
 
 function OP.SetAmbientColor(R, G, B, A)
     Renderer.projectionFrame:SetLightAmbientColor(R, G, B);
+    SM.loadedScene.properties.ambientColor = { R, G, B, A };
 end
 
 function OP.SetDiffuseColor(R, G, B, A)
     Renderer.projectionFrame:SetLightDiffuseColor(R, G, B);
+    SM.loadedScene.properties.diffuseColor = { R, G, B, A };
 end
 
 function OP.SetBackgroundColor(R, G, B, A)
     Renderer.backgroundFrame.texture:SetColorTexture(R, G, B, 1);
+    SM.loadedScene.properties.backgroundColor = { R, G, B, A };
 end
