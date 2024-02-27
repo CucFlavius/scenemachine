@@ -28,35 +28,29 @@ function Matrix:New()
 	return v
 end
 
+-- https://registry.khronos.org/OpenGL-Refpages/gl2.1/xhtml/gluPerspective.xml
 function Matrix:CreatePerspectiveFieldOfView(fov, aspectRatio, depthNear, depthFar)
-    local FOV_CORRECTION = 0.97;
-    local top = depthNear * math.tan(0.5 * fov * FOV_CORRECTION);
-    local bottom = -top;
-    local left = bottom * aspectRatio;
-    local right = top * aspectRatio;
 
-    local x = 2.0 * depthNear / (right - left);
-    local y = 2.0 * depthNear / (top - bottom);
-    local a = (right + left) / (right - left);
-    local b = (top + bottom) / (top - bottom);
-    local c = -(depthFar + depthNear) / (depthFar - depthNear);
-    local d = -(2.0 * depthFar * depthNear) / (depthFar - depthNear);
+    local D2R = math.pi / 180.0;
+    local yScale = 1.0 / math.tan(D2R * math.deg(fov) / 2);
+    local xScale = yScale / aspectRatio;
+    local nearmfar = depthNear - depthFar;
 
-    self.m00 = x;
+    self.m00 = xScale;
     self.m01 = 0;
     self.m02 = 0;
     self.m03 = 0;
     self.m10 = 0;
-    self.m11 = y;
+    self.m11 = yScale;
     self.m12 = 0;
     self.m13 = 0;
-    self.m20 = a;
-    self.m21 = b;
-    self.m22 = c;
+    self.m20 = 0;
+    self.m21 = 0;
+    self.m22 = (depthFar + depthNear) / nearmfar;
     self.m23 = -1;
     self.m30 = 0;
     self.m31 = 0;
-    self.m32 = d;
+    self.m32 = 2 * depthFar * depthNear / nearmfar;
     self.m33 = 0;
 
     return self;

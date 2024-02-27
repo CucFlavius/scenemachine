@@ -45,8 +45,15 @@ function Camera.Update()
     Camera.forward:Set(Renderer.projectionFrame:GetCameraForward());
     Camera.up:Set(Renderer.projectionFrame:GetCameraUp());
     Camera.right:Set(Renderer.projectionFrame:GetCameraRight());
+    
+    local dif = 0;
+    if (Camera.aspectRatio > 1.5) then
+        dif = (Camera.aspectRatio - 1.5) / math.pi;
+    elseif (Camera.aspectRatio < 1.5) then
+        dif = (Camera.aspectRatio - 1.5) / (math.pi * Camera.aspectRatio);
+    end
 
-    Camera.projectionMatrix:CreatePerspectiveFieldOfView(Camera.fov, Camera.aspectRatio, Camera.nearClip, Camera.farClip);
+    Camera.projectionMatrix:CreatePerspectiveFieldOfView(Camera.fov - (Camera.fov * dif), Camera.aspectRatio, Camera.nearClip, Camera.farClip);
     Camera.viewMatrix:LookAt(Camera.position, Camera.position + Camera.forward, Vector3.up);
 
     -- Calculate camera near plane -- 
@@ -67,6 +74,7 @@ function Camera.Update()
     end
 end
 
+-- https://antongerdelan.net/opengl/raycasting.html
 -------------------------------------------------------
 -- Transform mouse coords from renderer relative to  --
 -- device coords (between -0.5 and +0.5) 0 at center --

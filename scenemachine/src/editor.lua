@@ -287,7 +287,6 @@ function Editor.SetScale(percent)
     local maxH = GetScreenHeight() - 50;
     local w = min(maxW, SceneMachine.mainWindow:GetWidth());
     local h = min(maxH, SceneMachine.mainWindow:GetHeight());
-    print(w, h)
     SceneMachine.mainWindow:SetSize(w / n, h / n);
 end
 
