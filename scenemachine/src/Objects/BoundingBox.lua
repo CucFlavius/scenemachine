@@ -36,11 +36,11 @@ function BoundingBox:SetBoundingBox(v)
 end
 
 function BoundingBox:SetFromMinMaxAABB(xMin, yMin, zMin, xMax, yMax, zMax)
-    self.size.x = xMax - xMin;
-    self.size.y = yMax - yMin;
-    self.size.z = zMax - zMin;
-    self.center.x = (xMax - xMin) / 2.0 + xMin;
-    self.center.y = (yMax - yMin) / 2.0 + yMin;
+    self.size.x = math.abs(xMax - xMin);
+    self.size.y = math.abs(yMax - yMin);
+    self.size.z = math.abs(zMax - zMin);
+    self.center.x = 0;--math.abs(xMax - xMin) / 2.0 + xMin;
+    self.center.y = 0;--math.abs(yMax - yMin) / 2.0 + yMin;
     self.center.z = 0;
 end
 
