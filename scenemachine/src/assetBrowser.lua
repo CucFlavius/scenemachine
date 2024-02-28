@@ -210,7 +210,28 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
             --SM.selectedObject.actor:TryOn(39);
         end
     end);
+--[[
+    local testButtonb = UI.Button:New(0, -193, 100, 20, parent, "TOPLEFT", "TOPLEFT", "BIG TEST");
+    testButtonb:SetScript("OnClick", function(_, button, up)
+        for x = 0, 100, 1 do
+            for y = 0, 100, 1 do
+                local obj = SM.CreateObject(5019440, "Test", x, y, 0);
+            end
+        end
+    end);
 
+    local testButtonb = UI.Button:New(0, -213, 100, 20, parent, "TOPLEFT", "TOPLEFT", "BIG CLEAR");
+    testButtonb:SetScript("OnClick", function(_, button, up)
+        local toDelete = {};
+        for i = 1, #SM.loadedScene.objects, 1 do
+            toDelete[#toDelete + 1] = SM.loadedScene.objects[i];
+        end
+
+        for i = 1, #toDelete, 1 do
+            SM.DeleteObject(toDelete[i]);
+        end
+    end);
+--]]
     --[[
     local testButton = UI.Button:New(0, -113, 100, 20, parent, "TOPLEFT", "TOPLEFT", "TEST");
     local creatureDisplayID = 4;
