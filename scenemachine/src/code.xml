@@ -1,47 +1,47 @@
 <Ui>
     <!-- Scene Machine -->
-    <Script file="header.lua"/>
+    <Script file="header.lua" />
 
     <Include file="Libraries/ChatThrottleLib/ChatThrottleLib.xml" />
     <Include file="Libraries/AceLocale-3.0/AceLocale-3.0.xml" />
     <Include file="Libraries/LibSerialize-1.1.3/lib.xml" />
     <Include file="Libraries/LibDeflate/lib.xml" />
 
-    <Script file="resources.lua"/>
-    <Script file="..\res\data\creature.lua"/>
-    <Script file="..\res\data\creature2display.lua"/>
-    <Script file="..\res\data\data.lua"/>
-    <Script file="..\res\data\animdata.lua"/>
-    <Script file="..\res\data\animnames.lua"/>
+    <Script file="resources.lua" />
+    <Script file="..\res\data\creature.lua" />
+    <Script file="..\res\data\creature2display.lua" />
+    <Script file="..\res\data\data.lua" />
+    <Script file="..\res\data\animdata.lua" />
+    <Script file="..\res\data\animnames.lua" />
     <Script file="..\res\locale\enUS.lua" />
 
-    <Include file="Objects\Objects.xml"/>
+    <Include file="Objects\Objects.xml" />
 
     <!-- <Script file="debug.lua"/> -->
 
-    <Script file="camera.lua"/>
-    <Script file="input.lua"/>
-    <Script file="colorPicker.lua"/>
-    <Script file="cameraController.lua"/>
-    <Script file="renderer.lua"/>
-	<Script file="settings.lua"/>
-    <Script file="assetBrowser.lua"/>
-    <Script file="projectManager.lua"/>
-    <Script file="sceneManager.lua"/>
-    <Script file="animationManager.lua"/>
-    <Script file="sceneHierarchy.lua"/>
-    <Script file="mousePick.lua"/>
-    <Script file="objectProperties.lua"/>
-    <Script file="mainMenu.lua"/>
-    <Script file="editor.lua"/>
-	<Script file="engine.lua"/>
-    <Script file="math.lua"/>
-    <Script file="scenescript.lua"/>
-    
-    <Script file="Gizmo\gizmos.lua"/>
-    <Script file="Gizmo\moveGizmo.lua"/>
-    <Script file="Gizmo\rotationGizmo.lua"/>
-    <Script file="Gizmo\scaleGizmo.lua"/>
-    <Script file="Gizmo\selectionGizmo.lua"/>
-    <Script file="Gizmo\debugGizmo.lua"/>
+    <Script file="camera.lua" />
+    <Script file="input.lua" />
+    <Script file="colorPicker.lua" />
+    <Script file="cameraController.lua" />
+    <Script file="renderer.lua" />
+    <Script file="settings.lua" />
+    <Script file="assetBrowser.lua" />
+    <Script file="projectManager.lua" />
+    <Script file="sceneManager.lua" />
+    <Script file="animationManager.lua" />
+    <Script file="sceneHierarchy.lua" />
+    <Script file="mousePick.lua" />
+    <Script file="objectProperties.lua" />
+    <Script file="mainMenu.lua" />
+    <Script file="editor.lua" />
+    <Script file="engine.lua" />
+    <Script file="math.lua" />
+    <Script file="scenescript.lua" />
+
+    <Script file="Gizmo\gizmos.lua" />
+    <Script file="Gizmo\moveGizmo.lua" />
+    <Script file="Gizmo\rotationGizmo.lua" />
+    <Script file="Gizmo\scaleGizmo.lua" />
+    <Script file="Gizmo\selectionGizmo.lua" />
+    <Script file="Gizmo\debugGizmo.lua" />
 </Ui>
