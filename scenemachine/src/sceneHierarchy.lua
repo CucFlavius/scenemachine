@@ -54,6 +54,13 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 					item.components[1]:SetColor(UI.Button.State.Normal, 0.1757, 0.1757, 0.1875, 1);
 				end
 
+				-- frozen --
+				if (data.frozen) then
+					item.components[2]:SetTextColor(1, 1, 1, 0.5);
+				else
+					item.components[2]:SetTextColor(1, 1, 1, 1);
+				end
+
 				-- object name text --
 				item.components[2]:SetText(data.name);
 
