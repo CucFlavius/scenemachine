@@ -2,9 +2,10 @@
     <!-- Scene Machine -->
     <Script file="header.lua"/>
 
-    <Script file="Libraries/ChatThrottleLib/ChatThrottleLib.lua"/>
-    <Script file="Libraries/AceLocale-3.0/AceLocale-3.0.lua"/>
-    <Script file="Libraries/LibSerialize-1.1.3/LibSerialize.lua"/>
+    <Include file="Libraries/ChatThrottleLib/ChatThrottleLib.xml" />
+    <Include file="Libraries/AceLocale-3.0/AceLocale-3.0.xml" />
+    <Include file="Libraries/LibSerialize-1.1.3/lib.xml" />
+    <Include file="Libraries/LibDeflate/lib.xml" />
 
     <Script file="resources.lua"/>
     <Script file="..\res\data\creature.lua"/>
@@ -12,7 +13,7 @@
     <Script file="..\res\data\data.lua"/>
     <Script file="..\res\data\animdata.lua"/>
     <Script file="..\res\data\animnames.lua"/>
-    <Include file="..\res\locale\enUS.lua"/>
+    <Script file="..\res\locale\enUS.lua" />
 
     <Include file="Objects\Objects.xml"/>
 
