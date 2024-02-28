@@ -157,6 +157,10 @@ end
 function Object:SetRotationQuaternion(rot)
     self.rotation = rot:ToEuler();
 
+    self.rotation.x = math.max(-1000000, math.min(1000000, self.rotation.x));
+    self.rotation.y = math.max(-1000000, math.min(1000000, self.rotation.y));
+    self.rotation.z = math.max(-1000000, math.min(1000000, self.rotation.z));
+
     -- apply to actor
     if (self.actor ~= nil) then
         self.actor:SetRoll(self.rotation.x);
@@ -185,6 +189,10 @@ function Object:SetRotation(x, y, z, pivot)
         pz = (pz + ppoint.z) - bbCenter;
         self:SetPosition(px, py, pz);
     end
+
+    x = math.max(-1000000, math.min(1000000, x));
+    y = math.max(-1000000, math.min(1000000, y));
+    z = math.max(-1000000, math.min(1000000, z));
 
     self.rotation:Set(x, y, z);
 
