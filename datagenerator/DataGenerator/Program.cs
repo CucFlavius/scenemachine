@@ -23,6 +23,7 @@ namespace DataGenerator
             "Root/Interiors",
             "Root/Spell",
             //"Root/Test",
+            "Root/ITEM",
         };
 
         static void Main(string[] args)
