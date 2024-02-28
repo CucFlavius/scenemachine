@@ -25,7 +25,7 @@ function MainMenu.Create()
             ["Name"] = L["MM_FILE"],
             ["Options"] = {
                 { ["Name"] = L["MM_PROJECT_MANAGER"], ["Action"] = function() Editor.ShowProjectManager() end },
-                { ["Name"] = L["MM_IMPORT_SCENESCRIPT"], ["Action"] = function() Editor.ShowImportScenescript() end },
+                { ["Name"] = L["MM_IMPORT_SCENESCRIPT"], ["Action"] = function(text) Editor.ShowImportExportWindow(SceneMachine.ImportScenescript) end },
                 { ["Name"] = L["MM_SAVE"], ["Action"] = function() Editor.Save() end },
             },
         },

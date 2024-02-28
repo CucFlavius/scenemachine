@@ -1,9 +1,8 @@
 -- notes :
 -- world/expansion01/doodads/m2lights/m2_light_lightblue.m2
--- 7ws_warden_cavelight
+-- 7wd_warden_cavelight
 -- 7lg_legion_pulselight01
 -- 7bs_perpixellight_tomb01
-
 
 -- scale_obj_box_gray001 0.0725
 -- scale_obj_sphere_gray001 0.03625

@@ -23,19 +23,32 @@ function SceneMachine.Start()
 	if (Debug) then Debug.Init(); end
 end
 
-local f = CreateFrame("Frame")
 
-local function onevent(self, event, arg1, ...)
-    if(event == "ADDON_LOADED" and arg1 == "scenemachine") then
-        f:UnregisterEvent("ADDON_LOADED");
-        --f:UnregisterEvent("PLAYER_LOGIN");
-		SceneMachine.Start();
-    end
+SceneMachine.prefix = "sceneMachine123";
+
+local function handleRecieveMessage(prefix, text, channel, sender, target, zoneChannelID, localID, name, instanceID)
+	print(text);
 end
 
-f:RegisterEvent("ADDON_LOADED")
---f:RegisterEvent("PLAYER_LOGIN")
-f:SetScript("OnEvent", onevent)
+local f = CreateFrame("Frame");
+
+local function onevent(self, event, ...)
+	local addonName = ...;
+    if(event == "ADDON_LOADED" and addonName == "scenemachine") then
+        f:UnregisterEvent("ADDON_LOADED");
+		C_ChatInfo.RegisterAddonMessagePrefix(SceneMachine.prefix);
+		SceneMachine.Start();
+	elseif(event == "CHAT_MSG_ADDON") then
+		local prefix = ...;
+		if (prefix == SceneMachine.prefix) then
+			handleRecieveMessage(...);
+		end
+	end
+end
+
+f:RegisterEvent("ADDON_LOADED");
+f:RegisterEvent("CHAT_MSG_ADDON");
+f:SetScript("OnEvent", onevent);
 
 ------------------------
 -------- UPDATE --------

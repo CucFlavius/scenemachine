@@ -14,6 +14,8 @@ L["EDIT"] = "Edit";
 L["DELETE"] = "Delete";
 L["BUTTON_SAVE"] = "Save";
 L["BUTTON_CANCEL"] = "Cancel";
+L["EXPORT"] = "Export";
+L["IMPORT"] = "Import";
 
 -- Editor --
 L["ADDON_NAME"] = "Scene Machine";
@@ -37,6 +39,7 @@ L["EDITOR_TOOLBAR_TT_PIVOT_LOCAL_SPACE"] = "Set Pivot to Local Space";
 L["EDITOR_TOOLBAR_TT_PIVOT_WORLD_SPACE"] = "Set Pivot to World Space";
 L["EDITOR_TOOLBAR_TT_PIVOT_CENTER"] = "Set Pivot to Center";
 L["EDITOR_TOOLBAR_TT_PIVOT_BASE"] = "Set Pivot to Base";
+L["EDITOR_IMPORT_EXPORT_WINDOW_TITLE"] = "Import - Export";
 
 -- Main Menu --
 L["MM_FILE"] = "File";

@@ -454,28 +454,31 @@ function Editor.ShowProjectManager()
     Editor.ProjectManager.OpenWindow();
 end
 
-function Editor.ShowImportScenescript()
+function Editor.ShowImportExportWindow(action, text)
     -- create
-    if (not Editor.importSSWindow) then
-        Editor.importSSWindow = UI.Window:New(0, 0, 400, 400, SceneMachine.mainWindow:GetFrame(), "CENTER", "CENTER", L["EDITOR_SCENESCRIPT_WINDOW_TITLE"]);
-        Editor.importSSWindow:SetFrameStrata(Editor.SUB_FRAME_STRATA);
-        Editor.importSSWindow.editBox = UI.TextBox:New(0, 0, 390, 390, Editor.importSSWindow:GetFrame(), "TOPLEFT", "TOPLEFT", "", 9);
-        Editor.importSSWindow.editBox:SetMultiLine(true);
-        --Editor.importSSWindow.editBox:SetMaxLetters(0);
-        Editor.importSSWindow.editBox:SetScript('OnEscapePressed', function()
-            Editor.importSSWindow.editBox:ClearFocus();
+    if (not Editor.importExportWindow) then
+        Editor.importExportWindow = UI.Window:New(0, 0, 400, 400, SceneMachine.mainWindow:GetFrame(), "CENTER", "CENTER", L["EDITOR_IMPORT_EXPORT_WINDOW_TITLE"]);
+        Editor.importExportWindow:SetFrameStrata(Editor.SUB_FRAME_STRATA);
+        Editor.importExportWindow.editBox = UI.TextBox:New(0, 0, 390, 390, Editor.importExportWindow:GetFrame(), "TOPLEFT", "TOPLEFT", "", 9);
+        Editor.importExportWindow.editBox:SetMultiLine(true);
+        Editor.importExportWindow.editBox.frame:SetMaxLetters(0);
+        Editor.importExportWindow.editBox:SetScript('OnEscapePressed', function()
+            Editor.importExportWindow.editBox:ClearFocus();
             Editor.ui.focused = false;
-            Editor.importSSWindow.editBox:SetText("");
+            Editor.importExportWindow.editBox:SetText("");
         end);
-        Editor.importSSWindow.editBox:SetScript('OnEnterPressed', function() 
-            Editor.importSSWindow.editBox:ClearFocus();
+        Editor.importExportWindow.editBox:SetScript('OnEnterPressed', function() 
+            Editor.importExportWindow.editBox:ClearFocus();
             Editor.ui.focused = false;
-            Editor.importSSWindow:Hide();
-            SceneMachine.ImportScenescript(Editor.importSSWindow.editBox:GetText())
+            Editor.importExportWindow:Hide();
+            if (action) then
+                action(Editor.importExportWindow.editBox:GetText());
+            end
         end);
     end
 
-    Editor.importSSWindow:Show();
+    Editor.importExportWindow:Show();
+    Editor.importExportWindow.editBox:SetText(text);
 end
 
 function Editor.OpenContextMenu(x, y)

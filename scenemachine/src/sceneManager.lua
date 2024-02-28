@@ -18,6 +18,9 @@ SM.loadedSceneIndex = 1;
 SM.loadedScene = nil;
 SM.selectedObject = nil;
 
+local LibSerialize = LibStub("LibSerialize", true)
+local LibDeflate = LibStub("LibDeflate", true)
+
 function SM.Create(x, y, w, h, parent, startLevel)
     SM.startLevel = startLevel;
     SM.groupBG = UI.Rectangle:New(6, -6, w, h, Editor.verticalSeparatorL:GetFrame(), "TOPLEFT", "TOPLEFT",  0, 0, 0, 0);
@@ -106,9 +109,11 @@ function SM.SceneTabButtonOnRightClick(index, x, y)
     local ry = (y * Renderer.scale) + (Renderer.projectionFrame:GetTop() - SceneMachine.mainWindow:GetTop());
 
 	local menuOptions = {
-        [1] = { ["Name"] = L["RENAME"], ["Action"] = function() SM.Button_RenameScene(index, x) end },
-        [2] = { ["Name"] = L["EDIT"], ["Action"] = function()  SM.Button_EditScene(index) end },
-        [3] = { ["Name"] = L["DELETE"], ["Action"] = function() SM.Button_DeleteScene(index) end },
+        [1] = { ["Name"] = L["RENAME"], ["Action"] = function() SM.Button_RenameScene(index, x); end },
+        [2] = { ["Name"] = L["EXPORT"], ["Action"] = function()  SM.Button_ExportScene(index); end },
+        [3] = { ["Name"] = L["IMPORT"], ["Action"] = function()  SM.Button_ImportScene(); end },
+        [4] = { ["Name"] = L["DELETE"], ["Action"] = function() SM.Button_DeleteScene(index); end },
+        --[5] = { ["Name"] = L["EDIT"], ["Action"] = function()  SM.Button_EditScene(index); end },
 	};
 
     SceneMachine.mainWindow:PopupWindowMenu(rx, ry, menuOptions);
@@ -168,6 +173,17 @@ end
 
 function SM.Button_DeleteScene(index)
     Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["SM_MSG_DELETE_SCENE_TITLE"], L["SM_MSG_DELETE_SCENE_MESSAGE"], true, true, function() SM.DeleteScene(index); end, function() end);
+end
+
+function SM.Button_ExportScene(index)
+    local scene = PM.currentProject.scenes[index];
+    local sceneString = SM.ExportScene(scene);
+
+    Editor.ShowImportExportWindow(nil, sceneString);
+end
+
+function SM.Button_ImportScene()
+
 end
 
 function SM.CreateScene(sceneName)
@@ -520,4 +536,35 @@ function SM.CreateNewSceneTab(x, y, w, h, parent, startLevel)
 	item.text:SetText("");
 
 	return item;
+end
+
+function SM.ExportScene(scene)
+    local sceneData = {};
+    sceneData.objects = {};
+    sceneData.timelines = {};
+    sceneData.properties = {};
+
+    -- transfer objects --
+    if (#scene.objects > 0) then
+        for i = 1, #scene.objects, 1 do
+            sceneData.objects[i] = scene.objects[i]:ExportData(scene.objects[i]);
+        end
+    end
+
+    -- transfer timelines --
+    if (#scene.timelines > 0) then
+        for i = 1, #scene.timelines, 1 do
+
+            --sceneData.timelines[i] = scene.timelines[i]:ExportData(scene.timelines[i]);
+        end
+    end
+
+    local serialized = LibSerialize:Serialize(sceneData);
+    local compressed = LibDeflate:CompressDeflate(serialized)
+
+    return compressed;
+end
+
+function SM.ImportScene()
+
 end

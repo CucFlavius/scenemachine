@@ -168,8 +168,8 @@ function Input.Update()
             keyboardShortcuts = Editor.KeyboardShortcutsWindow:IsVisible();
         end
         local sceneScript = nil;
-        if (Editor.importSSWindow) then
-            sceneScript = Editor.importSSWindow:IsVisible();
+        if (Editor.importExportWindow) then
+            sceneScript = Editor.importExportWindow:IsVisible();
         end
         local messageBox = nil;
         if (Editor.messageBox) then

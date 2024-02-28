@@ -2,7 +2,9 @@
     <!-- Scene Machine -->
     <Script file="header.lua"/>
 
+    <Script file="Libraries/ChatThrottleLib/ChatThrottleLib.lua"/>
     <Script file="Libraries/AceLocale-3.0/AceLocale-3.0.lua"/>
+    <Script file="Libraries/LibSerialize-1.1.3/LibSerialize.lua"/>
 
     <Script file="resources.lua"/>
     <Script file="..\res\data\creature.lua"/>
