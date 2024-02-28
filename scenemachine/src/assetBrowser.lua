@@ -19,6 +19,8 @@ local c2 = { 0.242, 0.242, 0.25 };
 local c3 = { 0, 0.4765, 0.7968 };
 local c4 = { 0.1171, 0.1171, 0.1171 };
 
+AssetBrowser.dataSource = "Models";
+
 function AssetBrowser.Create(parent, w, h, startLevel)
 
     local tabPanel = UI.TabPanel:New(0, 0, w, h, parent, "TOPRIGHT", "TOPRIGHT", 8);
@@ -50,8 +52,6 @@ function AssetBrowser.Create(parent, w, h, startLevel)
     --AssetBrowser.OnThumbnailDoubleClick(nil, "Kultiraszone");
 end
 
-AssetBrowser.dataSource = "Models";
-
 function AssetBrowser.OnChangeTab(idx)
     if (idx == 1) then
         -- Models --
@@ -76,6 +76,9 @@ function AssetBrowser.OnChangeTab(idx)
         AssetBrowser.tabs[1]:Hide();
         AssetBrowser.dataSource = nil;
     end
+
+    AssetBrowser.searchBar:SetText("");
+    AssetBrowser.SearchModelList("");
 end
 
 function AssetBrowser.CreateDebugTab(parent, w, h)
@@ -221,7 +224,6 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
     end);
     --]]
 end
-
 
 function Debug.TablePrint(tbl)
 	local indent = 4;
