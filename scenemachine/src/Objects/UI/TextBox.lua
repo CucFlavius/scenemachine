@@ -4,7 +4,7 @@ local UI = SceneMachine.UI;
 UI.TextBox = {};
 local TextBox = UI.TextBox;
 TextBox.__index = TextBox;
-setmetatable(TextBox, UI.Element)
+setmetatable(TextBox, UI.Element);
 
 function TextBox:New(x, y, w, h, parent, point, parentPoint, text, textHeight, textFont)
 	local v = 
@@ -99,7 +99,7 @@ function TextBox:SetMultiLine(on)
     self.frame:SetMultiLine(on);
 end
 
-function TextBox:SetMaxLetter(number)
+function TextBox:SetMaxLetters(number)
     self.frame:SetMaxLetters(number);
 end
 
