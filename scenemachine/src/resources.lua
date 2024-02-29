@@ -36,6 +36,7 @@ function Resources.Initialize(resourcePath)
     Resources.textures["CursorResizeH"] = "interface\\cursor\\crosshair\\ui-cursor-move.blp";--Resources.texturesPath .. "\\resizeCursorHorizontal.png";
     Resources.textures["CursorResizeV"] = "interface\\cursor\\crosshair\\ui-cursor-move.blp";--Resources.texturesPath .. "\\resizeCursorVertical.png.crosshair";
     Resources.textures["CursorResize"] = "interface\\cursor\\crosshair\\ui-cursor-sizeright.blp";--Resources.texturesPath .. "\\resizeCursorBoth.png.crosshair";
+    Resources.textures["ResizeArrowV"] = Resources.texturesPath .. "\\resizeCursorVertical.png";
     Resources.textures["ColorPicker"] = Resources.texturesPath .. "\\colorPickerV2.png";
     Resources.textures["KeyboardShortcuts"] = Resources.texturesPath .. "\\keyboardShortcuts.png";
     Resources.textures["ArrowDown"] = Resources.texturesPath .. "\\ArrowDown.png";

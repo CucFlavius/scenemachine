@@ -3,39 +3,40 @@ Structures
 -->
 
 <Ui>
-	<Script file="Color.lua"/>
-	<Script file="Vector2.lua"/>
-	<Script file="Vector3.lua"/>
-	<Script file="Vector4.lua"/>
-	<Script file="Quaternion.lua"/>
-	<Script file="Matrix.lua"/>
-	<Script file="Ray.lua"/>
-	<Script file="BoundingBox.lua"/>
-	<Script file="Object.lua"/>
-	<Script file="Track.lua"/>
+	<Script file="Color.lua" />
+	<Script file="Vector2.lua" />
+	<Script file="Vector3.lua" />
+	<Script file="Vector4.lua" />
+	<Script file="Quaternion.lua" />
+	<Script file="Matrix.lua" />
+	<Script file="Ray.lua" />
+	<Script file="BoundingBox.lua" />
+	<Script file="Object.lua" />
+	<Script file="Track.lua" />
 
 	<!-- UI Objects -->
-	<Script file="UI/UI.lua"/>
-	<Script file="UI/Element.lua"/>
-	<Script file="UI/Scrollbar.lua"/>
-	<Script file="UI/Rectangle.lua"/>
-	<Script file="UI/Label.lua"/>
-	<Script file="UI/TextBox.lua"/>
-	<Script file="UI/ImageBox.lua"/>
-	<Script file="UI/Button.lua"/>
-	<Script file="UI/SplitButton.lua"/>
-	<Script file="UI/CollapsableBox.lua"/>
-	<Script file="UI/CollapsableList.lua"/>
-	<Script file="UI/Dropdown.lua"/>
-	<Script file="UI/TabPanel.lua"/>
-	<Script file="UI/ScrollFrame.lua"/>
-	<Script file="UI/ItemList.lua"/>
-	<Script file="UI/PooledScrollList.lua"/>
-	<Script file="UI/PooledGridScrollList.lua"/>
-	<Script file="UI/PropertyField.lua"/>
-	<Script file="UI/PropertyFieldFloat.lua"/>
-	<Script file="UI/PropertyFieldVector3.lua"/>
-	<Script file="UI/PropertyFieldColor.lua"/>
-	<Script file="UI/Toolbar.lua"/>
-	<Script file="UI/Window.lua"/>
+	<Script file="UI/UI.lua" />
+	<Script file="UI/Element.lua" />
+	<Script file="UI/Scrollbar.lua" />
+	<Script file="UI/Rectangle.lua" />
+	<Script file="UI/Label.lua" />
+	<Script file="UI/TextBox.lua" />
+	<Script file="UI/ScrollableTextBox.lua" />
+	<Script file="UI/ImageBox.lua" />
+	<Script file="UI/Button.lua" />
+	<Script file="UI/SplitButton.lua" />
+	<Script file="UI/CollapsableBox.lua" />
+	<Script file="UI/CollapsableList.lua" />
+	<Script file="UI/Dropdown.lua" />
+	<Script file="UI/TabPanel.lua" />
+	<Script file="UI/ScrollFrame.lua" />
+	<Script file="UI/ItemList.lua" />
+	<Script file="UI/PooledScrollList.lua" />
+	<Script file="UI/PooledGridScrollList.lua" />
+	<Script file="UI/PropertyField.lua" />
+	<Script file="UI/PropertyFieldFloat.lua" />
+	<Script file="UI/PropertyFieldVector3.lua" />
+	<Script file="UI/PropertyFieldColor.lua" />
+	<Script file="UI/Toolbar.lua" />
+	<Script file="UI/Window.lua" />
 </Ui>

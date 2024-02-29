@@ -16,6 +16,8 @@ L["BUTTON_SAVE"] = "Save";
 L["BUTTON_CANCEL"] = "Cancel";
 L["EXPORT"] = "Export";
 L["IMPORT"] = "Import";
+L["SCROLL_TOP"] = "Jump to Top";
+L["SCROLL_BOTTOM"] = "Jump to Bottom";
 
 -- Editor --
 L["ADDON_NAME"] = "Scene Machine";

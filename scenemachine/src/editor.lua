@@ -457,28 +457,46 @@ end
 function Editor.ShowImportExportWindow(action, text)
     -- create
     if (not Editor.importExportWindow) then
-        Editor.importExportWindow = UI.Window:New(0, 0, 400, 400, SceneMachine.mainWindow:GetFrame(), "CENTER", "CENTER", L["EDITOR_IMPORT_EXPORT_WINDOW_TITLE"]);
+        local xOffset, yOffset = 0, 0;
+        local windowWidth, windowHeight = 400, 400;
+
+        Editor.importExportWindow = UI.Window:New(xOffset, yOffset, windowWidth, windowHeight, SceneMachine.mainWindow:GetFrame(), "CENTER", "CENTER", L["EDITOR_IMPORT_EXPORT_WINDOW_TITLE"]);
         Editor.importExportWindow:SetFrameStrata(Editor.SUB_FRAME_STRATA);
-        Editor.importExportWindow.editBox = UI.TextBox:New(0, 0, 390, 390, Editor.importExportWindow:GetFrame(), "TOPLEFT", "TOPLEFT", "", 9);
-        Editor.importExportWindow.editBox:SetMultiLine(true);
-        Editor.importExportWindow.editBox.frame:SetMaxLetters(0);
-        Editor.importExportWindow.editBox:SetScript('OnEscapePressed', function()
-            Editor.importExportWindow.editBox:ClearFocus();
+
+        local textHeight = 9;
+        local ebWidth, ebHeight = 390, 390; -- this just gets eaten by the anchors anyways but might as well keep it
+        Editor.importExportWindow.editBox = UI.ScrollableTextBox:New(xOffset, yOffset, ebWidth, ebHeight, Editor.importExportWindow:GetFrame(), "TOPLEFT", "TOPLEFT", "", textHeight, nil, true);
+
+        local editBox = Editor.importExportWindow.editBox;
+        editBox:SetPoint("BOTTOMRIGHT", Editor.importExportWindow:GetFrame(), 0, 0);
+        editBox:SetMultiLine(true);
+        editBox:SetMaxLetters(0);
+        editBox:SetScript('OnEscapePressed', function()
+            editBox:ClearFocus();
             Editor.ui.focused = false;
-            Editor.importExportWindow.editBox:SetText("");
+            editBox:SetText("");
         end);
-        Editor.importExportWindow.editBox:SetScript('OnEnterPressed', function() 
-            Editor.importExportWindow.editBox:ClearFocus();
+        editBox:SetScript('OnEnterPressed', function()
+            editBox:ClearFocus();
             Editor.ui.focused = false;
             Editor.importExportWindow:Hide();
             if (action) then
-                action(Editor.importExportWindow.editBox:GetText());
+                action(editBox:GetText());
             end
         end);
+
+        local scrollModifier = 3.5; -- textHeight x this modifier will be the scroll step size
+        local scrollBox = editBox:GetScrollBox();
+        scrollBox:SetInterpolateScroll(true);
+        scrollBox:SetPanExtent(textHeight * scrollModifier);
+
+        local resizeButton = Editor.importExportWindow.resizeFrame;
+        resizeButton:SetFrameStrata(Editor.SUB_FRAME_STRATA);
+        resizeButton:SetFrameLevel(scrollBox:GetFrameLevel() + 1);
     end
 
-    Editor.importExportWindow:Show();
     Editor.importExportWindow.editBox:SetText(text);
+    Editor.importExportWindow:Show();
 end
 
 function Editor.OpenContextMenu(x, y)

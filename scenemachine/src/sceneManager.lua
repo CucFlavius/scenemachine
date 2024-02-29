@@ -554,7 +554,6 @@ function SM.ExportScene(scene)
     -- transfer timelines --
     if (#scene.timelines > 0) then
         for i = 1, #scene.timelines, 1 do
-
             --sceneData.timelines[i] = scene.timelines[i]:ExportData(scene.timelines[i]);
         end
     end

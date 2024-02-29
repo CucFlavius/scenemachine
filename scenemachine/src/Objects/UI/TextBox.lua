@@ -42,7 +42,6 @@ function TextBox:Build()
 	self.frame:SetMaxLetters(100);
 	self.frame:SetScript('OnEscapePressed', function() self.frame:ClearFocus(); Editor.ui.focused = false; end);
 	self.frame:SetScript('OnEnterPressed', function() self.frame:ClearFocus(); Editor.ui.focused = false; end);
-	self.frame:EnableMouse();
 	self.frame:SetScript('OnMouseDown', function() self.frame:SetFocus(); end);
 	self.frame:SetScript("OnEditFocusGained", function() Editor.ui.focused = true; end);
 	self.frame:SetScript("OnEditFocusLost", function() Editor.ui.focused = false; end);
