@@ -56,9 +56,10 @@ function Track:New(object)
 	return v
 end
 
-function Track:ExportData()
+function Track:Export()
     local data = {
-        objectID = self.object.id;
+        name = self.name;
+        objectID = self.objectID;
         animations = self.animations;
         keysPx = self.keysPx;
         keysPy = self.keysPy;

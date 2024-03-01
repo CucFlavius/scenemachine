@@ -254,14 +254,14 @@ function Object:PlayAnimKitID(id)
     self.actor:PlayAnimationKit(id)
 end
 
-function Object:ExportData()
+function Object:ExportPacked()
     local data = {
         fileID = self.fileID;
         displayID = self.displayID;
         type = self.type;
         name = self.name;
-        position = self.position;
-        rotation = self.rotation;
+        position = { self.position.x,  self.position.y, self.position.z };
+        rotation = { self.rotation.x,  self.rotation.y, self.rotation.z };
         scale = self.scale;
         id = self.id;
         visible = self.visible;
@@ -269,6 +269,83 @@ function Object:ExportData()
     };
 
     return data;
+end
+
+function Object:Export()
+    local data = {
+        fileID = self.fileID;
+        displayID = self.displayID;
+        type = self.type;
+        name = self.name;
+        position = self.position:Export();
+        rotation = self.rotation:Export();
+        scale = self.scale;
+        id = self.id;
+        visible = self.visible;
+        frozen = self.frozen;
+    };
+
+    return data;
+end
+
+function Object:ImportPacked(data)
+    if (data == nil) then
+        print("Object:ImportPacked() data was nil.");
+        return;
+    end
+
+    -- verifying all elements upon import because sometimes the saved variables get corrupted --
+    if (data.fileID ~= nil) then
+        self.fileID = data.fileID;
+    end
+
+    if (data.displayID ~= nil) then
+        self.displayID = data.displayID;
+    else
+        self.displayID = 0;
+    end
+
+    if (data.type ~= nil) then
+        self.type = data.type;
+    else
+        self.type = SceneMachine.ObjectType.Model;
+    end
+
+    if (data.name ~= nil and data.name ~= "") then
+        self.name = data.name;
+    end
+
+    if (data.position ~= nil) then
+        self.position = Vector3:New(data.position[1], data.position[2], data.position[3]);
+    end
+
+    if (data.rotation ~= nil) then
+        self.rotation = Vector3:New(data.rotation[1], data.rotation[2], data.rotation[3]);
+    end
+
+    if (data.scale ~= nil and data.scale ~= 0) then
+        self.scale = data.scale;
+    end
+    
+    if (data.visible ~= nil) then
+        self.visible = data.visible;
+    else
+        self.visible = true;
+    end
+    
+    if (data.frozen ~= nil) then
+        self.frozen = data.frozen;
+    else
+        self.frozen = false;
+    end
+
+    if(data.alpha ~= nil) then
+        self.alpha = data.alpha;
+    else
+        self.alpha = 1.0;
+    end
+
+    self.id = data.id or math.random(99999999);
 end
 
 function Object:ImportData(data)

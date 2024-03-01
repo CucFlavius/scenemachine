@@ -479,14 +479,6 @@ function Editor.ShowImportExportWindow(action, text)
             Editor.ui.focused = false;
             editBox:SetText("");
         end);
-        editBox:SetScript('OnEnterPressed', function()
-            editBox:ClearFocus();
-            Editor.ui.focused = false;
-            Editor.importExportWindow:Hide();
-            if (action) then
-                action(editBox:GetText());
-            end
-        end);
 
         local scrollModifier = 3.5; -- textHeight x this modifier will be the scroll step size
         local scrollBox = editBox:GetScrollBox();
@@ -497,6 +489,15 @@ function Editor.ShowImportExportWindow(action, text)
         resizeButton:SetFrameStrata(Editor.SUB_FRAME_STRATA);
         resizeButton:SetFrameLevel(scrollBox:GetFrameLevel() + 1);
     end
+
+    Editor.importExportWindow.editBox:SetScript('OnEnterPressed', function()
+        Editor.importExportWindow.editBox:ClearFocus();
+        Editor.ui.focused = false;
+        Editor.importExportWindow:Hide();
+        if (action) then
+            action(Editor.importExportWindow.editBox:GetText());
+        end
+    end);
 
     Editor.importExportWindow.editBox:SetText(text);
     Editor.importExportWindow:Show();

@@ -183,7 +183,7 @@ function SM.Button_ExportScene(index)
 end
 
 function SM.Button_ImportScene()
-
+    Editor.ShowImportExportWindow(SM.ImportScene, "");
 end
 
 function SM.CreateScene(sceneName)
@@ -544,26 +544,99 @@ function SM.ExportScene(scene)
     sceneData.timelines = {};
     sceneData.properties = {};
 
+    sceneData.name = scene.name;
+
     -- transfer objects --
     if (#scene.objects > 0) then
         for i = 1, #scene.objects, 1 do
-            sceneData.objects[i] = scene.objects[i]:ExportData(scene.objects[i]);
+            sceneData.objects[i] = scene.objects[i]:ExportPacked(scene.objects[i]);
         end
     end
 
     -- transfer timelines --
     if (#scene.timelines > 0) then
         for i = 1, #scene.timelines, 1 do
-            --sceneData.timelines[i] = scene.timelines[i]:ExportData(scene.timelines[i]);
+            local timelineData = {};
+            local timeline = scene.timelines[i];
+            timelineData.currentTime = timeline.currentTime;
+            timelineData.duration = timeline.duration;
+            timelineData.name = timeline.name;
+            timelineData.tracks = {};
+
+            for t = 1, #timeline.tracks, 1 do
+                timelineData.tracks[t] = timeline.tracks[t]:Export();
+            end
+
+            sceneData.timelines[i] = timelineData;
+            --sceneData.timelines[i] = scene.timelines[i]:Export(scene.timelines[i]);
         end
     end
 
+    -- scene properties
+    sceneData.properties = scene.properties;
+
+    -- the camera position and rotation
+    sceneData.lastCameraPosition = scene.lastCameraPosition;
+    sceneData.lastCameraEuler = scene.lastCameraEuler;
+
     local serialized = LibSerialize:Serialize(sceneData);
     local compressed = LibDeflate:CompressDeflate(serialized)
-
-    return compressed;
+    local chatEncoded = LibDeflate:EncodeForPrint(compressed)
+    local addonChannelEncoded = LibDeflate:EncodeForWoWAddonChannel(compressed);
+    print("scene objects: " .. #scene.objects);
+    print("serialized: " .. string.len(serialized));
+    print("compressed: " .. string.len(compressed));
+    print("chat encoded: " .. string.len(chatEncoded));
+    print("addon channel encoded: " .. string.len(addonChannelEncoded));
+    return chatEncoded;
 end
 
-function SM.ImportScene()
+function SM.ImportScene(chatEncoded)
+    local decoded = LibDeflate:DecodeForPrint(chatEncoded);
+    if (not decoded) then print("Decode failed."); return end
+    local decompressed = LibDeflate:DecompressDeflate(decoded);
+    if (not decompressed) then print("Decompress failed."); return end
+    local success, sceneData = LibSerialize:Deserialize(decompressed);
+    if (not success) then print("Deserialize failed."); return end
 
+    local scene = SM.CreateScene(sceneData.name);
+
+    if (#sceneData.objects > 0) then
+        for i = 1, #sceneData.objects, 1 do
+            local object = SceneMachine.Object:New();
+            object:ImportPacked(sceneData.objects[i]);
+            scene.objects[i] = object;
+        end
+    end
+
+    if (#sceneData.timelines > 0) then
+        for i = 1, #sceneData.timelines, 1 do
+            local timelineData = sceneData.timelines[i];
+            local timeline = {};
+            timeline.tracks = {};
+            if (timelineData.tracks) then
+                if (#timelineData.tracks > 0) then
+                    for j = 1, #timelineData.tracks, 1 do
+                        local track = SceneMachine.Track:New();
+                        track:ImportData(timelineData.tracks[j]);
+                        timeline.tracks[j] = track;
+                    end
+                end
+            end
+            timeline.name = timelineData.name;
+            timeline.duration = timelineData.duration;
+            timeline.currentTime = timelineData.currentTime;
+            scene.timelines[i] = timeline;
+        end
+    end
+
+    -- scene properties
+    scene.properties = sceneData.properties;
+
+    -- the camera position and rotation
+    scene.lastCameraPosition = sceneData.lastCameraPosition;
+    scene.lastCameraEuler = sceneData.lastCameraEuler
+
+    PM.currentProject.scenes[#PM.currentProject.scenes + 1] = scene;
+    SM.LoadScene(#PM.currentProject.scenes);
 end
