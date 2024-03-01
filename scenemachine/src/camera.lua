@@ -14,7 +14,11 @@ local Math = SceneMachine.Math;
 local Ray = SceneMachine.Ray;
 
 Camera.position = Vector3:New();
+Camera.previousPosition = Vector3:New();
+Camera.motionVector = Vector3:New();
 Camera.eulerRotation = Vector3:New();
+Camera.previousEulerRotation = Vector3:New();
+Camera.eulerVector = Vector3:New();
 Camera.forward = Vector3:New();
 Camera.up = Vector3:New();
 Camera.right = Vector3:New();
@@ -60,6 +64,21 @@ function Camera.Update()
     Camera.planePosition:SetVector3(Camera.forward);
     Camera.planePosition:Scale(Camera.projectionPlaneOffset);
     Camera.planePosition:Add(Camera.position);
+
+    -- Calculate motion vectors --
+    Camera.motionVector.x = Camera.position.x - Camera.previousPosition.x;
+    Camera.motionVector.y = Camera.position.y - Camera.previousPosition.y;
+    Camera.motionVector.z = Camera.position.z - Camera.previousPosition.z;
+    Camera.previousPosition.x = Camera.position.x;
+    Camera.previousPosition.y = Camera.position.y;
+    Camera.previousPosition.z = Camera.position.z;
+
+    Camera.eulerVector.x = Camera.eulerRotation.x - Camera.previousEulerRotation.x;
+    Camera.eulerVector.y = Camera.eulerRotation.y - Camera.previousEulerRotation.y;
+    Camera.eulerVector.z = Camera.eulerRotation.z - Camera.previousEulerRotation.z;
+    Camera.previousEulerRotation.x = Camera.eulerRotation.x;
+    Camera.previousEulerRotation.y = Camera.eulerRotation.y;
+    Camera.previousEulerRotation.z = Camera.eulerRotation.z;
 
     -- remember current camera settings --
     if (SM.loadedSceneIndex ~= -1 and SM.loadedScene ~= nil) then

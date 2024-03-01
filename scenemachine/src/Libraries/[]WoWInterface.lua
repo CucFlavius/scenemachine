@@ -101,6 +101,7 @@ function unpack() end
 --------------------
 function strlen(value) end
 function strmatch(value, value2) end
+function strsplit(delimiter, subject, pieces) end
 
 --------------------
 --     player     --
@@ -129,8 +130,10 @@ ZWindowAPI = {};
 
 --- Returns the system uptime of your computer in seconds, with millisecond precision.
 ---@return number seconds Floating Point Number - The current system uptime in seconds.
-function GetTime() end;
+function GetTime() end
 
 --- Retrieve the current framerate (frames / second).
 ---@return number framerate The current framerate in frames per second.
-function GetFramerate() end;
+function GetFramerate() end
+
+function UnitName(name) end

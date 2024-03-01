@@ -37,6 +37,7 @@
     <Script file="engine.lua" />
     <Script file="math.lua" />
     <Script file="scenescript.lua" />
+    <Script file="network.lua" />
 
     <Script file="Gizmo\gizmos.lua" />
     <Script file="Gizmo\moveGizmo.lua" />

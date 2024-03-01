@@ -15,12 +15,16 @@ local Resources = SceneMachine.Resources;
 local ColorPicker = Editor.ColorPicker;
 local L = Editor.localization;
 
+Editor.MODE_LOCAL = 1;
+Editor.MODE_NETWORK = 2;
+
 Editor.width = 1280;
 Editor.height = 720;
 Editor.scale = 1.0;
 Editor.toolbarHeight = 15 + 30;
 Editor.isOpen = false;
 Editor.isInitialized = false;
+Editor.mode = Editor.MODE_LOCAL;
 
 local c1 = { 0.1757, 0.1757, 0.1875 };
 local c2 = { 0.242, 0.242, 0.25 };
@@ -566,5 +570,15 @@ function Editor.OpenMessageBox( window, title, message, hasYesButton, hasNoButto
         end);
     else
         Editor.messageBox.noButton:Hide();
+    end
+end
+
+function Editor.SetMode(mode)
+    Editor.mode = mode;
+
+    if (Editor.mode == Editor.MODE_LOCAL) then
+        
+    elseif (Editor.mode == Editor.MODE_NETWORK) then
+
     end
 end

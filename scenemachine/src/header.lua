@@ -11,6 +11,8 @@ SceneMachine.CameraController = {};
 SceneMachine.Renderer = {};
 SceneMachine.Gizmos = {};
 SceneMachine.Input = {};
+SceneMachine.Network = {};
+SceneMachine.Network.Packets = {};
 
 SceneMachine.Editor = {};
 SceneMachine.Editor.Toolbar = {};

@@ -15,20 +15,22 @@ SceneMachine.time = 0;
 --	 	  Start  	  --
 ------------------------
 function SceneMachine.Start()
+
+	SceneMachine.Libs = {};
+	SceneMachine.Libs.LibSerialize = LibStub("LibSerialize", true);
+	SceneMachine.Libs.LibDeflate = LibStub("LibDeflate", true);
+
 	SceneMachine.Resources.Initialize("Interface\\AddOns\\scenemachine\\res");
     SceneMachine.Editor.Initialize();
     CameraController.Initialize();
     SceneMachine.CreateStatsFrame();
 	Gizmos.Create();
+	SceneMachine.Network.Initialize();
 	if (Debug) then Debug.Init(); end
 end
 
 
 SceneMachine.prefix = "sceneMachine123";
-
-local function handleRecieveMessage(prefix, text, channel, sender, target, zoneChannelID, localID, name, instanceID)
-	print(text);
-end
 
 local f = CreateFrame("Frame");
 
@@ -41,7 +43,7 @@ local function onevent(self, event, ...)
 	elseif(event == "CHAT_MSG_ADDON") then
 		local prefix = ...;
 		if (prefix == SceneMachine.prefix) then
-			handleRecieveMessage(...);
+			SceneMachine.Network.MessageReceive(...);
 		end
 	end
 end
@@ -101,6 +103,7 @@ local function SG_UpdateLoop ()
 		Gizmos.Update();
 		Renderer.Update();
 		AM.Update(SceneMachine.deltaTime);
+		SceneMachine.Network.Update(SceneMachine.deltaTime);
 		if (Debug) then Debug.FlushLinePool(); end
 	end
 end

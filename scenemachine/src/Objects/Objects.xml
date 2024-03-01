@@ -39,4 +39,12 @@ Structures
 	<Script file="UI/PropertyFieldColor.lua" />
 	<Script file="UI/Toolbar.lua" />
 	<Script file="UI/Window.lua" />
+
+	<!-- Packet Objects -->
+	<Script file="Packet/Packet.lua" />
+	<Script file="Packet/InvitationRequest.lua" />
+	<Script file="Packet/InvitationAccepted.lua" />
+	<Script file="Packet/SceneData.lua" />
+	<Script file="Packet/ReadyToWork.lua" />
+	<Script file="Packet/PlayerState.lua" />
 </Ui>

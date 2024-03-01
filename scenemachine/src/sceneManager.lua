@@ -18,9 +18,6 @@ SM.loadedSceneIndex = 1;
 SM.loadedScene = nil;
 SM.selectedObject = nil;
 
-local LibSerialize = LibStub("LibSerialize", true)
-local LibDeflate = LibStub("LibDeflate", true)
-
 function SM.Create(x, y, w, h, parent, startLevel)
     SM.startLevel = startLevel;
     SM.groupBG = UI.Rectangle:New(6, -6, w, h, Editor.verticalSeparatorL:GetFrame(), "TOPLEFT", "TOPLEFT",  0, 0, 0, 0);
@@ -177,7 +174,7 @@ end
 
 function SM.Button_ExportScene(index)
     local scene = PM.currentProject.scenes[index];
-    local sceneString = SM.ExportScene(scene);
+    local sceneString = SM.ExportSceneForPrint(scene);
 
     Editor.ShowImportExportWindow(nil, sceneString);
 end
@@ -579,24 +576,41 @@ function SM.ExportScene(scene)
     sceneData.lastCameraPosition = scene.lastCameraPosition;
     sceneData.lastCameraEuler = scene.lastCameraEuler;
 
-    local serialized = LibSerialize:Serialize(sceneData);
-    local compressed = LibDeflate:CompressDeflate(serialized)
-    local chatEncoded = LibDeflate:EncodeForPrint(compressed)
-    local addonChannelEncoded = LibDeflate:EncodeForWoWAddonChannel(compressed);
-    print("scene objects: " .. #scene.objects);
-    print("serialized: " .. string.len(serialized));
-    print("compressed: " .. string.len(compressed));
-    print("chat encoded: " .. string.len(chatEncoded));
-    print("addon channel encoded: " .. string.len(addonChannelEncoded));
+    return sceneData;
+end
+
+function SM.ExportSceneForPrint(scene)
+    local sceneData = SM.ExportScene(scene);
+    local serialized = SceneMachine.Libs.LibSerialize:Serialize(sceneData);
+    local compressed = SceneMachine.Libs.LibDeflate:CompressDeflate(serialized);
+    local chatEncoded = SceneMachine.Libs.LibDeflate:EncodeForPrint(compressed);
+    --print("scene objects: " .. #scene.objects);
+    --print("serialized: " .. string.len(serialized));
+    --print("compressed: " .. string.len(compressed));
+    --print("chat encoded: " .. string.len(chatEncoded));
+    --print("addon channel encoded: " .. string.len(addonChannelEncoded));
     return chatEncoded;
 end
 
+function SM.ExportSceneForMessage(scene)
+    local sceneData = SM.ExportScene(scene);
+    local serialized = SceneMachine.Libs.LibSerialize:Serialize(sceneData);
+    local compressed = SceneMachine.Libs.LibDeflate:CompressDeflate(serialized);
+    local addonChannelEncoded = SceneMachine.Libs.LibDeflate:EncodeForWoWAddonChannel(compressed);
+    --print("scene objects: " .. #scene.objects);
+    --print("serialized: " .. string.len(serialized));
+    --print("compressed: " .. string.len(compressed));
+    --print("chat encoded: " .. string.len(chatEncoded));
+    --print("addon channel encoded: " .. string.len(addonChannelEncoded));
+    return addonChannelEncoded;
+end
+
 function SM.ImportScene(chatEncoded)
-    local decoded = LibDeflate:DecodeForPrint(chatEncoded);
+    local decoded = SceneMachine.Libs.LibDeflate:DecodeForPrint(chatEncoded);
     if (not decoded) then print("Decode failed."); return end
-    local decompressed = LibDeflate:DecompressDeflate(decoded);
+    local decompressed = SceneMachine.Libs.LibDeflate:DecompressDeflate(decoded);
     if (not decompressed) then print("Decompress failed."); return end
-    local success, sceneData = LibSerialize:Deserialize(decompressed);
+    local success, sceneData = SceneMachine.Libs.LibSerialize:Deserialize(decompressed);
     if (not success) then print("Deserialize failed."); return end
 
     local scene = SM.CreateScene(sceneData.name);
@@ -639,4 +653,168 @@ function SM.ImportScene(chatEncoded)
 
     PM.currentProject.scenes[#PM.currentProject.scenes + 1] = scene;
     SM.LoadScene(#PM.currentProject.scenes);
+end
+
+function SM.ImportNetworkScene(sceneData)
+    local scene = SM.CreateScene(sceneData.name);
+
+    if (#sceneData.objects > 0) then
+        for i = 1, #sceneData.objects, 1 do
+            local object = SceneMachine.Object:New();
+            object:ImportPacked(sceneData.objects[i]);
+            scene.objects[i] = object;
+        end
+    end
+
+    if (#sceneData.timelines > 0) then
+        for i = 1, #sceneData.timelines, 1 do
+            local timelineData = sceneData.timelines[i];
+            local timeline = {};
+            timeline.tracks = {};
+            if (timelineData.tracks) then
+                if (#timelineData.tracks > 0) then
+                    for j = 1, #timelineData.tracks, 1 do
+                        local track = SceneMachine.Track:New();
+                        track:ImportData(timelineData.tracks[j]);
+                        timeline.tracks[j] = track;
+                    end
+                end
+            end
+            timeline.name = timelineData.name;
+            timeline.duration = timelineData.duration;
+            timeline.currentTime = timelineData.currentTime;
+            scene.timelines[i] = timeline;
+        end
+    end
+
+    -- scene properties
+    scene.properties = sceneData.properties;
+
+    -- the camera position and rotation
+    scene.lastCameraPosition = sceneData.lastCameraPosition;
+    scene.lastCameraEuler = sceneData.lastCameraEuler
+
+    return scene;
+end
+
+function SM.LoadNetworkScene(scene)
+    --PM.currentProject.scenes[#PM.currentProject.scenes + 1] = scene;
+    --SM.LoadScene(#PM.currentProject.scenes);
+
+    SM.loadedSceneIndex = -1;
+
+    Editor.SetMode(Editor.MODE_NETWORK);
+    --if (#PM.currentProject.scenes == 0) then
+    --    -- current project has no scenes, create a default one
+    --    PM.currentProject.scenes[1] = SM.CreateDefaultScene();
+    --    SM.RefreshSceneTabs();
+    --end
+
+    -- unload current --
+    SM.UnloadScene();
+
+    -- load new --
+    --local scene = PM.currentProject.scenes[index];
+    SM.loadedScene = scene;
+
+    if (scene.objects == nil) then
+        scene.objects = {};
+    end
+
+    if (scene.timelines == nil) then
+        scene.timelines = {};
+    end
+
+    if (scene.properties == nil) then
+        local ar, ag, ab = Renderer.projectionFrame:GetLightAmbientColor();
+        local dr, dg, db = Renderer.projectionFrame:GetLightDiffuseColor();
+        scene.properties = {
+            ambientColor = { ar, ag, ab, 1 },
+            diffuseColor = { dr, dg, db, 1 },
+            backgroundColor = { 0.554, 0.554, 0.554, 1 }
+        };
+    end
+
+    -- create loaded scene (so that objects get loaded from data not referenced) --
+    --SM.loadedScene.objects = {};
+    --SM.loadedScene.name = scene.name;
+
+    if (#scene.objects > 0) then
+        for i in pairs(scene.objects) do
+            local object = SceneMachine.Object:New();
+            object:ImportData(scene.objects[i]);
+
+            -- Create actor
+            local id = 0;
+            if (object.type == SceneMachine.ObjectType.Model) then
+                id = object.fileID;
+            elseif(object.type == SceneMachine.ObjectType.Creature) then
+                id = object.displayID;
+            elseif(object.type == SceneMachine.ObjectType.Character) then
+                id = -1;
+            end
+            local actor = Renderer.AddActor(id, object.position.x, object.position.y, object.position.z, object.type);
+            object:SetActor(actor);
+
+            if (not object.visible) then
+                actor:SetAlpha(0);
+            end
+
+            -- assigning the new object so that we have access to the class functions (which get stripped when exporting to savedata)
+            SM.loadedScene.objects[i] = object;
+        end
+    end
+
+    if (#scene.timelines == 0) then
+        SM.loadedScene.timelines[1] = AM.CreateDefaultTimeline();
+    end
+
+    if (#scene.timelines > 0) then
+        for i in pairs(scene.timelines) do
+            local timeline = scene.timelines[i];
+            if (timeline.tracks) then
+                if (#timeline.tracks > 0) then
+                    for j in pairs(timeline.tracks) do
+                        local track = SceneMachine.Track:New();
+                        track:ImportData(timeline.tracks[j]);
+            
+                        -- assigning the new track so that we have access to the class functions (which get stripped when exporting to savedata)
+                        SM.loadedScene.timelines[i].tracks[j] = track;
+                    end
+                end
+            end
+        end
+    end
+
+    if (scene.properties) then
+        OP.SetAmbientColor(scene.properties.ambientColor[1], scene.properties.ambientColor[2], scene.properties.ambientColor[2], 1);
+        OP.SetDiffuseColor(scene.properties.diffuseColor[1], scene.properties.diffuseColor[2], scene.properties.diffuseColor[2], 1);
+        OP.SetBackgroundColor(scene.properties.backgroundColor[1], scene.properties.backgroundColor[2], scene.properties.backgroundColor[2], 1);
+    end
+
+    AM.RefreshTimelineTabs();
+
+    -- load the first timeline
+    AM.LoadTimeline(1);
+
+    -- remember this scene was opened last
+    --PM.currentProject.lastOpenScene = index;
+
+    -- set the camera position and rotation to the last
+    if (scene.lastCameraPosition ~= nil) then
+        CameraController.position:Set(scene.lastCameraPosition[1], scene.lastCameraPosition[2], scene.lastCameraPosition[3]);
+    end
+    if (scene.lastCameraEuler ~= nil) then
+        Camera.eulerRotation:Set(scene.lastCameraEuler[1], scene.lastCameraEuler[2], scene.lastCameraEuler[3]);
+    end
+    CameraController.Direction = deg(Camera.eulerRotation.x);
+
+    -- refresh the scene tabs
+    SM.RefreshSceneTabs();
+
+    -- refresh
+    SH.RefreshHierarchy();
+    OP.Refresh();
+
+    SM.selectedObject = nil;
 end

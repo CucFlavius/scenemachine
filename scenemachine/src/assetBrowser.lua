@@ -13,6 +13,7 @@ local OP = Editor.ObjectProperties;
 local Debug = {};
 local searchData = {};
 local L = Editor.localization;
+local Net = SceneMachine.Network;
 
 local c1 = { 0.1757, 0.1757, 0.1875 };
 local c2 = { 0.242, 0.242, 0.25 };
@@ -50,6 +51,7 @@ function AssetBrowser.Create(parent, w, h, startLevel)
     --AssetBrowser.OnThumbnailDoubleClick(nil, "Expansion07");
     --AssetBrowser.OnThumbnailDoubleClick(nil, "Doodads");
     --AssetBrowser.OnThumbnailDoubleClick(nil, "Kultiraszone");
+    AssetBrowser.OnChangeTab(3);
 end
 
 function AssetBrowser.OnChangeTab(idx)
@@ -74,6 +76,7 @@ function AssetBrowser.OnChangeTab(idx)
     elseif (idx == 3) then
         -- Debug --
         AssetBrowser.tabs[1]:Hide();
+        AssetBrowser.tabs[3]:Show();
         AssetBrowser.dataSource = nil;
     end
 
@@ -200,16 +203,20 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
     end);
 
     local testButton = UI.Button:New(0, -173, 100, 20, parent, "TOPLEFT", "TOPLEFT", "TEST");
-    local creatureDisplayID = 4;
     testButton:SetScript("OnClick", function(_, button, up)
-        --SM.ExportScene();
+        
     end);
 
     local testButtonB = UI.Button:New(0, -193, 100, 20, parent, "TOPLEFT", "TOPLEFT", "Connect");
     testButtonB:SetScript("OnClick", function(_, button, up)
-        local playerName = "Testpan";
-        ChatThrottleLib:SendAddonMessage("NORMAL",  SceneMachine.prefix, "test text", "WHISPER", playerName);
+        Net.InvitePlayer("Testpan");
     end);
+
+    local testButtonB = UI.Button:New(101, -193, 100, 20, parent, "TOPLEFT", "TOPLEFT", "Disconnect");
+    testButtonB:SetScript("OnClick", function(_, button, up)
+        Net.Disconnect();
+    end);
+
 
 --[[
     local testButtonb = UI.Button:New(0, -193, 100, 20, parent, "TOPLEFT", "TOPLEFT", "BIG TEST");
