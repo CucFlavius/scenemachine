@@ -283,11 +283,14 @@ function Editor.SetScale(percent)
     SceneMachine.mainWindow:SetScale(Editor.scale);
     scenemachine_settings.editor_scale = percent;
 
-    local maxW = GetScreenWidth() - 50;
-    local maxH = GetScreenHeight() - 50;
+    local screenW = GetScreenWidth();
+    local screenH = GetScreenHeight();
+    local aspect = screenW / screenH;
+    local maxW = screenW - 50;
+    local maxH = screenH - 50;
     local w = min(maxW, SceneMachine.mainWindow:GetWidth());
-    local h = min(maxH, SceneMachine.mainWindow:GetHeight());
-    SceneMachine.mainWindow:SetSize(w / n, h / n);
+    local h = min(maxH, SceneMachine.mainWindow:GetHeight() * aspect);
+    SceneMachine.mainWindow:SetSize(w / Editor.scale, h / Editor.scale);
 end
 
 function Editor.ResetWindow()
