@@ -45,6 +45,7 @@ function Object:New(name, fileID, position, rotation, scale)
         id = math.random(99999999);
         visible = true,
         frozen = false, -- could check here if path is skybox and freeze automagically
+        isRenamed = false,
         type = SceneMachine.ObjectType.Model,
     };
 
@@ -67,6 +68,7 @@ function Object:NewCreature(name, displayID, position, rotation, scale)
         id = math.random(99999999);
         visible = true,
         frozen = false,
+        isRenamed = false,
         type = SceneMachine.ObjectType.Creature,
     };
 
@@ -89,6 +91,7 @@ function Object:NewCharacter(name, position, rotation, scale)
         id = math.random(99999999);
         visible = true,
         frozen = false,
+        isRenamed = false,
         type = SceneMachine.ObjectType.Character,
     };
 
@@ -300,17 +303,18 @@ end
 
 function Object:Export()
     local data = {
-        fileID = self.fileID;
-        displayID = self.displayID;
-        type = self.type;
-        name = self.name;
-        position = self.position:Export();
-        rotation = self.rotation:Export();
-        scale = self.scale;
-        id = self.id;
-        visible = self.visible;
-        frozen = self.frozen;
-        alpha = self.alpha;
+        fileID = self.fileID,
+        displayID = self.displayID,
+        type = self.type,
+        name = self.name,
+        position = self.position:Export(),
+        rotation = self.rotation:Export(),
+        scale = self.scale,
+        id = self.id,
+        visible = self.visible,
+        frozen = self.frozen,
+        alpha = self.alpha,
+        isRenamed = self.isRenamed,
     };
 
     return data;
@@ -341,6 +345,7 @@ function Object:ImportPacked(data)
 
     if (data[4] ~= nil and data[4] ~= "") then
         self.name = data[4];
+        self.isRenamed = true;
     else
         -- fetch name from displayID
         if (self.type == SceneMachine.ObjectType.Creature and self.displayID ~= 0) then
@@ -356,6 +361,8 @@ function Object:ImportPacked(data)
         if (self.type == SceneMachine.ObjectType.Model and self.fileID ~= 0) then
             self.name = self:GetFileName(self.fileID);
         end
+
+        self.isRenamed = false;
     end
 
     if (data[5] ~= nil and data[6] ~= nil and data[7] ~= nil) then
@@ -479,6 +486,10 @@ function Object:ImportData(data)
         self.alpha = data.alpha;
     else
         self.alpha = 1.0;
+    end
+
+    if (data.isRenamed ~= nil) then
+        self.isRenamed = data.isRenamed;
     end
 
     self.id = data.id or math.random(99999999);
