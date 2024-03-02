@@ -98,7 +98,7 @@ local function SG_UpdateLoop ()
 		--print(GetFramerate())
 		Editor.Update();
 		Camera.Update();
-		CameraController.Update();
+		CameraController.Update(SceneMachine.deltaTime);
 		Input.Update();
 		Gizmos.Update();
 		Renderer.Update();

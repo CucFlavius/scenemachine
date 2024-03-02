@@ -51,7 +51,7 @@ function AssetBrowser.Create(parent, w, h, startLevel)
     --AssetBrowser.OnThumbnailDoubleClick(nil, "Expansion07");
     --AssetBrowser.OnThumbnailDoubleClick(nil, "Doodads");
     --AssetBrowser.OnThumbnailDoubleClick(nil, "Kultiraszone");
-    AssetBrowser.OnChangeTab(3);
+    --AssetBrowser.OnChangeTab(3);
 end
 
 function AssetBrowser.OnChangeTab(idx)
@@ -86,7 +86,7 @@ end
 
 function AssetBrowser.CreateDebugTab(parent, w, h)
     local creatureDisplayIDText = UI.Label:New(0, -5, 100, 20, parent, "TOPLEFT", "TOPLEFT", "CreatureDisplayID", 9);
-    local creatureDisplayIDEditBox = UI.TextBox:New(100, -5, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "41918");
+    local creatureDisplayIDEditBox = UI.TextBox:New(100, -5, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "41918");
     creatureDisplayIDEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
         local valText = self1:GetText();
@@ -102,7 +102,7 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
     end);
 
     local creatureIDText = UI.Label:New(0, -27, 100, 20, parent, "TOPLEFT", "TOPLEFT", "CreatureID", 9);
-    local creatureIDEditBox = UI.TextBox:New(100, -27, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    local creatureIDEditBox = UI.TextBox:New(100, -27, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     creatureIDEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
         local valText = self1:GetText();
@@ -121,7 +121,7 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
     end);
 
     local creatureAnimationText = UI.Label:New(0, -49, 100, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimID", 9);
-    local creatureAnimationEditBox = UI.TextBox:New(100, -49, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    local creatureAnimationEditBox = UI.TextBox:New(100, -49, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     creatureAnimationEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
         local valText = self1:GetText();
@@ -140,7 +140,7 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
     end);
 
     local creatureAnimationKitText = UI.Label:New(0, -71, 100, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimKitID", 9);
-    local creatureAnimationKitEditBox = UI.TextBox:New(100, -71, w * 0.7, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    local creatureAnimationKitEditBox = UI.TextBox:New(100, -71, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     creatureAnimationKitEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
         local valText = self1:GetText();

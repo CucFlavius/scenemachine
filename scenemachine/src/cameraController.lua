@@ -37,8 +37,8 @@ CC.Focus =
 CC.Direction = 180;					-- The start angle at which the player is looking in degrees ( in degrees )
 CC.Pitch = 0;
 CC.position = Vector3:New(0, 0, 1);	-- start position
-CC.keyboardTurnSpeed = 1;
-CC.moveSpeed = 0.1;
+CC.keyboardTurnSpeed = 10;
+CC.moveSpeed = 10;
 CC.acceleration = 1.0;
 CC.maxAcceleration = 12.0;
 CC.mouseTurnSpeed = 0.2;
@@ -59,9 +59,9 @@ local function clampAngle(angle)
     return angle
 end
 
-function CC.Update()
+function CC.Update(deltaTime)
 	if (CC.Action.ShiftSpeed == true) then
-		CC.acceleration = CC.acceleration + 0.03;
+		CC.acceleration = CC.acceleration + deltaTime;
 		CC.acceleration = math.min(CC.maxAcceleration, CC.acceleration);
 	else
 		CC.acceleration = 1.0;
@@ -69,13 +69,13 @@ function CC.Update()
 
     if CC.RMBPressed == false then
 	    if CC.Action.TurnLeft then
-            CC.Direction = CC.Direction + CC.keyboardTurnSpeed;
+            CC.Direction = CC.Direction + CC.keyboardTurnSpeed * deltaTime * 5;
             if CC.Direction > 360 then CC.Direction = CC.Direction - 360; end
             if CC.Direction < 0 then CC.Direction = CC.Direction + 360; end
         end
         
         if CC.Action.TurnRight then
-            CC.Direction = CC.Direction - CC.keyboardTurnSpeed;
+            CC.Direction = CC.Direction - CC.keyboardTurnSpeed * deltaTime * 5;
             if CC.Direction > 360 then CC.Direction = CC.Direction - 360; end
             if CC.Direction < 0 then CC.Direction = CC.Direction + 360; end	
         end
@@ -84,33 +84,32 @@ function CC.Update()
 	if CC.Action.MoveForward then
 		local v = Vector3:New();
 		v:SetVector3(Camera.forward);
-		v:Scale(CC.moveSpeed * CC.acceleration);
+		v:Scale(CC.moveSpeed * CC.acceleration * deltaTime);
 		CC.position:Add(v);
 	end
-
 	if CC.Action.MoveBackward then
 		local v = Vector3:New();
 		v:SetVector3(Camera.forward);
-		v:Scale(CC.moveSpeed * CC.acceleration);
+		v:Scale(CC.moveSpeed * CC.acceleration * deltaTime);
 		CC.position:Subtract(v);
 	end
 	if CC.Action.StrafeLeft then
 		local cosDir = math.cos(DegreeToRadian(CC.Direction + 90))
 		local sinDir = math.sin(DegreeToRadian(CC.Direction + 90));
-		CC.position.x = CC.position.x + (CC.moveSpeed * CC.acceleration * cosDir);
-		CC.position.y = CC.position.y + (CC.moveSpeed * CC.acceleration * sinDir);
+		CC.position.x = CC.position.x + (CC.moveSpeed * deltaTime * CC.acceleration * cosDir);
+		CC.position.y = CC.position.y + (CC.moveSpeed * deltaTime * CC.acceleration * sinDir);
 	end
 	if CC.Action.StrafeRight then
 		local cosDir = math.cos(DegreeToRadian(CC.Direction - 90))
 		local sinDir = math.sin(DegreeToRadian(CC.Direction - 90));
-		CC.position.x = CC.position.x + (CC.moveSpeed * CC.acceleration * cosDir);
-		CC.position.y = CC.position.y + (CC.moveSpeed * CC.acceleration * sinDir);
+		CC.position.x = CC.position.x + (CC.moveSpeed * deltaTime * CC.acceleration * cosDir);
+		CC.position.y = CC.position.y + (CC.moveSpeed * deltaTime * CC.acceleration * sinDir);
 	end
 	if CC.Action.MoveUp then
-		CC.position.z = CC.position.z + (CC.moveSpeed * CC.acceleration);
+		CC.position.z = CC.position.z + (CC.moveSpeed * deltaTime * CC.acceleration);
 	end
 	if CC.Action.MoveDown then
-		CC.position.z = CC.position.z - (CC.moveSpeed * CC.acceleration);
+		CC.position.z = CC.position.z - (CC.moveSpeed * deltaTime * CC.acceleration);
 	end
 
 	SceneMachine.Camera.position:SetVector3(CC.position);
