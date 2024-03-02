@@ -14,6 +14,8 @@ local L = Editor.localization;
 local tabButtonHeight = 20;
 local tabPool = {};
 
+SM.SCENE_DATA_VERSION = 1;
+
 SM.loadedSceneIndex = 1;
 SM.loadedScene = nil;
 SM.selectedObject = nil;
@@ -180,7 +182,7 @@ function SM.Button_ExportScene(index)
 end
 
 function SM.Button_ImportScene()
-    Editor.ShowImportExportWindow(SM.ImportScene, "");
+    Editor.ShowImportExportWindow(SM.ImportSceneFromPrint, "");
 end
 
 function SM.CreateScene(sceneName)
@@ -540,7 +542,8 @@ function SM.ExportScene(scene)
     sceneData.objects = {};
     sceneData.timelines = {};
     sceneData.properties = {};
-
+    
+    sceneData.version = SM.SCENE_DATA_VERSION;
     sceneData.name = scene.name;
 
     -- transfer objects --
@@ -565,7 +568,6 @@ function SM.ExportScene(scene)
             end
 
             sceneData.timelines[i] = timelineData;
-            --sceneData.timelines[i] = scene.timelines[i]:Export(scene.timelines[i]);
         end
     end
 
@@ -584,11 +586,10 @@ function SM.ExportSceneForPrint(scene)
     local serialized = SceneMachine.Libs.LibSerialize:Serialize(sceneData);
     local compressed = SceneMachine.Libs.LibDeflate:CompressDeflate(serialized);
     local chatEncoded = SceneMachine.Libs.LibDeflate:EncodeForPrint(compressed);
-    --print("scene objects: " .. #scene.objects);
-    --print("serialized: " .. string.len(serialized));
-    --print("compressed: " .. string.len(compressed));
-    --print("chat encoded: " .. string.len(chatEncoded));
-    --print("addon channel encoded: " .. string.len(addonChannelEncoded));
+    print("scene objects: " .. #scene.objects);
+    print("serialized: " .. string.len(serialized));
+    print("compressed: " .. string.len(compressed));
+    print("chat encoded: " .. string.len(chatEncoded));
     return chatEncoded;
 end
 
@@ -600,12 +601,11 @@ function SM.ExportSceneForMessage(scene)
     --print("scene objects: " .. #scene.objects);
     --print("serialized: " .. string.len(serialized));
     --print("compressed: " .. string.len(compressed));
-    --print("chat encoded: " .. string.len(chatEncoded));
     --print("addon channel encoded: " .. string.len(addonChannelEncoded));
     return addonChannelEncoded;
 end
 
-function SM.ImportScene(chatEncoded)
+function SM.ImportSceneFromPrint(chatEncoded)
     local decoded = SceneMachine.Libs.LibDeflate:DecodeForPrint(chatEncoded);
     if (not decoded) then print("Decode failed."); return end
     local decompressed = SceneMachine.Libs.LibDeflate:DecompressDeflate(decoded);
@@ -613,6 +613,18 @@ function SM.ImportScene(chatEncoded)
     local success, sceneData = SceneMachine.Libs.LibSerialize:Deserialize(decompressed);
     if (not success) then print("Deserialize failed."); return end
 
+    if(sceneData.version > SM.SCENE_DATA_VERSION) then
+        -- handle newer version
+        print("Newer scene version detected, and is unsupported. Please update SceneMachine");
+    else
+        -- handle known versions
+        if (sceneData.version == 1) then
+            SM.ImportVersion1Scene(sceneData);
+        end
+    end
+end
+
+function SM.ImportVersion1Scene(sceneData)
     local scene = SM.CreateScene(sceneData.name);
 
     if (#sceneData.objects > 0) then

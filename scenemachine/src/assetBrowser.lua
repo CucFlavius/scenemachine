@@ -10,7 +10,6 @@ local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
 local SH = Editor.SceneHierarchy;
 local OP = Editor.ObjectProperties;
-local Debug = {};
 local searchData = {};
 local L = Editor.localization;
 local Net = SceneMachine.Network;
@@ -204,9 +203,9 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
 
     local testButton = UI.Button:New(0, -173, 100, 20, parent, "TOPLEFT", "TOPLEFT", "TEST");
     testButton:SetScript("OnClick", function(_, button, up)
-        
+        SM.ExportSceneForPrint(SM.loadedScene);
     end);
-
+--[[
     local testButtonB = UI.Button:New(0, -193, 100, 20, parent, "TOPLEFT", "TOPLEFT", "Connect");
     testButtonB:SetScript("OnClick", function(_, button, up)
         Net.InvitePlayer("Testpan");
@@ -216,7 +215,7 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
     testButtonB:SetScript("OnClick", function(_, button, up)
         Net.Disconnect();
     end);
-
+--]]
 
 --[[
     local testButtonb = UI.Button:New(0, -193, 100, 20, parent, "TOPLEFT", "TOPLEFT", "BIG TEST");
@@ -254,6 +253,7 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
     --]]
 end
 
+local Debug = {};
 function Debug.TablePrint(tbl)
 	local indent = 4;
 	local toprint = string.rep(" ", indent) .. "{\r\n"
@@ -461,7 +461,7 @@ function AssetBrowser.BuildSearchDataRecursive(value, dir)
 
     -- File Scan
     if (dir["FN"] ~= nil) then
-        local fileCount = table.getn(dir["FN"]);
+        local fileCount = #dir["FN"];
         for i = 1, fileCount, 1 do
             local fileName = dir["FN"][i];
             if (string.find(fileName:lower(), value)) then
@@ -473,7 +473,7 @@ function AssetBrowser.BuildSearchDataRecursive(value, dir)
 
     -- Directory scan
     if (dir["D"] ~= nil) then
-        local directoryCount = table.getn(dir["D"]);
+        local directoryCount = #dir["D"];
         for i = 1, directoryCount, 1 do
             AssetBrowser.BuildSearchDataRecursive(value, dir["D"][i]);
         end

@@ -22,6 +22,7 @@ SceneMachine.Object =
     id = 0,
     visible = true,
     frozen = false,
+    isRenamed = false,  -- toggle this bool on when a user renames the object (NYI)
 }
 
 local Object = SceneMachine.Object;
@@ -107,13 +108,17 @@ function Object:SetActor(actor)
     self.actor = actor;
 
     -- also set all properties
-    local s = self.scale;
+    local s = 1.0;
+    if (type(self.scale) == "number") then
+        s = self.scale;
+    end
+
     self.actor:SetPosition(self.position.x / s, self.position.y / s, self.position.z / s);
     self.actor:SetRoll(self.rotation.x);
     self.actor:SetPitch(self.rotation.y);
     self.actor:SetYaw(self.rotation.z);
-    self.actor:SetScale(self.scale);
     self.actor:SetAlpha(self.alpha);
+    self.actor:SetScale(s);
 end
 
 function Object:GetActor()
@@ -254,21 +259,43 @@ function Object:PlayAnimKitID(id)
     self.actor:PlayAnimationKit(id)
 end
 
-function Object:ExportPacked()
-    local data = {
-        fileID = self.fileID;
-        displayID = self.displayID;
-        type = self.type;
-        name = self.name;
-        position = { self.position.x,  self.position.y, self.position.z };
-        rotation = { self.rotation.x,  self.rotation.y, self.rotation.z };
-        scale = self.scale;
-        id = self.id;
-        visible = self.visible;
-        frozen = self.frozen;
-    };
+function Object:PackRotation(rotation)
+    -- packing to 0, 360 range
+    local rotX = math.floor(math.deg(rotation.x) + 180);
+    local rotY = math.floor(math.deg(rotation.y) + 180);
+    local rotZ = math.floor(math.deg(rotation.z) + 180);
+    return rotX, rotY, rotZ;
+end
 
-    return data;
+function Object:UnpackRotation(X, Y, Z)
+    local rotX = math.rad(X - 180);
+    local rotY = math.rad(Y - 180);
+    local rotZ = math.rad(Z - 180);
+    return rotX, rotY, rotZ;
+end
+
+function Object:ExportPacked()
+    local name = nil;
+    if (self.isRenamed) then
+        name = self.name;
+    end
+
+    --local pRotX, pRotY, pRotZ = self:PackRotation(self.rotation);
+
+    return {
+        self.fileID,
+        self.displayID,
+        self.type,
+        name,
+        self.position.x, self.position.y, self.position.z,
+        self.rotation.x, self.rotation.y, self.rotation.z,
+        --pRotX, pRotY, pRotZ,
+        self.scale,
+        self.id,
+        self.visible,
+        self.frozen,
+        self.alpha,
+    }
 end
 
 function Object:Export()
@@ -283,6 +310,7 @@ function Object:Export()
         id = self.id;
         visible = self.visible;
         frozen = self.frozen;
+        alpha = self.alpha;
     };
 
     return data;
@@ -295,57 +323,105 @@ function Object:ImportPacked(data)
     end
 
     -- verifying all elements upon import because sometimes the saved variables get corrupted --
-    if (data.fileID ~= nil) then
-        self.fileID = data.fileID;
+    if (data[1] ~= nil) then
+        self.fileID = data[1];
     end
 
-    if (data.displayID ~= nil) then
-        self.displayID = data.displayID;
+    if (data[2] ~= nil) then
+        self.displayID = data[2];
     else
         self.displayID = 0;
     end
 
-    if (data.type ~= nil) then
-        self.type = data.type;
+    if (data[3] ~= nil) then
+        self.type = data[3];
     else
         self.type = SceneMachine.ObjectType.Model;
     end
 
-    if (data.name ~= nil and data.name ~= "") then
-        self.name = data.name;
+    if (data[4] ~= nil and data[4] ~= "") then
+        self.name = data[4];
+    else
+        -- fetch name from displayID
+        if (self.type == SceneMachine.ObjectType.Creature and self.displayID ~= 0) then
+            local found = false;
+            for creatureID, displayID in pairs(SceneMachine.creatureToDisplayID) do
+                if (displayID == self.displayID) then
+                    self.name = SceneMachine.creatureData[creatureID];
+                end
+            end
+        end
+
+        -- fetch name from fileID
+        if (self.type == SceneMachine.ObjectType.Model and self.fileID ~= 0) then
+            self.name = self:GetFileName(self.fileID);
+        end
     end
 
-    if (data.position ~= nil) then
-        self.position = Vector3:New(data.position[1], data.position[2], data.position[3]);
+    if (data[5] ~= nil and data[6] ~= nil and data[7] ~= nil) then
+        self.position = Vector3:New(data[5], data[6], data[7]);
     end
 
-    if (data.rotation ~= nil) then
-        self.rotation = Vector3:New(data.rotation[1], data.rotation[2], data.rotation[3]);
+    if (data[8] ~= nil and data[9] ~= nil and data[10] ~= nil) then
+        --self.rotation = Vector3:New(self:UnpackRotation(data[8], data[9], data[10]));
+        self.rotation = Vector3:New(data[8], data[9], data[10]);
     end
 
-    if (data.scale ~= nil and data.scale ~= 0) then
-        self.scale = data.scale;
+    if (data[11] ~= nil and data[11] ~= 0) then
+        self.scale = data[11];
     end
     
-    if (data.visible ~= nil) then
-        self.visible = data.visible;
+    self.id = data[12] or math.random(99999999);
+
+    if (data[13] ~= nil) then
+        self.visible = data[13];
     else
         self.visible = true;
     end
     
-    if (data.frozen ~= nil) then
-        self.frozen = data.frozen;
+    if (data[14] ~= nil) then
+        self.frozen = data[14];
     else
         self.frozen = false;
     end
 
-    if(data.alpha ~= nil) then
-        self.alpha = data.alpha;
+    if(data[15] ~= nil) then
+        self.alpha = data[15];
     else
         self.alpha = 1.0;
     end
 
-    self.id = data.id or math.random(99999999);
+end
+
+function Object:GetFileName(fileID)
+    return self:GetFileNameRecursive(fileID, SceneMachine.modelData[1]);
+end
+
+function Object:GetFileNameRecursive(value, dir)
+    -- File Scan
+    if (not dir) then return nil; end
+
+    if (dir["FN"] ~= nil) then
+        local fileCount = #dir["FN"];
+        for i = 1, fileCount, 1 do
+            local fileID = dir["FI"][i];
+            if (fileID == value) then
+                local fileName = dir["FN"][i];
+                return fileName;
+            end
+        end
+    end
+
+    -- Directory scan
+    if (dir["D"] ~= nil) then
+        local directoryCount = #dir["D"];
+        for i = 1, directoryCount, 1 do
+            local n = self:GetFileNameRecursive(value, dir["D"][i]);
+            if (n) then return n; end
+        end
+    end
+
+    return nil;
 end
 
 function Object:ImportData(data)
