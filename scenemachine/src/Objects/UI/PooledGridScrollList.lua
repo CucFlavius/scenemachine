@@ -44,6 +44,18 @@ function PooledGridScrollList:NewP(parent, xA, yA, pointA, parentPointA, xB, yB,
 	return v;
 end
 
+function PooledGridScrollList:SetFrameLevel(level)
+    self.frame:SetFrameLevel(level);
+    self.viewport:SetFrameLevel(level + 1);
+
+    for i = 1, #self.itemPool, 1 do
+        self.itemPool[i]:SetFrameLevel(level + 2 + i);
+        for c = 1, #self.itemPool[i].components, 1 do
+            self.itemPool[i].components[c]:SetFrameLevel(level + 2 + i + c);
+        end
+    end
+end
+
 function PooledGridScrollList:Build()
     if (self.xA) then
         self.frame = UI.Rectangle:New(self.xA, self.yA, 100, 100, self.parent, self.pointA, self.parentPointA, 1, 1, 1, 0);
@@ -150,7 +162,7 @@ end
 
 function PooledGridScrollList:SetData(data)
     self.data = data;
-    self.scrollbar:Resize(self.viewportHeight, #self.data * self.template.height);
+    self.scrollbar:Resize(self.viewportHeight, #self.data * self.template.height / self.visibleColumns);
     self:MakePool(self.viewportWidth, self.viewportHeight);
     self.scrollbar:SetValueWithoutAction(0);
     self:Refresh(0);

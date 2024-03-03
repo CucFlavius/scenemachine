@@ -128,6 +128,8 @@ L["AM_TOOLBAR_TT_PLAY_PAUSE"] = "Play / Pause";
 L["AM_TOOLBAR_TT_SKIP_FRAME_FORWARD"] = "Jump to next frame";
 L["AM_TOOLBAR_TT_SEEK_TO_END"] = "Seek to End";
 L["AM_TOOLBAR_TT_LOOP"] = "Loop Playback on/off";
+L["AM_TT_LIST"] = "Select Timeline";
+L["AM_TT_ADDTIMELINE"] = "Add Timeline";
 
 -- AssetBrowser --
 L["AB_RESULTS"] = "%d Results";             -- <number> results (search results)
@@ -152,6 +154,8 @@ L["SM_SCENE"] = "Scene %d";                 -- scene number
 L["SM_MSG_DELETE_SCENE_TITLE"] = "Delete Scene";
 L["SM_MSG_DELETE_SCENE_MESSAGE"] = "Are you sure you wish to continue?";
 L["SM_SCENE_NAME"] = "Scene Name";
+L["SM_TT_LIST"] = "Select scene";
+L["SM_TT_ADDSCENE"] = "Add Scene";
 
 -- Object Properties --
 L["OP_TITLE"] = "Properties";

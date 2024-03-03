@@ -55,7 +55,7 @@ function Renderer.CreateRenderer(x, y, w, h, parent, startLevel)
 	Renderer.backgroundFrame:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
 	Renderer.backgroundFrame:SetWidth(Renderer.w);
 	Renderer.backgroundFrame:SetHeight(Renderer.h);
-	Renderer.backgroundFrame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, -20);
+	Renderer.backgroundFrame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, -21);
     Renderer.backgroundFrame:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 0, 0);
     --Renderer.backgroundFrame:SetAllPoints(parent);
 

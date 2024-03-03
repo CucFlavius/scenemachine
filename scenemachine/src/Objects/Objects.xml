@@ -18,6 +18,7 @@ Structures
 	<Script file="UI/UI.lua" />
 	<Script file="UI/Element.lua" />
 	<Script file="UI/Scrollbar.lua" />
+	<Script file="UI/ScrollbarHorizontal.lua" />
 	<Script file="UI/Rectangle.lua" />
 	<Script file="UI/Label.lua" />
 	<Script file="UI/TextBox.lua" />
@@ -28,7 +29,6 @@ Structures
 	<Script file="UI/CollapsableBox.lua" />
 	<Script file="UI/CollapsableList.lua" />
 	<Script file="UI/Dropdown.lua" />
-	<Script file="UI/TabPanel.lua" />
 	<Script file="UI/ScrollFrame.lua" />
 	<Script file="UI/ItemList.lua" />
 	<Script file="UI/PooledScrollList.lua" />
@@ -37,6 +37,7 @@ Structures
 	<Script file="UI/PropertyFieldFloat.lua" />
 	<Script file="UI/PropertyFieldVector3.lua" />
 	<Script file="UI/PropertyFieldColor.lua" />
+	<Script file="UI/TabGroup.lua" />
 	<Script file="UI/Toolbar.lua" />
 	<Script file="UI/Window.lua" />
 

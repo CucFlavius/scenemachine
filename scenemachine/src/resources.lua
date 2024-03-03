@@ -41,6 +41,7 @@ function Resources.Initialize(resourcePath)
     Resources.textures["KeyboardShortcuts"] = Resources.texturesPath .. "\\keyboardShortcuts.png";
     Resources.textures["ArrowDown"] = Resources.texturesPath .. "\\ArrowDown.png";
     Resources.textures["ResetIcon"] = Resources.texturesPath .. "\\resetIcon.png";
+    Resources.textures["Add"] = Resources.texturesPath .. "\\add.png";
 
     -- Icons --
     Resources.iconData = {};

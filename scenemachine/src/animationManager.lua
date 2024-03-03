@@ -706,15 +706,46 @@ function AM.CreateAnimationManager(x, y, w, h, parent, startLevel)
 
     AM.parentFrame = parent;
     AM.groupBGy = y;
-    AM.addTimelineButtonTab = AM.CreateNewTimelineTab(0, 0, timelineTabH, tabButtonHeight, AM.groupBG:GetFrame(), startLevel + 1);
-    AM.addTimelineButtonTab.text:SetText("+");
-    AM.addTimelineButtonTab.ntex:SetColorTexture(0, 0, 0 ,0);
-    AM.addTimelineButtonTab.text:SetAllPoints(AM.addTimelineButtonTab);
-    AM.addTimelineButtonTab:Hide();
-    --TextBox:New(x, y, w, h, parent, point, parentPoint, text, textHeight, textFont)
-    AM.addTimelineEditBox = UI.TextBox:New(0, 0, 100, tabButtonHeight, AM.groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", L["AM_TIMELINE_NAME"]);
-    AM.addTimelineEditBox:Hide();
-    AM.addTimelineEditBox:SetFrameLevel(startLevel + 2);
+
+    AM.tabGroup = UI.TabGroup:New(0, 0, 100, tabButtonHeight, AM.groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", startLevel + 2, true);
+    AM.tabGroup:SetPoint("TOPRIGHT", AM.groupBG:GetFrame(), "TOPRIGHT", 0, 0);
+    AM.tabGroup.dropdownButton.tooltip = L["AM_TT_LIST"];
+    AM.tabGroup.addButton.tooltip = L["AM_TT_ADDTIMELINE"];
+
+	AM.tabGroup:SetItemTemplate(
+    {
+        height = tabButtonHeight,
+        lmbAction = function(index)
+            AM.LoadTimeline(index);
+            AM.RefreshTimelineTabs();
+        end,
+        rmbAction = function(index, item)
+            -- open rmb menu with option to delete, edit, rename the scene
+            local point, relativeTo, relativePoint, xOfs, yOfs = item:GetPoint(1);
+            local rx = xOfs + (AM.parentFrame:GetLeft() - SceneMachine.mainWindow:GetLeft());
+            local ry = (AM.parentFrame:GetTop() - SceneMachine.mainWindow:GetTop());
+
+            local menuOptions = {
+                [1] = { ["Name"] = L["RENAME"], ["Action"] = function() AM.tabGroup:RenameTab(index, item, AM.RenameTimeline); end },
+                [2] = { ["Name"] = L["EDIT"], ["Action"] = function()  AM.Button_EditTimeline(index) end },
+                [3] = { ["Name"] = L["DELETE"], ["Action"] = function() AM.Button_DeleteTimeline(index); end },
+            };
+
+            SceneMachine.mainWindow:PopupWindowMenu(rx, ry, menuOptions);
+        end,
+        addAction = function(text) AM.AddTimeline(text) end,
+        refreshItem = function(data, item, index)
+            -- timeline name text --
+            item.components[2]:SetWidth(1000);
+            item.components[2]:SetText(data.name);
+            local strW = item.components[2].frame.text:GetStringWidth() + 20;
+            item:SetWidth(strW);
+            item.components[1]:SetWidth(strW);
+            item.components[2]:SetWidth(strW);
+            return strW;
+        end,
+        defaultTabName = "Timeline",
+    });
 
     local bottomPad = 4;
     local toolbarH = 25;
@@ -1581,72 +1612,17 @@ function AM.CreateDefaultTimeline()
     return AM.CreateTimeline();
 end
 
-function AM.TimelineTabButton_OnClick(index)
-    AM.LoadTimeline(index);
+function AM.AddTimeline(text)
+    SM.loadedScene.timelines[#SM.loadedScene.timelines + 1] = AM.CreateTimeline(text);
+    AM.RefreshTimelineTabs();
 end
 
-function AM.TimelineTabButton_OnRightClick(index, x, y)
-    --local gpoint, grelativeTo, grelativePoint, gxOfs, gyOfs = AM.parentFrame:GetPoint(1);
-    --gyOfs = gyOfs - (SceneMachine.mainWindow:GetHeight() - AM.parentFrame:GetHeight());
-
-    local rx = x + (AM.parentFrame:GetLeft() - SceneMachine.mainWindow:GetLeft());
-    local ry = (y * Renderer.scale) + (AM.parentFrame:GetTop() - SceneMachine.mainWindow:GetTop());
-
-	local menuOptions = {
-        [1] = { ["Name"] = L["RENAME"], ["Action"] = function() AM.Button_RenameTimeline(index, x) end },
-        [2] = { ["Name"] = L["EDIT"], ["Action"] = function()  AM.Button_EditTimeline(index) end },
-        [3] = { ["Name"] = L["DELETE"], ["Action"] = function() AM.Button_DeleteTimeline(index) end },
-	};
-
-    --SceneMachine.mainWindow:PopupWindowMenu(x + gxOfs, y + gyOfs, menuOptions);
-    SceneMachine.mainWindow:PopupWindowMenu(rx, ry, menuOptions);
-end
-
-function AM.Button_RenameTimeline(index, x)
-    AM.addTimelineEditBox:Show();
-    AM.addTimelineEditBox:SetText(string.format(L["AM_TIMELINE"], #SM.loadedScene.timelines));
-    AM.addTimelineButtonTab:Hide();
-    AM.addTimelineEditBox:SetPoint("TOPLEFT", AM.groupBG:GetFrame(), "TOPLEFT", x, 0);
-    AM.addTimelineEditBox:SetFocus();
-
-    local previousName = "";
-    if (index ~= -1) then
-        -- copy current text to edit box
-        previousName = tabPool[index].text:GetText();
-        AM.addTimelineEditBox:SetText(previousName);
-        AM.addTimelineEditBox:SetPoint("TOPLEFT", AM.groupBG:GetFrame(), "TOPLEFT", x + 10, 0);
-        -- clearing current visible name
-        tabPool[index].text:SetText("");
+function AM.RenameTimeline(text, index)
+    if (text ~= nil and text ~= "") then
+        -- rename existing scene
+        SM.loadedScene.timelines[index].name = text;
+        AM.RefreshTimelineTabs();
     end
-
-    AM.addTimelineEditBox:SetScript('OnEscapePressed', function(self1) 
-        self1:ClearFocus();
-        Editor.ui.focused = false;
-        self1:Hide();
-        AM.addTimelineButtonTab:Show();
-        if (index ~= -1) then
-            -- restore previous visible name
-            tabPool[index].text:SetText(previousName);
-        end
-    end);
-    AM.addTimelineEditBox:SetScript('OnEnterPressed', function(self1)
-        self1:ClearFocus();
-        Editor.ui.focused = false;
-        local text = self1:GetText();
-        if (text ~= nil and text ~= "") then
-            if (index == -1) then
-                -- create a new timeline
-                SM.loadedScene.timelines[#SM.loadedScene.timelines + 1] = AM.CreateTimeline(text);
-            else
-                -- rename existing timeline
-                --PM.currentProject.scenes[index].name = text;
-                SM.loadedScene.timelines[index].name = text;
-            end
-            AM.RefreshTimelineTabs();
-        end
-        self1:Hide();
-        AM.addTimelineButtonTab:Show();
-    end);
 end
 
 function AM.Button_EditTimeline()
@@ -1752,6 +1728,7 @@ end
 
 function AM.LoadTimeline(index)
     AM.loadedTimelineIndex = index;
+    AM.tabGroup.selectedIndex = index;
 
     if (#SM.loadedScene.timelines == 0) then
         -- current project has no timelines, create a default one
@@ -1841,54 +1818,9 @@ function AM.CreateNewTimelineTab(x, y, w, h, parent, startLevel)
 end
 
 function AM.RefreshTimelineTabs()
-    -- clear --
-    for idx in pairs(tabPool) do
-        tabPool[idx]:Hide();
-    end
-
-    -- add available timelines --
-    local x = 0;
     if (SM.loadedScene ~= nil) then
-        for i in pairs(SM.loadedScene.timelines) do
-            local timeline = SM.loadedScene.timelines[i];
-            if (tabPool[i] == nil) then
-                tabPool[i] = AM.CreateNewTimelineTab(x, 0, 50, tabButtonHeight, AM.groupBG:GetFrame(), 10);
-                tabPool[i].text:SetText(timeline.name);
-                tabPool[i]:SetWidth(tabPool[i].text:GetStringWidth() + 20);
-                tabPool[i]:RegisterForClicks("LeftButtonUp", "RightButtonUp");
-                tabPool[i]:SetScript("OnClick", function(self, button, down)
-                    if (button == "LeftButton") then
-                        AM.TimelineTabButton_OnClick(i);
-                    elseif (button == "RightButton") then
-                        local point, relativeTo, relativePoint, xOfs, yOfs = tabPool[i]:GetPoint(1);
-                        AM.TimelineTabButton_OnClick(i);
-                        AM.TimelineTabButton_OnRightClick(i, xOfs, -20);
-                    end
-                end);
-            else
-                tabPool[i].text:SetText(timeline.name);
-                tabPool[i]:SetWidth(tabPool[i].text:GetStringWidth() + 20);
-            end
-
-            tabPool[i]:Show();
-
-            if (AM.loadedTimelineIndex == i) then
-                tabPool[i].ntex:SetColorTexture(0.1757, 0.1757, 0.1875 ,1);
-            else
-                tabPool[i].ntex:SetColorTexture(0, 0, 0 ,0);
-            end
-
-            x = x + tabPool[i]:GetWidth() + 1;
-        end
+        AM.tabGroup:SetData(SM.loadedScene.timelines);
     end
-
-    -- add new scene button --
-    AM.addTimelineButtonTab:Show();
-    AM.addTimelineEditBox:Hide();
-    AM.addTimelineButtonTab:SetPoint("TOPLEFT", AM.groupBG:GetFrame(), "TOPLEFT", x, 0);
-    AM.addTimelineButtonTab:SetScript("OnClick", function(self) 
-        AM.Button_RenameTimeline(-1, x);
-    end);
 end
 
 function AM.RefreshTimebar()

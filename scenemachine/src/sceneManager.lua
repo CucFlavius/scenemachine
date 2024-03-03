@@ -28,146 +28,71 @@ function SM.Create(x, y, w, h, parent, startLevel)
     SM.groupBG:SetClipsChildren(true);
     SceneMachine.Renderer.CreateRenderer(0, 0, w, h - tabButtonHeight, SM.groupBG:GetFrame(), startLevel + 1);
 
-    SM.addSceneButtonTab = SM.CreateNewSceneTab(0, 0, 20, tabButtonHeight, SM.groupBG:GetFrame(), startLevel + 1);
-    SM.addSceneButtonTab.text:SetText("+");
-    SM.addSceneButtonTab.ntex:SetColorTexture(0, 0, 0 ,0);
-    SM.addSceneButtonTab.text:SetAllPoints(SM.addSceneButtonTab);
-    SM.addSceneButtonTab:Hide();
+    SM.tabGroup = UI.TabGroup:New(0, 0, 100, tabButtonHeight, SM.groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", startLevel + 2, true);
+    SM.tabGroup:SetPoint("TOPRIGHT", SM.groupBG:GetFrame(), "TOPRIGHT", 0, 0);
+    SM.tabGroup.dropdownButton.tooltip = L["SM_TT_LIST"];
+    SM.tabGroup.addButton.tooltip = L["SM_TT_ADDSCENE"];
 
-    SM.addSceneEditBox = UI.TextBox:New(0, 0, 100, tabButtonHeight, SM.groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", L["SM_SCENE_NAME"]);
-    SM.addSceneEditBox:Hide();
+	SM.tabGroup:SetItemTemplate(
+    {
+        height = tabButtonHeight,
+        lmbAction = function(index)
+            SM.LoadScene(index);
+            SM.RefreshSceneTabs();
+        end,
+        rmbAction = function(index, item)
+            -- open rmb menu with option to delete, edit, rename the scene
+            local point, relativeTo, relativePoint, xOfs, yOfs = item:GetPoint(1);
+            local rx = xOfs + (SM.tabGroup:GetLeft() - SceneMachine.mainWindow:GetLeft());
+            local ry = (SM.tabGroup:GetTop() - SceneMachine.mainWindow:GetTop()) - item:GetHeight();
+
+            local menuOptions = {
+                [1] = { ["Name"] = L["RENAME"], ["Action"] = function() SM.tabGroup:RenameTab(index, item, SM.RenameScene); end },
+                [2] = { ["Name"] = L["EXPORT"], ["Action"] = function() SM.Button_ExportScene(index); end },
+                [3] = { ["Name"] = L["IMPORT"], ["Action"] = function() SM.Button_ImportScene(); end },
+                [4] = { ["Name"] = L["DELETE"], ["Action"] = function() SM.Button_DeleteScene(index); end },
+            };
+
+            SceneMachine.mainWindow:PopupWindowMenu(rx, ry, menuOptions);
+        end,
+        addAction = function(text) SM.AddScene(text) end,
+        refreshItem = function(data, item, index)
+            -- scene name text --
+            item.components[2]:SetWidth(1000);
+            item.components[2]:SetText(data.name);
+            local strW = item.components[2].frame.text:GetStringWidth() + 20;
+            item:SetWidth(strW);
+            item.components[1]:SetWidth(strW);
+            item.components[2]:SetWidth(strW);
+            return strW;
+        end,
+        defaultTabName = "Scene",
+    });
 
     SM.RefreshSceneTabs();
 end
 
 function SM.RefreshSceneTabs()
-    -- clear --
-    for idx in pairs(tabPool) do
-        tabPool[idx]:Hide();
-    end
-
-    -- add available scenes --
-    local x = 0;
     if (PM.currentProject ~= nil) then
-        for i in pairs(PM.currentProject.scenes) do
-            local scene = PM.currentProject.scenes[i];
-            if (tabPool[i] == nil) then
-                tabPool[i] = SM.CreateNewSceneTab(x, 0, 50, tabButtonHeight, SM.groupBG:GetFrame(), SM.startLevel + 1);
-                tabPool[i].text:SetText(scene.name);
-                tabPool[i]:SetWidth(tabPool[i].text:GetStringWidth() + 20);
-                tabPool[i]:RegisterForClicks("LeftButtonUp", "RightButtonUp");
-                tabPool[i]:SetScript("OnClick", function(self, button, down)
-                    if (button == "LeftButton") then
-                        SM.SceneTabButtonOnClick(i);
-                    elseif (button == "RightButton") then
-                        local point, relativeTo, relativePoint, xOfs, yOfs = tabPool[i]:GetPoint(1);
-                        --local xOfs = tabPool[i]:GetLeft();
-                        --local yOfs = tabPool[i]:GetTop();
-                        SM.SceneTabButtonOnClick(i);
-                        SM.SceneTabButtonOnRightClick(i, xOfs, 0);
-                    end
-                end);
-            else
-                tabPool[i].text:SetText(scene.name);
-                tabPool[i]:SetWidth(tabPool[i].text:GetStringWidth() + 20);
-            end
-
-            tabPool[i]:Show();
-
-            if (SM.loadedSceneIndex == i) then
-                tabPool[i].ntex:SetColorTexture(0.1757, 0.1757, 0.1875 ,1);
-            else
-                tabPool[i].ntex:SetColorTexture(0, 0, 0 ,0);
-            end
-
-            x = x + tabPool[i]:GetWidth() + 1;
-        end
+        SM.tabGroup:SetData(PM.currentProject.scenes);
     end
-
-    -- add new scene button --
-    SM.addSceneButtonTab:Show();
-    SM.addSceneEditBox:Hide();
-    SM.addSceneButtonTab:SetPoint("TOPLEFT", SM.groupBG:GetFrame(), "TOPLEFT", x, 0);
-    SM.addSceneButtonTab:SetScript("OnClick", function(self) 
-        SM.Button_RenameScene(-1, x);
-    end);
 end
 
 function SM.CreateDefaultScene()
     return SM.CreateScene();
 end
 
-function SM.SceneTabButtonOnClick(index)
-    SM.LoadScene(index);
+function SM.AddScene(text)
+    PM.currentProject.scenes[#PM.currentProject.scenes + 1] = SM.CreateScene(text);
     SM.RefreshSceneTabs();
 end
 
-function SM.SceneTabButtonOnRightClick(index, x, y)
-    -- open rmb menu with option to delete, edit, rename the scene
-    local rx = x + (Renderer.projectionFrame:GetLeft() - SceneMachine.mainWindow:GetLeft());
-    local ry = (y * Renderer.scale) + (Renderer.projectionFrame:GetTop() - SceneMachine.mainWindow:GetTop());
-
-	local menuOptions = {
-        [1] = { ["Name"] = L["RENAME"], ["Action"] = function() SM.Button_RenameScene(index, x); end },
-        [2] = { ["Name"] = L["EXPORT"], ["Action"] = function()  SM.Button_ExportScene(index); end },
-        [3] = { ["Name"] = L["IMPORT"], ["Action"] = function()  SM.Button_ImportScene(); end },
-        [4] = { ["Name"] = L["DELETE"], ["Action"] = function() SM.Button_DeleteScene(index); end },
-        --[5] = { ["Name"] = L["EDIT"], ["Action"] = function()  SM.Button_EditScene(index); end },
-	};
-
-    SceneMachine.mainWindow:PopupWindowMenu(rx, ry, menuOptions);
-end
-
-function SM.Button_RenameScene(index, x)
-    SM.addSceneEditBox:Show();
-    SM.addSceneEditBox:SetText(string.format(L["SM_SCENE"], #PM.currentProject.scenes));
-    SM.addSceneButtonTab:Hide();
-    SM.addSceneEditBox:SetPoint("TOPLEFT", SM.groupBG:GetFrame(), "TOPLEFT", x, 0);
-    SM.addSceneEditBox:SetFocus();
-
-    local previousName = "";
-    if (index ~= -1) then
-        -- copy current text to edit box
-        previousName = tabPool[index].text:GetText();
-        SM.addSceneEditBox:SetText(previousName);
-        SM.addSceneEditBox:SetPoint("TOPLEFT", SM.groupBG:GetFrame(), "TOPLEFT", x + 10, 0);
-        -- clearing current visible name
-        tabPool[index].text:SetText("");
+function SM.RenameScene(text, index)
+    if (text ~= nil and text ~= "") then
+        -- rename existing scene
+        PM.currentProject.scenes[index].name = text;
+        SM.RefreshSceneTabs();
     end
-
-    SM.addSceneEditBox:SetScript('OnEscapePressed', function(self1) 
-        self1:ClearFocus();
-        Editor.ui.focused = false;
-        self1:Hide();
-        SM.addSceneButtonTab:Show();
-        if (index ~= -1) then
-            -- restore previous visible name
-            tabPool[index].text:SetText(previousName);
-        end
-    end);
-    SM.addSceneEditBox:SetScript('OnEnterPressed', function(self1)
-        self1:ClearFocus();
-        Editor.ui.focused = false;
-        local text = self1:GetText();
-        if (text ~= nil and text ~= "") then
-            if (index == -1) then
-                -- create a new scene
-                PM.currentProject.scenes[#PM.currentProject.scenes + 1] = SM.CreateScene(text);
-            else
-                -- rename existing scene
-                PM.currentProject.scenes[index].name = text;
-            end
-            SM.RefreshSceneTabs();
-        end
-        self1:Hide();
-        SM.addSceneButtonTab:Show();
-    end);
-end
-
-function SM.Button_EditScene(index)
-    -- not sure what this will do, most likely open some scene properties window
-    local scene = PM.currentProject.scenes[index];
-    print(#scene.objects .. " " .. #Renderer.actors .. " " .. Renderer.projectionFrame:GetNumActors());
 end
 
 function SM.Button_DeleteScene(index)
@@ -176,6 +101,11 @@ end
 
 function SM.Button_ExportScene(index)
     local scene = PM.currentProject.scenes[index];
+
+    if (SM.loadedScene ~= scene) then
+        SM.LoadScene(index);
+    end
+
     local sceneString = SM.ExportSceneForPrint(scene);
 
     Editor.ShowImportExportWindow(nil, sceneString);
@@ -199,6 +129,7 @@ end
 
 function SM.LoadScene(index)
     SM.loadedSceneIndex = index;
+    SM.tabGroup.selectedIndex = index;
     --SM.loadedScene = {};
 
     if (#PM.currentProject.scenes == 0) then
@@ -504,39 +435,6 @@ function SM.ToggleObjectFreezeState(object)
     SH.RefreshHierarchy();
 end
 
-function SM.CreateNewSceneTab(x, y, w, h, parent, startLevel)
-	local ButtonFont = Resources.defaultFont;
-	local ButtonFontSize = 9;
-
-	-- main button frame --
-	local item = CreateFrame("Button", "Zee.WindowAPI.Button", parent)
-	item:SetPoint("TOPLEFT", parent, "TOPLEFT", x, y);
-	item:SetWidth(w);
-	item:SetHeight(h)
-	item.ntex = item:CreateTexture()
-	item.htex = item:CreateTexture()
-	item.ptex = item:CreateTexture()
-	item.ntex:SetColorTexture(0.1757, 0.1757, 0.1875 ,1);
-	item.htex:SetColorTexture(0.242, 0.242, 0.25,1);
-	item.ptex:SetColorTexture(0, 0.4765, 0.7968,1);
-	item.ntex:SetAllPoints()	
-	item.ptex:SetAllPoints()
-	item.htex:SetAllPoints()
-	item:SetNormalTexture(item.ntex)
-	item:SetHighlightTexture(item.htex)
-	item:SetPushedTexture(item.ptex)
-    item:SetFrameLevel(startLevel);
-
-	-- project name text --
-	item.text = item:CreateFontString("Zee.WindowAPI.Button Text");
-	item.text:SetFont(ButtonFont, ButtonFontSize, "NORMAL");
-	--item.text:SetPoint("LEFT", item, "LEFT", 10, 0);
-    item.text:SetAllPoints(item);
-	item.text:SetText("");
-
-	return item;
-end
-
 function SM.ExportScene(scene)
     local sceneData = {};
     sceneData.objects = {};
@@ -586,10 +484,10 @@ function SM.ExportSceneForPrint(scene)
     local serialized = SceneMachine.Libs.LibSerialize:Serialize(sceneData);
     local compressed = SceneMachine.Libs.LibDeflate:CompressDeflate(serialized);
     local chatEncoded = SceneMachine.Libs.LibDeflate:EncodeForPrint(compressed);
-    print("scene objects: " .. #scene.objects);
-    print("serialized: " .. string.len(serialized));
-    print("compressed: " .. string.len(compressed));
-    print("chat encoded: " .. string.len(chatEncoded));
+    --print("scene objects: " .. #scene.objects);
+    --print("serialized: " .. string.len(serialized));
+    --print("compressed: " .. string.len(compressed));
+    --print("chat encoded: " .. string.len(chatEncoded));
     return chatEncoded;
 end
 
