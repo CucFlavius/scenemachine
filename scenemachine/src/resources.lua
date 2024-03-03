@@ -25,7 +25,6 @@ function Resources.Initialize(resourcePath)
     Resources.textures["Animation"] = Resources.texturesPath .. "\\animation.png";
     Resources.textures["CropBar"] = Resources.texturesPath .. "\\cropBar.png";
     Resources.textures["FolderIcon"] = Resources.texturesPath .. "\\folderIcon.png";
-    Resources.textures["FolderUpIcon"] = Resources.texturesPath .. "\\folderUpIcon.png";
     Resources.textures["Icon32"] = Resources.texturesPath .. "\\icon32.png";
     Resources.textures["EyeIcon"] = Resources.texturesPath .. "\\eyeIcon.png";
     Resources.textures["ScrollBar"] = Resources.texturesPath .. "\\scrollBar.png";
@@ -42,6 +41,7 @@ function Resources.Initialize(resourcePath)
     Resources.textures["ArrowDown"] = Resources.texturesPath .. "\\ArrowDown.png";
     Resources.textures["ResetIcon"] = Resources.texturesPath .. "\\resetIcon.png";
     Resources.textures["Add"] = Resources.texturesPath .. "\\add.png";
+    Resources.textures["ToolbarAssetExplorer"] = Resources.texturesPath .. "\\toolbarAssetExplorer.png";
 
     -- Icons --
     Resources.iconData = {};
@@ -73,6 +73,22 @@ function Resources.Initialize(resourcePath)
             { "addposkey", "addrotkey", "addscalekey", "osmooth", "olinear", "ostep" },
             { "islow", "ifast", "", "", "", ""},
             { "oslow", "ofast", "", "", "", "" },
+        };
+    }
+
+    Resources.iconData["AssetExplorerToolbar"] = {
+        texture = Resources.textures["ToolbarAssetExplorer"];
+        rows = 8,
+        columns = 8,
+        coords = {
+            { "uponefolder", "", "", "", "", "", "", "" },
+            { "", "", "", "", "", "", "", "" },
+            { "", "", "", "", "", "", "", "" },
+            { "", "", "", "", "", "", "", "" },
+            { "", "", "", "", "", "", "", "" },
+            { "", "", "", "", "", "", "", "" },
+            { "", "", "", "", "", "", "", "" },
+            { "", "", "", "", "", "", "", "" },
         };
     }
 end

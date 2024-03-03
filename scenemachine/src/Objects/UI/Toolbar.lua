@@ -110,6 +110,9 @@ function Toolbar:CreateGroup(x, y, w, h, components)
         elseif (component.type == "Dropdown") then
             group.components[c] = UI.Dropdown:New(x, 0, component.width, 22, group:GetFrame(), "LEFT", "LEFT", component.options, component.action, self.window);
             x = x + component.width;
+        elseif (component.type == "Label") then
+            group.components[c] = UI.Label:New(x, 0, component.width, 22, group:GetFrame(), "LEFT", "LEFT");
+            x = x + component.width;
         end
 
         group.components[c].type = component.type;

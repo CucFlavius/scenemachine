@@ -47,8 +47,12 @@ function AssetBrowser.Create(parent, w, h, startLevel)
         end,
     });
 
-    AssetBrowser.tabGroup:SetData({ { ["name"] = "Models" }, { ["name"] = "Creatures" }, { ["name"] = "Debug" } });
-    AssetBrowser.RefreshTabs();
+    AssetBrowser.tabGroup:SetData({
+        { name = "Models" },
+        { name = "Creatures" },
+        { name = "Collections" },
+        { name = "Debug" },
+     });
 
     AssetBrowser.tabs = {};
     AssetBrowser.tabs[1] = UI.Rectangle:New(0, -20, w, h, parent, "TOPRIGHT", "TOPRIGHT", 0, 0, 0, 0.0);
@@ -60,12 +64,17 @@ function AssetBrowser.Create(parent, w, h, startLevel)
     AssetBrowser.tabs[3] = UI.Rectangle:New(0, -20, w, h, parent, "TOPRIGHT", "TOPRIGHT", 0, 0, 0, 0.0);
     AssetBrowser.tabs[3]:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 0, 0);
     AssetBrowser.tabs[3]:SetFrameLevel(startLevel + 3);
+    AssetBrowser.tabs[4] = UI.Rectangle:New(0, -20, w, h, parent, "TOPRIGHT", "TOPRIGHT", 0, 0, 0, 0.0);
+    AssetBrowser.tabs[4]:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 0, 0);
+    AssetBrowser.tabs[4]:SetFrameLevel(startLevel + 3);
 
-    AssetBrowser.CreateToolbar(AssetBrowser.tabs[1]:GetFrame(), -Editor.pmult, w, startLevel + 2);
+    AssetBrowser.RefreshTabs();
+
+    AssetBrowser.CreateToolbar(AssetBrowser.tabs[1]:GetFrame(), -Editor.pmult, w, startLevel + 10);
     AssetBrowser.CreateSearchBar(0, -30 - Editor.pmult, 0, 0, AssetBrowser.tabs[1]:GetFrame(), startLevel + 3);
     AssetBrowser.CreateGridView(0, -50 - Editor.pmult, 0, 0, AssetBrowser.tabs[1]:GetFrame(), startLevel + 3);
-    
-    AssetBrowser.CreateDebugTab(AssetBrowser.tabs[3]:GetFrame(), 300);
+    AssetBrowser.CreateCollectionsTab(0, -30 - Editor.pmult, AssetBrowser.tabs[3]:GetFrame());
+    AssetBrowser.CreateDebugTab(AssetBrowser.tabs[4]:GetFrame(), 300);
 
 	AssetBrowser.gridList:MakePool();
     AssetBrowser.currentDirectory = SceneMachine.modelData[1];
@@ -79,7 +88,7 @@ function AssetBrowser.Create(parent, w, h, startLevel)
     --AssetBrowser.OnThumbnailDoubleClick(nil, "Expansion07");
     --AssetBrowser.OnThumbnailDoubleClick(nil, "Doodads");
     --AssetBrowser.OnThumbnailDoubleClick(nil, "Kultiraszone");
-    --AssetBrowser.OnChangeTab(3);
+    AssetBrowser.OnChangeTab(3);
 end
 
 function AssetBrowser.RefreshTabs()
@@ -89,15 +98,19 @@ end
 function AssetBrowser.OnChangeTab(idx)
     AssetBrowser.tabGroup.selectedIndex = idx;
     local tabFrame = AssetBrowser.tabs[idx]:GetFrame();
-    AssetBrowser.tabs[1]:Hide();
-    AssetBrowser.tabs[2]:Hide();
-    AssetBrowser.tabs[3]:Hide();
+    for i = 1, #AssetBrowser.tabs, 1 do
+        AssetBrowser.tabs[i]:Hide();
+    end
     AssetBrowser.toolbar:Hide();
     AssetBrowser.searchBarBG:Hide();
+    AssetBrowser.gridList.frame:Hide();
 
     if (idx == 1) then
         -- Models --
         AssetBrowser.toolbar:Show();
+        AssetBrowser.toolbar:SetParent(tabFrame);
+        AssetBrowser.toolbar.modelsGroup:Show();
+        AssetBrowser.toolbar.collectionsGroup:Hide();
         tabFrame:Show();
         AssetBrowser.searchBarBG:Show();
         AssetBrowser.searchBarBG:SetParent(tabFrame);
@@ -105,6 +118,7 @@ function AssetBrowser.OnChangeTab(idx)
         AssetBrowser.searchBarBG:SetPoint("TOPLEFT", tabFrame, "TOPLEFT", 0, -30 - Editor.pmult);
         AssetBrowser.searchBarBG:SetPoint("BOTTOMRIGHT", tabFrame, "BOTTOMRIGHT", 0, 0);
         AssetBrowser.currentDirectory = SceneMachine.modelData[1];
+        AssetBrowser.gridList.frame:Show();
         AssetBrowser.gridList.frame:SetParent(tabFrame);
         AssetBrowser.gridList.frame:ClearAllPoints();
         AssetBrowser.gridList.frame:SetPoint("TOPLEFT", tabFrame, "TOPLEFT", 0, -50 - Editor.pmult);
@@ -122,6 +136,7 @@ function AssetBrowser.OnChangeTab(idx)
         AssetBrowser.searchBarBG:ClearAllPoints();
         AssetBrowser.searchBarBG:SetPoint("TOPLEFT", tabFrame, "TOPLEFT", 0, 0);
         AssetBrowser.searchBarBG:SetPoint("BOTTOMRIGHT", tabFrame, "BOTTOMRIGHT", 0, 0);
+        AssetBrowser.gridList.frame:Show();
         AssetBrowser.gridList:SetParent(tabFrame);
         AssetBrowser.gridList:ClearAllPoints();
         AssetBrowser.gridList:SetPoint("TOPLEFT", tabFrame, "TOPLEFT", 0, -30 - Editor.pmult);
@@ -132,6 +147,21 @@ function AssetBrowser.OnChangeTab(idx)
         AssetBrowser.RefreshBreadcrumb();
         AssetBrowser.dataSource = "Creatures";
     elseif (idx == 3) then
+        -- Collections --
+        tabFrame:Show();
+        AssetBrowser.toolbar:Show();
+        AssetBrowser.toolbar:SetParent(tabFrame);
+        AssetBrowser.toolbar.modelsGroup:Hide();
+        AssetBrowser.toolbar.collectionsGroup:Show();
+        AssetBrowser.gridList.frame:Show();
+        AssetBrowser.gridList:SetParent(tabFrame);
+        AssetBrowser.gridList:ClearAllPoints();
+        AssetBrowser.gridList:SetPoint("TOPLEFT", tabFrame, "TOPLEFT", 0, -30 - Editor.pmult);
+        AssetBrowser.gridList:SetPoint("BOTTOMRIGHT", tabFrame, "BOTTOMRIGHT", 0, 0);
+        AssetBrowser.gridList:SetFrameLevel(tabFrame:GetFrameLevel() + 20);
+        --AssetBrowser.gridList:SetData(AssetBrowser.BuildCreatureData());
+        AssetBrowser.dataSource = nil;
+    elseif (idx == 4) then
         -- Debug --
         tabFrame:Show();
         AssetBrowser.dataSource = nil;
@@ -139,6 +169,11 @@ function AssetBrowser.OnChangeTab(idx)
 
     AssetBrowser.searchBar:SetText("");
     AssetBrowser.SearchModelList("");
+    AssetBrowser.RefreshTabs();
+end
+
+function AssetBrowser.CreateCollectionsTab(x, y, parent)
+
 end
 
 function AssetBrowser.CreateDebugTab(parent, w, h)
@@ -339,6 +374,40 @@ end
 
 function AssetBrowser.CreateToolbar(parent, y, w, startLevel)
     local h = 30;
+    AssetBrowser.toolbar = UI.Toolbar:New(0, y, w, 30, parent, SceneMachine.mainWindow, Resources.iconData["AssetExplorerToolbar"]);
+    AssetBrowser.toolbar:SetFrameLevel(startLevel + 2);
+    AssetBrowser.toolbar.modelsGroup = AssetBrowser.toolbar:CreateGroup(0, 0, Editor.width, 30,
+        {
+            { type = "DragHandle" },
+            {
+                type = "Button", name = "Project", icon = AssetBrowser.toolbar:GetIcon("uponefolder"), action = function(self) AssetBrowser.UpOneFolder() end,
+                tooltip = L["AB_TOOLBAR_TT_UP_ONE_FOLDER"],
+            },
+            { type = "Separator" },
+            {
+                type = "Label", name = "Breadcrumb", text = L["AB_BREADCRUMB"], width = w,
+            },
+        }
+    );
+    AssetBrowser.toolbar.modelsGroup:SetFrameLevel(startLevel + 3);
+
+    AssetBrowser.toolbar.collectionsGroup = AssetBrowser.toolbar:CreateGroup(0, 0, Editor.width, 30,
+        {
+            { type = "DragHandle" },
+            {
+                type = "Button", name = "Project", icon = AssetBrowser.toolbar:GetIcon("projects"), action = function(self) Editor.ProjectManager.OpenWindow() end,
+                tooltip = L["EDITOR_TOOLBAR_TT_OPEN_PROJECT_MANAGER"],
+            },
+            { type = "Separator" },
+            {
+                type = "Button", name = "Select", icon = AssetBrowser.toolbar:GetIcon("select"), action = function(self) Gizmos.activeTransformGizmo = 0; end,
+                tooltip = L["EDITOR_TOOLBAR_TT_SELECT_TOOL"],
+            },
+        }
+    );
+
+    AssetBrowser.toolbar.collectionsGroup:SetFrameLevel(startLevel + 3);
+    --[[
     AssetBrowser.toolbar = UI.Rectangle:New(0, y, w, h, parent, "TOPLEFT", "TOPLEFT", c1[1], c1[2], c1[3], 1);
     AssetBrowser.toolbar:SetFrameLevel(startLevel);
     AssetBrowser.toolbar:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, 0);
@@ -350,6 +419,7 @@ function AssetBrowser.CreateToolbar(parent, y, w, startLevel)
 
     AssetBrowser.toolbar.breadCrumb = UI.Label:New(h, 0, w - h, h, AssetBrowser.toolbar:GetFrame(), "TOPLEFT", "TOPLEFT", L["AB_BREADCRUMB"], 9);
     AssetBrowser.toolbar.breadCrumb:SetFrameLevel(startLevel + 1);
+    --]]
 end
 
 function AssetBrowser.CreateSearchBar(xMin, yMin, xMax, yMax, parent, startLevel)
@@ -393,15 +463,15 @@ function AssetBrowser.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
                 item.components[1]:SetClipsChildren(true);
 
 				-- name text --
-				item.components[2] = UI.Label:New(10, 0, 94, 30, item.components[1]:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "", 9);
-                item.components[2]:SetPoint("BOTTOMRIGHT", item.components[1]:GetFrame(), "BOTTOMRIGHT", -10, 0);
-                item.components[2]:GetFrame().text:SetMaxLines(2);
-                item.components[2]:GetFrame().text:SetNonSpaceWrap(true);
-                item.components[2]:SetFrameLevel(startLevel + 4);
+				item.components[4] = UI.Label:New(10, 0, 94, 30, item.components[1]:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "", 9);
+                item.components[4]:SetPoint("BOTTOMRIGHT", item.components[1]:GetFrame(), "BOTTOMRIGHT", -10, 0);
+                item.components[4]:GetFrame().text:SetMaxLines(2);
+                item.components[4]:GetFrame().text:SetNonSpaceWrap(true);
+                item.components[4]:SetFrameLevel(startLevel + 4);
 
                 -- on double click --
                 item.components[1]:GetFrame():SetScript("OnDoubleClick", function (self, button, down)
-                    AssetBrowser.OnThumbnailDoubleClick(item.ID, item.components[2]:GetText());
+                    AssetBrowser.OnThumbnailDoubleClick(item.ID, item.components[4]:GetText());
                 end);
             
                 item.components[1]:GetFrame():SetScript("OnDragStart", function (self, button, down)
@@ -413,14 +483,14 @@ function AssetBrowser.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
                 item.components[3]:SetPoint("BOTTOMRIGHT", item.components[1]:GetFrame(), "BOTTOMRIGHT", -15, 15 + 15);
 
                 -- model --
-                item.components[4] = CreateFrame("PlayerModel", "thumbnail_model_frame", item.components[1]:GetFrame());
-                item.components[4]:SetPoint("TOPLEFT", item.components[1]:GetFrame(), "TOPLEFT", 0, 0);
-                item.components[4]:SetPoint("BOTTOMRIGHT", item.components[1]:GetFrame(), "BOTTOMRIGHT", 0, 0);
-                item.components[4]:SetCustomCamera(1);
+                item.components[2] = CreateFrame("PlayerModel", "thumbnail_model_frame", item.components[1]:GetFrame());
+                item.components[2]:SetPoint("TOPLEFT", item.components[1]:GetFrame(), "TOPLEFT", 0, 0);
+                item.components[2]:SetPoint("BOTTOMRIGHT", item.components[1]:GetFrame(), "BOTTOMRIGHT", 0, 0);
+                item.components[2]:SetCustomCamera(1);
 			end,
 			refreshItem = function(entry, item)
 				-- object name text --
-				item.components[2]:SetText(entry["N"]);
+				item.components[4]:SetText(entry["N"]);
 
                 -- object ID --
                 item.ID = entry.ID;
@@ -428,22 +498,22 @@ function AssetBrowser.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
                 -- has model (file)
                 if (entry.fileID) then
                     item.components[3]:Hide();
-                    item.components[4]:Show();
-                    if (item.components[4].fileID ~= entry.fileID) then
-                        item.components[4]:SetModel(entry.fileID);
-                        item.components[4].fileID = entry.fileID;
+                    item.components[2]:Show();
+                    if (item.components[2].fileID ~= entry.fileID) then
+                        item.components[2]:SetModel(entry.fileID);
+                        item.components[2].fileID = entry.fileID;
                     end
                 -- doesn't have model (folder)
                 elseif (entry.displayID) then
                     item.components[3]:Hide();
-                    item.components[4]:Show();
-                    if (item.components[4].displayID ~= entry.displayID) then
-                        item.components[4]:SetDisplayInfo(entry.displayID);
-                        item.components[4].displayID = entry.displayID;
+                    item.components[2]:Show();
+                    if (item.components[2].displayID ~= entry.displayID) then
+                        item.components[2]:SetDisplayInfo(entry.displayID);
+                        item.components[2].displayID = entry.displayID;
                     end
                 else
                     item.components[3]:Show();
-                    item.components[4]:Hide();
+                    item.components[2]:Hide();
                 end
 			end,
 	    }
@@ -549,16 +619,27 @@ function AssetBrowser.BuildCreatureSearchData(value)
 end
 
 function AssetBrowser.RefreshBreadcrumb()
-    if (#searchData > 0) then
-        AssetBrowser.toolbar.breadCrumb:SetText(string.format(L["AB_RESULTS"], #searchData));
-    else
-        local str = "";
-        for i=2, #AssetBrowser.breadcrumb, 1 do
-            if AssetBrowser.breadcrumb[i] ~= nil then
-                str = str .. ">" .. AssetBrowser.breadcrumb[i]["N"];
+ 
+    for c = 1, #AssetBrowser.toolbar.modelsGroup.components, 1 do
+        local component = AssetBrowser.toolbar.modelsGroup.components[c];
+
+        if (component.type == "Label") then
+            if (component.name == "Breadcrumb") then
+                --AssetBrowser.toolbar.modelsGroup.components[c]:SetOptions(projectNames);
+                --AssetBrowser.toolbar.modelsGroup.components[c]:ShowSelectedName(selectedName);
+                if (#searchData > 0) then
+                    component:SetText(string.format(L["AB_RESULTS"], #searchData));
+                else
+                    local str = "";
+                    for i=2, #AssetBrowser.breadcrumb, 1 do
+                        if AssetBrowser.breadcrumb[i] ~= nil then
+                            str = str .. ">" .. AssetBrowser.breadcrumb[i]["N"];
+                        end
+                    end
+                    component:SetText(str);
+                end
             end
         end
-        AssetBrowser.toolbar.breadCrumb:SetText(str);
     end
 end
 
