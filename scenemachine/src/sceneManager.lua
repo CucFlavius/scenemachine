@@ -341,16 +341,26 @@ function SM.CloneObject(object, selectAfter)
     local pos = object:GetPosition();
     local rot = object:GetRotation();
     local scale = object:GetScale();
-    local clone = SM.CreateObject(object:GetFileID(), object:GetName(), pos.x, pos.y, pos.z);
-    clone:SetRotation(rot.x, rot.y, rot.z);
-    clone:SetScale(scale);
-
-    if (selectAfter) then
-        SM.selectedObject = clone;
+    local clone = nil;
+    if (object:GetType() == SceneMachine.ObjectType.Model) then
+        clone = SM.CreateObject(object:GetFileID(), object:GetName(), pos.x, pos.y, pos.z);
+    elseif(object:GetType() == SceneMachine.ObjectType.Creature) then
+        clone = SM.CreateCreature(object:GetDisplayID(), object:GetName(), pos.x, pos.y, pos.z);
+    elseif(object:GetType() == SceneMachine.ObjectType.Character) then
+        clone = SM.CreateCharacter(pos.x, pos.y, pos.z);
     end
+    
+    if (clone) then
+        clone:SetRotation(rot.x, rot.y, rot.z);
+        clone:SetScale(scale);
 
-    SH.RefreshHierarchy();
-    OP.Refresh();
+        if (selectAfter) then
+            SM.selectedObject = clone;
+        end
+
+        SH.RefreshHierarchy();
+        OP.Refresh();
+    end
 end
 
 function SM.Clear()

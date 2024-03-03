@@ -103,6 +103,14 @@ function Object:GetFileID()
     return self.fileID;
 end
 
+function Object:GetDisplayID()
+    return self.displayID;
+end
+
+function Object:GetType()
+    return self.type;
+end
+
 function Object:GetName()
     return self.name;
 end
