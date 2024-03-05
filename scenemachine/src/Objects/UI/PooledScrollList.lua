@@ -16,6 +16,8 @@ function PooledScrollList:New(x, y, w, h, parent, point, parentPoint)
         parentPoint = parentPoint or "TOPLEFT",
         viewportHeight = 0;
         visible = true,
+        currentDif = 0,
+        currentPos = 0,
     };
 
 	setmetatable(v, PooledScrollList);
@@ -28,6 +30,7 @@ function PooledScrollList:Build()
 	self.frame:GetFrame():SetScript("OnMouseWheel",
     function(_, delta)
         self:ScrollStep(delta);
+        --self:SetPosition(self.currentPos - (delta / #self.data));
     end);
     
     self.viewport = UI.Rectangle:New(self.x, self.y, self.w - 16, self.h, self.frame:GetFrame(), "TOPLEFT", "TOPLEFT", 1, 0, 1, 0);
@@ -39,7 +42,8 @@ function PooledScrollList:Build()
         self:MakePool(width - 16, height);
         self.viewportHeight = height;
         self.scrollbar:Resize(height, #self.data * self.template.height);
-        self:Refresh(0);
+        self:SetPosition(self.currentPos);
+        --self:Refresh(self.currentDif);
     end);
     self.scrollbar = UI.Scrollbar:New(0, 0, 16, self.h, self.frame:GetFrame(), function(v) self:SetPosition(v); end);
     self.scrollbar:SetPoint("BOTTOMRIGHT", self.frame:GetFrame(), "BOTTOMRIGHT", 0, 0);
@@ -60,6 +64,7 @@ function PooledScrollList:MakePool(viewportWidth, viewportHeight)
     local itemHeight = self.template.height;
 
     local poolSize = math.ceil(viewportHeight / itemHeight + 1);
+    self.visibleElementCount = poolSize;
 
     for i = 1, #self.itemPool, 1 do
         self.itemPool[i]:SetWidth(viewportWidth);
@@ -77,13 +82,15 @@ end
 
 function PooledScrollList:ScrollStep(value)
     self.dataStartIdx = self.dataStartIdx - value;
-    self.scrollbar:SetValueWithoutAction(self.dataStartIdx / (#self.data - (#self.itemPool - 4)));
+    self.currentPos = math.min(1, self.dataStartIdx / (#self.data - (self.visibleElementCount - 2)));
+    self.scrollbar:SetValueWithoutAction(self.currentPos);
     self:Refresh(0);
 end
 
 function PooledScrollList:SetPosition(value)
     if (value >= 1) then value = 0.999; end -- this fixes my bad logic which causes a pop when scrolling to the end
-    local offs = (value * #self.data) - (value * (#self.itemPool - 3));
+    self.currentPos = value;
+    local offs = (value * #self.data) - (value * (self.visibleElementCount - 2));
     local roundedOffs = math.floor(offs);
     local dif = 0;
     if (offs ~= roundedOffs) then
@@ -96,15 +103,16 @@ end
 function PooledScrollList:SetData(data)
     self.data = data;
     self.scrollbar:Resize(self.viewportHeight, #self.data * self.template.height);
-    self:Refresh(0);
+    self:Refresh(self.currentDif);
 end
 
 function PooledScrollList:Refresh(dif)
-    self.dataEndIdx = self.dataStartIdx + #self.itemPool - 1;
+    self.currentDif = dif;
+    self.dataEndIdx = self.dataStartIdx + self.visibleElementCount - 1;
 
-    if (self.dataStartIdx + #self.itemPool - 3 > #self.data) then
-        self.dataStartIdx = (#self.data - #self.itemPool) + 3;
-        self.dataEndIdx = self.dataStartIdx + #self.itemPool - 1;
+    if (self.dataStartIdx + self.visibleElementCount - 3 > #self.data) then
+        self.dataStartIdx = (#self.data - self.visibleElementCount) + 3;
+        self.dataEndIdx = self.dataStartIdx + self.visibleElementCount - 1;
     end
 
     if (self.dataStartIdx < 1) then
