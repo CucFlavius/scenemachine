@@ -120,7 +120,7 @@ function PooledScrollList:Refresh(dif)
         local item = self.itemPool[pidx];
         item:Show();
         item:SetSinglePoint("TOPLEFT", 0, -((pidx - 1) + dif) * self.template.height);
-        self.template.refreshItem(self.data[d], item);
+        self.template.refreshItem(self.data[d], item, d);
         pidx = pidx + 1;
     end
 
@@ -135,7 +135,7 @@ function PooledScrollList:RefreshStatic()
     local pidx = 1;
     for d = self.dataStartIdx, self.dataEndIdx, 1 do
         local item = self.itemPool[pidx];
-        self.template.refreshItem(self.data[d], item);
+        self.template.refreshItem(self.data[d], item, d);
         pidx = pidx + 1;
     end
 end

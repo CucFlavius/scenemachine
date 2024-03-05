@@ -167,15 +167,19 @@ function Input.Update()
         if (Editor.KeyboardShortcutsWindow) then
             keyboardShortcuts = Editor.KeyboardShortcutsWindow:IsVisible();
         end
-        local sceneScript = nil;
+        local ioWindow = nil;
         if (Editor.importExportWindow) then
-            sceneScript = Editor.importExportWindow:IsVisible();
+            ioWindow = Editor.importExportWindow:IsVisible();
+        end
+        local renameWindow = nil;
+        if (Editor.renameWindow) then
+            renameWindow = Editor.renameWindow:IsVisible();
         end
         local messageBox = nil;
         if (Editor.messageBox) then
             messageBox = Editor.messageBox:IsVisible();
         end
-        if (animSelectWindow or projectManager or colorPicker or sceneScript or messageBox or keyboardShortcuts) then
+        if (animSelectWindow or projectManager or colorPicker or ioWindow or renameWindow or messageBox or keyboardShortcuts) then
             return;
         end
     end

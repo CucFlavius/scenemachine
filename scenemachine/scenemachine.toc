@@ -4,7 +4,7 @@
 ## Author: Zee (Songzee/Songzhu - Argent Dawn EU)
 ## DefaultState: enabled
 ## LoadOnDemand: 0
-## SavedVariables: scenemachine_settings scenemachine_projects
+## SavedVariables: scenemachine_settings scenemachine_projects scenemachine_collections
 ## X-eMail: cucflavius@gmail.com
 ## X-Website: none
 ## X-License: MIT

@@ -42,6 +42,7 @@ L["EDITOR_TOOLBAR_TT_PIVOT_WORLD_SPACE"] = "Set Pivot to World Space";
 L["EDITOR_TOOLBAR_TT_PIVOT_CENTER"] = "Set Pivot to Center";
 L["EDITOR_TOOLBAR_TT_PIVOT_BASE"] = "Set Pivot to Base";
 L["EDITOR_IMPORT_EXPORT_WINDOW_TITLE"] = "Import - Export";
+L["EDITOR_NAME_RENAME_WINDOW_TITLE"] = "Name - Rename";
 
 -- Main Menu --
 L["MM_FILE"] = "File";
@@ -131,10 +132,17 @@ L["AM_TOOLBAR_TT_LOOP"] = "Loop Playback on/off";
 L["AM_TT_LIST"] = "Select Timeline";
 L["AM_TT_ADDTIMELINE"] = "Add Timeline";
 
--- AssetBrowser --
+-- AssetBrowser/AssetExplorer --
 L["AB_RESULTS"] = "%d Results";             -- <number> results (search results)
 L["AB_BREADCRUMB"] = "...";             -- for a file path
 L["AB_TOOLBAR_TT_UP_ONE_FOLDER"] = "Up one folder.";
+L["AM_MSG_REMOVE_COLLECTION_TITLE"] = "Remove Collection";
+L["AB_MSG_REMOVE_COLLECTION_MESSAGE"] = "The collection contains items, are you sure you want to remove it?";
+L["AB_TOOLBAR_TT_NEW_COLLECTION"] = "New Collection";
+L["AB_TOOLBAR_TT_REMOVE_COLLECTION"] = "Remove Collection";
+L["AB_TOOLBAR_TT_RENAME_COLLECTION"] = "Rename Collection";
+L["AB_TOOLBAR_TT_ADD_OBJECT"] = "Add Selected Object";
+L["AB_TOOLBAR_TT_REMOVE_OBJECT"] = "Remove Object";
 
 -- Project Manager --
 L["PM_WINDOW_TITLE"] = "Project Manager";

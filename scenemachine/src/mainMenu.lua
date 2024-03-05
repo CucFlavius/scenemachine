@@ -8,6 +8,7 @@ local SM = Editor.SceneManager;
 function MainMenu.OpenKeyboardShortcuts()
     if (not Editor.KeyboardShortcutsWindow) then
         Editor.KeyboardShortcutsWindow = UI.Window:New(0, 0, 900, 450, SceneMachine.mainWindow:GetFrame(), "CENTER", "CENTER", "Keyboard Shortcuts");
+        Editor.KeyboardShortcutsWindow:MakeWholeWindowDraggable();
         Editor.KeyboardShortcutsWindow:SetFrameStrata(Editor.SUB_FRAME_STRATA);
         Editor.KeyboardShortcutsWindow.resizeFrame:Hide();
 

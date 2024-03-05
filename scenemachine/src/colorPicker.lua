@@ -215,6 +215,7 @@ function ColorPicker.Initialize(r, g, b)
     ColorPicker.hue, ColorPicker.saturation, ColorPicker.lightness = RGBtoHSL(ColorPicker.r, ColorPicker.g, ColorPicker.b);
 
     ColorPicker.window = UI.Window:New(0, 0, 350, 530, SceneMachine.mainWindow:GetFrame(),  "CENTER", "CENTER", L["COLP_WINDOW_TITLE"]);
+    ColorPicker.window:MakeWholeWindowDraggable();
     ColorPicker.window:SetFrameStrata(Editor.SUB_FRAME_STRATA);
     ColorPicker.window:GetFrame():SetResizable(false);
     ColorPicker.window.resizeFrame:Hide();

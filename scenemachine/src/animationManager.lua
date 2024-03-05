@@ -785,6 +785,7 @@ end
 function AM.CreateAnimationSelectWindow(x, y, w, h)
     AM.animSelectWindow = UI.Window:New(x, y, w, h, SceneMachine.mainWindow:GetFrame(), "CENTER", "CENTER", L["AM_ANIMATION_LIST_WINDOW_TITLE"]);
     AM.animSelectWindow:SetFrameStrata(Editor.SUB_FRAME_STRATA);
+    AM.animSelectWindow:MakeWholeWindowDraggable();
 
     AM.animScrollList = UI.PooledScrollList:New(0, 0, w, h - 30, AM.animSelectWindow:GetFrame(), "TOPLEFT", "TOPLEFT");
     AM.animScrollList:SetPoint("BOTTOMRIGHT", AM.animSelectWindow:GetFrame(), "BOTTOMRIGHT", 0, 30);

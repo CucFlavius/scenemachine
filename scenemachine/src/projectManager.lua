@@ -20,7 +20,8 @@ function PM.CreateWindow()
     -- Window:New(x, y, w, h, parent, point, parentPoint, title)
     PM.window = UI.Window:New(0, 0, managerWindowWidth, managerWindowHeight, SceneMachine.mainWindow:GetFrame(), "CENTER", "CENTER", "ProjectManager");
     PM.window:SetFrameStrata(Editor.SUB_FRAME_STRATA);
-    
+    PM.window:MakeWholeWindowDraggable();
+
     -- project list frame --
     PM.projectListFrame = UI.Rectangle:New(0, 0, managerWindowWidth, managerWindowHeight, PM.window:GetFrame(), "TOPLEFT", "TOPLEFT", 0, 0, 0, 0);
 

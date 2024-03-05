@@ -79,7 +79,11 @@ function PooledGridScrollList:Build()
         self:MakePool(width - 16, height);
         self.viewportWidth = width - 16;
         self.viewportHeight = height;
-        self.totalRows = math.ceil(#self.data / self.visibleColumns);
+        if (self.data) then
+            self.totalRows = math.ceil(#self.data / self.visibleColumns);
+        else
+            self.totalRows = 0;
+        end
         self.scrollbar:Resize(height, self.itemHeight * self.totalRows);
         self:SetPosition(self.scrollbar.currentValue);
     end);
@@ -143,7 +147,11 @@ function PooledGridScrollList:ScrollStep(value)
 end
 
 function PooledGridScrollList:SetPosition(value)
-    self.totalRows = math.ceil(#self.data / self.visibleColumns);
+    if (self.data) then
+        self.totalRows = math.ceil(#self.data / self.visibleColumns);
+    else
+        self.totalRows = 0;
+    end
 
     -- this fixes some rounding issues
     if (value >= 1) then value = 0.999999; end
@@ -162,7 +170,13 @@ end
 
 function PooledGridScrollList:SetData(data)
     self.data = data;
-    self.scrollbar:Resize(self.viewportHeight, #self.data * self.template.height / self.visibleColumns);
+
+    if (data == nil) then
+        self.scrollbar:Resize(self.viewportHeight, 0);
+    else
+        self.scrollbar:Resize(self.viewportHeight, #self.data * self.template.height / self.visibleColumns);
+    end
+
     self:MakePool(self.viewportWidth, self.viewportHeight);
     self.scrollbar:SetValueWithoutAction(0);
     self:Refresh(0);
@@ -185,8 +199,12 @@ function PooledGridScrollList:Refresh(dif)
             item:SetSinglePoint("TOPLEFT", (c - 1) * self.itemWidth, -((r - 1) + dif) * self.itemHeight);
             item:SetSize(self.itemWidth, self.itemHeight);
 
-            if (self.data[dIdx]) then
-                self.template.refreshItem(self.data[dIdx], item);
+            if (self.data) then
+                if (self.data[dIdx]) then
+                    self.template.refreshItem(self.data[dIdx], item, dIdx);
+                else
+                    item:Hide();
+                end
             else
                 item:Hide();
             end
@@ -198,11 +216,26 @@ function PooledGridScrollList:Refresh(dif)
 end
 
 function PooledGridScrollList:RefreshStatic()
+    local totalVisibleCells = (self.visibleColumns * self.visibleRows);
+    
+    self.dataStartIdx = self.rowStartIdx * self.visibleColumns - self.visibleColumns + 1;
+    self.dataEndIdx = self.dataStartIdx + totalVisibleCells;
+
+    local dIdx = self.dataStartIdx;
     local pidx = 1;
-    for d = self.dataStartIdx, self.dataEndIdx, 1 do
-        local item = self.itemPool[pidx];
-        self.template.refreshItem(self.data[d], item);
-        pidx = pidx + 1;
+    for r = 1, self.visibleRows, 1 do
+        for c = 1, self.visibleColumns, 1 do
+            local item = self.itemPool[pidx];
+
+            if (self.data[dIdx]) then
+                self.template.refreshItem(self.data[dIdx], item, dIdx);
+            else
+                item:Hide();
+            end
+
+            pidx = pidx + 1;
+            dIdx = dIdx + 1;
+        end
     end
 end
 

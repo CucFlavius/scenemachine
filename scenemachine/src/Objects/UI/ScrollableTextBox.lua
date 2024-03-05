@@ -84,13 +84,13 @@ function ScrollableTextBox:Build()
 
         local btxOffset, btyOffset = -20, 40;
         local bWidth, bHeight = 15, 15;
-        self.scrollButtonTop = UI.Button:New(btxOffset, btyOffset, bWidth, bHeight, Editor.importExportWindow:GetFrame(), "BOTTOMRIGHT", "BOTTOMRIGHT", nil, Resources.textures.ResizeArrowV, {0, 1, 0, 0.5});
+        self.scrollButtonTop = UI.Button:New(btxOffset, btyOffset, bWidth, bHeight, self.parent, "BOTTOMRIGHT", "BOTTOMRIGHT", nil, Resources.textures.ResizeArrowV, {0, 1, 0, 0.5});
         self.scrollButtonTop:GetFrame():SetFrameLevel(bLevel);
         self.scrollButtonTop:SetScript("OnClick", function() scrollBox:ScrollToBegin(); end);
         self.scrollButtonTop.tooltip = L["SCROLL_TOP"]; -- TODO: make tooltips able to show from any side of the frame instead of just the bottom
 
         local bbxOffset, bbyOffset = btxOffset, 20;
-        self.scrollButtonBottom = UI.Button:New(bbxOffset, bbyOffset, bWidth, bHeight, Editor.importExportWindow:GetFrame(), "BOTTOMRIGHT", "BOTTOMRIGHT", nil, Resources.textures.ResizeArrowV, {0, 1, 0.5, 1});
+        self.scrollButtonBottom = UI.Button:New(bbxOffset, bbyOffset, bWidth, bHeight, self.parent, "BOTTOMRIGHT", "BOTTOMRIGHT", nil, Resources.textures.ResizeArrowV, {0, 1, 0.5, 1});
         self.scrollButtonBottom:GetFrame():SetFrameLevel(bLevel);
         self.scrollButtonBottom:SetScript("OnClick", function() scrollBox:ScrollToEnd(); end);
         self.scrollButtonBottom.tooltip = L["SCROLL_BOTTOM"]; -- TODO: make tooltips able to show from any side of the frame instead of just the bottom

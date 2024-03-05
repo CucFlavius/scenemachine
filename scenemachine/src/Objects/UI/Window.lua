@@ -84,6 +84,12 @@ function Window:Build()
     self.resizeFrame:GetFrame():SetScript('OnLeave', function() ResetCursor(); end)
 end
 
+function Window:MakeWholeWindowDraggable()
+	self.frame:RegisterForDrag("LeftButton");
+	self.frame:SetScript("OnDragStart", function() self.frame:StartMoving(); end);
+	self.frame:SetScript("OnDragStop", function() self.frame:StopMovingOrSizing(); end);
+end
+
 function Window:WindowCreateMenuBar(menu)
 	local menubar = UI.Rectangle:New(0, 0, self:GetWidth(), 15, self:GetFrame(), "TOPLEFT", "TOPLEFT", 0.1757, 0.1757, 0.1875, 1);
 	menubar:SetPoint("TOPRIGHT", self:GetFrame(), "TOPRIGHT", 0, 0);

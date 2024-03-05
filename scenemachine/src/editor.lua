@@ -471,6 +471,7 @@ function Editor.ShowImportExportWindow(action, text)
 
         Editor.importExportWindow = UI.Window:New(xOffset, yOffset, windowWidth, windowHeight, SceneMachine.mainWindow:GetFrame(), "CENTER", "CENTER", L["EDITOR_IMPORT_EXPORT_WINDOW_TITLE"]);
         Editor.importExportWindow:SetFrameStrata(Editor.SUB_FRAME_STRATA);
+        Editor.importExportWindow:MakeWholeWindowDraggable();
 
         local textHeight = 9;
         local ebWidth, ebHeight = 390, 390; -- this just gets eaten by the anchors anyways but might as well keep it
@@ -509,6 +510,43 @@ function Editor.ShowImportExportWindow(action, text)
     Editor.importExportWindow:Show();
 end
 
+function Editor.ShowRenameWindow(action, text)
+    -- create
+    if (not Editor.renameWindow) then
+        local xOffset, yOffset = 10, -10;
+        local windowWidth, windowHeight = 400, 60;
+
+        Editor.renameWindow = UI.Window:New(xOffset, yOffset, windowWidth, windowHeight, SceneMachine.mainWindow:GetFrame(), "CENTER", "CENTER", L["EDITOR_NAME_RENAME_WINDOW_TITLE"]);
+        Editor.renameWindow:SetFrameStrata(Editor.SUB_FRAME_STRATA);
+        Editor.renameWindow:GetFrame():SetResizeBounds(windowWidth - 200, windowHeight, windowWidth + 200, windowHeight);
+        Editor.renameWindow:MakeWholeWindowDraggable();
+
+        local textHeight = 9;
+        local ebWidth, ebHeight = 390, 30; -- this just gets eaten by the anchors anyways but might as well keep it
+        Editor.renameWindow.editBox = UI.TextBox:New(xOffset, yOffset, ebWidth, ebHeight, Editor.renameWindow:GetFrame(), "TOPLEFT", "TOPLEFT", "", textHeight);
+
+        Editor.renameWindow.editBox:SetPoint("BOTTOMRIGHT", Editor.renameWindow:GetFrame(), -xOffset, -yOffset);
+        Editor.renameWindow.editBox:SetScript('OnEscapePressed', function()
+            Editor.renameWindow.editBox:ClearFocus();
+            Editor.ui.focused = false;
+            Editor.renameWindow.editBox:SetText("");
+        end);
+    end
+    
+    Editor.renameWindow.editBox:SetText(text);
+
+    Editor.renameWindow.editBox:SetScript('OnEnterPressed', function(self1)
+        Editor.renameWindow.editBox:ClearFocus();
+        Editor.ui.focused = false;
+        if (action) then
+            action(self1:GetText());
+        end
+        Editor.renameWindow:Hide();
+    end);
+
+    Editor.renameWindow:Show();
+end
+
 function Editor.OpenContextMenu(x, y)
 	local menuOptions = {
         { ["Name"] = L["CM_SELECT"], ["Action"] = function() Gizmos.activeTransformGizmo = 0; end },
@@ -536,6 +574,7 @@ end
 function Editor.OpenMessageBox( window, title, message, hasYesButton, hasNoButton, onYesButton, onNoButton )
     if (not Editor.messageBox) then
         Editor.messageBox = UI.Window:New(0, 0, 300, 150, window, "CENTER", "CENTER", title);
+        Editor.messageBox:MakeWholeWindowDraggable();
         Editor.messageBox:SetFrameStrata(Editor.MESSAGE_BOX_FRAME_STRATA);
         Editor.messageBox.textBox = UI.Label:New(0, 10, 280, 100, Editor.messageBox:GetFrame(), "CENTER", "CENTER", message, 10);
         Editor.messageBox.yesButton = UI.Button:New(-75, 10, 50, 25, Editor.messageBox:GetFrame(), "BOTTOMRIGHT", "BOTTOMRIGHT", L["YES"]);
