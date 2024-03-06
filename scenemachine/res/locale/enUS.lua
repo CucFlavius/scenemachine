@@ -58,6 +58,12 @@ L["MM_DELETE_SELECTED"] = "Delete Selected";
 L["MM_SET_SCALE"] = "Set Scale %s";
 L["MM_KEYBOARD_SHORTCUTS"] = "Keyboard Shortcuts";
 L["MM_ABOUT"] = "About";
+L["MM_SCENE"] = "Scene";
+L["MM_SCENE_NEW"] = "New";
+L["MM_SCENE_REMOVE"] = "Remove";
+L["MM_SCENE_RENAME"] = "Rename";
+L["MM_SCENE_EXPORT"] = "Export";
+L["MM_SCENE_IMPORT"] = "Import";
 
 -- Context Menu --
 L["CM_SELECT"] = "Select";

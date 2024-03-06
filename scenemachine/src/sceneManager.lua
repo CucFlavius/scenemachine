@@ -87,12 +87,24 @@ function SM.AddScene(text)
     SM.RefreshSceneTabs();
 end
 
+function SM.RenameSelectedScene(text)
+    SM.RenameScene(text, SM.loadedSceneIndex);
+end
+
 function SM.RenameScene(text, index)
     if (text ~= nil and text ~= "") then
         -- rename existing scene
         PM.currentProject.scenes[index].name = text;
         SM.RefreshSceneTabs();
     end
+end
+
+function SM.GetSceneName()
+    if (SM.loadedScene) then
+        return SM.loadedScene.name;
+    end
+
+    return "";
 end
 
 function SM.Button_DeleteScene(index)
