@@ -38,6 +38,7 @@ function Window:Build()
 	--self.frame:SetUserPlaced(true);
     --self.frame:SetIgnoreParentScale(true);
 	self.frame:SetClampedToScreen(true);
+	UI.AddBackdropShadow(self.frame, 0, 20);
 
 	-- title bar frame --
 	self.titleBar = CreateFrame("Frame", "UI.Window.titleBar ".. self.title.. " TitleBar", self.frame);
@@ -64,12 +65,6 @@ function Window:Build()
     self.closeButton:SetColor(UI.Button.State.Normal, 0.1757, 0.1757, 0.1875, 1);
     self.closeButton:SetColor(UI.Button.State.Highlight, 0.1757, 0.1757, 0.1875, 1);
     self.closeButton:SetColor(UI.Button.State.Pressed, 0, 0.4765, 0.7968, 1);
-
-	-- Dropshadow --
-    --self.dropShadow = UI.ImageBox:New(-self.w * 0.09, 0, self.w, self.h, self.frame, "TOPLEFT", "TOPLEFT", Resources.textures["DropShadow"]);
-    --self.dropShadow:SetPoint("BOTTOMRIGHT", self.frame, "BOTTOMRIGHT", 0, 0);
-	--self.dropShadow:SetFrameLevel(100);
-    --self.dropShadow:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
 
     -- Resize Handle --
     self.frame:SetResizable(true);
@@ -137,7 +132,9 @@ function Window:CreateMenu(parent)
 	popup:Hide();
 	popup:SetFrameStrata("FULLSCREEN");
 
-	popup.menu = UI.Rectangle:New(0, 0, 200, 1000, popup, "TOPLEFT", "TOPLEFT", 0.1757, 0.1757, 0.1875, 1)
+	popup.menu = UI.Rectangle:New(0, 0, 200, 1000, popup, "TOPLEFT", "TOPLEFT", 0.1757, 0.1757, 0.1875, 1);
+	popup.menu:SetFrameLevel(10);
+	UI.AddBackdropShadow(popup.menu:GetFrame());
 	popup.menu.buttons = {}
 
 	for i = 1, 20, 1 do

@@ -125,9 +125,11 @@ function ScrollableTextBox:ClearFocus()
 end
 
 function ScrollableTextBox:SetText(text, skipUpdate)
-    self.text = text;
-    if not skipUpdate then
-        self.frame:GetEditBox():SetText(text);
+    if (text) then
+        self.text = text;
+        if not skipUpdate then
+            self.frame:GetEditBox():SetText(text);
+        end
     end
 end
 

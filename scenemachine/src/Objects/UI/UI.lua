@@ -137,6 +137,28 @@ function UI:HideTooltip()
 	self.animateTooltip = false;
 end
 
+function SceneMachine.UI.AddBackdropShadow(frame, oX, oY, oW, oH)
+	oX = oX or 0;
+	oY = oY or 0;
+	oW = oW or 0;
+	oH = oH or 0;
+
+	local backdropInfo =
+	{
+		edgeFile = Resources.textures["Dropshadow"],
+		tileEdge = true,
+		edgeSize = 32,
+	}
+	
+	frame.shadow = CreateFrame("Frame", nil, frame, "BackdropTemplate");
+	local size = 8;
+	frame.shadow:SetPoint("TOPLEFT", -size - oX, size + oY);
+	frame.shadow:SetPoint("BOTTOMRIGHT", size + oW, -size - oH);
+	frame.shadow:SetFrameLevel(max(0, frame:GetFrameLevel()-10));
+	frame.shadow:SetBackdrop(backdropInfo);
+	frame.shadow:SetAlpha(0.4);
+end
+
 UI.__tostring = function(self)
 	return "UI";
 end

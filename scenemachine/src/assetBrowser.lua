@@ -526,7 +526,10 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
 
     local testButton = UI.Button:New(0, -173, 100, 20, parent, "TOPLEFT", "TOPLEFT", "TEST");
     testButton:SetScript("OnClick", function(_, button, up)
-        SM.ExportSceneForPrint(SM.loadedScene);
+        if (SM.selectedObject) then
+            SM.selectedObject.actor:TryOn(167988);
+        end
+        --SM.ExportSceneForPrint(SM.loadedScene);
     end);
 --[[
     local testButtonB = UI.Button:New(0, -193, 100, 20, parent, "TOPLEFT", "TOPLEFT", "Connect");
@@ -697,6 +700,7 @@ function AssetBrowser.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
 				item.components[1]:SetAllPoints(item:GetFrame());
                 item.components[1]:SetFrameLevel(startLevel + 3);
                 item.components[1]:GetFrame():RegisterForDrag("LeftButton");
+                item.components[1]:GetFrame():RegisterForClicks("LeftButtonUp", "RightButtonUp");
                 item.components[1]:SetClipsChildren(true);
 
 				-- name text --
@@ -708,7 +712,9 @@ function AssetBrowser.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
                 
                 -- on double click --
                 item.components[1]:GetFrame():SetScript("OnDoubleClick", function (self, button, down)
-                    AssetBrowser.OnThumbnailDoubleClick(item.ID, item.components[4]:GetText());
+                    if (button == "LeftButton") then
+                        AssetBrowser.OnThumbnailDoubleClick(item.ID, item.components[4]:GetText());
+                    end
                 end);
             
                 -- on drag --
@@ -729,8 +735,25 @@ function AssetBrowser.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
 			refreshItem = function(entry, item, index)
                 -- on click --
                 item.components[1]:GetFrame():SetScript("OnClick", function (self, button, down)
-                    AssetBrowser.selectedGridViewItem = item;
-                    AssetBrowser.gridList:RefreshStatic();
+                    if (button == "LeftButton") then
+                        AssetBrowser.selectedGridViewItem = item;
+                        AssetBrowser.gridList:RefreshStatic();
+                    elseif (button == "RightButton") then
+                        --[[
+                        local point, relativeTo, relativePoint, xOfs, yOfs = item:GetPoint(1);
+                        local rx = xOfs + (AssetBrowser.gridList:GetLeft() - SceneMachine.mainWindow:GetLeft());
+                        local ry = yOfs + (AssetBrowser.gridList:GetTop() - SceneMachine.mainWindow:GetTop());
+            
+                        local menuOptions = {
+                            [1] = { ["Name"] = L["RENAME"], ["Action"] = function() SM.tabGroup:RenameTab(index, item, SM.RenameScene); end },
+                            [2] = { ["Name"] = L["EXPORT"], ["Action"] = function() SM.Button_ExportScene(index); end },
+                            [3] = { ["Name"] = L["IMPORT"], ["Action"] = function() SM.Button_ImportScene(); end },
+                            [4] = { ["Name"] = L["DELETE"], ["Action"] = function() SM.Button_DeleteScene(index); end },
+                        };
+            
+                        SceneMachine.mainWindow:PopupWindowMenu(rx, ry, menuOptions);
+                        --]]
+                    end
                 end);
 
 				-- object name text --
