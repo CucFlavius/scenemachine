@@ -18,6 +18,7 @@ L["EXPORT"] = "Export";
 L["IMPORT"] = "Import";
 L["SCROLL_TOP"] = "Jump to Top";
 L["SCROLL_BOTTOM"] = "Jump to Bottom";
+L["LOAD"] = "Load";
 
 -- Editor --
 L["ADDON_NAME"] = "Scene Machine";
@@ -143,6 +144,8 @@ L["AB_TOOLBAR_TT_REMOVE_COLLECTION"] = "Remove Collection";
 L["AB_TOOLBAR_TT_RENAME_COLLECTION"] = "Rename Collection";
 L["AB_TOOLBAR_TT_ADD_OBJECT"] = "Add Selected Object";
 L["AB_TOOLBAR_TT_REMOVE_OBJECT"] = "Remove Object";
+L["AB_RMB_FILE_INFO"] = "File Info";
+L["AB_RMB_ADD_TO_COLLECTION"] = "Add to Collection";
 
 -- Project Manager --
 L["PM_WINDOW_TITLE"] = "Project Manager";

@@ -147,7 +147,7 @@ function Window:CreateMenu(parent)
 	return popup;
 end
 
-function Window:PopupWindowMenu(x, y, menuOptions)
+function Window:PopupWindowMenu(mx, my, menuOptions)
 	self.menuIsOpen = true;
 	self.popup:SetScale(self:GetEffectiveScale());
 	if (menuOptions == nil) then return end
@@ -155,7 +155,7 @@ function Window:PopupWindowMenu(x, y, menuOptions)
 	if (optionCount == 0) then return end
 	self.popup:Show();
 	self.popup.menu:Show();
-	self.popup.menu:SetPoint("TOPLEFT", self.popup, "TOPLEFT", x, y);
+	self.popup.menu:SetPoint("TOPLEFT", self.popup, "TOPLEFT", mx, my);
 
 	local y = 0;
 	for i = 1, 20, 1 do
@@ -186,6 +186,15 @@ function Window:PopupWindowMenu(x, y, menuOptions)
 	end
 
 	self.popup.menu:SetHeight(-y);
+
+	-- offscreen check
+	local bottom = self.popup.menu:GetBottom();
+	if (bottom <= 0) then
+		my = my - bottom;
+	end
+
+	self.popup.menu:ClearAllPoints();
+	self.popup.menu:SetPoint("TOPLEFT", self.popup, "TOPLEFT", mx, my);
 end
 
 function Window:SetTitle(t)

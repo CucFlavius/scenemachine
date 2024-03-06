@@ -23,6 +23,7 @@ AssetBrowser.dataSource = "Models";
 AssetBrowser.selectedCollection = nil;
 AssetBrowser.selectedCollectionIndex = -1;
 AssetBrowser.selectedGridViewItem = nil;
+AssetBrowser.entryToAddToCollection = nil;
 local tabButtonHeight = 20;
 
 function AssetBrowser.Create(parent, w, h, startLevel)
@@ -97,6 +98,7 @@ function AssetBrowser.Create(parent, w, h, startLevel)
 end
 
 function AssetBrowser.LoadCollections()
+
     if (not scenemachine_collections) then
         AssetBrowser.CreateDefaultCollection();
     end
@@ -107,9 +109,31 @@ end
 function AssetBrowser.CreateDefaultCollection()
     scenemachine_collections = {};
 
-    --- TODO: Make proper collections
-    local index = AssetBrowser.NewCollection("My Collection");
-    AssetBrowser.AddDisplayIDToCollection(41918, index);
+    local index = AssetBrowser.NewCollection("Base Floors");
+    AssetBrowser.AddFileIDToCollection(947328, index);
+    AssetBrowser.AddFileIDToCollection(1093938, index);
+    AssetBrowser.AddFileIDToCollection(1247674, index);
+    AssetBrowser.AddFileIDToCollection(1247671, index);
+    AssetBrowser.AddFileIDToCollection(948613, index);
+    AssetBrowser.AddFileIDToCollection(4186667, index);
+    AssetBrowser.AddFileIDToCollection(306960, index);
+    AssetBrowser.AddFileIDToCollection(194010, index);
+    AssetBrowser.AddFileIDToCollection(3656582, index);
+    AssetBrowser.AddFileIDToCollection(657869, index);
+
+    local index = AssetBrowser.NewCollection("Point Lights");
+    AssetBrowser.AddFileIDToCollection(193039, index);
+    AssetBrowser.AddFileIDToCollection(1250693, index);
+    AssetBrowser.AddFileIDToCollection(1376353, index);
+    AssetBrowser.AddFileIDToCollection(1376386, index);
+    AssetBrowser.AddFileIDToCollection(1398885, index);
+    AssetBrowser.AddFileIDToCollection(1398890, index);
+    AssetBrowser.AddFileIDToCollection(1398891, index);
+    AssetBrowser.AddFileIDToCollection(1398892, index);
+    AssetBrowser.AddFileIDToCollection(1398893, index);
+    AssetBrowser.AddFileIDToCollection(1398894, index);
+    AssetBrowser.AddFileIDToCollection(1375444, index);
+    AssetBrowser.AddFileIDToCollection(1303476, index);
 end
 
 function AssetBrowser.NewCollection(name)
@@ -224,6 +248,16 @@ function AssetBrowser.OpenCollection(index)
     AssetBrowser.collectionScrollList:RefreshStatic();
 
     AssetBrowser.gridList:SetData(AssetBrowser.BuildCollectionData(AssetBrowser.selectedCollection));
+
+    if (AssetBrowser.entryToAddToCollection) then
+        if (AssetBrowser.entryToAddToCollection.displayID ~= 0) then
+            AssetBrowser.AddDisplayIDToCollection(AssetBrowser.entryToAddToCollection.displayID, index);
+        elseif (AssetBrowser.entryToAddToCollection.fileID ~= 0) then
+            AssetBrowser.AddFileIDToCollection(AssetBrowser.entryToAddToCollection.fileID, index);
+        end
+        AssetBrowser.gridList:SetData(AssetBrowser.BuildCollectionData(AssetBrowser.selectedCollection));
+        AssetBrowser.entryToAddToCollection = nil;
+    end
 end
 
 function AssetBrowser.GetFileName(fileID)
@@ -264,6 +298,7 @@ end
 function AssetBrowser.OnChangeTab(idx)
     AssetBrowser.tabGroup.selectedIndex = idx;
     AssetBrowser.selectedGridViewItem = nil;
+    AssetBrowser.entryToAddToCollection = nil;
     local tabFrame = AssetBrowser.tabs[idx]:GetFrame();
     for i = 1, #AssetBrowser.tabs, 1 do
         AssetBrowser.tabs[i]:Hide();
@@ -686,6 +721,46 @@ function AssetBrowser.CreateSearchBar(xMin, yMin, xMax, yMax, parent, startLevel
     end);
 end
 
+function AssetBrowser.GridShowFileInfo(entry)
+    if (entry.fileID) then
+        Editor.ShowImportExportWindow(nil, "Model\nName: ".. entry.N .."\nFileID: " .. entry.fileID);
+    elseif(entry.displayID) then
+        Editor.ShowImportExportWindow(nil, "Creature\nName: ".. entry.N .."\nDisplayID: " .. entry.displayID);
+    end
+end
+
+function AssetBrowser.GridAddToCollection(entry)
+    AssetBrowser.OnChangeTab(3);
+    AssetBrowser.entryToAddToCollection = { fileID = entry.fileID or 0, displayID = entry.displayID or 0 };
+end
+
+function AssetBrowser.GridLoad(entry)
+    AssetBrowser.OnThumbnailDoubleClick(entry.ID, entry.N);
+end
+
+function AssetBrowser.GridCollectionRemove(entry)
+    if (not AssetBrowser.selectedCollection) then
+        return;
+    end
+
+    for i = 1, #AssetBrowser.selectedCollection.items, 1 do
+        if (entry.displayID and entry.displayID ~= 0) then
+            if (entry.displayID == AssetBrowser.selectedCollection.items[i].displayID) then
+                table.remove(scenemachine_collections[AssetBrowser.selectedCollectionIndex].items, i);
+                AssetBrowser.gridList:SetData(AssetBrowser.BuildCollectionData(AssetBrowser.selectedCollection));
+                return;
+            end
+        end
+        if (entry.fileID and entry.fileID ~= 0) then
+            if (entry.fileID == AssetBrowser.selectedCollection.items[i].fileID) then
+                table.remove(scenemachine_collections[AssetBrowser.selectedCollectionIndex].items, i);
+                AssetBrowser.gridList:SetData(AssetBrowser.BuildCollectionData(AssetBrowser.selectedCollection));
+                return;
+            end
+        end
+    end
+end
+
 function AssetBrowser.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
     AssetBrowser.gridList = UI.PooledGridScrollList:NewP(parent, xMin, yMin, "TOPLEFT", "TOPLEFT", xMax, yMax, "BOTTOMRIGHT", "BOTTOMRIGHT");
     AssetBrowser.gridList:SetFrameLevel(startLevel + 2);
@@ -739,20 +814,31 @@ function AssetBrowser.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
                         AssetBrowser.selectedGridViewItem = item;
                         AssetBrowser.gridList:RefreshStatic();
                     elseif (button == "RightButton") then
-                        --[[
+
                         local point, relativeTo, relativePoint, xOfs, yOfs = item:GetPoint(1);
-                        local rx = xOfs + (AssetBrowser.gridList:GetLeft() - SceneMachine.mainWindow:GetLeft());
-                        local ry = yOfs + (AssetBrowser.gridList:GetTop() - SceneMachine.mainWindow:GetTop());
-            
-                        local menuOptions = {
-                            [1] = { ["Name"] = L["RENAME"], ["Action"] = function() SM.tabGroup:RenameTab(index, item, SM.RenameScene); end },
-                            [2] = { ["Name"] = L["EXPORT"], ["Action"] = function() SM.Button_ExportScene(index); end },
-                            [3] = { ["Name"] = L["IMPORT"], ["Action"] = function() SM.Button_ImportScene(); end },
-                            [4] = { ["Name"] = L["DELETE"], ["Action"] = function() SM.Button_DeleteScene(index); end },
-                        };
-            
-                        SceneMachine.mainWindow:PopupWindowMenu(rx, ry, menuOptions);
-                        --]]
+                        local x = -(item:GetLeft() - Input.mouseXRaw);
+                        local y = -(item:GetTop() - Input.mouseYRaw);
+
+                        local rx = x + xOfs + (AssetBrowser.gridList:GetLeft() - SceneMachine.mainWindow:GetLeft());
+                        local ry = y + yOfs + (AssetBrowser.gridList:GetTop() - SceneMachine.mainWindow:GetTop());
+                        if (entry.fileID or entry.displayID) then
+                            local menuOptions = {
+                                [1] = { ["Name"] = L["LOAD"],
+                                        ["Action"] = function() AssetBrowser.GridLoad(entry) end },
+                                [2] = { ["Name"] = L["AB_RMB_FILE_INFO"],
+                                        ["Action"] = function() AssetBrowser.GridShowFileInfo(entry) end },
+                                
+                            };
+
+                            if (entry.collectionItem) then
+                                menuOptions[#menuOptions + 1] = { ["Name"] = L["DELETE"],
+                                        ["Action"] = function() AssetBrowser.GridCollectionRemove(entry) end }
+                            else
+                                menuOptions[#menuOptions + 1] = { ["Name"] = L["AB_RMB_ADD_TO_COLLECTION"],
+                                        ["Action"] = function() AssetBrowser.GridAddToCollection(entry) end }
+                            end
+                            SceneMachine.mainWindow:PopupWindowMenu(rx, ry, menuOptions);
+                        end
                     end
                 end);
 
@@ -817,6 +903,7 @@ function AssetBrowser.UpOneFolder()
 
         AssetBrowser.currentDirectory = AssetBrowser.breadcrumb[pos];
         table.remove(AssetBrowser.breadcrumb, pos + 1);
+        AssetBrowser.selectedGridViewItem = nil;
         AssetBrowser.gridList:SetData(AssetBrowser.BuildFolderData(AssetBrowser.currentDirectory));
         AssetBrowser.RefreshBreadcrumb();
     end
@@ -891,7 +978,7 @@ function AssetBrowser.BuildCollectionData(collectionData)
             name = AssetBrowser.GetFileName(item.fileID);
         end
 
-        data[idx] = { N = name, fileID = fileID, displayID = displayID, ID = ID };
+        data[idx] = { N = name, fileID = fileID, displayID = displayID, ID = ID, collectionItem = true };
         idx = idx + 1;
     end
 
@@ -982,6 +1069,7 @@ function AssetBrowser.OnThumbnailDoubleClick(ID, name)
                     if (dirName == name) then
                         AssetBrowser.currentPage = 1;
                         AssetBrowser.currentDirectory = AssetBrowser.currentDirectory["D"][i];
+                        AssetBrowser.selectedGridViewItem = nil;
                         table.insert(AssetBrowser.breadcrumb, AssetBrowser.currentDirectory);
                         AssetBrowser.RefreshBreadcrumb();
                         AssetBrowser.gridList:SetData(AssetBrowser.BuildFolderData(AssetBrowser.currentDirectory));
