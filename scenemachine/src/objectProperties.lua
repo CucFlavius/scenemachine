@@ -66,9 +66,11 @@ function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
 end
 
 function OP.Refresh()
+    SM.CalculateObjectsAverage();
+    
     local pos, rot, scale, alpha;
 
-    if (SM.selectedObject == nil) then
+    if (SM.selectedPosition == nil) then
         pos = { x=0, y=0, z=0 };
         rot = { x=0, y=0, z=0 };
         scale = 1;
@@ -76,14 +78,14 @@ function OP.Refresh()
         OP.ToggleTransformFields(false);
     else
         OP.ToggleTransformFields(true);
-        pos = SM.selectedObject:GetPosition();
-        rot = SM.selectedObject:GetRotation();
-        scale = SM.selectedObject:GetScale();
-        alpha = SM.selectedObject:GetAlpha();
+        pos = SM.selectedPosition;
+        rot = SM.selectedRotation;
+        scale = SM.selectedScale;
+        alpha = SM.selectedAlpha;
     end
 
     OP.positionField:Set(OP.Truncate(pos.x, 3), OP.Truncate(pos.y, 3), OP.Truncate(pos.z, 3));
-    OP.rotationField:Set(OP.Truncate(deg(rot.x), 3), OP.Truncate(deg(rot.y), 3), OP.Truncate(deg(rot.z), 3));
+    OP.rotationField:Set(OP.Truncate(math.deg(rot.x), 3), OP.Truncate(math.deg(rot.y), 3), OP.Truncate(math.deg(rot.z), 3));
     OP.scaleField:Set(OP.Truncate(scale, 3));
     OP.alphaField:Set(OP.Truncate(alpha, 3));
 
@@ -110,86 +112,102 @@ function OP.SetPosX(value)
     if (not value) then
         return;
     end
-    if (SM.selectedObject == nil) then
+    if (#SM.selectedObjects == 0) then
         return;
     end
-    local pos = SM.selectedObject:GetPosition();
-    SM.selectedObject:SetPosition(value, pos.y, pos.z);
+    local pos = SM.selectedObjects[1]:GetPosition();
+    SM.selectedObjects[1]:SetPosition(value, pos.y, pos.z);
+
+    -- TODO: Multiselect
 end
 
 function OP.SetPosY(value)
     if (not value) then
         return;
     end
-    if (SM.selectedObject == nil) then
+    if (#SM.selectedObjects == 0) then
         return;
     end
-    local pos = SM.selectedObject:GetPosition();
-    SM.selectedObject:SetPosition(pos.x, value, pos.z);
+    local pos = SM.selectedObjects[1]:GetPosition();
+    SM.selectedObjects[1]:SetPosition(pos.x, value, pos.z);
+
+    -- TODO: Multiselect
 end
 
 function OP.SetPosZ(value)
     if (not value) then
         return;
     end
-    if (SM.selectedObject == nil) then
+    if (#SM.selectedObjects == 0) then
         return;
     end
-    local pos = SM.selectedObject:GetPosition();
-    SM.selectedObject:SetPosition(pos.x, pos.y, value);
+    local pos = SM.selectedObjects[1]:GetPosition();
+    SM.selectedObjects[1]:SetPosition(pos.x, pos.y, value);
+
+    -- TODO: Multiselect
 end
 
 function OP.SetRotX(value)
     if (not value) then
         return;
     end
-    if (SM.selectedObject == nil) then
+    if (#SM.selectedObjects == 0) then
         return;
     end
-    local rot = SM.selectedObject:GetRotation();
-    SM.selectedObject:SetRotation(rad(value), rot.y, rot.z);
+    local rot = SM.selectedObjects[1]:GetRotation();
+    SM.selectedObjects[1]:SetRotation(rad(value), rot.y, rot.z);
+
+    -- TODO: Multiselect
 end
 
 function OP.SetRotY(value)
     if (not value) then
         return;
     end
-    if (SM.selectedObject == nil) then
+    if (#SM.selectedObjects == 0) then
         return;
     end
-    local rot = SM.selectedObject:GetRotation();
-    SM.selectedObject:SetRotation(rot.x, rad(value), rot.z);
+    local rot = SM.selectedObjects[1]:GetRotation();
+    SM.selectedObjects[1]:SetRotation(rot.x, rad(value), rot.z);
+
+    -- TODO: Multiselect
 end
 
 function OP.SetRotZ(value)
     if (not value) then
         return;
     end
-    if (SM.selectedObject == nil) then
+    if (#SM.selectedObjects == 0) then
         return;
     end
-    local rot = SM.selectedObject:GetRotation();
-    SM.selectedObject:SetRotation(rot.x, rot.y, rad(value));
+    local rot = SM.selectedObjects[1]:GetRotation();
+    SM.selectedObjects[1]:SetRotation(rot.x, rot.y, rad(value));
+
+    -- TODO: Multiselect
 end
 
 function OP.SetScale(value)
     if (not value) then
         return;
     end
-    if (SM.selectedObject == nil) then
+    if (#SM.selectedObjects == 0) then
         return;
     end
-    SM.selectedObject:SetScale(value);
+    SM.selectedObjects[1]:SetScale(value);
+
+    -- TODO: Multiselect
 end
 
 function OP.SetAlpha(value)
     if (not value) then
         return;
     end
-    if (SM.selectedObject == nil) then
+    if (#SM.selectedObjects == 0) then
         return;
     end
-    SM.selectedObject:SetAlpha(value);
+    SM.selectedObjects[1]:SetAlpha(value);
+
+    -- TODO: Multiselect
 end
 
 function OP.Truncate(num, digits)

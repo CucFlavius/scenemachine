@@ -47,11 +47,12 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 			end,
 			refreshItem = function(data, item)
 				-- main button --
-				item.components[1]:SetScript("OnClick", function() SH.SelectObject(data); end);
-				if (data == SM.selectedObject) then
-					item.components[1]:SetColor(UI.Button.State.Normal, 0, 0.4765, 0.7968, 1);
-				else
-					item.components[1]:SetColor(UI.Button.State.Normal, 0.1757, 0.1757, 0.1875, 1);
+				item.components[1]:SetScript("OnClick", function() SM.SelectObject(data); end);
+				item.components[1]:SetColor(UI.Button.State.Normal, 0.1757, 0.1757, 0.1875, 1);
+				for i = 1, #SM.selectedObjects, 1 do
+					if (data == SM.selectedObjects[i]) then
+						item.components[1]:SetColor(UI.Button.State.Normal, 0, 0.4765, 0.7968, 1);
+					end
 				end
 
 				-- frozen --
@@ -87,16 +88,4 @@ function SH.RefreshHierarchy()
     end
 
 	SH.scrollList:SetData(SM.loadedScene.objects);
-end
-
-function SH.SelectObject(object)
-	SM.selectedObject = object;
-    SH.RefreshHierarchy();
-	OP.Refresh();
-
-    -- also select track if available
-    if (SM.selectedObject ~= nil) then
-        AM.SelectTrackOfObject(SM.selectedObject);
-		Editor.lastSelectedType = "obj";
-    end
 end

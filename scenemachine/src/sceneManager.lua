@@ -10,6 +10,7 @@ local AM = Editor.AnimationManager;
 local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
 local L = Editor.localization;
+local Vector3 = SceneMachine.Vector3;
 
 local tabButtonHeight = 20;
 local tabPool = {};
@@ -18,7 +19,13 @@ SM.SCENE_DATA_VERSION = 1;
 
 SM.loadedSceneIndex = 1;
 SM.loadedScene = nil;
-SM.selectedObject = nil;
+SM.selectedObjects = {};
+
+SM.selectedPosition = nil;
+SM.selectedRotation = nil;
+SM.selectedScale = nil;
+SM.selectedBounds = nil;
+SM.selectedAlpha = nil;
 
 function SM.Create(x, y, w, h, parent, startLevel)
     SM.startLevel = startLevel;
@@ -256,11 +263,11 @@ function SM.LoadScene(index)
     SH.RefreshHierarchy();
     OP.Refresh();
 
-    SM.selectedObject = nil;
+    SM.selectedObjects = {};
 end
 
 function SM.UnloadScene()
-    SM.selectedObject = nil;
+    SM.selectedObjects = {};
     Renderer.Clear();
 end
 
@@ -345,6 +352,120 @@ function SM.CreateCharacter(_x, _y, _z)
     return object;
 end
 
+function SM.SelectObject(object)
+	if (not object) then
+		SM.selectedObjects = {};
+	else
+		if (SceneMachine.Input.ControlModifier) then
+			SM.selectedObjects[#SM.selectedObjects + 1] = object;
+		else
+			SM.selectedObjects = { object };
+		end
+	end
+
+    SH.RefreshHierarchy();
+	OP.Refresh();
+
+    -- also select track if available
+	-- only select a track if a one single object is selected, no multi-track selection support needed
+    if (#SM.selectedObjects == 1) then
+        AM.SelectTrackOfObject(SM.selectedObjects[1]);
+		Editor.lastSelectedType = "obj";
+	end
+end
+
+function SM.CalculateObjectsAverage()
+
+    if (#SM.selectedObjects == 0) then
+        SM.selectedPosition = Vector3.zero;
+        SM.selectedRotation = Vector3.zero;
+        SM.selectedScale = 1.0;
+        SM.selectedAlpha = 1.0;
+        SM.selectedBounds = nil;
+    elseif (#SM.selectedObjects == 1) then
+        SM.selectedPosition = SM.selectedObjects[1]:GetPosition();
+        SM.selectedRotation = SM.selectedObjects[1]:GetRotation();
+        SM.selectedScale = SM.selectedObjects[1]:GetScale();
+        SM.selectedAlpha = 1.0;
+
+        local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObjects[1]:GetActiveBoundingBox();
+        SM.selectedBounds = { xMin, yMin, zMin, xMax, yMax, zMax };
+    else
+        -- Position (Calculate center position)
+        local x, y, z = 0, 0, 0;
+        for i = 1, #SM.selectedObjects, 1 do
+            local pos = SM.selectedObjects[i]:GetPosition();
+            x = x + pos.x;
+            y = y + pos.y;
+            z = z + pos.z;
+        end
+        SM.selectedPosition = Vector3:New(x / #SM.selectedObjects, y / #SM.selectedObjects, z / #SM.selectedObjects);
+
+        -- Rotation (set to 0?)
+        SM.selectedRotation = Vector3:New(0, 0, 0);
+
+        -- Scale (set to 1?)
+        SM.selectedScale = 1.0;
+
+        SM.selectedAlpha = 1.0;
+
+        -- Calculate encapsulating bounds
+        -- Initialize min and max bounds with the first object's bounds
+        local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObjects[1]:GetActiveBoundingBox();
+
+        -- Get position of the first object
+        local Pos = SM.selectedObjects[1]:GetPosition();
+        local Scale = SM.selectedObjects[1]:GetScale();
+
+        -- Update bounds with position of the first object
+        xMin = xMin * Scale + Pos.x;
+        xMax = xMax * Scale + Pos.x;
+        yMin = yMin * Scale + Pos.y;
+        yMax = yMax * Scale + Pos.y;
+        zMin = zMin * Scale + Pos.z;
+        zMax = zMax * Scale + Pos.z;
+
+        -- Iterate through the rest of the objects in the array
+        for i = 2, #SM.selectedObjects do
+            local obj = SM.selectedObjects[i];
+            local xmin, ymin, zmin, xmax, ymax, zmax = obj:GetActiveBoundingBox();
+            
+            -- Get position of the object
+            local Pos = obj:GetPosition();
+            local Scale = obj:GetScale();
+
+            -- Update minimum bounds
+            xMin = math.min(xMin, xmin * Scale + Pos.x);
+            yMin = math.min(yMin, ymin * Scale + Pos.y);
+            zMin = math.min(zMin, zmin * Scale + Pos.z);
+            
+            -- Update maximum bounds
+            xMax = math.max(xMax, xmax * Scale + Pos.x);
+            yMax = math.max(yMax, ymax * Scale + Pos.y);
+            zMax = math.max(zMax, zmax * Scale + Pos.z);
+        end
+
+        SM.selectedBounds = { xMin, yMin, zMin, xMax, yMax, zMax };
+    end
+
+end
+
+function SM.CloneObjects(objects, selectAfter)
+    if (not objects) then
+        return;
+    end
+
+    for i = 1, #objects, 1 do
+        if (objects[i]) then
+            local clone = SM.CloneObject(objects[i]);
+            if (selectAfter) then
+                SM.selectedObjects[i] = clone;
+            end
+            
+        end
+    end
+end
+
 function SM.CloneObject(object, selectAfter)
     if (object == nil) then
         return;
@@ -367,12 +488,14 @@ function SM.CloneObject(object, selectAfter)
         clone:SetScale(scale);
 
         if (selectAfter) then
-            SM.selectedObject = clone;
+            SM.selectedObjects = { clone };
         end
 
         SH.RefreshHierarchy();
         OP.Refresh();
     end
+
+    return clone;
 end
 
 function SM.Clear()
@@ -406,14 +529,24 @@ function SM.ObjectHasTrack(obj)
     return false;
 end
 
+function SM.DeleteObjects(objects)
+    if (not objects) then
+        return;
+    end
+
+    for i = 1, #objects, 1 do
+        if (objects[i]) then
+            SM.DeleteObject(objects[i]);
+        end
+    end
+end
+
 function SM.DeleteObject(object)
     if (object == nil) then
         return;
     end
 
-    if (SM.selectedObject == object) then
-        SM.selectedObject = nil;
-    end
+    SM.selectedObjects = {};
 
     if (#SM.loadedScene.objects > 0) then
         for i in pairs(SM.loadedScene.objects) do
@@ -439,12 +572,40 @@ function SM.DeleteObject(object)
     OP.Refresh();
 end
 
+function SM.ToggleObjectsVisibility(objects)
+    if (not objects) then
+        return;
+    end
+
+    for i = 1, #objects, 1 do
+        if (objects[i]) then
+            objects[i]:ToggleVisibility();
+        end
+    end
+
+    SH.RefreshHierarchy();
+end
+
 function SM.ToggleObjectVisibility(object)
     if (object == nil) then
         return;
     end
 
     object:ToggleVisibility();
+    SH.RefreshHierarchy();
+end
+
+function SM.ToggleObjectsFreezeState(objects)
+    if (not objects) then
+        return;
+    end
+
+    for i = 1, #objects, 1 do
+        if (objects[i]) then
+            objects[i]:ToggleFrozen();
+        end
+    end
+
     SH.RefreshHierarchy();
 end
 
@@ -748,5 +909,5 @@ function SM.LoadNetworkScene(scene)
     SH.RefreshHierarchy();
     OP.Refresh();
 
-    SM.selectedObject = nil;
+    SM.selectedObjects = {};
 end

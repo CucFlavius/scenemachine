@@ -33,8 +33,8 @@ function MainMenu.Create()
         {
             ["Name"] = L["MM_EDIT"],
             ["Options"] = {
-                { ["Name"] = L["MM_CLONE_SELECTED"], ["Action"] = function() SM.CloneObject(SM.selectedObject, true); end },
-                { ["Name"] = L["MM_DELETE_SELECTED"], ["Action"] = function() SM.DeleteObject(SM.selectedObject); end },
+                { ["Name"] = L["MM_CLONE_SELECTED"], ["Action"] = function() SM.CloneObjects(SM.selectedObjects, true); end },
+                { ["Name"] = L["MM_DELETE_SELECTED"], ["Action"] = function() SM.DeleteObjects(SM.selectedObjects); end },
             },
         },
         {

@@ -101,11 +101,11 @@ function Editor.Initialize()
             },
             { type = "Separator" },
             {
-                type = "Button", name = "Center", icon = toolbar:GetIcon("centerpivot"), action = function(self) Gizmos.pivot = 0; print("Pivot Center"); end,
+                type = "Button", name = "Center", icon = toolbar:GetIcon("centerpivot"), action = function(self) Editor.SetPivotMode(0); print("Pivot Center"); end,
                 tooltip = L["EDITOR_TOOLBAR_TT_PIVOT_CENTER"],
             },
             {
-                type = "Button", name = "Base", icon = toolbar:GetIcon("basepivot"), action = function(self) Gizmos.pivot = 1; print("Pivot Base"); end,
+                type = "Button", name = "Base", icon = toolbar:GetIcon("basepivot"), action = function(self) Editor.SetPivotMode(1); print("Pivot Base"); end,
                 tooltip = L["EDITOR_TOOLBAR_TT_PIVOT_BASE"],
             },
             { type = "Separator" },
@@ -164,12 +164,37 @@ function Editor.Initialize()
         CC.Action.ShiftSpeed = false;
         SceneMachine.Input.ShiftModifier = false;
     end);
+    SceneMachine.Input.AddKeyBind("RSHIFT", function() 
+        CC.Action.ShiftSpeed = true;
+        SceneMachine.Input.ShiftModifier = true;
+    end,
+    function() 
+        CC.Action.ShiftSpeed = false;
+        SceneMachine.Input.ShiftModifier = false;
+    end);
+    SceneMachine.Input.AddKeyBind("LCTRL", function() 
+        SceneMachine.Input.ControlModifier = true;
+    end,
+    function() 
+        SceneMachine.Input.ControlModifier = false;
+    end);
+    SceneMachine.Input.AddKeyBind("RCTRL", function() 
+        SceneMachine.Input.ControlModifier = true;
+    end,
+    function() 
+        SceneMachine.Input.ControlModifier = false;
+    end);
     SceneMachine.Input.AddKeyBind("DELETE",function()
         if (Editor.ui.focused == false) then
             Editor.DeleteLastSelected();
         end
     end);
-    SceneMachine.Input.AddKeyBind("F",function() CC.FocusObject(SM.selectedObject); end);
+    SceneMachine.Input.AddKeyBind("DELETE",function()
+        if (Editor.ui.focused == false) then
+            Editor.DeleteLastSelected();
+        end
+    end);
+    SceneMachine.Input.AddKeyBind("F",function() CC.FocusObjects(SM.selectedObjects); end);
     SceneMachine.Input.AddKeyBind("1", function() Gizmos.activeTransformGizmo = 0; end);
     SceneMachine.Input.AddKeyBind("2", function() Gizmos.activeTransformGizmo = 1; end);
     SceneMachine.Input.AddKeyBind("3", function() Gizmos.activeTransformGizmo = 2; end);
@@ -253,12 +278,20 @@ end
 
 function Editor.DeleteLastSelected()
     if (Editor.lastSelectedType == "obj") then
-        if (SM.ObjectHasTrack(SM.selectedObject)) then
-            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["EDITOR_MSG_DELETE_OBJECT_TITLE"], L["EDITOR_MSG_DELETE_OBJECT_MESSAGE"],
-                true, true, function() SM.DeleteObject(SM.selectedObject); end, function() end);
-        else
-            SM.DeleteObject(SM.selectedObject);
+        local complexObject = false;
+        for i = 1, #SM.selectedObjects, 1 do
+            if (SM.ObjectHasTrack(SM.selectedObjects[i])) then
+                complexObject = true;
+            end
         end
+
+        if (complexObject) then
+            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["EDITOR_MSG_DELETE_OBJECT_TITLE"], L["EDITOR_MSG_DELETE_OBJECT_MESSAGE"],
+            true, true, function() SM.DeleteObjects(SM.selectedObjects); end, function() end);
+        else
+            SM.DeleteObjects(SM.selectedObjects);
+        end
+
     elseif (Editor.lastSelectedType == "track") then
         local hasAnims = AM.TrackHasAnims(AM.selectedTrack);
         local hasKeyframes = AM.TrackHasKeyframes(AM.selectedTrack);
@@ -547,6 +580,14 @@ function Editor.ShowRenameWindow(action, text)
     Editor.renameWindow:Show();
 end
 
+function Editor.SetPivotMode(mode)
+    Gizmos.pivot = mode;
+
+    --for i = 1, #SM.selectedObjects, 1 do
+    --    SM.selectedObjects[i]:SetPivot(mode);
+    --end
+end
+
 function Editor.OpenContextMenu(x, y)
 	local menuOptions = {
         { ["Name"] = L["CM_SELECT"], ["Action"] = function() Gizmos.activeTransformGizmo = 0; end },
@@ -554,16 +595,18 @@ function Editor.OpenContextMenu(x, y)
         { ["Name"] = L["CM_ROTATE"], ["Action"] = function() Gizmos.activeTransformGizmo = 2; end },
         { ["Name"] = L["CM_SCALE"], ["Action"] = function() Gizmos.activeTransformGizmo = 3; end },
         { ["Name"] = nil },
-        { ["Name"] = L["CM_DELETE"], ["Action"] = function() SM.DeleteObject(SM.selectedObject); end },
-        { ["Name"] = L["CM_HIDE_SHOW"], ["Action"] = function() SM.ToggleObjectVisibility(SM.selectedObject); end },
+        { ["Name"] = L["CM_DELETE"], ["Action"] = function() SM.DeleteObjects(SM.selectedObjects); end },
+        { ["Name"] = L["CM_HIDE_SHOW"], ["Action"] = function() SM.ToggleObjectsVisibility(SM.selectedObjects); end },
         { ["Name"] = L["CM_FREEZE_UNFREEZE"], ["Action"] = function()
-            SM.ToggleObjectFreezeState(SM.selectedObject);
-            if (SM.selectedObject) then
-                if (SM.selectedObject.frozen) then
-                    SM.selectedObject = nil;
-                    SH.RefreshHierarchy();
-                    OP.Refresh();
+            SM.ToggleObjectsFreezeState(SM.selectedObjects);
+            if (#SM.selectedObjects > 0) then
+                for i= #SM.selectedObjects, 1, -1 do
+                    if (SM.selectedObjects[i].frozen) then
+                        table.remove(SM.selectedObjects, i);
+                    end
                 end
+                SH.RefreshHierarchy();
+                OP.Refresh();
             end
         end },
 	};

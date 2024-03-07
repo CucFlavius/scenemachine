@@ -1190,7 +1190,7 @@ function AM.CreateWorkArea(x, y, w, h, parent, startLevel)
             AM.SelectAnimation(-1);
             AM.SelectTrack(-1);
             AM.SelectKeyAtIndex(-1);
-            SH.SelectObject(nil);
+            SM.SelectObject(nil);
         end
     end)
 

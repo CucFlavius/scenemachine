@@ -206,7 +206,7 @@ function Renderer.RenderGizmos()
                 --ShadeScaleGizmo(SceneMachine.Gizmos.DebugGizmo);
             end
         end
-        if SM.selectedObject ~= nil then
+        if #SM.selectedObjects > 0 then
             RenderGizmoLines(SceneMachine.Gizmos.WireBox);
             ShadeSelectionGizmo(SceneMachine.Gizmos.WireBox);
         end

@@ -47,29 +47,35 @@ function MousePick.Pick(x, y)
         end
     end
 
-    -- go through each selection list item and determine which one to select
-    if (#MousePick.selectionList == 0) then
-        SM.selectedObject = nil;
-    elseif (#MousePick.selectionList == 1) then
-        SM.selectedObject = MousePick.selectionList[1];
+    if (SceneMachine.Input.ControlModifier) then
+        if (#MousePick.selectionList > 0) then
+            SM.SelectObject(MousePick.selectionList[1]);
+        end
     else
-        if (MousePick.CompareSelectionLists(MousePick.previousSelectionList, MousePick.selectionList)) then
-            -- same selection list, so loop through to determine which one to select next
-            for i = 1, #MousePick.selectionList, 1 do
-                if (SM.selectedObject == MousePick.selectionList[i]) then
-                    local currentIndex = i;
-                    if (currentIndex >= #MousePick.selectionList) then
-                        -- loop back
-                        currentIndex = 0;
-                    end
-                    -- select next
-                    SM.selectedObject = MousePick.selectionList[currentIndex + 1];
-                    break;
-                end
-            end
+        -- go through each selection list item and determine which one to select
+        if (#MousePick.selectionList == 0) then
+            SM.selectedObjects = {};
+        elseif (#MousePick.selectionList == 1) then
+            SM.SelectObject(MousePick.selectionList[1]);
         else
-            -- different selection list, so just select first object
-            SM.selectedObject = MousePick.selectionList[1];
+            if (MousePick.CompareSelectionLists(MousePick.previousSelectionList, MousePick.selectionList)) then
+                -- same selection list, so loop through to determine which one to select next
+                for i = 1, #MousePick.selectionList, 1 do
+                    if (SM.selectedObjects[1] == MousePick.selectionList[i]) then
+                        local currentIndex = i;
+                        if (currentIndex >= #MousePick.selectionList) then
+                            -- loop back
+                            currentIndex = 0;
+                        end
+                        -- select next
+                        SM.selectedObjects[1] = MousePick.selectionList[currentIndex + 1];
+                        break;
+                    end
+                end
+            else
+                -- different selection list, so just select first object
+                SM.selectedObjects[1] = MousePick.selectionList[1];
+            end
         end
     end
 
@@ -79,11 +85,12 @@ function MousePick.Pick(x, y)
         MousePick.previousSelectionList[i] = MousePick.selectionList[i];
     end
 
-    -- also select track
-    if (SM.selectedObject ~= nil) then
-        AM.SelectTrackOfObject(SM.selectedObject);
-        Editor.lastSelectedType = "obj";
-    else
+    -- also select track if available
+	-- only select a track if a one single object is selected, no multi-track selection support needed
+    if (#SM.selectedObjects == 1) then
+        AM.SelectTrackOfObject(SM.selectedObjects[1]);
+		Editor.lastSelectedType = "obj";
+	else
         AM.SelectTrack(-1);
     end
 

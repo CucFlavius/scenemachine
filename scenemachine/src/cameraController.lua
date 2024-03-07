@@ -162,6 +162,18 @@ function CC.OnRMBUp()
 	CC.RMBPressed = false;
 end
 
+function CC.FocusObjects(objects)
+	if (#objects == 0) then
+		return
+	end
+
+	if (#objects == 1) then
+		CC.FocusObject(objects[1]);
+	end
+
+	-- TODO: Focus multiple objects
+end
+
 function CC.FocusObject(object)
 	if (object == nil) then
 		return;

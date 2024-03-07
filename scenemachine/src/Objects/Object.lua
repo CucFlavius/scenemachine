@@ -258,6 +258,30 @@ function Object:GetAlpha()
     return self.alpha;
 end
 
+--[[
+function Object:SetPivot(mode)
+    if (not self.pivot) then
+        self.pivot = 0;
+    end
+
+    if (self.pivot ~= mode) then
+        self.pivot = mode;
+
+        if (self.pivot == 0) then
+            -- center
+            self.actor:SetUseCenterForOrigin(0, 0, 0);
+            --local xMin, yMin, zMin, xMax, yMax, zMax = obj:GetActiveBoundingBox();
+            --obj:SetPosition((xMin + xMax) / 2, (yMin + yMax) / 2, (zMin + zMax) / 2);
+        elseif (self.pivot == 1) then
+            -- base
+            self.actor:SetUseCenterForOrigin(false, false, false);
+            --local xMin, yMin, zMin, xMax, yMax, zMax = obj:GetActiveBoundingBox();
+            --obj:SetPosition((xMin + xMax) / 2, (yMin + yMax) / 2, (zMin + zMax) / 2);
+        end
+    end
+end
+--]]
+
 function Object:ToggleFrozen()
     self.frozen = not self.frozen;
 end
