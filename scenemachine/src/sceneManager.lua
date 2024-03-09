@@ -357,6 +357,20 @@ function SM.CreateCharacter(_x, _y, _z)
     return object;
 end
 
+function SM.IsObjectSelected(object)
+    if (not object) then
+        return false;
+    end
+
+    for i = 1, #SM.selectedObjects, 1 do
+        if (SM.selectedObjects[i] == object) then
+            return true;
+        end
+    end
+
+    return false;
+end
+
 function SM.SelectObject(object)
 	if (not object) then
 		SM.selectedObjects = {};

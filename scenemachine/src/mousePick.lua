@@ -54,10 +54,15 @@ function MousePick.Pick(x, y)
 
     MousePick.SortSelectionList(MousePick.selectionList);
 
-
     if (SceneMachine.Input.ControlModifier) then
         if (#MousePick.selectionList > 0) then
-            SM.SelectObject(MousePick.selectionList[1].object);
+            for i = 1, #MousePick.selectionList, 1 do
+                if (not MousePick.selectionList[i].object.selected) then    -- this is faster than SM.IsObjectSelected
+                --if (not SM.IsObjectSelected(MousePick.selectionList[i].object)) then
+                    SM.SelectObject(MousePick.selectionList[i].object);
+                    break;
+                end
+            end
         end
     else
         -- go through each selection list item and determine which one to select

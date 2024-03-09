@@ -66,9 +66,13 @@ function Input.Initialize()
 
     Input.MouseListener = Input.MouseListener or CreateFrame("Button", "SceneMachine.Input.MouseListener", Renderer.projectionFrame);
     Input.MouseListener:SetAllPoints(Renderer.projectionFrame);
-    Input.MouseListener:SetScript("OnClick", function()
+    Input.MouseListener:SetScript("OnClick", function(self, button, down)
         -- Handle Code that needs direct mouse input here (so not OnUpdate)
-        SM.ApplySelectionEffects();
+        if (not down) then
+            local x, y = GetCursorPosition();
+            MousePick.Pick(x, y);
+            SM.ApplySelectionEffects();
+        end
     end);
 end
 
@@ -272,9 +276,9 @@ function Input.OnClick(LMB, RMB, MMB, x, y)
     if (not Editor.isOpen) then return end
     if (LMB) then
         -- mouse pick --
-        if (not Gizmos.isHighlighted) or (#SM.selectedObjects == 0) then
-            MousePick.Pick(x, y);
-        end
+        --if (not Gizmos.isHighlighted) or (#SM.selectedObjects == 0) then
+        --    MousePick.Pick(x, y);
+        --end
     elseif (RMB) then
     elseif (MMB) then
     end
