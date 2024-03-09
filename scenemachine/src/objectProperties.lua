@@ -71,22 +71,6 @@ function OP.Refresh()
     
     local pos, rot, scale, alpha;
 
-    --[[
-    if (SM.selectedPosition == nil) then
-        pos = { x=0, y=0, z=0 };
-        rot = { x=0, y=0, z=0 };
-        scale = 1;
-        alpha = 1;
-        OP.ToggleTransformFields(false);
-    else
-        OP.ToggleTransformFields(true);
-        pos = SM.selectedPosition;
-        rot = SM.selectedRotation;
-        scale = SM.selectedScale;
-        alpha = SM.selectedAlpha;
-    end
-    --]]
-
     if (#SM.selectedObjects == 0) then
         OP.ToggleTransformFields(false);
         pos = { x=0, y=0, z=0 };

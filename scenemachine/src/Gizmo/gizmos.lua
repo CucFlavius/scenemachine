@@ -207,42 +207,25 @@ function Gizmos.UpdateMarquee(mouseX, mouseY)
                         vertices[6] = {-chX, -chY, chZ};
                         vertices[7] = {-chX, chY, -chZ};
                         vertices[8] = {chX, -chY, chZ};
+
                         -- transformGizmo
-                        local pivot = 0;
-                        local space = 1;
-                        local pivotOffset;
-                        if (pivot == 0) then
-                            -- center
-                            pivotOffset = Vector3:New( 0, 0, 0 );
-                        elseif (pivot == 1) then
-                            -- base
-                            --pivotOffset = Vector3:New(0, 0, bbCenter);
-                            --pivotOffset:RotateAroundPivot(Vector3:New(0, 0, 0), rotation);
-                        end
-                    
                         for q = 1, 8, 1 do
                             Gizmos.marqueeAABBSSPoints[idx].SSvertices[q] = {};
-                            if (space == 1) then
-                                -- local space --
-                                local rotated = Vector3:New(vertices[q][1], vertices[q][2], vertices[q][3]);
-                                rotated:RotateAroundPivot(Vector3:New(0, 0, 0), rotation);
-                                vertices[q][1] = rotated.x * scale + position.x + pivotOffset.x;
-                                vertices[q][2] = rotated.y * scale + position.y + pivotOffset.y;
-                                vertices[q][3] = rotated.z * scale + position.z + pivotOffset.z;
+                            -- local space --
+                            local rotated = Vector3:New(vertices[q][1], vertices[q][2], vertices[q][3]);
+                            rotated:RotateAroundPivot(Vector3:New(0, 0, 0), rotation);
+                            vertices[q][1] = rotated.x * scale + position.x;
+                            vertices[q][2] = rotated.y * scale + position.y;
+                            vertices[q][3] = rotated.z * scale + position.z;
 
-                                --local cull = Renderer.NearPlaneFaceCullingLine(Gizmos.marqueeAABBSSPoints[idx].vertices[q], Camera.planePosition.x, Camera.planePosition.y, Camera.planePosition.z, Camera.forward.x, Camera.forward.y, Camera.forward.z, 0);
+                            local cull = Renderer.NearPlaneFaceCullingVert(vertices[q], Camera.planePosition.x, Camera.planePosition.y, Camera.planePosition.z, Camera.forward.x, Camera.forward.y, Camera.forward.z);
 
-                                --if (not cull) then
-                                    local aX, aY, aZ = Renderer.projectionFrame:Project3DPointTo2D(vertices[q][1], vertices[q][2], vertices[q][3]);
-                                    Gizmos.marqueeAABBSSPoints[idx].SSvertices[q][1] = aX;
-                                    Gizmos.marqueeAABBSSPoints[idx].SSvertices[q][2] = aY;
-                                --end
-                            elseif (space == 0) then
-                                -- world space --
-                                --gizmo.transformedVertices[q][v][1] = gizmo.vertices[q][v][1] * gizmo.scale * scale + position.x + pivotOffset.x;
-                                --gizmo.transformedVertices[q][v][2] = gizmo.vertices[q][v][2] * gizmo.scale * scale + position.y + pivotOffset.y;
-                                --gizmo.transformedVertices[q][v][3] = gizmo.vertices[q][v][3] * gizmo.scale * scale + position.z + pivotOffset.z;
+                            if (not cull) then
+                                local aX, aY, aZ = Renderer.projectionFrame:Project3DPointTo2D(vertices[q][1], vertices[q][2], vertices[q][3]);
+                                Gizmos.marqueeAABBSSPoints[idx].SSvertices[q][1] = aX;
+                                Gizmos.marqueeAABBSSPoints[idx].SSvertices[q][2] = aY;
                             end
+                            Gizmos.marqueeAABBSSPoints[idx].SSvertices[q][3] = cull;
                         end
 
                         idx = idx + 1;
@@ -267,14 +250,17 @@ function Gizmos.UpdateMarquee(mouseX, mouseY)
                     local vert = Gizmos.marqueeAABBSSPoints[i].SSvertices[v];
                     local x = vert[1];
                     local y = vert[2];
+                    local cull = vert[3];
 
-                    local minX = math.min(mouseX, Gizmos.marqueeStartPoint[1]);
-                    local maxX = math.max(mouseX, Gizmos.marqueeStartPoint[1]);
-                    local minY = math.min(mouseY, Gizmos.marqueeStartPoint[2]);
-                    local maxY = math.max(mouseY, Gizmos.marqueeStartPoint[2]);
-                    if (x > minX and x < maxX and y > minY and y < maxY) then
-                        selected = true;
-                        break;
+                    if (not cull) then
+                        local minX = math.min(mouseX, Gizmos.marqueeStartPoint[1]);
+                        local maxX = math.max(mouseX, Gizmos.marqueeStartPoint[1]);
+                        local minY = math.min(mouseY, Gizmos.marqueeStartPoint[2]);
+                        local maxY = math.max(mouseY, Gizmos.marqueeStartPoint[2]);
+                        if (x > minX and x < maxX and y > minY and y < maxY) then
+                            selected = true;
+                            break;
+                        end
                     end
                 end
 

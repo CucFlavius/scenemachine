@@ -47,7 +47,7 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 			end,
 			refreshItem = function(data, item)
 				-- main button --
-				item.components[1]:SetScript("OnClick", function() SM.SelectObject(data); end);
+				item.components[1]:SetScript("OnClick", function() SM.SelectObject(data); SM.ApplySelectionEffects(); end);
 				item.components[1]:SetColor(UI.Button.State.Normal, 0.1757, 0.1757, 0.1875, 1);
 				for i = 1, #SM.selectedObjects, 1 do
 					if (data == SM.selectedObjects[i]) then

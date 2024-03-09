@@ -139,6 +139,17 @@ function Renderer.Clear()
     end
 end
 
+function Renderer.NearPlaneFaceCullingVert(vert, planePositionX, planePositionY, planePositionZ, planeNormalX, planeNormalY, planeNormalZ)
+    local distA = {};
+    distA[1] = vert[1] - planePositionX;	distA[2] = vert[2] - planePositionY;	distA[3] = vert[3] - planePositionZ;
+
+    if (((distA[1] * planeNormalX) + (distA[2] * planeNormalY) + (distA[3] * planeNormalZ)) < 0) then
+        return true;
+    end
+
+    return false
+end
+
 function Renderer.NearPlaneFaceCullingLine(vert, planePositionX, planePositionY, planePositionZ, planeNormalX, planeNormalY, planeNormalZ, maxP)
     local distA = {};
     local distB = {};
