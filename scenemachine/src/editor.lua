@@ -101,6 +101,11 @@ function Editor.Initialize()
                 action = function(self, on) if (on) then Editor.SetPivotMode(0); else Editor.SetPivotMode(1); end end,
                 default = true, tooltips = { L["EDITOR_TOOLBAR_TT_PIVOT_CENTER"], L["EDITOR_TOOLBAR_TT_PIVOT_BASE"] },
             },
+            {
+                type = "Toggle", name = "MultiTransform", iconOn = toolbar:GetIcon("together"), iconOff = toolbar:GetIcon("individual"),
+                action = function(self, on) if (on) then Editor.SetMultiTransformMode(0); else Editor.SetMultiTransformMode(1); end end,
+                default = true, tooltips = { L["EDITOR_TOOLBAR_TT_MULTITRANSFORM_TOGETHER"], L["EDITOR_TOOLBAR_TT_MULTITRANSFORM_INDIVIDUAL"] },
+            },
             { type = "Separator" },
         }
     );
@@ -575,10 +580,10 @@ end
 
 function Editor.SetPivotMode(mode)
     Gizmos.pivot = mode;
+end
 
-    --for i = 1, #SM.selectedObjects, 1 do
-    --    SM.selectedObjects[i]:SetPivot(mode);
-    --end
+function Editor.SetMultiTransformMode(mode)
+    Gizmos.multiTransform = mode;
 end
 
 function Editor.OpenContextMenu(x, y)

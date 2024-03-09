@@ -44,6 +44,8 @@ L["EDITOR_TOOLBAR_TT_PIVOT_CENTER"] = "Center Pivot";
 L["EDITOR_TOOLBAR_TT_PIVOT_BASE"] = "Base Pivot";
 L["EDITOR_IMPORT_EXPORT_WINDOW_TITLE"] = "Import - Export";
 L["EDITOR_NAME_RENAME_WINDOW_TITLE"] = "Name - Rename";
+L["EDITOR_TOOLBAR_TT_MULTITRANSFORM_TOGETHER"] = "Transform Together";
+L["EDITOR_TOOLBAR_TT_MULTITRANSFORM_INDIVIDUAL"] = "Transform Individual";
 
 -- Main Menu --
 L["MM_FILE"] = "File";

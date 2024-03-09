@@ -19,6 +19,7 @@ Gizmos.selectedAxis = 1;            -- x = 1, y = 2, z = 3
 Gizmos.activeTransformGizmo = 1;    -- select = 0, move = 1, rotate = 2, scale = 3
 Gizmos.space = 1;                   -- world = 0, local = 1
 Gizmos.pivot = 0;                   -- center = 0, base(original) = 1 (Only really affects rotation)
+Gizmos.multiTransform = 0;          -- transform together = 0, transform individual = 1
 Gizmos.LMBPrevious = {};
 Gizmos.frames = {};
 Gizmos.forward = Vector3:New(1, 0, 0);
@@ -638,126 +639,213 @@ function Gizmos.MotionToTransform()
                         if (Gizmos.space == 0) then
                             local oldRx = rx;
                             rx = rx + diff;
-                            if (Gizmos.pivot == 1) then
-                                local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObjects[i]:GetActiveBoundingBox();
-                                local h = (zMax - zMin) / 2;
-                                
-                                local pivotOffsetA = Vector3:New(0, 0, -h);
-                                pivotOffsetA:RotateAroundPivot(Vector3:New(h, 0, 0), Vector3:New(oldRx, 0, 0));
-                                local pivotOffset = Vector3:New(0, 0, -h);
-                                pivotOffset:RotateAroundPivot(Vector3:New(h, 0, 0), Vector3:New(rx, 0, 0));
-
-                                px = px + (pivotOffsetA.x - pivotOffset.x);
-                                py = py + (pivotOffsetA.y - pivotOffset.y);
-                                pz = pz + (pivotOffsetA.z - pivotOffset.z);
+                            
+                            if (Gizmos.multiTransform == 0) then
+                                -- together
+                                local pivotOffset = Vector3:New(px, py, pz);
+                                pivotOffset:RotateAroundPivot(
+                                    Vector3:New(Gizmos.center[1], Gizmos.center[2], Gizmos.center[3]),
+                                    Vector3:New(diff, 0, 0)
+                                );
+                                px = pivotOffset.x;
+                                py = pivotOffset.y;
+                                pz = pivotOffset.z;
                                 SM.selectedObjects[i]:SetPosition(px, py, pz);
+                            elseif(Gizmos.multiTransform == 1) then
+                                -- individual
+                                if (Gizmos.pivot == 1) then
+                                    local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObjects[i]:GetActiveBoundingBox();
+                                    local h = (zMax - zMin) / 2;
+                                    
+                                    local pivotOffsetA = Vector3:New(0, 0, -h);
+                                    pivotOffsetA:RotateAroundPivot(Vector3:New(h, 0, 0), Vector3:New(oldRx, 0, 0));
+                                    local pivotOffset = Vector3:New(0, 0, -h);
+                                    pivotOffset:RotateAroundPivot(Vector3:New(h, 0, 0), Vector3:New(rx, 0, 0));
+
+                                    px = px + (pivotOffsetA.x - pivotOffset.x);
+                                    py = py + (pivotOffsetA.y - pivotOffset.y);
+                                    pz = pz + (pivotOffsetA.z - pivotOffset.z);
+                                    SM.selectedObjects[i]:SetPosition(px, py, pz);
+                                end
                             end
                         elseif (Gizmos.space == 1) then
-                            local rot = Math.multiplyRotations(Gizmos.previousRotation, Vector3:New(Gizmos.rotationIncrement, 0, 0));
+                            local rot = Math.multiplyRotations(Gizmos.previousRotation, Vector3:New(diff, 0, 0));
                             local oldRx = rx;
                             local oldRy = ry;
                             local oldRz = rz;
-                            rx = rot.x;
-                            ry = rot.y;
-                            rz = rot.z;
+                            rx = rot.x + oldRx;
+                            ry = rot.y + oldRy;
+                            rz = rot.z + oldRz;
 
-                            if (Gizmos.pivot == 1) then
-                                local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObjects[i]:GetActiveBoundingBox();
-                                local h = (zMax - zMin) / 2;
-                                
-                                local pivotOffsetA = Vector3:New(0, 0, -h);
-                                pivotOffsetA:RotateAroundPivot(Vector3:New(h, 0, 0), Vector3:New(oldRx, oldRy, oldRz));
-                                local pivotOffset = Vector3:New(0, 0, -h);
-                                pivotOffset:RotateAroundPivot(Vector3:New(h, 0, 0), Vector3:New(rx, ry, rz));
-
-                                px = px + (pivotOffsetA.x - pivotOffset.x);
-                                py = py + (pivotOffsetA.y - pivotOffset.y);
-                                pz = pz + (pivotOffsetA.z - pivotOffset.z);
+                            if (Gizmos.multiTransform == 0) then
+                                -- together
+                                local pivotOffset = Vector3:New(px, py, pz);
+                                pivotOffset:RotateAroundPivot(
+                                    Vector3:New(Gizmos.center[1], Gizmos.center[2], Gizmos.center[3]),
+                                    Vector3:New(diff, 0, 0)
+                                );
+                                px = pivotOffset.x;
+                                py = pivotOffset.y;
+                                pz = pivotOffset.z;
                                 SM.selectedObjects[i]:SetPosition(px, py, pz);
+                            elseif(Gizmos.multiTransform == 1) then
+                                -- individual
+                                if (Gizmos.pivot == 1) then
+                                    local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObjects[i]:GetActiveBoundingBox();
+                                    local h = (zMax - zMin) / 2;
+                                    
+                                    local pivotOffsetA = Vector3:New(0, 0, -h);
+                                    pivotOffsetA:RotateAroundPivot(Vector3:New(h, 0, 0), Vector3:New(oldRx, oldRy, oldRz));
+                                    local pivotOffset = Vector3:New(0, 0, -h);
+                                    pivotOffset:RotateAroundPivot(Vector3:New(h, 0, 0), Vector3:New(rx, ry, rz));
+
+                                    px = px + (pivotOffsetA.x - pivotOffset.x);
+                                    py = py + (pivotOffsetA.y - pivotOffset.y);
+                                    pz = pz + (pivotOffsetA.z - pivotOffset.z);
+                                    SM.selectedObjects[i]:SetPosition(px, py, pz);
+                                end
                             end
                         end
                     elseif (Gizmos.selectedAxis == 2) then
                         if (Gizmos.space == 0) then
                             local oldRy = ry;
                             ry = ry + diff;
-                            if (Gizmos.pivot == 1) then
-                                local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObjects[i]:GetActiveBoundingBox();
-                                local h = (zMax - zMin) / 2;
-                                
-                                local pivotOffsetA = Vector3:New(0, 0, -h);
-                                pivotOffsetA:RotateAroundPivot(Vector3:New(0, h, 0), Vector3:New(0, oldRy, 0));
-                                local pivotOffset = Vector3:New(0, 0, -h);
-                                pivotOffset:RotateAroundPivot(Vector3:New(0, h, 0), Vector3:New(0, ry, 0));
 
-                                px = px + (pivotOffsetA.x - pivotOffset.x);
-                                py = py + (pivotOffsetA.y - pivotOffset.y);
-                                pz = pz + (pivotOffsetA.z - pivotOffset.z);
+                            if (Gizmos.multiTransform == 0) then
+                                -- together
+                                local pivotOffset = Vector3:New(px, py, pz);
+                                pivotOffset:RotateAroundPivot(
+                                    Vector3:New(Gizmos.center[1], Gizmos.center[2], Gizmos.center[3]),
+                                    Vector3:New(0, diff, 0)
+                                );
+                                px = pivotOffset.x;
+                                py = pivotOffset.y;
+                                pz = pivotOffset.z;
                                 SM.selectedObjects[i]:SetPosition(px, py, pz);
+                            elseif(Gizmos.multiTransform == 1) then
+                                -- individual
+                                if (Gizmos.pivot == 1) then
+                                    local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObjects[i]:GetActiveBoundingBox();
+                                    local h = (zMax - zMin) / 2;
+                                    
+                                    local pivotOffsetA = Vector3:New(0, 0, -h);
+                                    pivotOffsetA:RotateAroundPivot(Vector3:New(0, h, 0), Vector3:New(0, oldRy, 0));
+                                    local pivotOffset = Vector3:New(0, 0, -h);
+                                    pivotOffset:RotateAroundPivot(Vector3:New(0, h, 0), Vector3:New(0, ry, 0));
+
+                                    px = px + (pivotOffsetA.x - pivotOffset.x);
+                                    py = py + (pivotOffsetA.y - pivotOffset.y);
+                                    pz = pz + (pivotOffsetA.z - pivotOffset.z);
+                                    SM.selectedObjects[i]:SetPosition(px, py, pz);
+                                end
                             end
                         elseif (Gizmos.space == 1) then
-                            local rot = Math.multiplyRotations(Gizmos.previousRotation, Vector3:New(0, Gizmos.rotationIncrement, 0));
+                            local rot = Math.multiplyRotations(Gizmos.previousRotation, Vector3:New(0, diff, 0));
                             local oldRx = rx;
                             local oldRy = ry;
                             local oldRz = rz;
-                            rx = rot.x;
-                            ry = rot.y;
-                            rz = rot.z;
+                            rx = rot.x + oldRx;
+                            ry = rot.y + oldRy;
+                            rz = rot.z + oldRz;
 
-                            if (Gizmos.pivot == 1) then
-                                local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObjects[i]:GetActiveBoundingBox();
-                                local h = (zMax - zMin) / 2;
-                                
-                                local pivotOffsetA = Vector3:New(0, 0, -h);
-                                pivotOffsetA:RotateAroundPivot(Vector3:New(0, h, 0), Vector3:New(oldRx, oldRy, oldRz));
-                                local pivotOffset = Vector3:New(0, 0, -h);
-                                pivotOffset:RotateAroundPivot(Vector3:New(0, h, 0), Vector3:New(rx, ry, rz));
-
-                                px = px + (pivotOffsetA.x - pivotOffset.x);
-                                py = py + (pivotOffsetA.y - pivotOffset.y);
-                                pz = pz + (pivotOffsetA.z - pivotOffset.z);
+                            if (Gizmos.multiTransform == 0) then
+                                -- together
+                                local pivotOffset = Vector3:New(px, py, pz);
+                                pivotOffset:RotateAroundPivot(
+                                    Vector3:New(Gizmos.center[1], Gizmos.center[2], Gizmos.center[3]),
+                                    Vector3:New(0, diff, 0)
+                                );
+                                px = pivotOffset.x;
+                                py = pivotOffset.y;
+                                pz = pivotOffset.z;
                                 SM.selectedObjects[i]:SetPosition(px, py, pz);
+                            elseif(Gizmos.multiTransform == 1) then
+                                -- individual
+                                if (Gizmos.pivot == 1) then
+                                    local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObjects[i]:GetActiveBoundingBox();
+                                    local h = (zMax - zMin) / 2;
+                                    
+                                    local pivotOffsetA = Vector3:New(0, 0, -h);
+                                    pivotOffsetA:RotateAroundPivot(Vector3:New(0, h, 0), Vector3:New(oldRx, oldRy, oldRz));
+                                    local pivotOffset = Vector3:New(0, 0, -h);
+                                    pivotOffset:RotateAroundPivot(Vector3:New(0, h, 0), Vector3:New(rx, ry, rz));
+
+                                    px = px + (pivotOffsetA.x - pivotOffset.x);
+                                    py = py + (pivotOffsetA.y - pivotOffset.y);
+                                    pz = pz + (pivotOffsetA.z - pivotOffset.z);
+                                    SM.selectedObjects[i]:SetPosition(px, py, pz);
+                                end
                             end
                         end
                     elseif (Gizmos.selectedAxis == 3) then
                         if (Gizmos.space == 0) then
                             local oldRz = rz;
                             rz = rz + diff;
-                            if (Gizmos.pivot == 1) then
-                                local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObjects[i]:GetActiveBoundingBox();
-                                local h = (zMax - zMin) / 2;
-                                
-                                local pivotOffsetA = Vector3:New(0, 0, -h);
-                                pivotOffsetA:RotateAroundPivot(Vector3:New(0, 0, h), Vector3:New(0, 0, oldRz));
-                                local pivotOffset = Vector3:New(0, 0, -h);
-                                pivotOffset:RotateAroundPivot(Vector3:New(0, 0, h), Vector3:New(0, 0, rz));
 
-                                px = px + (pivotOffsetA.x - pivotOffset.x);
-                                py = py + (pivotOffsetA.y - pivotOffset.y);
-                                pz = pz + (pivotOffsetA.z - pivotOffset.z);
+                            if (Gizmos.multiTransform == 0) then
+                                -- together
+                                local pivotOffset = Vector3:New(px, py, pz);
+                                pivotOffset:RotateAroundPivot(
+                                    Vector3:New(Gizmos.center[1], Gizmos.center[2], Gizmos.center[3]),
+                                    Vector3:New(0, 0, diff)
+                                );
+                                px = pivotOffset.x;
+                                py = pivotOffset.y;
+                                pz = pivotOffset.z;
                                 SM.selectedObjects[i]:SetPosition(px, py, pz);
+                            elseif(Gizmos.multiTransform == 1) then
+                                -- individual
+                                if (Gizmos.pivot == 1) then
+                                    local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObjects[i]:GetActiveBoundingBox();
+                                    local h = (zMax - zMin) / 2;
+                                    
+                                    local pivotOffsetA = Vector3:New(0, 0, -h);
+                                    pivotOffsetA:RotateAroundPivot(Vector3:New(0, 0, h), Vector3:New(0, 0, oldRz));
+                                    local pivotOffset = Vector3:New(0, 0, -h);
+                                    pivotOffset:RotateAroundPivot(Vector3:New(0, 0, h), Vector3:New(0, 0, rz));
+
+                                    px = px + (pivotOffsetA.x - pivotOffset.x);
+                                    py = py + (pivotOffsetA.y - pivotOffset.y);
+                                    pz = pz + (pivotOffsetA.z - pivotOffset.z);
+                                    SM.selectedObjects[i]:SetPosition(px, py, pz);
+                                end
                             end
                         elseif (Gizmos.space == 1) then
-                            local rot = Math.multiplyRotations(Gizmos.previousRotation, Vector3:New(0, 0, Gizmos.rotationIncrement));
+                            local rot = Math.multiplyRotations(Gizmos.previousRotation, Vector3:New(0, 0, diff));
                             local oldRx = rx;
                             local oldRy = ry;
                             local oldRz = rz;
-                            rx = rot.x;
-                            ry = rot.y;
-                            rz = rot.z;
+                            rx = rot.x + oldRx;
+                            ry = rot.y + oldRy;
+                            rz = rot.z + oldRz;
 
-                            if (Gizmos.pivot == 1) then
-                                local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObjects[i]:GetActiveBoundingBox();
-                                local h = (zMax - zMin) / 2;
-                                
-                                local pivotOffsetA = Vector3:New(0, 0, -h);
-                                pivotOffsetA:RotateAroundPivot(Vector3:New(0, 0, h), Vector3:New(oldRx, oldRy, oldRz));
-                                local pivotOffset = Vector3:New(0, 0, -h);
-                                pivotOffset:RotateAroundPivot(Vector3:New(0, 0, h), Vector3:New(rx, ry, rz));
-
-                                px = px + (pivotOffsetA.x - pivotOffset.x);
-                                py = py + (pivotOffsetA.y - pivotOffset.y);
-                                pz = pz + (pivotOffsetA.z - pivotOffset.z);
+                            if (Gizmos.multiTransform == 0) then
+                                -- together
+                                local pivotOffset = Vector3:New(px, py, pz);
+                                pivotOffset:RotateAroundPivot(
+                                    Vector3:New(Gizmos.center[1], Gizmos.center[2], Gizmos.center[3]),
+                                    Vector3:New(0, 0, diff)
+                                );
+                                px = pivotOffset.x;
+                                py = pivotOffset.y;
+                                pz = pivotOffset.z;
                                 SM.selectedObjects[i]:SetPosition(px, py, pz);
+                            elseif(Gizmos.multiTransform == 1) then
+                                -- individual
+                                if (Gizmos.pivot == 1) then
+                                    local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObjects[i]:GetActiveBoundingBox();
+                                    local h = (zMax - zMin) / 2;
+                                    
+                                    local pivotOffsetA = Vector3:New(0, 0, -h);
+                                    pivotOffsetA:RotateAroundPivot(Vector3:New(0, 0, h), Vector3:New(oldRx, oldRy, oldRz));
+                                    local pivotOffset = Vector3:New(0, 0, -h);
+                                    pivotOffset:RotateAroundPivot(Vector3:New(0, 0, h), Vector3:New(rx, ry, rz));
+
+                                    px = px + (pivotOffsetA.x - pivotOffset.x);
+                                    py = py + (pivotOffsetA.y - pivotOffset.y);
+                                    pz = pz + (pivotOffsetA.z - pivotOffset.z);
+                                    SM.selectedObjects[i]:SetPosition(px, py, pz);
+                                end
                             end
                         end
                     end
@@ -799,6 +887,8 @@ function Gizmos.OnLMBDown(x, y)
 
     -- store rotation vector
     if (#SM.selectedObjects > 0) then
+        -- store center
+        Gizmos.center = { SM.selectedPosition.x, SM.selectedPosition.y, SM.selectedPosition.z };
         local rotation = SM.selectedRotation;--SM.selectedObject:GetRotation();
         local rx, ry, rz = rotation.x, rotation.y, rotation.z;
         local forward = Math.normalize(Math.rotateVector(rx, ry, rz, 1, 0, 0));
@@ -813,6 +903,14 @@ function Gizmos.OnLMBDown(x, y)
         Gizmos.right:SetVector3(Vector3.right);
         Gizmos.up:SetVector3(Vector3.up);
         Gizmos.previousRotation:Set(0, 0, 0);
+    end
+
+    if (#SM.selectedObjects > 0) then
+        Gizmos.previousPositions = {};
+        for i = 1, #SM.selectedObjects, 1 do
+            local position = SM.selectedObjects[i]:GetPosition();
+            Gizmos.previousPositions[i] = Vector3:New(position.x, position.y, position.z);
+        end
     end
 
     -- store initial ray intersection
