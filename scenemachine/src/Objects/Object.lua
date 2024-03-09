@@ -258,30 +258,6 @@ function Object:GetAlpha()
     return self.alpha;
 end
 
---[[
-function Object:SetPivot(mode)
-    if (not self.pivot) then
-        self.pivot = 0;
-    end
-
-    if (self.pivot ~= mode) then
-        self.pivot = mode;
-
-        if (self.pivot == 0) then
-            -- center
-            self.actor:SetUseCenterForOrigin(0, 0, 0);
-            --local xMin, yMin, zMin, xMax, yMax, zMax = obj:GetActiveBoundingBox();
-            --obj:SetPosition((xMin + xMax) / 2, (yMin + yMax) / 2, (zMin + zMax) / 2);
-        elseif (self.pivot == 1) then
-            -- base
-            self.actor:SetUseCenterForOrigin(false, false, false);
-            --local xMin, yMin, zMin, xMax, yMax, zMax = obj:GetActiveBoundingBox();
-            --obj:SetPosition((xMin + xMax) / 2, (yMin + yMax) / 2, (zMin + zMax) / 2);
-        end
-    end
-end
---]]
-
 function Object:ToggleFrozen()
     self.frozen = not self.frozen;
 end
@@ -291,7 +267,41 @@ function Object:PlayAnimID(id)
 end
 
 function Object:PlayAnimKitID(id)
-    self.actor:PlayAnimationKit(id)
+    self.actor:PlayAnimationKit(id);
+end
+
+function Object:SetSpellVisualKitID(id, oneShot)
+    self.actor:SetSpellVisualKit(id, oneShot);
+    self.spellVisualKitID = id;
+end
+
+function Object:ClearSpellVisualKits()
+
+    self:SetSpellVisualKitID(-1);
+
+    if (self.type == SceneMachine.ObjectType.Model) then
+        self.actor:SetModelByFileID(self.fileID);
+    elseif (self.type == SceneMachine.ObjectType.Creature) then
+        self.actor:SetModelByCreatureDisplayID(self.displayID);
+    elseif (self.type == SceneMachine.ObjectType.Character) then
+        self.actor:SetModelByUnit("player");
+    end
+
+    self.spellVisualKitID = nil;
+end
+
+function Object:Select()
+    if (not self.selected) then
+        self:SetSpellVisualKitID(70682);
+        self.selected = true;
+    end
+end
+
+function Object:Deselect()
+    if (self.selected) then
+        self:ClearSpellVisualKits();
+        self.selected = false;
+    end
 end
 
 function Object:PackRotation(rotation)

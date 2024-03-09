@@ -497,7 +497,6 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         end
         local val = tonumber(valText);
         if (val ~= nil) then
-            --SM.CreateCreature(val, "Creature", 0, 0, 0);
             if (#SM.selectedObjects > 0) then
                 SM.selectedObjects[1]:PlayAnimID(val);
             end
@@ -516,7 +515,6 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         end
         local val = tonumber(valText);
         if (val ~= nil) then
-            --SM.CreateCreature(val, "Creature", 0, 0, 0);
             if (#SM.selectedObjects > 0) then
                 SM.selectedObjects[1]:PlayAnimKitID(val);
             end
@@ -569,7 +567,41 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         end
     end);
 
-    local testButton = UI.Button:New(0, -173, 100, 20, parent, "TOPLEFT", "TOPLEFT", "TEST");
+    local spellKitText = UI.Label:New(0, -173, 100, 20, parent, "TOPLEFT", "TOPLEFT", "SetSpellVisualKitID", 9);
+    local spellKitEditBox = UI.TextBox:New(100, -173, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    local currentKit = 0;
+    spellKitEditBox:SetScript('OnEnterPressed', function(self1)
+        -- set value
+        local valText = self1:GetText();
+        if (valText == nil or valText == "") then
+            return;
+        end
+        local val = tonumber(valText);
+        if (val ~= nil) then
+            if (#SM.selectedObjects > 0) then
+                currentKit = val;
+                SM.selectedObjects[1]:SetSpellVisualKitID(val);
+            end
+        end
+        self1:ClearFocus();
+        Editor.ui.focused = false;
+    end);
+    local nextKitButton = UI.Button:New(100 + w * 0.3, -173, 30, 20, parent, "TOPLEFT", "TOPLEFT", " > ");
+    nextKitButton:SetScript("OnClick", function(_, button, up)
+        if (#SM.selectedObjects > 0) then
+            currentKit = currentKit + 1;
+            spellKitEditBox:SetText(tostring(currentKit));
+            SM.selectedObjects[1]:SetSpellVisualKitID(currentKit);
+        end
+    end);
+    local clearKitButton = UI.Button:New(100 + w * 0.3 + 30, -173, 30, 20, parent, "TOPLEFT", "TOPLEFT", " C ");
+    clearKitButton:SetScript("OnClick", function(_, button, up)
+        if (#SM.selectedObjects > 0) then
+            SM.selectedObjects[1]:ClearSpellVisualKits();
+        end
+    end);
+
+    local testButton = UI.Button:New(0, -193, 100, 20, parent, "TOPLEFT", "TOPLEFT", "TEST");
     testButton:SetScript("OnClick", function(_, button, up)
         if (#SM.selectedObjects > 0) then
             SM.selectedObjects[1].actor:TryOn(167988);

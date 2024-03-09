@@ -456,6 +456,22 @@ function SM.CalculateObjectsAverage()
 
 end
 
+function SM.ApplySelectionEffects()
+
+    -- TODO: Don't loop all, try comparing which objects changed selection
+    if (not SM.loadedScene) then
+        return;
+    end
+
+    for i = 1, #SM.loadedScene.objects, 1 do
+        SM.loadedScene.objects[i]:Deselect();
+    end
+
+    for i = 1, #SM.selectedObjects, 1 do
+        SM.selectedObjects[i]:Select();
+    end
+end
+
 function SM.CloneObjects(objects, selectAfter)
     if (not objects) then
         return;

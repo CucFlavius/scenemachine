@@ -32,7 +32,7 @@ function Input.AddKeyBind(key, downAction, upAction)
 end
 
 function Input.Initialize()
-    Input.KeyboardListener = SceneMachine.Input.KeyboardListener or CreateFrame("Frame","SceneMachine.Input.KeyboardListener",UIParent);
+    Input.KeyboardListener = Input.KeyboardListener or CreateFrame("Frame","SceneMachine.Input.KeyboardListener",UIParent);
     Input.KeyboardListener:EnableKeyboard(true);
     Input.KeyboardListener:SetPropagateKeyboardInput(true);
     Input.KeyboardListener:SetScript("OnKeyDown", function(self, key)
@@ -63,6 +63,13 @@ function Input.Initialize()
                 end
             end
         end);
+
+    Input.MouseListener = Input.MouseListener or CreateFrame("Button", "SceneMachine.Input.MouseListener", Renderer.projectionFrame);
+    Input.MouseListener:SetAllPoints(Renderer.projectionFrame);
+    Input.MouseListener:SetScript("OnClick", function()
+        -- Handle Code that needs direct mouse input here (so not OnUpdate)
+        SM.ApplySelectionEffects();
+    end);
 end
 
 function Input.Update()

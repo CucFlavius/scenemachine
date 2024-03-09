@@ -75,6 +75,7 @@ function Renderer.CreateRenderer(x, y, w, h, parent, startLevel)
 	Renderer.projectionFrame:SetCameraOrientationByYawPitchRoll(0, 0, 0);
     Renderer.projectionFrame:SetFrameLevel(startLevel + 2);
 	--Renderer.GenerateFrameBuffer(startLevel + 3);
+
 	Renderer.active = false;
 end
 
