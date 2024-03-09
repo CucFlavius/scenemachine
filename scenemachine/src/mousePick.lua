@@ -39,17 +39,25 @@ function MousePick.Pick(x, y)
             local bb = BoundingBox:New();
             bb:SetFromMinMaxAABB(xMin, yMin, zMin, xMax, yMax, zMax);
 
-            if (ray:IntersectsBoundingBox(bb, object:GetPosition(), object:GetRotation(), object:GetScale())) then
-                MousePick.selectionList[idx] = object;
-                --print(xMin, yMin, zMin, xMax, yMax, zMax)
+            local tNear, tFar = ray:IntersectsBoundingBox(bb, object:GetPosition(), object:GetRotation(), object:GetScale())
+            
+            if (tNear <= tFar) then
+                MousePick.selectionList[idx] = {};
+                MousePick.selectionList[idx].object = object;
+                MousePick.selectionList[idx].tNear = tNear;
+                MousePick.selectionList[idx].tFar = tFar;
+                print(tNear, tFar);
                 idx = idx + 1;
             end
         end
     end
 
+    MousePick.SortSelectionList(MousePick.selectionList);
+
+
     if (SceneMachine.Input.ControlModifier) then
         if (#MousePick.selectionList > 0) then
-            SM.SelectObject(MousePick.selectionList[1]);
+            SM.SelectObject(MousePick.selectionList[1].object);
         end
     else
         -- go through each selection list item and determine which one to select
@@ -59,10 +67,10 @@ function MousePick.Pick(x, y)
 
             -- if multiple objects are selected, trim the list to the first
             if (#SM.selectedObjects > 1) then
-                SM.selectedObjects = { SM.selectedObjects[1] }
+                SM.selectedObjects = { SM.selectedObjects[1].object }
             end
 
-            SM.SelectObject(MousePick.selectionList[1]);
+            SM.SelectObject(MousePick.selectionList[1].object);
         else
             if (MousePick.CompareSelectionLists(MousePick.previousSelectionList, MousePick.selectionList)) then
                 -- same selection list, so loop through to determine which one to select next
@@ -73,20 +81,20 @@ function MousePick.Pick(x, y)
                 end
 
                 for i = 1, #MousePick.selectionList, 1 do
-                    if (SM.selectedObjects[1] == MousePick.selectionList[i]) then
+                    if (SM.selectedObjects[1] == MousePick.selectionList[i].object) then
                         local currentIndex = i;
                         if (currentIndex >= #MousePick.selectionList) then
                             -- loop back
                             currentIndex = 0;
                         end
                         -- select next
-                        SM.selectedObjects[1] = MousePick.selectionList[currentIndex + 1];
+                        SM.selectedObjects[1] = MousePick.selectionList[currentIndex + 1].object;
                         break;
                     end
                 end
             else
                 -- different selection list, so just select first object
-                SM.selectedObjects = { MousePick.selectionList[1] }
+                SM.selectedObjects = { MousePick.selectionList[1].object }
             end
         end
     end
@@ -110,6 +118,13 @@ function MousePick.Pick(x, y)
     OP.Refresh();
 end
 
+function MousePick.SortSelectionList(list)
+    -- Sort the list based on the values in the 'numbers' table
+    table.sort(list, function(a, b)
+        return a.tNear < b.tNear;
+    end);
+end
+
 function MousePick.CompareSelectionLists(listA, listB)
     if (#listA ~= #listB) then
         return false;
@@ -117,7 +132,7 @@ function MousePick.CompareSelectionLists(listA, listB)
 
     local same = true;
     for i = 1, #listA, 1 do
-        if (listA[i] ~= listB[i]) then
+        if (listA[i].object ~= listB[i].object) then
             same = false;
         end
     end

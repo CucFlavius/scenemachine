@@ -262,11 +262,16 @@ function SM.LoadScene(index)
     -- refresh
     SH.RefreshHierarchy();
     OP.Refresh();
+    SM.ApplySelectionEffects();
 
     SM.selectedObjects = {};
 end
 
 function SM.UnloadScene()
+    for i = 1, #SM.selectedObjects, 1 do
+        SM.selectedObjects[i]:Deselect();
+    end
+    
     SM.selectedObjects = {};
     Renderer.Clear();
 end

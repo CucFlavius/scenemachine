@@ -134,7 +134,7 @@ function Ray:IntersectsBoundingBox(bb, position, rotation, scale)
     local tNear = math.max(math.max(t1.x, t1.y), t1.z);
     local tFar = math.min(math.min(t2.x, t2.y), t2.z);
 
-    return tNear <= tFar;
+    return tNear, tFar;
 end
 
 Ray.__tostring = function(self)
