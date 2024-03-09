@@ -241,12 +241,22 @@ end
 function Object:ToggleVisibility()
     self.visible = not self.visible;
     if (self.visible) then
-        --self.actor:Show();
-        self.actor:SetAlpha(1);
+        self:Show();
     else
-        --self.actor:Hide();
-        self.actor:SetAlpha(0);
+        self:Hide();
     end
+end
+
+function Object:Show()
+    --self.actor:Show();
+    self.visible = true;
+    self.actor:SetAlpha(1);
+end
+
+function Object:Hide()
+    --self.actor:Hide();
+    self.visible = false;
+    self.actor:SetAlpha(0);
 end
 
 function Object:SetAlpha(alpha)

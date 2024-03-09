@@ -19,6 +19,11 @@ function MousePick.Initialize()
 end
 
 function MousePick.Pick(x, y)
+
+    if (Gizmos.marqueeVisible) then
+        return;
+    end
+
     -- x, y are relative coordinates to the viewport
     local idx = 1;
     MousePick.selectionList = {};
@@ -46,7 +51,6 @@ function MousePick.Pick(x, y)
                 MousePick.selectionList[idx].object = object;
                 MousePick.selectionList[idx].tNear = tNear;
                 MousePick.selectionList[idx].tFar = tFar;
-                print(tNear, tFar);
                 idx = idx + 1;
             end
         end
@@ -67,7 +71,7 @@ function MousePick.Pick(x, y)
     else
         -- go through each selection list item and determine which one to select
         if (#MousePick.selectionList == 0) then
-            SM.selectedObjects = {};
+            SM.SelectObject(nil);
         elseif (#MousePick.selectionList == 1) then
 
             -- if multiple objects are selected, trim the list to the first

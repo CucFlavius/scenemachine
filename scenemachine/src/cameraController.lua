@@ -60,6 +60,11 @@ local function clampAngle(angle)
 end
 
 function CC.Update(deltaTime)
+	-- don't move when marquee selecting
+	if (Gizmos.marqueeOn) then
+		return
+	end;
+
 	if (CC.Action.ShiftSpeed == true) then
 		CC.acceleration = CC.acceleration + deltaTime;
 		CC.acceleration = math.min(CC.maxAcceleration, CC.acceleration);

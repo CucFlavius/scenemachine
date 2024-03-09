@@ -273,15 +273,15 @@ function Input.OnDragStop()
     if (Gizmos.isUsed) then
         Gizmos.isUsed = false;
     end
+    Gizmos.EndMarqueeSelect();
 end
 
 function Input.OnClick(LMB, RMB, MMB, x, y)
     if (not Editor.isOpen) then return end
     if (LMB) then
-        -- mouse pick --
-        --if (not Gizmos.isHighlighted) or (#SM.selectedObjects == 0) then
-        --    MousePick.Pick(x, y);
-        --end
+        if (not Gizmos.isHighlighted) then
+            Gizmos.StartMarqueeSelect();
+        end
     elseif (RMB) then
     elseif (MMB) then
     end
@@ -298,6 +298,7 @@ function Input.OnClickUp(LMB, RMB, MMB, x, y)
         AM.inputState.movingAnim = -1;
         AM.inputState.movingAnimHandleL = -1;
         AM.inputState.movingAnimHandleR = -1;
+        Gizmos.EndMarqueeSelect();
     elseif (RMB) then
         -- open RMB renderer context menu --
         local w, h = Renderer.projectionFrame:GetSize();

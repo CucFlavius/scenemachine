@@ -7,10 +7,11 @@ local Camera = SceneMachine.Camera;
 local Input = SceneMachine.Input;
 local Math = SceneMachine.Math;
 local CC = SceneMachine.CameraController;
-
+local Resources = SceneMachine.Resources;
 local Vector3 = SceneMachine.Vector3;
 local Quaternion = SceneMachine.Quaternion;
 local Ray = SceneMachine.Ray;
+local UI = SceneMachine.UI;
 
 Gizmos.isUsed = false;
 Gizmos.isHighlighted = false;
@@ -26,6 +27,10 @@ Gizmos.up = Vector3:New(0, 0, 1);
 Gizmos.previousRotation = Vector3:New();
 Gizmos.rotationIncrement = 0;
 Gizmos.previousIPoints = {};
+Gizmos.marqueeOn = false;
+Gizmos.marqueeVisible = false;
+Gizmos.marqueeStartPoint = nil;
+Gizmos.marqueeAABBSSPoints = nil;
 
 function Gizmos.Create()
     Gizmos.CreateSelectionGizmo();
@@ -33,6 +38,94 @@ function Gizmos.Create()
     Gizmos.CreateRotateGizmo();
     Gizmos.CreateScaleGizmo();
     Gizmos.CreateDebugGizmo();
+    Gizmos.CreateMarqueeSelectGizmo(Renderer.projectionFrame, Renderer.projectionFrame:GetFrameLevel() + 1);
+end
+
+function Gizmos.CreateMarqueeSelectGizmo(parent, startLevel)
+    -- animation selection box thing
+    Gizmos.marqueeBox = UI.Rectangle:New(0, 0, 100, 100, parent, "TOPLEFT", "TOPLEFT",  1, 1, 1, 0);
+    Gizmos.marqueeBox:SetFrameLevel(startLevel + 5);
+
+    local thickness = 1 + Editor.pmult;
+
+    local lineTop = Gizmos.marqueeBox:GetFrame():CreateLine(nil, nil, nil);
+    local c = { 1, 1, 1, 0.9 };
+    lineTop:SetThickness(thickness);
+    lineTop:SetTexture(Resources.textures["DashedLine"], "REPEAT", "REPEAT", "NEAREST");
+    lineTop:Show();
+    lineTop:SetVertexColor(c[1], c[2], c[3], c[4]);
+    lineTop:SetStartPoint("TOPLEFT", 0, -thickness / 2) -- start topleft
+    lineTop:SetEndPoint("TOPRIGHT", 0, -thickness / 2)   -- end bottomright
+    lineTop:SetTexCoord(0, 10, 0, 1);
+
+    local lineBottom = Gizmos.marqueeBox:GetFrame():CreateLine(nil, nil, nil);
+    lineBottom:SetThickness(thickness);
+    lineBottom:SetTexture(Resources.textures["DashedLine"], "REPEAT", "REPEAT", "NEAREST");
+    lineBottom:Show();
+    lineBottom:SetVertexColor(c[1], c[2], c[3], c[4]);
+    lineBottom:SetStartPoint("BOTTOMLEFT", 0, thickness / 2) -- start topleft
+    lineBottom:SetEndPoint("BOTTOMRIGHT", 0, thickness / 2)   -- end bottomright
+    lineBottom:SetTexCoord(0, 10, 0, 1);
+
+    local lineLeft = Gizmos.marqueeBox:GetFrame():CreateLine(nil, nil, nil);
+    lineLeft:SetThickness(thickness);
+    lineLeft:SetTexture(Resources.textures["DashedLine"], "REPEAT", "REPEAT", "NEAREST");
+    lineLeft:Show();
+    lineLeft:SetVertexColor(c[1], c[2], c[3], c[4]);
+    lineLeft:SetStartPoint("BOTTOMLEFT", thickness / 2, 0) -- start topleft
+    lineLeft:SetEndPoint("TOPLEFT", thickness / 2, 0)   -- end bottomright
+    lineLeft:SetTexCoord(0, 10, 0, 1);
+
+    local lineRight = Gizmos.marqueeBox:GetFrame():CreateLine(nil, nil, nil);
+    lineRight:SetThickness(thickness);
+    lineRight:SetTexture(Resources.textures["DashedLine"], "REPEAT", "REPEAT", "NEAREST");
+    lineRight:Show();
+    lineRight:SetVertexColor(c[1], c[2], c[3], c[4]);
+    lineRight:SetStartPoint("BOTTOMRIGHT", -thickness / 2, 0) -- start topleft
+    lineRight:SetEndPoint("TOPRIGHT", -thickness / 2, 0)   -- end bottomright
+    lineRight:SetTexCoord(0, 10, 0, 1);
+
+    Gizmos.marqueeBox.lineTop = lineTop;
+    Gizmos.marqueeBox.lineBottom = lineBottom;
+    Gizmos.marqueeBox.lineLeft = lineLeft;
+    Gizmos.marqueeBox.lineRight = lineRight;
+    Gizmos.marqueeBox:Hide();
+end
+
+function Gizmos.StartMarqueeSelect()
+    Gizmos.marqueeOn = true;
+    Gizmos.marqueeVisible = false;
+    Gizmos.marqueeStartPoint = { Input.mouseX, Input.mouseY };
+    Gizmos.marqueeBox:ClearAllPoints();
+    Gizmos.marqueeBox:SetPoint("BOTTOMLEFT", Renderer.projectionFrame, "BOTTOMLEFT", Input.mouseX, Input.mouseY);
+end
+
+function Gizmos.EndMarqueeSelect()
+    
+    if (Gizmos.marqueeAABBSSPoints) then
+        local selectedObjects = {};
+        for i = 1, #Gizmos.marqueeAABBSSPoints, 1 do
+            if (Gizmos.marqueeAABBSSPoints[i].selected) then
+                selectedObjects[#selectedObjects + 1] = Gizmos.marqueeAABBSSPoints[i].object;
+            end
+        end
+        SM.SelectObjects(selectedObjects);
+        for i = 1, #selectedObjects, 1 do
+            selectedObjects[i]:Select();
+        end
+
+        -- ensure all selection effects clear
+        if (#selectedObjects == 0) then
+            for i = 1, #Gizmos.marqueeAABBSSPoints, 1 do
+                Gizmos.marqueeAABBSSPoints[i].object:Deselect();
+            end
+        end
+        Gizmos.marqueeAABBSSPoints = nil;
+    end
+
+    Gizmos.marqueeOn = false;
+    Gizmos.marqueeVisible = false;
+    Gizmos.marqueeBox:Hide();
 end
 
 function Gizmos.CreateLineProjectionFrame()
@@ -51,12 +144,12 @@ function Gizmos.CreateLineProjectionFrame()
 end
 
 function Gizmos.Update()
-    if (Gizmos.MoveGizmo == nil) then return end
-
     local mouseX, mouseY = Input.mouseX, Input.mouseY;
 
     Gizmos.highlightedAxis = 0;
     Gizmos.isHighlighted = false;
+
+    Gizmos.UpdateMarquee(mouseX, mouseY);
 
     -- Handle gizmo mouse highlight and selection --
     local highlighted = Gizmos.SelectionCheck(mouseX, mouseY);
@@ -69,6 +162,131 @@ function Gizmos.Update()
 
     -- Update the gizmo transform --
     Gizmos.UpdateGizmoTransform();
+end
+
+function Gizmos.UpdateMarquee(mouseX, mouseY)
+    if (Gizmos.marqueeOn) then
+        --print(mouseX, mouseY) bottom left is 0,0
+        local w = mouseX - Gizmos.marqueeStartPoint[1];
+        local h = mouseY - Gizmos.marqueeStartPoint[2];
+
+        if (not Gizmos.marqueeVisible) then
+            if (math.abs(w) > 5 and math.abs(h) > 5) then
+                Gizmos.marqueeVisible = true;
+
+                -- populate screen space points
+                Gizmos.marqueeAABBSSPoints = {};
+                local idx = 1;
+                
+                for i = 1, #SM.loadedScene.objects, 1 do
+                    local object = SM.loadedScene.objects[i];
+            
+                    -- Can't select invisible/frozen, only in the hierarchy
+                    if (object.visible) and (not object.frozen) then
+
+                        Gizmos.marqueeAABBSSPoints[idx] = {};
+                        local vertices = {};
+                        Gizmos.marqueeAABBSSPoints[idx].SSvertices = {};
+                        Gizmos.marqueeAABBSSPoints[idx].object = object;
+
+                        local position = object:GetPosition();
+                        local rotation = object:GetRotation();
+                        local scale = object:GetScale();
+                        local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
+                        local bbCenter = {(xMax - xMin) / 2, (yMax - yMin) / 2, (zMax - zMin) / 2};
+
+                        -- transformToAABB
+                        local chX = bbCenter[1];
+                        local chY = bbCenter[2];
+                        local chZ = bbCenter[3];
+                        vertices[1] = {-chX, -chY, -chZ};
+                        vertices[2] = {chX, chY, chZ};
+                        vertices[3] = {chX, -chY, -chZ};
+                        vertices[4] = {chX, chY, -chZ};
+                        vertices[5] = {chX, -chY, -chZ};
+                        vertices[6] = {-chX, -chY, chZ};
+                        vertices[7] = {-chX, chY, -chZ};
+                        vertices[8] = {chX, -chY, chZ};
+                        -- transformGizmo
+                        local pivot = 0;
+                        local space = 1;
+                        local pivotOffset;
+                        if (pivot == 0) then
+                            -- center
+                            pivotOffset = Vector3:New( 0, 0, 0 );
+                        elseif (pivot == 1) then
+                            -- base
+                            --pivotOffset = Vector3:New(0, 0, bbCenter);
+                            --pivotOffset:RotateAroundPivot(Vector3:New(0, 0, 0), rotation);
+                        end
+                    
+                        for q = 1, 8, 1 do
+                            Gizmos.marqueeAABBSSPoints[idx].SSvertices[q] = {};
+                            if (space == 1) then
+                                -- local space --
+                                local rotated = Vector3:New(vertices[q][1], vertices[q][2], vertices[q][3]);
+                                rotated:RotateAroundPivot(Vector3:New(0, 0, 0), rotation);
+                                vertices[q][1] = rotated.x * scale + position.x + pivotOffset.x;
+                                vertices[q][2] = rotated.y * scale + position.y + pivotOffset.y;
+                                vertices[q][3] = rotated.z * scale + position.z + pivotOffset.z;
+
+                                --local cull = Renderer.NearPlaneFaceCullingLine(Gizmos.marqueeAABBSSPoints[idx].vertices[q], Camera.planePosition.x, Camera.planePosition.y, Camera.planePosition.z, Camera.forward.x, Camera.forward.y, Camera.forward.z, 0);
+
+                                --if (not cull) then
+                                    local aX, aY, aZ = Renderer.projectionFrame:Project3DPointTo2D(vertices[q][1], vertices[q][2], vertices[q][3]);
+                                    Gizmos.marqueeAABBSSPoints[idx].SSvertices[q][1] = aX;
+                                    Gizmos.marqueeAABBSSPoints[idx].SSvertices[q][2] = aY;
+                                --end
+                            elseif (space == 0) then
+                                -- world space --
+                                --gizmo.transformedVertices[q][v][1] = gizmo.vertices[q][v][1] * gizmo.scale * scale + position.x + pivotOffset.x;
+                                --gizmo.transformedVertices[q][v][2] = gizmo.vertices[q][v][2] * gizmo.scale * scale + position.y + pivotOffset.y;
+                                --gizmo.transformedVertices[q][v][3] = gizmo.vertices[q][v][3] * gizmo.scale * scale + position.z + pivotOffset.z;
+                            end
+                        end
+
+                        idx = idx + 1;
+                    end
+                end
+            end
+        end
+
+        if (Gizmos.marqueeVisible) then
+            Gizmos.marqueeBox:SetWidth(mouseX - Gizmos.marqueeStartPoint[1]);
+            Gizmos.marqueeBox:SetHeight(mouseY - Gizmos.marqueeStartPoint[2]);
+            Gizmos.marqueeBox:Show();
+
+            Gizmos.marqueeBox.lineTop:SetTexCoord(0, w / 10, 0, 1);
+            Gizmos.marqueeBox.lineBottom:SetTexCoord(0, w / 10, 0, 1);
+            Gizmos.marqueeBox.lineLeft:SetTexCoord(0, h / 10, 0, 1);
+            Gizmos.marqueeBox.lineRight:SetTexCoord(0, h / 10, 0, 1);
+
+            for i = 1, #Gizmos.marqueeAABBSSPoints, 1 do
+                local selected = false;
+                for v = 1, 8, 1 do
+                    local vert = Gizmos.marqueeAABBSSPoints[i].SSvertices[v];
+                    local x = vert[1];
+                    local y = vert[2];
+
+                    local minX = math.min(mouseX, Gizmos.marqueeStartPoint[1]);
+                    local maxX = math.max(mouseX, Gizmos.marqueeStartPoint[1]);
+                    local minY = math.min(mouseY, Gizmos.marqueeStartPoint[2]);
+                    local maxY = math.max(mouseY, Gizmos.marqueeStartPoint[2]);
+                    if (x > minX and x < maxX and y > minY and y < maxY) then
+                        selected = true;
+                        break;
+                    end
+                end
+
+                Gizmos.marqueeAABBSSPoints[i].selected = selected;
+                if (selected) then
+                    Gizmos.marqueeAABBSSPoints[i].object:Select();
+                else
+                    Gizmos.marqueeAABBSSPoints[i].object:Deselect();
+                end
+            end
+        end
+    end
 end
 
 local function indexOfSmallestValue(tbl)

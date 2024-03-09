@@ -139,7 +139,7 @@ function Renderer.Clear()
     end
 end
 
-local function NearPlaneFaceCullingLine(vert, planePositionX, planePositionY, planePositionZ, planeNormalX, planeNormalY, planeNormalZ, maxP)
+function Renderer.NearPlaneFaceCullingLine(vert, planePositionX, planePositionY, planePositionZ, planeNormalX, planeNormalY, planeNormalZ, maxP)
     local distA = {};
     local distB = {};
 
@@ -237,7 +237,7 @@ function RenderGizmoLines(gizmo)
         local line = gizmo.lines[t];
         
 		-- Near plane face culling --
-		local cull = NearPlaneFaceCullingLine(vert, Camera.planePosition.x, Camera.planePosition.y, Camera.planePosition.z, Camera.forward.x, Camera.forward.y, Camera.forward.z, 0);
+		local cull = Renderer.NearPlaneFaceCullingLine(vert, Camera.planePosition.x, Camera.planePosition.y, Camera.planePosition.z, Camera.forward.x, Camera.forward.y, Camera.forward.z, 0);
 
 		if (not cull) then
 			-- Project to screen space --

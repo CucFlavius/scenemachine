@@ -371,16 +371,40 @@ function SM.IsObjectSelected(object)
     return false;
 end
 
+function SM.SelectObjects(objects)
+    if (not SceneMachine.Input.ControlModifier) then
+        SM.selectedObjects = {};
+    end
+
+    for i = 1, #objects, 1 do
+        if (SceneMachine.Input.ControlModifier) then
+            if (not SM.IsObjectSelected(objects[i])) then
+                SM.selectedObjects[#SM.selectedObjects + 1] = objects[i];
+            end
+        else
+            SM.selectedObjects[#SM.selectedObjects + 1] = objects[i];
+        end
+    end
+
+    SH.RefreshHierarchy();
+	OP.Refresh();
+
+    -- also select track if available
+	-- only select a track if a one single object is selected, no multi-track selection support needed
+    if (#SM.selectedObjects == 1) then
+        AM.SelectTrackOfObject(SM.selectedObjects[1]);
+		Editor.lastSelectedType = "obj";
+	end
+end
+
 function SM.SelectObject(object)
 	if (not object) then
 		SM.selectedObjects = {};
 	else
 		if (SceneMachine.Input.ControlModifier) then
             -- first check if object isn't already selected
-            for i = 1, #SM.selectedObjects, 1 do
-                if (SM.selectedObjects[i] == object) then
-                    return;
-                end
+            if (SM.IsObjectSelected(object)) then
+                return;
             end
 			SM.selectedObjects[#SM.selectedObjects + 1] = object;
 		else
@@ -417,14 +441,15 @@ function SM.CalculateObjectsAverage()
         SM.selectedBounds = { xMin, yMin, zMin, xMax, yMax, zMax };
     else
         -- Position (Calculate center position)
-        local x, y, z = 0, 0, 0;
-        for i = 1, #SM.selectedObjects, 1 do
-            local pos = SM.selectedObjects[i]:GetPosition();
-            x = x + pos.x;
-            y = y + pos.y;
-            z = z + pos.z;
-        end
-        SM.selectedPosition = Vector3:New(x / #SM.selectedObjects, y / #SM.selectedObjects, z / #SM.selectedObjects);
+        --local x, y, z = 0, 0, 0;
+        --for i = 1, #SM.selectedObjects, 1 do
+        --    local pos = SM.selectedObjects[i]:GetPosition();
+        --    x = x + pos.x;
+        --    y = y + pos.y;
+        --    z = z + pos.z;
+        --end
+
+        --SM.selectedPosition = Vector3:New(x / #SM.selectedObjects, y / #SM.selectedObjects, z / #SM.selectedObjects);
 
         -- Rotation (set to 0?)
         SM.selectedRotation = Vector3:New(0, 0, 0);
@@ -432,32 +457,26 @@ function SM.CalculateObjectsAverage()
         -- Scale (set to 1?)
         SM.selectedScale = 1.0;
 
+        -- Alpha (set to 1?)
         SM.selectedAlpha = 1.0;
 
         -- Calculate encapsulating bounds
-        -- Initialize min and max bounds with the first object's bounds
-        local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObjects[1]:GetActiveBoundingBox();
-
-        -- Get position of the first object
-        local Pos = SM.selectedObjects[1]:GetPosition();
-        local Scale = SM.selectedObjects[1]:GetScale();
-
-        -- Update bounds with position of the first object
-        xMin = xMin * Scale + Pos.x;
-        xMax = xMax * Scale + Pos.x;
-        yMin = yMin * Scale + Pos.y;
-        yMax = yMax * Scale + Pos.y;
-        zMin = zMin * Scale + Pos.z;
-        zMax = zMax * Scale + Pos.z;
+        local xMin, yMin, zMin, xMax, yMax, zMax = 100000, 100000, 100000, -100000, -100000, -100000;
 
         -- Iterate through the rest of the objects in the array
-        for i = 2, #SM.selectedObjects do
-            local obj = SM.selectedObjects[i];
-            local xmin, ymin, zmin, xmax, ymax, zmax = obj:GetActiveBoundingBox();
-            
+        for i = 1, #SM.selectedObjects do
+            local xmin, ymin, zmin, xmax, ymax, zmax = SM.selectedObjects[i]:GetActiveBoundingBox();
+            local bbCenter = {(xmax - xmin) / 2, (ymax - ymin) / 2, (zmax - zmin) / 2};
+            xmin = -bbCenter[1];
+            ymin = -bbCenter[2];
+            zmin = -bbCenter[3];
+            xmax = bbCenter[1];
+            ymax = bbCenter[2];
+            zmax = bbCenter[3];
+
             -- Get position of the object
-            local Pos = obj:GetPosition();
-            local Scale = obj:GetScale();
+            local Pos = SM.selectedObjects[i]:GetPosition();
+            local Scale = SM.selectedObjects[i]:GetScale();
 
             -- Update minimum bounds
             xMin = math.min(xMin, xmin * Scale + Pos.x);
@@ -471,6 +490,7 @@ function SM.CalculateObjectsAverage()
         end
 
         SM.selectedBounds = { xMin, yMin, zMin, xMax, yMax, zMax };
+        SM.selectedPosition = Vector3:New(xMin + (xMax - xMin) / 2, yMin + (yMax - yMin) / 2, zMin + (zMax - zMin) / 2);
     end
 
 end
