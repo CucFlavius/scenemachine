@@ -69,9 +69,12 @@ function Input.Initialize()
     Input.MouseListener:SetScript("OnClick", function(self, button, down)
         -- Handle Code that needs direct mouse input here (so not OnUpdate)
         if (not down) then
-            local x, y = GetCursorPosition();
-            MousePick.Pick(x, y);
-            SM.ApplySelectionEffects();
+            -- Don't want to perform a mouse pick right after a gizmo transform operation
+            if (not Gizmos.isUsed) then
+                local x, y = GetCursorPosition();
+                MousePick.Pick(x, y);
+                SM.ApplySelectionEffects();
+            end
         end
     end);
 end
