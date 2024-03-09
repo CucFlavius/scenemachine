@@ -93,7 +93,14 @@ function UI:BuildTooltip()
 	self.tooltip:Hide();
 end
 
+function UI:RefreshTooltip(text, textDetailed)
+	self:ShowTooltip(self.tooltip.x, self.tooltip.y, self.tooltip.parent, text, textDetailed);
+end
+
 function UI:ShowTooltip(x, y, parent, text, textDetailed)
+	self.tooltip.x = x;
+	self.tooltip.y = y;
+	self.tooltip.parent = parent;
 	self.tooltip:Show();
 	self.tooltip:ClearAllPoints();
 	self.tooltip:SetParent(parent);

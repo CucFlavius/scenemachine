@@ -1,5 +1,6 @@
 local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
+local Editor = SceneMachine.Editor;
 UI.Toolbar = {};
 local Toolbar = UI.Toolbar;
 Toolbar.__index = Toolbar;
@@ -63,7 +64,7 @@ function Toolbar:CreateGroup(x, y, w, h, components)
 
     for c = 1, #components, 1 do
         local component = components[c];
-        
+
         if (component.type == "Separator") then
             group.components[c] = UI.Rectangle:New(x + 2, 0, 1, 20, group:GetFrame(), "LEFT", "LEFT", 0.242, 0.242, 0.25, 1);
             group.components[c]:SetFrameLevel(currentLevel + 1);
@@ -99,6 +100,19 @@ function Toolbar:CreateGroup(x, y, w, h, components)
             group.components[c].toggleOn = component.default;
             group.components[c]:SetScript("OnClick", function (self, button, down)
                 group.components[c].toggleOn = not group.components[c].toggleOn;
+                if (component.tooltips) then
+                    -- we have separate tooltips
+                    if (group.components[c].toggleOn) then
+                        group.components[c].tooltip = component.tooltips[1];
+                    else
+                        group.components[c].tooltip = component.tooltips[2];
+                    end
+
+                    -- need to update the tooltip if it's currently active
+                    if (Editor.ui.tooltip:IsVisible()) then
+                        Editor.ui:RefreshTooltip(group.components[c].tooltip, component.tooltipDetailed);
+                    end
+                end
                 component.action(group.components[c], group.components[c].toggleOn);
                 if (group.components[c].toggleOn) then
                     group.components[c]:SetTexCoords(component.iconOn[2]);
@@ -117,7 +131,11 @@ function Toolbar:CreateGroup(x, y, w, h, components)
 
         group.components[c].type = component.type;
         group.components[c].name = component.name;
-        group.components[c].tooltip = component.tooltip;
+        if (component.tooltip) then
+            group.components[c].tooltip = component.tooltip;
+        elseif (component.tooltips) then
+            group.components[c].tooltip = component.tooltips[1];
+        end
         group.components[c].tooltipDetailed = component.tooltipDetailed;
     end
 

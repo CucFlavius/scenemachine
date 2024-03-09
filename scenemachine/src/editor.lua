@@ -92,21 +92,14 @@ function Editor.Initialize()
             },
             { type = "Separator" },
             {
-                type = "Button", name = "L", icon = toolbar:GetIcon("localpivot"), action = function(self) Gizmos.space = 1; print("Local Space"); end,
-                tooltip = L["EDITOR_TOOLBAR_TT_PIVOT_LOCAL_SPACE"],
+                type = "Toggle", name = "PivotSpace", iconOn = toolbar:GetIcon("localpivot"), iconOff = toolbar:GetIcon("worldpivot"),
+                action = function(self, on) if (on) then Gizmos.space = 1; else Gizmos.space = 0; end end,
+                default = true, tooltips = { L["EDITOR_TOOLBAR_TT_PIVOT_LOCAL_SPACE"], L["EDITOR_TOOLBAR_TT_PIVOT_WORLD_SPACE"] },
             },
             {
-                type = "Button", name = "W", icon = toolbar:GetIcon("worldpivot"), action = function(self) Gizmos.space = 0; print("World Space"); end,
-                tooltip = L["EDITOR_TOOLBAR_TT_PIVOT_WORLD_SPACE"],
-            },
-            { type = "Separator" },
-            {
-                type = "Button", name = "Center", icon = toolbar:GetIcon("centerpivot"), action = function(self) Editor.SetPivotMode(0); print("Pivot Center"); end,
-                tooltip = L["EDITOR_TOOLBAR_TT_PIVOT_CENTER"],
-            },
-            {
-                type = "Button", name = "Base", icon = toolbar:GetIcon("basepivot"), action = function(self) Editor.SetPivotMode(1); print("Pivot Base"); end,
-                tooltip = L["EDITOR_TOOLBAR_TT_PIVOT_BASE"],
+                type = "Toggle", name = "PivotLocation", iconOn = toolbar:GetIcon("centerpivot"), iconOff = toolbar:GetIcon("basepivot"),
+                action = function(self, on) if (on) then Editor.SetPivotMode(0); else Editor.SetPivotMode(1); end end,
+                default = true, tooltips = { L["EDITOR_TOOLBAR_TT_PIVOT_CENTER"], L["EDITOR_TOOLBAR_TT_PIVOT_BASE"] },
             },
             { type = "Separator" },
         }
