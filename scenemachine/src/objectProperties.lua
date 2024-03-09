@@ -70,6 +70,7 @@ function OP.Refresh()
     
     local pos, rot, scale, alpha;
 
+    --[[
     if (SM.selectedPosition == nil) then
         pos = { x=0, y=0, z=0 };
         rot = { x=0, y=0, z=0 };
@@ -82,6 +83,27 @@ function OP.Refresh()
         rot = SM.selectedRotation;
         scale = SM.selectedScale;
         alpha = SM.selectedAlpha;
+    end
+    --]]
+
+    if (#SM.selectedObjects == 0) then
+        OP.ToggleTransformFields(false);
+        pos = { x=0, y=0, z=0 };
+        rot = { x=0, y=0, z=0 };
+        scale = 1;
+        alpha = 1;
+    elseif (#SM.selectedObjects == 1) then
+        OP.ToggleTransformFields(true);
+        pos = SM.selectedObjects[1]:GetPosition();
+        rot = SM.selectedObjects[1]:GetRotation();
+        scale = SM.selectedObjects[1]:GetScale();
+        alpha = SM.selectedObjects[1]:GetAlpha();
+    else
+        OP.ToggleTransformFields(true);
+        pos = { x=0, y=0, z=0 };
+        rot = { x=0, y=0, z=0 };
+        scale = 1;
+        alpha = 1;
     end
 
     OP.positionField:Set(OP.Truncate(pos.x, 3), OP.Truncate(pos.y, 3), OP.Truncate(pos.z, 3));
@@ -115,10 +137,11 @@ function OP.SetPosX(value)
     if (#SM.selectedObjects == 0) then
         return;
     end
-    local pos = SM.selectedObjects[1]:GetPosition();
-    SM.selectedObjects[1]:SetPosition(value, pos.y, pos.z);
 
-    -- TODO: Multiselect
+    for i = 1, #SM.selectedObjects, 1 do
+        local pos = SM.selectedObjects[i]:GetPosition();
+        SM.selectedObjects[i]:SetPosition(value, pos.y, pos.z);
+    end
 end
 
 function OP.SetPosY(value)
@@ -128,10 +151,11 @@ function OP.SetPosY(value)
     if (#SM.selectedObjects == 0) then
         return;
     end
-    local pos = SM.selectedObjects[1]:GetPosition();
-    SM.selectedObjects[1]:SetPosition(pos.x, value, pos.z);
 
-    -- TODO: Multiselect
+    for i = 1, #SM.selectedObjects, 1 do
+        local pos = SM.selectedObjects[i]:GetPosition();
+        SM.selectedObjects[i]:SetPosition(pos.x, value, pos.z);
+    end
 end
 
 function OP.SetPosZ(value)
@@ -141,10 +165,11 @@ function OP.SetPosZ(value)
     if (#SM.selectedObjects == 0) then
         return;
     end
-    local pos = SM.selectedObjects[1]:GetPosition();
-    SM.selectedObjects[1]:SetPosition(pos.x, pos.y, value);
 
-    -- TODO: Multiselect
+    for i = 1, #SM.selectedObjects, 1 do
+        local pos = SM.selectedObjects[i]:GetPosition();
+        SM.selectedObjects[i]:SetPosition(pos.x, pos.y, value);
+    end
 end
 
 function OP.SetRotX(value)
@@ -154,10 +179,11 @@ function OP.SetRotX(value)
     if (#SM.selectedObjects == 0) then
         return;
     end
-    local rot = SM.selectedObjects[1]:GetRotation();
-    SM.selectedObjects[1]:SetRotation(rad(value), rot.y, rot.z);
 
-    -- TODO: Multiselect
+    for i = 1, #SM.selectedObjects, 1 do
+        local rot = SM.selectedObjects[i]:GetRotation();
+        SM.selectedObjects[i]:SetRotation(rad(value), rot.y, rot.z);
+    end
 end
 
 function OP.SetRotY(value)
@@ -167,10 +193,11 @@ function OP.SetRotY(value)
     if (#SM.selectedObjects == 0) then
         return;
     end
-    local rot = SM.selectedObjects[1]:GetRotation();
-    SM.selectedObjects[1]:SetRotation(rot.x, rad(value), rot.z);
 
-    -- TODO: Multiselect
+    for i = 1, #SM.selectedObjects, 1 do
+        local rot = SM.selectedObjects[i]:GetRotation();
+        SM.selectedObjects[i]:SetRotation(rot.x, rad(value), rot.z);
+    end
 end
 
 function OP.SetRotZ(value)
@@ -180,10 +207,11 @@ function OP.SetRotZ(value)
     if (#SM.selectedObjects == 0) then
         return;
     end
-    local rot = SM.selectedObjects[1]:GetRotation();
-    SM.selectedObjects[1]:SetRotation(rot.x, rot.y, rad(value));
 
-    -- TODO: Multiselect
+    for i = 1, #SM.selectedObjects, 1 do
+        local rot = SM.selectedObjects[i]:GetRotation();
+        SM.selectedObjects[i]:SetRotation(rot.x, rot.y, rad(value));
+    end
 end
 
 function OP.SetScale(value)
@@ -193,9 +221,10 @@ function OP.SetScale(value)
     if (#SM.selectedObjects == 0) then
         return;
     end
-    SM.selectedObjects[1]:SetScale(value);
 
-    -- TODO: Multiselect
+    for i = 1, #SM.selectedObjects, 1 do
+        SM.selectedObjects[i]:SetScale(value);
+    end
 end
 
 function OP.SetAlpha(value)
@@ -205,9 +234,10 @@ function OP.SetAlpha(value)
     if (#SM.selectedObjects == 0) then
         return;
     end
-    SM.selectedObjects[1]:SetAlpha(value);
 
-    -- TODO: Multiselect
+    for i = 1, #SM.selectedObjects, 1 do
+        SM.selectedObjects[i]:SetAlpha(value);
+    end
 end
 
 function OP.Truncate(num, digits)

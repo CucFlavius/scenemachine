@@ -1091,7 +1091,7 @@ function AM.CreateToolbar(x, y, w, h, parent, startLevel)
         },
         { type = "Separator", name = "Separator1" },
         {
-            type = "Button", name = "AddObject", icon = toolbar:GetIcon("addobj"), action = function(self) AM.AddTrack(SM.selectedObject); end,
+            type = "Button", name = "AddObject", icon = toolbar:GetIcon("addobj"), action = function(self) AM.AddTracks(SM.selectedObjects); end,
             tooltip = L["AM_TOOLBAR_TT_ADD_TRACK"], tooltipDetailed = L["AM_TOOLBAR_TTD_ADD_TRACK"],
         },
         { 
@@ -1647,6 +1647,18 @@ function AM.CreateTimeline(timelineName)
     }
 end
 
+function AM.AddTracks(objects)
+    if (not objects) then
+        return;
+    end
+
+    for i = 1, #objects, 1 do
+        if (objects[i]) then
+            AM.AddTrack(objects[i]);
+        end
+    end
+end
+
 function AM.AddTrack(object)
     if (not object) then
         return;
@@ -1716,7 +1728,7 @@ function AM.SelectTrack(index)
     -- also select object
     local obj = AM.GetObjectOfTrack(AM.selectedTrack);
     if (obj) then
-        SM.selectedObject = obj;
+        SM.selectedObjects = { obj };
         SH.RefreshHierarchy();
         OP.Refresh();
     end
@@ -1750,11 +1762,11 @@ function AM.LoadTimeline(index)
     AM.RefreshTimebar();
     AM.RefreshWorkspace();
 
-    SM.selectedObject = nil;
+    SM.selectedObjects = {};
 end
 
 function AM.UnloadTimeline()
-    SM.selectedObject = nil;
+    SM.selectedObjects = {};
 end
 
 function AM.DeleteTimeline()
@@ -2725,9 +2737,9 @@ end
 
 function AM.OpenAddAnimationWindow(track)
     if (not track) then
-        if (SM.selectedObject) then
+        if (#SM.selectedObjects > 0) then
             Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["AM_MSG_NO_TRACK_TITLE"], L["AM_MSG_NO_TRACK_MESSAGE"],
-            true, true, function() AM.AddTrack(SM.selectedObject) AM.OpenAddAnimationWindow(AM.selectedTrack) end, function() end);
+            true, true, function() AM.AddTrack(SM.selectedObjects[1]) AM.OpenAddAnimationWindow(AM.selectedTrack) end, function() end);
         end
         return;
     end
@@ -2755,9 +2767,9 @@ end
 
 function AM.AddFullKey(track)
     if (not track) then
-        if (SM.selectedObject) then
+        if (#SM.selectedObjects > 0) then
             Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["AM_MSG_NO_TRACK_TITLE"], L["AM_MSG_NO_TRACK_MESSAGE"],
-            true, true, function() AM.AddTrack(SM.selectedObject); AM.AddFullKey(AM.selectedTrack); end, function() end);
+            true, true, function() AM.AddTrack(SM.selectedObjects[1]); AM.AddFullKey(AM.selectedTrack); end, function() end);
         end
         return;
     end
@@ -2773,9 +2785,9 @@ end
 
 function AM.AddPosKey(track)
     if (not track) then
-        if (SM.selectedObject) then
+        if (#SM.selectedObjects > 0) then
             Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["AM_MSG_NO_TRACK_TITLE"], L["AM_MSG_NO_TRACK_MESSAGE"],
-            true, true, function() AM.AddTrack(SM.selectedObject); AM.AddPosKey(AM.selectedTrack); end, function() end);
+            true, true, function() AM.AddTrack(SM.selectedObjects[1]); AM.AddPosKey(AM.selectedTrack); end, function() end);
         end
         return;
     end
@@ -2791,9 +2803,9 @@ end
 
 function AM.AddRotKey(track)
     if (not track) then
-        if (SM.selectedObject) then
+        if (#SM.selectedObjects > 0) then
             Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["AM_MSG_NO_TRACK_TITLE"], L["AM_MSG_NO_TRACK_MESSAGE"],
-            true, true, function() AM.AddTrack(SM.selectedObject); AM.AddRotKey(AM.selectedTrack); end, function() end);
+            true, true, function() AM.AddTrack(SM.selectedObjects[1]); AM.AddRotKey(AM.selectedTrack); end, function() end);
         end
         return;
     end
@@ -2809,9 +2821,9 @@ end
 
 function AM.AddScaleKey(track)
     if (not track) then
-        if (SM.selectedObject) then
+        if (#SM.selectedObjects > 0) then
             Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["AM_MSG_NO_TRACK_TITLE"], L["AM_MSG_NO_TRACK_MESSAGE"],
-            true, true, function() AM.AddTrack(SM.selectedObject); AM.AddScaleKey(AM.selectedTrack); end, function() end);
+            true, true, function() AM.AddTrack(SM.selectedObjects[1]); AM.AddScaleKey(AM.selectedTrack); end, function() end);
         end
         return;
     end

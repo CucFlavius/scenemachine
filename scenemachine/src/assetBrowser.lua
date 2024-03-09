@@ -209,6 +209,16 @@ function AssetBrowser.AddDisplayIDToCollection(displayID, collectionIndex)
     }
 end
 
+function AssetBrowser.AddObjectsToCollection(objects, collectionIndex)
+    if (not objects) then
+        return;
+    end
+
+    for i = 1, #objects, 1 do
+        AssetBrowser.AddObjectToCollection(objects[i], collectionIndex);
+    end
+end
+
 function AssetBrowser.AddObjectToCollection(object, collectionIndex)
     if (not object) then
         return;
@@ -488,8 +498,8 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         local val = tonumber(valText);
         if (val ~= nil) then
             --SM.CreateCreature(val, "Creature", 0, 0, 0);
-            if (SM.selectedObject) then
-                SM.selectedObject:PlayAnimID(val);
+            if (#SM.selectedObjects > 0) then
+                SM.selectedObjects[1]:PlayAnimID(val);
             end
         end
         self1:ClearFocus();
@@ -507,8 +517,8 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         local val = tonumber(valText);
         if (val ~= nil) then
             --SM.CreateCreature(val, "Creature", 0, 0, 0);
-            if (SM.selectedObject) then
-                SM.selectedObject:PlayAnimKitID(val);
+            if (#SM.selectedObjects > 0) then
+                SM.selectedObjects[1]:PlayAnimKitID(val);
             end
         end
         self1:ClearFocus();
@@ -523,16 +533,16 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
     local undressButton = UI.Button:New(0, -113, 100, 20, parent, "TOPLEFT", "TOPLEFT", "Undress");
     local creatureDisplayID = 4;
     undressButton:SetScript("OnClick", function(_, button, up)
-        if (SM.selectedObject) then
-            SM.selectedObject.actor:Undress(true);
+        if (#SM.selectedObjects > 0) then
+            SM.selectedObjects[1].actor:Undress(true);
         end
     end);
 
     local dressButton = UI.Button:New(0, -133, 150, 20, parent, "TOPLEFT", "TOPLEFT", "Dress with current items");
     local creatureDisplayID = 4;
     dressButton:SetScript("OnClick", function(_, button, up)
-        if (SM.selectedObject) then
-            SM.selectedObject.actor:Dress();
+        if (#SM.selectedObjects > 0) then
+            SM.selectedObjects[1].actor:Dress();
         end
     end);
 
@@ -561,8 +571,8 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
 
     local testButton = UI.Button:New(0, -173, 100, 20, parent, "TOPLEFT", "TOPLEFT", "TEST");
     testButton:SetScript("OnClick", function(_, button, up)
-        if (SM.selectedObject) then
-            SM.selectedObject.actor:TryOn(167988);
+        if (#SM.selectedObjects > 0) then
+            SM.selectedObjects[1].actor:TryOn(167988);
         end
         --SM.ExportSceneForPrint(SM.loadedScene);
     end);
@@ -683,7 +693,7 @@ function AssetBrowser.CreateToolbar(parent, y, w, startLevel)
             },
             {
                 type = "Button", name = "AddObject", icon = AssetBrowser.toolbar:GetIcon("addsceneobject"),
-                action = function(self) AssetBrowser.AddObjectToCollection(SM.selectedObject, AssetBrowser.selectedCollectionIndex); end,
+                action = function(self) AssetBrowser.AddObjectsToCollection(SM.selectedObjects, AssetBrowser.selectedCollectionIndex); end,
                 tooltip = L["AB_TOOLBAR_TT_ADD_OBJECT"],
             },
             {
@@ -1053,7 +1063,7 @@ function AssetBrowser.OnThumbnailDoubleClick(ID, name)
                 if (fileID == ID) then
                     local fileName = searchData[i].N;
                     local object = SM.CreateObject(fileID, fileName, 0, 0, 0);
-                    SM.selectedObject = object;
+                    SM.selectedObjects = { object };
                     Editor.lastSelectedType = "obj";
                     SH.RefreshHierarchy();
                     OP.Refresh();
@@ -1086,7 +1096,7 @@ function AssetBrowser.OnThumbnailDoubleClick(ID, name)
                     if (fileID == ID) then
                         local fileName = AssetBrowser.currentDirectory["FN"][i];
                         local object = SM.CreateObject(fileID, fileName, 0, 0, 0);
-                        SM.selectedObject = object;
+                        SM.selectedObjects = { object };
                         Editor.lastSelectedType = "obj";
                         SH.RefreshHierarchy();
                         OP.Refresh();
@@ -1107,7 +1117,7 @@ function AssetBrowser.OnThumbnailDoubleClick(ID, name)
                 local name = SceneMachine.creatureData[creatureID];
                 if (ID == creatureID) then
                     local object = SM.CreateCreature(displayID, name or "Creature", 0, 0, 0);
-                    SM.selectedObject = object;
+                    SM.selectedObjects = { object };
                     Editor.lastSelectedType = "obj";
                     SH.RefreshHierarchy();
                     OP.Refresh();
@@ -1121,7 +1131,7 @@ function AssetBrowser.OnThumbnailDoubleClick(ID, name)
                 local name = SceneMachine.creatureData[creatureID];
                 if (ID == creatureID) then
                     local object = SM.CreateCreature(displayID, name or "Creature", 0, 0, 0);
-                    SM.selectedObject = object;
+                    SM.selectedObjects = { object };
                     Editor.lastSelectedType = "obj";
                     SH.RefreshHierarchy();
                     OP.Refresh();
@@ -1144,7 +1154,7 @@ function AssetBrowser.OnThumbnailDoubleClick(ID, name)
                         end
                     end
                     local object = SM.CreateCreature(item.displayID, name or "Creature", 0, 0, 0);
-                    SM.selectedObject = object;
+                    SM.selectedObjects = { object };
                     Editor.lastSelectedType = "obj";
                     SH.RefreshHierarchy();
                     OP.Refresh();
@@ -1152,7 +1162,7 @@ function AssetBrowser.OnThumbnailDoubleClick(ID, name)
                 elseif (item.fileID == ID) then
                     local name = AssetBrowser.GetFileName(item.fileID);
                     local object = SM.CreateObject(item.fileID, name or "Model", 0, 0, 0);
-                    SM.selectedObject = object;
+                    SM.selectedObjects = { object };
                     Editor.lastSelectedType = "obj";
                     SH.RefreshHierarchy();
                     OP.Refresh();
@@ -1176,7 +1186,7 @@ function AssetBrowser.OnThumbnailDrag(ID)
                     local object = SM.CreateObject(fileID, fileName, initialPosition.x, initialPosition.y, initialPosition.z);
                     local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
                     object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
-                    SM.selectedObject = object;
+                    SM.selectedObjects = { object };
                     Editor.lastSelectedType = "obj";
                     SH.RefreshHierarchy();
                     OP.Refresh();
@@ -1202,7 +1212,7 @@ function AssetBrowser.OnThumbnailDrag(ID)
                         local object = SM.CreateObject(fileID, fileName, initialPosition.x, initialPosition.y, initialPosition.z);
                         local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
                         object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
-                        SM.selectedObject = object;
+                        SM.selectedObjects = { object };
                         Editor.lastSelectedType = "obj";
                         SH.RefreshHierarchy();
                         OP.Refresh();
@@ -1234,7 +1244,7 @@ function AssetBrowser.OnThumbnailDrag(ID)
                     local mouseRay = Camera.GetMouseRay();
                     local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
                     object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
-                    SM.selectedObject = object;
+                    SM.selectedObjects = { object };
                     Editor.lastSelectedType = "obj";
                     SH.RefreshHierarchy();
                     OP.Refresh();
@@ -1259,7 +1269,7 @@ function AssetBrowser.OnThumbnailDrag(ID)
                     local mouseRay = Camera.GetMouseRay();
                     local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
                     object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
-                    SM.selectedObject = object;
+                    SM.selectedObjects = { object };
                     Editor.lastSelectedType = "obj";
                     SH.RefreshHierarchy();
                     OP.Refresh();
@@ -1291,7 +1301,7 @@ function AssetBrowser.OnThumbnailDrag(ID)
                     local mouseRay = Camera.GetMouseRay();
                     local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
                     object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
-                    SM.selectedObject = object;
+                    SM.selectedObjects = { object };
                     Editor.lastSelectedType = "obj";
                     SH.RefreshHierarchy();
                     OP.Refresh();
@@ -1309,7 +1319,7 @@ function AssetBrowser.OnThumbnailDrag(ID)
                     local object = SM.CreateObject(item.fileID, name, initialPosition.x, initialPosition.y, initialPosition.z);
                     local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
                     object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
-                    SM.selectedObject = object;
+                    SM.selectedObjects = { object };
                     Editor.lastSelectedType = "obj";
                     SH.RefreshHierarchy();
                     OP.Refresh();

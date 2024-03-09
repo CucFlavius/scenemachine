@@ -357,6 +357,12 @@ function SM.SelectObject(object)
 		SM.selectedObjects = {};
 	else
 		if (SceneMachine.Input.ControlModifier) then
+            -- first check if object isn't already selected
+            for i = 1, #SM.selectedObjects, 1 do
+                if (SM.selectedObjects[i] == object) then
+                    return;
+                end
+            end
 			SM.selectedObjects[#SM.selectedObjects + 1] = object;
 		else
 			SM.selectedObjects = { object };

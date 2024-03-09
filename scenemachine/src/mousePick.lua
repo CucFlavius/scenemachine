@@ -56,10 +56,22 @@ function MousePick.Pick(x, y)
         if (#MousePick.selectionList == 0) then
             SM.selectedObjects = {};
         elseif (#MousePick.selectionList == 1) then
+
+            -- if multiple objects are selected, trim the list to the first
+            if (#SM.selectedObjects > 1) then
+                SM.selectedObjects = { SM.selectedObjects[1] }
+            end
+
             SM.SelectObject(MousePick.selectionList[1]);
         else
             if (MousePick.CompareSelectionLists(MousePick.previousSelectionList, MousePick.selectionList)) then
                 -- same selection list, so loop through to determine which one to select next
+
+                -- if multiple objects are selected, trim the list to the first
+                if (#SM.selectedObjects > 1) then
+                    SM.selectedObjects = { SM.selectedObjects[1] }
+                end
+
                 for i = 1, #MousePick.selectionList, 1 do
                     if (SM.selectedObjects[1] == MousePick.selectionList[i]) then
                         local currentIndex = i;
@@ -74,7 +86,7 @@ function MousePick.Pick(x, y)
                 end
             else
                 -- different selection list, so just select first object
-                SM.selectedObjects[1] = MousePick.selectionList[1];
+                SM.selectedObjects = { MousePick.selectionList[1] }
             end
         end
     end
