@@ -185,6 +185,10 @@ function Vector3:EulerToDirection()
     return self;
 end
 
+function Vector3:Length()
+    return math.sqrt(self.x^2 + self.y^2 + self.z^2);
+end
+
 function Vector3:Normalize()
     local magnitude = math.sqrt(self.x^2 + self.y^2 + self.z^2)
     
@@ -200,6 +204,19 @@ function Vector3:Normalize()
     end
 
     return self;
+end
+
+function Vector3.Project(vector, onto)
+    --b * a.dot(b)
+    local sqrMag = Vector3.DotProduct(onto, onto);
+    if sqrMag < 0.000001 then
+        return Vector3:New(0, 0, 0);
+    else
+        local p = Vector3:New();
+        p:SetVector3(onto);
+        p:Scale(Vector3.DotProduct(vector, onto) / sqrMag);
+        return p;
+    end
 end
 
 function Vector3:CrossProduct(v)

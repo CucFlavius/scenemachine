@@ -190,6 +190,7 @@ function SM.LoadScene(index)
         for i in pairs(scene.objects) do
             local object = SceneMachine.Object:New();
             object:ImportData(scene.objects[i]);
+            object:CreateMatrix();
 
             -- Create actor
             local id = 0;

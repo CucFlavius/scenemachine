@@ -1,5 +1,7 @@
 local Math = SceneMachine.Math;
 local Vector3 = SceneMachine.Vector3;
+local Matrix = SceneMachine.Matrix;
+local Quaternion = SceneMachine.Quaternion;
 
 SceneMachine.ObjectType = {};
 SceneMachine.ObjectType.Group = 0;
@@ -190,22 +192,6 @@ function Object:GetPosition()
 end
 
 function Object:SetRotation(x, y, z, pivot)
-    pivot = pivot or 0;
-
-    if (pivot == 1) then
-        local angleDiff = Vector3:New( x - object.rotation.x, y - object.rotation.y, z - object.rotation.z );
-        local xMin, yMin, zMin, xMax, yMax, zMax = self:GetActiveBoundingBox();
-        local bbCenter = ((zMax - zMin) / 2) * self:GetScale();
-        local ppoint = Vector3:New();
-        ppoint:RotateAroundPivot(Vector3:New(0, 0, 0), angleDiff);
-        local position = self:GetPosition();
-        local px, py, pz = position.x, position.y, position.z;
-        px = px + ppoint.x;
-        py = py + ppoint.y;
-        pz = (pz + ppoint.z) - bbCenter;
-        self:SetPosition(px, py, pz);
-    end
-
     x = math.max(-1000000, math.min(1000000, x));
     y = math.max(-1000000, math.min(1000000, y));
     z = math.max(-1000000, math.min(1000000, z));
@@ -236,6 +222,51 @@ end
 
 function Object:GetScale()
     return self.scale;
+end
+
+function Object:GetVector3Scale()
+    local s = self:GetScale();
+    return Vector3:New(s, s, s);
+end
+
+function Object:GetQuaternionRotation()
+    local qRotation = Quaternion:New();
+    qRotation:SetFromEuler(self:GetRotation());
+    return qRotation;
+end
+
+function Object:CreateMatrix()
+    if (not self.matrix) then
+        self.matrix = Matrix:New();
+    end
+    self.matrix:TRS(self:GetPosition(), self:GetQuaternionRotation(), self:GetVector3Scale());
+
+    --[[
+    self.matrix = Matrix:New();
+    self.matrix:SetIdentity();
+    --self.matrix:RotateEuler(self.rotation.x, self.rotation.y, self.rotation.z);
+    local q = Quaternion:New();
+    q:SetFromEuler(self.rotation);
+    self.matrix:CreateFromQuaternion(q);
+    self.matrix:Translate(self.position.x, self.position.y, self.position.z);
+    --]]
+end
+
+function Object:GetMatrix()
+    if (not self.matrix) then
+        self:CreateMatrix();
+    end
+
+    return self.matrix;
+end
+
+function Object:ApplyTransformation()
+    local pos, rot, scale = self.matrix:Decompose();
+    local rotE = rot:ToEuler();
+
+    self:SetPosition(pos.x, pos.y, pos.z);
+    self:SetRotation(rotE.x, rotE.y, rotE.z);
+    self:SetScale(scale);
 end
 
 function Object:ToggleVisibility()

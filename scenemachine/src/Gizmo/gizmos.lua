@@ -12,6 +12,7 @@ local Vector3 = SceneMachine.Vector3;
 local Quaternion = SceneMachine.Quaternion;
 local Ray = SceneMachine.Ray;
 local UI = SceneMachine.UI;
+local Matrix = SceneMachine.Matrix;
 
 Gizmos.isUsed = false;
 Gizmos.isHighlighted = false;
@@ -33,6 +34,14 @@ Gizmos.marqueeVisible = false;
 Gizmos.marqueeStartPoint = nil;
 Gizmos.marqueeAABBSSPoints = nil;
 
+Gizmos.Axis = {}
+Gizmos.Axis.X = 1;
+Gizmos.Axis.Y = 2;
+Gizmos.Axis.Z = 3;
+Gizmos.Axis.XY = 4;
+Gizmos.Axis.XZ = 5;
+Gizmos.Axis.YZ = 6;
+
 function Gizmos.Create()
     Gizmos.CreateSelectionGizmo();
     Gizmos.CreateMoveGizmo();
@@ -40,6 +49,21 @@ function Gizmos.Create()
     Gizmos.CreateScaleGizmo();
     Gizmos.CreateDebugGizmo();
     Gizmos.CreateMarqueeSelectGizmo(Renderer.projectionFrame, Renderer.projectionFrame:GetFrameLevel() + 1);
+
+    -- test shit
+    --[[
+    local r = Vector3:New(0, 0, -math.rad(90));
+    print (r);
+    local q = Quaternion:New();
+    q:SetFromEuler(r);
+
+    local m = Matrix:New();
+    m:TRS(Vector3:New(0, 0, 0), q, Vector3:New(1, 1, 1));
+
+    local q2 = m:ExtractRotation();
+
+    print(q2:ToEuler());
+    --]]
 end
 
 function Gizmos.CreateMarqueeSelectGizmo(parent, startLevel)
@@ -511,7 +535,158 @@ function Gizmos.UpdateGizmoTransform()
     end
 end
 
+function Gizmos.ApplyRotationMotionM(diff)
+    for i = 1, #SM.selectedObjects, 1 do
+
+        local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObjects[i]:GetActiveBoundingBox();
+        local h = (zMax - zMin) / 2;
+
+        local mat = SM.selectedObjects[i].matrix;
+        local pos = SM.selectedObjects[i].matrix:ExtractPosition();
+        local rot = SM.selectedObjects[i].matrix:ExtractRotation();
+        --local forward = Math.normalize(Math.rotateVector(rot.x, rot.y, rot.z, 1, 0, 0));
+        --local right = Math.normalize(Math.rotateVector(rot.x, rot.y, rot.z, 0, 1, 0));
+        --local up = Math.normalize(Math.rotateVector(rot.x, rot.y, rot.z, 0, 0, 1));
+        --Gizmos.forward:Set(forward[1], forward[2], forward[3]);
+        --Gizmos.right:Set(right[1], right[2], right[3]);
+        --Gizmos.up:Set(up[1], up[2], up[3]);
+        --Gizmos.up:Scale(-h);
+        local up = Vector3:New(mat.m20, mat.m21, mat.m22)
+        local pivotOffset = Vector3:New(up.x * -h, up.y * -h, up.z * -h);
+
+        local pivotMat = Matrix:New();
+        pivotMat:SetIdentity();
+        --pivotMat:SetMatrix(mat);
+        pivotMat:Translate(-pos.x, -pos.y, -pos.z);
+        --pivotMat:Translate(pivotOffset.x, pivotOffset.y, pivotOffset.z);
+        --local pos = Gizmos.initialObjectMatrices[i]:ExtractPosition();
+        --local rot = Gizmos.initialObjectMatrices[i]:ExtractRotation();
+        --local pos = SM.selectedObjects[i].matrix:ExtractPosition();
+        --local rot = SM.selectedObjects[i].matrix:ExtractRotation();
+        --pivotMat:Translate(-pos.x, -pos.y, -pos.z);
+        --pivotMat:RotateEuler(-rot.x, -rot.y, -rot.z);
+        --pivotMat:Translate(0, 0, -h);
+        --pivotMat:RotateEuler(rot.x, rot.y, rot.z);
+        --pivotMat:SetMatrix(Gizmos.initialObjectMatrices[i]);
+        --pivotMat:SetMatrix(Gizmos.initialObjectMatrices[i]);
+        --pivotMat:
+        --pivotMat.m30 = pivotMat.m30 + 0;
+        --pivotMat.m31 = pivotMat.m31 + 0;
+        --pivotMat.m32 = pivotMat.m32 + -h;
+        --local transMat = Matrix:New()
+        --transMat:Translate(0, -h, 0);
+        --pivotMat:Multiply(transMat);
+        local pivotMatInv = Matrix:New();
+        pivotMatInv:SetMatrix(pivotMat);
+        pivotMatInv:Invert();
+
+        --[[
+        pivotMat:Multiply(Gizmos.initialObjectMatrices[i]);
+        local rotationMat = Matrix:New();
+        rotationMat:CreateFromAxisAngle(Vector3:New(0, 1, 0), math.rad(-diff));
+        rotationMat:Multiply(pivotMat);
+        pivotMatInv:Multiply(rotationMat);
+        SM.selectedObjects[i].matrix:SetMatrix(pivotMatInv);
+        SM.selectedObjects[i]:ApplyTransformation();
+        --]]
+        
+        local matrix = Matrix:New();
+        matrix:SetMatrix(Gizmos.initialObjectMatrices[i])
+
+        matrix:Multiply(pivotMat);
+
+        local rotationMat = Matrix:New();
+        rotationMat:CreateFromAxisAngle(Vector3:New(0, 1, 0), math.rad(-diff));
+
+        matrix:Multiply(rotationMat);
+        
+        matrix:Multiply(pivotMatInv);
+
+        SM.selectedObjects[i].matrix:SetMatrix(matrix);
+        SM.selectedObjects[i]:ApplyTransformation();
+
+    end
+end
+
+function Gizmos.MotionToTransformM()
+    if (not Gizmos.isUsed) then
+        return;
+    end
+
+    -- when using the gizmo (clicked), keep it highlighted even if the mouse moves away
+    Gizmos.highlightedAxis = Gizmos.selectedAxis;
+
+    local xDiff = Input.mouseXRaw - Gizmos.LMBPrevious.x;
+    local yDiff = Input.mouseYRaw - Gizmos.LMBPrevious.y;
+    local diff = ((xDiff + yDiff) / 2);
+
+    Gizmos.ApplyRotationMotionM(diff);
+    OP.Refresh();
+end
+
+function Gizmos.ApplyPositionMotion(object, iPoint)
+    if (not iPoint) then
+        return;
+    end
+
+    local position = object:GetPosition();
+    position:Add(iPoint);
+    object:SetPosition(position.x, position.y, position.z);
+end
+
+Gizmos.axisToDirectionVector = 
+{
+    [Gizmos.Axis.X] = Gizmos.forward,
+    [Gizmos.Axis.Y] = Gizmos.right,
+    [Gizmos.Axis.Z] = Gizmos.up,
+    [Gizmos.Axis.XY] = Gizmos.up,
+    [Gizmos.Axis.XZ] = Gizmos.right,
+    [Gizmos.Axis.YZ] = Gizmos.forward,
+};
+
 function Gizmos.MotionToTransform()
+    if (not Gizmos.isUsed) then
+        return;
+    end
+
+    -- when using the gizmo (clicked), keep it highlighted even if the mouse moves away
+    Gizmos.highlightedAxis = Gizmos.selectedAxis;
+
+    -- Position --
+    local mouseRay = Camera.GetMouseRay();
+    local direction = Gizmos.axisToDirectionVector[Gizmos.selectedAxis]
+
+    local iPoint;
+    if (Gizmos.selectedAxis == 1 or Gizmos.selectedAxis == 2 or Gizmos.selectedAxis == 3) then
+        iPoint = mouseRay:LineIntersection(SM.selectedPosition, direction);
+    elseif (Gizmos.selectedAxis == 4 or Gizmos.selectedAxis == 5 or Gizmos.selectedAxis == 6) then
+        iPoint = mouseRay:PlaneIntersection(SM.selectedPosition, direction);
+    end
+
+    if (iPoint) then
+        local iPointDiff = Vector3:New();
+        iPointDiff:SetVector3(iPoint);
+        iPointDiff:Subtract(Gizmos.previousIPoint);
+
+        for i = 1, #SM.selectedObjects, 1 do
+            if (Gizmos.activeTransformGizmo == 1) then
+                Gizmos.ApplyPositionMotion(SM.selectedObjects[i], iPointDiff);
+            end
+        end
+
+        Gizmos.previousIPoint:SetVector3(iPoint);
+    end
+
+    -- Rotation --
+    local xDiff = Input.mouseXRaw - (Gizmos.LMBPrevious.x or Input.mouseXRaw);
+    local yDiff = Input.mouseYRaw - (Gizmos.LMBPrevious.y or Input.mouseYRaw);
+    local diff = ((xDiff + yDiff) / 2) / 100;
+
+    -- Refresh --
+    OP.Refresh();
+end
+
+function Gizmos.MotionToTransformOld()
     if (Gizmos.isUsed) then
         -- when using the gizmo (clicked), keep it highlighted even if the mouse moves away
         Gizmos.highlightedAxis = Gizmos.selectedAxis;
@@ -669,13 +844,13 @@ function Gizmos.MotionToTransform()
                                 end
                             end
                         elseif (Gizmos.space == 1) then
-                            local rot = Math.multiplyRotations(Gizmos.previousRotation, Vector3:New(diff, 0, 0));
+                            local rot = Math.multiplyRotations(Gizmos.previousRotation, Vector3:New(Gizmos.rotationIncrement, 0, 0));
                             local oldRx = rx;
                             local oldRy = ry;
                             local oldRz = rz;
-                            rx = rot.x + oldRx;
-                            ry = rot.y + oldRy;
-                            rz = rot.z + oldRz;
+                            rx = rot.x;
+                            ry = rot.y;
+                            rz = rot.z;
 
                             if (Gizmos.multiTransform == 0) then
                                 -- together
@@ -740,13 +915,13 @@ function Gizmos.MotionToTransform()
                                 end
                             end
                         elseif (Gizmos.space == 1) then
-                            local rot = Math.multiplyRotations(Gizmos.previousRotation, Vector3:New(0, diff, 0));
+                            local rot = Math.multiplyRotations(Gizmos.previousRotation, Vector3:New(0, Gizmos.rotationIncrement, 0));
                             local oldRx = rx;
                             local oldRy = ry;
                             local oldRz = rz;
-                            rx = rot.x + oldRx;
-                            ry = rot.y + oldRy;
-                            rz = rot.z + oldRz;
+                            rx = rot.x;
+                            ry = rot.y;
+                            rz = rot.z;
 
                             if (Gizmos.multiTransform == 0) then
                                 -- together
@@ -811,13 +986,13 @@ function Gizmos.MotionToTransform()
                                 end
                             end
                         elseif (Gizmos.space == 1) then
-                            local rot = Math.multiplyRotations(Gizmos.previousRotation, Vector3:New(0, 0, diff));
+                            local rot = Math.multiplyRotations(Gizmos.previousRotation, Vector3:New(0, 0, Gizmos.rotationIncrement));
                             local oldRx = rx;
                             local oldRy = ry;
                             local oldRz = rz;
-                            rx = rot.x + oldRx;
-                            ry = rot.y + oldRy;
-                            rz = rot.z + oldRz;
+                            rx = rot.x;
+                            ry = rot.y;
+                            rz = rot.z;
 
                             if (Gizmos.multiTransform == 0) then
                                 -- together
@@ -876,6 +1051,22 @@ function Gizmos.MotionToTransform()
 
 end
 
+function Gizmos.OnLMBDownM(x, y)
+	Gizmos.LMBPrevious.x = x;
+	Gizmos.LMBPrevious.y = y;
+    Gizmos.isUsed = true;
+
+    Gizmos.initialObjectMatrices = {};
+
+    for i = 1, #SM.selectedObjects, 1 do
+        Gizmos.initialObjectMatrices[i] = Matrix:New();
+        SM.selectedObjects[i]:CreateMatrix();
+        Gizmos.initialObjectMatrices[i]:SetMatrix(SM.selectedObjects[i]:GetMatrix());
+        --print("----")
+        --print(SM.selectedObjects[i]:GetMatrix():ExtractRotation())
+    end
+end
+
 function Gizmos.OnLMBDown(x, y)
 	Gizmos.LMBPrevious.x = x;
 	Gizmos.LMBPrevious.y = y;
@@ -894,26 +1085,56 @@ function Gizmos.OnLMBDown(x, y)
         local forward = Math.normalize(Math.rotateVector(rx, ry, rz, 1, 0, 0));
         local right = Math.normalize(Math.rotateVector(rx, ry, rz, 0, 1, 0));
         local up = Math.normalize(Math.rotateVector(rx, ry, rz, 0, 0, 1));
-        Gizmos.forward:Set(forward[1], forward[2], forward[3]);
-        Gizmos.right:Set(right[1], right[2], right[3]);
-        Gizmos.up:Set(up[1], up[2], up[3]);
+        if (Gizmos.space == 0) then
+            Gizmos.forward:Set(1, 0, 0);
+            Gizmos.right:Set(0, 1, 0);
+            Gizmos.up:Set(0, 0, 1);
+        elseif(Gizmos.space == 1) then
+            Gizmos.forward:Set(forward[1], forward[2], forward[3]);
+            Gizmos.right:Set(right[1], right[2], right[3]);
+            Gizmos.up:Set(up[1], up[2], up[3]);
+        end
+
         Gizmos.previousRotation:Set(rx, ry, rz);
     else
-        Gizmos.forward:SetVector3(Vector3.forward);
-        Gizmos.right:SetVector3(Vector3.right);
-        Gizmos.up:SetVector3(Vector3.up);
+        Gizmos.forward:Set(1, 0, 0);
+        Gizmos.right:Set(0, 1, 0);
+        Gizmos.up:Set(0, 0, 1);
         Gizmos.previousRotation:Set(0, 0, 0);
     end
 
-    if (#SM.selectedObjects > 0) then
-        Gizmos.previousPositions = {};
-        for i = 1, #SM.selectedObjects, 1 do
-            local position = SM.selectedObjects[i]:GetPosition();
-            Gizmos.previousPositions[i] = Vector3:New(position.x, position.y, position.z);
+    -- store initial ray intersection
+    local position = SM.selectedPosition;
+    local mouseRay = Camera.GetMouseRay();
+    if (Gizmos.activeTransformGizmo == 1) then
+        if (Gizmos.selectedAxis == 1) then
+            -- X --
+            Gizmos.previousIPoint = mouseRay:LineIntersection(SM.selectedPosition, Gizmos.forward);
+        elseif (Gizmos.selectedAxis == 2) then
+            -- Y --
+            Gizmos.previousIPoint = mouseRay:LineIntersection(SM.selectedPosition, Gizmos.right);
+        elseif (Gizmos.selectedAxis == 3) then
+            -- Z --
+            Gizmos.previousIPoint = mouseRay:LineIntersection(SM.selectedPosition, Gizmos.up);
+        elseif (Gizmos.selectedAxis == 4) then
+            -- XY --
+            Gizmos.previousIPoint = mouseRay:PlaneIntersection(SM.selectedPosition, Gizmos.up);
+        elseif (Gizmos.selectedAxis == 5) then
+            -- XZ --
+            Gizmos.previousIPoint = mouseRay:PlaneIntersection(SM.selectedPosition, Gizmos.right);
+        elseif (Gizmos.selectedAxis == 6) then
+            -- YZ --
+            Gizmos.previousIPoint = mouseRay:PlaneIntersection(SM.selectedPosition, Gizmos.forward);
         end
     end
 
-    -- store initial ray intersection
+    if (not Gizmos.previousIPoint) then
+        Gizmos.previousIPoint = { x = 0, y = 0, z = 0 };
+    end
+    --[[
+    if (not Gizmos.previousIPoints[i]) then
+        Gizmos.previousIPoints[i] = { x = 0, y = 0, z = 0 };
+    end
     if (#SM.selectedObjects > 0) then
         for i = 1, #SM.selectedObjects, 1 do
             local position = SM.selectedObjects[i]:GetPosition();
@@ -921,13 +1142,13 @@ function Gizmos.OnLMBDown(x, y)
             if (Gizmos.activeTransformGizmo == 1) then
                 if (Gizmos.selectedAxis == 1) then
                     -- X --
-                    Gizmos.previousIPoints[i] = mouseRay:PlaneIntersection(position, Gizmos.up) or Gizmos.previousIPoints[i];
+                    Gizmos.previousIPoints[i] = mouseRay:LineIntersection(position, Gizmos.forward);
                 elseif (Gizmos.selectedAxis == 2) then
                     -- Y --
-                    Gizmos.previousIPoints[i] = mouseRay:PlaneIntersection(position, Gizmos.up) or Gizmos.previousIPoints[i];
+                    Gizmos.previousIPoints[i] = mouseRay:LineIntersection(position, Gizmos.right);
                 elseif (Gizmos.selectedAxis == 3) then
                     -- Z --
-                    Gizmos.previousIPoints[i] = mouseRay:PlaneIntersection(position, Gizmos.right) or Gizmos.previousIPoints[i];
+                    Gizmos.previousIPoints[i] = mouseRay:LineIntersection(position, Gizmos.up);
                 elseif (Gizmos.selectedAxis == 4) then
                     -- XY --
                     Gizmos.previousIPoints[i] = mouseRay:PlaneIntersection(SM.selectedObjects[1]:GetPosition(), Gizmos.up);
@@ -945,6 +1166,7 @@ function Gizmos.OnLMBDown(x, y)
             end
         end
     end
+    --]]
 end
 
 function Gizmos.OnLMBUp()

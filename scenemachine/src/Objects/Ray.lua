@@ -51,33 +51,6 @@ function Ray:Get()
     return self.origin, self.direction;
 end
 
--- NOT TESTED --
-function Ray:NearestPointOnLine(linePoint, lineDirection)
-    local t = Vector3.DotProduct(lineDirection, self.direction)
-
-    -- Check if the line and ray are not parallel
-    if math.abs(t) > 1e-6 then
-        local lineToRay = Vector3:New();
-        lineToRay:SetVector3(self.origin);
-        lineToRay:Subtract(linePoint);
-        local u = Vector3.DotProduct(lineToRay, lineDirection) / t
-
-        -- Ensure that the point is along the ray (u >= 0)
-        if u >= 0 then
-            local intersectionPoint = Vector3:New();
-            intersectionPoint:SetVector3(lineDirection);
-            intersectionPoint:Scale(u);
-            intersectionPoint:Add(linePoint);
-
-            return intersectionPoint
-        end
-    end
-
-    -- If the line and ray are parallel or the intersection point is behind the ray origin, return the ray origin
-    return self.origin
-end
-
--- NOT TESTED --
 function Ray:PlaneIntersection(planePoint, planeNormal)
     -- Ensure that the ray and plane are not parallel
     local dotProduct = Vector3.DotProduct(planeNormal, self.direction);
@@ -103,6 +76,58 @@ function Ray:PlaneIntersection(planePoint, planeNormal)
     )
 
     return intersectionPoint;
+end
+
+function Ray:LineIntersection(line_position, line_normal)
+    -- https://math.stackexchange.com/questions/1993953/closest-points-between-two-lines
+    --var pos_diff = line_position - ray_position
+    --var cross_normal = line_normal.cross(ray_normal).normalized()
+    --var rejection = pos_diff - pos_diff.project(ray_normal) - pos_diff.project(cross_normal)
+    --var distance_to_line_pos = rejection.length() / line_normal.dot(rejection.normalized())
+    --var closest_approach = line_position - line_normal * distance_to_line_pos
+
+    local pos_diff = Vector3:New();
+    pos_diff:SetVector3(line_position);
+    pos_diff:Subtract(self.origin);
+
+    local cross_normal = Vector3:New();
+    cross_normal:SetVector3(line_normal);
+    cross_normal:CrossProduct(self.direction);
+    cross_normal:Normalize();
+
+    local rejection = Vector3:New();
+    rejection:SetVector3(pos_diff);
+    rejection:Subtract(Vector3.Project(pos_diff, self.direction));
+    rejection:Subtract(Vector3.Project(pos_diff, cross_normal));
+
+    local rejectionNorm = Vector3:New();
+    rejectionNorm:SetVector3(rejection);
+    rejectionNorm:Normalize();
+
+    local distance_to_line_pos = rejection:Length() / Vector3.DotProduct(line_normal, rejectionNorm);
+    local closest_approach = Vector3:New();
+    closest_approach:SetVector3(line_position);
+    line_normal:Scale(distance_to_line_pos);
+    closest_approach:Subtract(line_normal);
+
+    return closest_approach
+end
+
+function Ray:ShortestDistanceToLine(point2, dir2)
+    -- Calculate the direction vector of the line of shortest distance
+    local dir1 = self.direction;
+    local direction = Vector3:New(dir1.x, dir1.y, dir1.z);
+    direction:CrossProduct(dir2);
+    direction:Normalize();
+
+    -- Calculate a point on each line
+    local p1 = self.origin;
+    local p2 = point2;
+
+    -- Calculate the shortest distance
+    local distance = Vector3.DotProduct(Vector3:New(p2.x - p1.x, p2.y - p1.y, p2.z - p1.y), direction);
+    distance = math.abs(distance);
+    return distance;
 end
 
 function Ray:IntersectsBoundingBox(bb, position, rotation, scale)
