@@ -103,6 +103,33 @@ function Quaternion:Multiply(q2)
     self.w = w;
 end
 
+function Quaternion:Normalize()
+    local magnitude = math.sqrt(self.x ^ 2 + self.y ^ 2 + self.z ^ 2 + self.w ^ 2);
+    self.x = self.x / magnitude;
+    self.y = self.y / magnitude;
+    self.z = self.z / magnitude;
+    self.w = self.w / magnitude;
+end
+
+function Quaternion:RotateAroundAxis(axis, angle)
+
+    -- Calculate half angle
+    local halfAngle = angle * 0.5
+
+    -- Calculate sine and cosine of half angle
+    local sinHalfAngle = math.sin(halfAngle)
+    local cosHalfAngle = math.cos(halfAngle)
+
+    -- Construct the quaternion
+    local rotationQuat = Quaternion:New(axis.x * sinHalfAngle, axis.y * sinHalfAngle, axis.z * sinHalfAngle, cosHalfAngle)
+    rotationQuat:Multiply(self);
+    rotationQuat:Normalize();
+    self.x = rotationQuat.x;
+    self.y = rotationQuat.y;
+    self.z = rotationQuat.z;
+    self.w = rotationQuat.w;
+end
+
 function Quaternion.Interpolate(a, b, t)
     -- http://jsperf.com/quaternion-slerp-implementations
     local output = Quaternion:New();
