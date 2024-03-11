@@ -93,9 +93,9 @@ end
 
 function Quaternion:Multiply(q2)
     local w = self.w * q2.w - self.x * q2.x - self.y * q2.y - self.z * q2.z;
-    local x = self.w * q2.x + self.x * q2.w + self.y * q2.z - self.z * q2.y;
-    local y = self.w * q2.y - self.x * q2.z + self.y * q2.w + self.z * q2.x;
-    local z = self.w * q2.z + self.x * q2.y - self.y * q2.x + self.z * q2.w;
+    local x = self.w * q2.x + self.x * q2.w - self.y * q2.z + self.z * q2.y;
+    local y = self.w * q2.y + self.x * q2.z + self.y * q2.w - self.z * q2.x;
+    local z = self.w * q2.z - self.x * q2.y + self.y * q2.x + self.z * q2.w;
 
     self.x = x;
     self.y = y;
@@ -122,12 +122,7 @@ function Quaternion:RotateAroundAxis(axis, angle)
 
     -- Construct the quaternion
     local rotationQuat = Quaternion:New(axis.x * sinHalfAngle, axis.y * sinHalfAngle, axis.z * sinHalfAngle, cosHalfAngle)
-    rotationQuat:Multiply(self);
-    rotationQuat:Normalize();
-    self.x = rotationQuat.x;
-    self.y = rotationQuat.y;
-    self.z = rotationQuat.z;
-    self.w = rotationQuat.w;
+    self:Multiply(rotationQuat);
 end
 
 function Quaternion.Interpolate(a, b, t)
