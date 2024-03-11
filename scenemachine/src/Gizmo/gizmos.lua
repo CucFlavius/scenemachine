@@ -631,23 +631,36 @@ function Gizmos.ApplyScaleMotion(object, direction, mouseDiff)
     local position = object:GetPosition();
     local px, py, pz = position.x, position.y, position.z;
 
-    if (Gizmos.pivot == 0) then
-        s = s + mouseDiff;
-        s = math.max(0.0001, s);
-        object:SetScale(s, s, s);
-    elseif (Gizmos.pivot == 1) then
+    if (Gizmos.multiTransform == 0 and #SM.selectedObjects > 1) then
         local olds = s;
         s = s + mouseDiff;
-        local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
-        local h = (zMax - zMin) / 2;
         s = math.max(0.0001, s);
-        h = h * (s - olds);
         object:SetScale(s, s, s);
+        local h1, h2, h3 = px - Gizmos.center[1], py - Gizmos.center[2], pz + Gizmos.center[3];
+        h1 = h1 * (s - olds);
+        h2 = h2 * (s - olds);
+        h3 = h3 * (s - olds);
 
-        local rotation = object:GetRotation();
-        local rx, ry, rz = rotation.x, rotation.y, rotation.z;
-        local up = Math.normalize(Math.rotateVector(rx, ry, rz, 0, 0, 1));
-        object:SetPosition(px + up[1] * h, py + up[2] * h, pz + up[3] * h);
+        object:SetPosition(px + h1, py + h2, pz + h3);
+    else
+        if (Gizmos.pivot == 0) then
+            s = s + mouseDiff;
+            s = math.max(0.0001, s);
+            object:SetScale(s, s, s);
+        elseif (Gizmos.pivot == 1) then
+            local olds = s;
+            s = s + mouseDiff;
+            local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
+            local h = (zMax - zMin) / 2;
+            s = math.max(0.0001, s);
+            h = h * (s - olds);
+            object:SetScale(s, s, s);
+
+            local rotation = object:GetRotation();
+            local rx, ry, rz = rotation.x, rotation.y, rotation.z;
+            local up = Math.normalize(Math.rotateVector(rx, ry, rz, 0, 0, 1));
+            object:SetPosition(px + up[1] * h, py + up[2] * h, pz + up[3] * h);
+        end
     end
 end
 
@@ -728,7 +741,12 @@ function Gizmos.OnLMBDown(x, y)
     -- store rotation vector
     if (#SM.selectedObjects > 0) then
         -- store center
-        Gizmos.center = { SM.selectedPosition.x, SM.selectedPosition.y, SM.selectedPosition.z };
+        if (Gizmos.pivot == 0) then
+            Gizmos.center = { SM.selectedPosition.x, SM.selectedPosition.y, SM.selectedPosition.z };
+        elseif (Gizmos.pivot == 1) then
+            local h = (SM.selectedBounds[6] - SM.selectedBounds[3]) / 2
+            Gizmos.center = { SM.selectedPosition.x, SM.selectedPosition.y, SM.selectedPosition.z - h };
+        end
         local rotation = SM.selectedRotation;
         local rx, ry, rz = rotation.x, rotation.y, rotation.z;
 

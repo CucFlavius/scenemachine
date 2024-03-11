@@ -601,13 +601,37 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         end
     end);
 
-    local testButton = UI.Button:New(0, -193, 100, 20, parent, "TOPLEFT", "TOPLEFT", "TEST");
+    local dispIDToNameButton = UI.Label:New(0, -193, 100, 20, parent, "TOPLEFT", "TOPLEFT", "DisplayID to Name", 9);
+    local dispIDToNameEditBox = UI.TextBox:New(100, -193, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    local currentKit = 0;
+    dispIDToNameEditBox:SetScript('OnEnterPressed', function(self1)
+        -- set value
+        local valText = self1:GetText();
+        if (valText == nil or valText == "") then
+            return;
+        end
+        local val = tonumber(valText);
+        if (val ~= nil) then
+            GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
+            GameTooltip:SetHyperlink(format("unit:Creature-0-0-0-0-%d-0", val))
+            for i=1, GameTooltip:NumLines() do 
+                print(_G["GameTooltipTextLeft"..i]:GetText())
+            end
+            GameTooltip:Hide();
+        end
+        self1:ClearFocus();
+        Editor.ui.focused = false;
+    end);
+
+
+    local testButton = UI.Button:New(0, -213, 100, 20, parent, "TOPLEFT", "TOPLEFT", "TEST");
     testButton:SetScript("OnClick", function(_, button, up)
         if (#SM.selectedObjects > 0) then
             SM.selectedObjects[1].actor:TryOn(167988);
         end
         --SM.ExportSceneForPrint(SM.loadedScene);
     end);
+    
 --[[
     local testButtonB = UI.Button:New(0, -193, 100, 20, parent, "TOPLEFT", "TOPLEFT", "Connect");
     testButtonB:SetScript("OnClick", function(_, button, up)
@@ -642,18 +666,7 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         end
     end);
 --]]
-    --[[
-    local testButton = UI.Button:New(0, -113, 100, 20, parent, "TOPLEFT", "TOPLEFT", "TEST");
-    local creatureDisplayID = 4;
-    testButton:SetScript("OnClick", function(_, button, up)
-        GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
-        GameTooltip:SetHyperlink(format("unit:Creature-0-0-0-0-%d-0", creatureDisplayID))
-        for i=1, GameTooltip:NumLines() do 
-            print(_G["GameTooltipTextLeft"..i]:GetText())
-        end
-        GameTooltip:Hide();
-    end);
-    --]]
+
 end
 
 local Debug = {};

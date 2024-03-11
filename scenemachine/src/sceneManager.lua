@@ -302,7 +302,7 @@ function SM.DeleteScene(index)
 end
 
 function SM.CreateObject(_fileID, _name, _x, _y, _z)
-    local object = SceneMachine.Object:New(_name, _fileID, { x = _x, y = _y, z = _z });
+    local object = SceneMachine.Object:New(_name, _fileID, Vector3:New(_x, _y, _z));
 
     local scene = SM.loadedScene;--PM.currentProject.scenes[SM.loadedSceneIndex];
     scene.objects[#scene.objects + 1] = object;
@@ -321,7 +321,7 @@ function SM.CreateObject(_fileID, _name, _x, _y, _z)
 end
 
 function SM.CreateCreature(_displayID, _name, _x, _y, _z)
-    local object = SceneMachine.Object:NewCreature(_name, _displayID, { x = _x, y = _y, z = _z });
+    local object = SceneMachine.Object:NewCreature(_name, _displayID, Vector3:New(_x, _y, _z));
 
     local scene = SM.loadedScene;
     scene.objects[#scene.objects + 1] = object;
@@ -340,7 +340,7 @@ function SM.CreateCreature(_displayID, _name, _x, _y, _z)
 end
 
 function SM.CreateCharacter(_x, _y, _z)
-    local object = SceneMachine.Object:NewCharacter(UnitName("player"), { x = _x, y = _y, z = _z });
+    local object = SceneMachine.Object:NewCharacter(UnitName("player"), Vector3:New(_x, _y, _z));
 
     local scene = SM.loadedScene;
     scene.objects[#scene.objects + 1] = object;
