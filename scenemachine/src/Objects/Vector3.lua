@@ -130,6 +130,25 @@ function Vector3.Interpolate(a, b, t)
     return output;
 end
 
+function Vector3:RotateAroundPivotByAxis(pivot, axis, angleIncrement)
+    -- Translate the object and pivot to the origin
+    local relativePosition = Vector3:New();
+    relativePosition:SetVector3(self);
+    relativePosition:Subtract(pivot);
+
+    -- Convert axis and angle increment to a quaternion rotation
+    local halfAngle = angleIncrement * 0.5;
+    local sinHalfAngle = math.sin(halfAngle);
+    local rotationQuat = SceneMachine.Quaternion:New(axis.x * sinHalfAngle, axis.y * sinHalfAngle, axis.z * sinHalfAngle, math.cos(halfAngle));
+
+    -- Apply rotation
+    local rotatedPosition = rotationQuat:MultiplyVector(relativePosition);
+
+    -- Translate the object back to its original position
+    rotatedPosition:Add(pivot);
+    self:SetVector3(rotatedPosition);
+end
+
 function Vector3:RotateAroundPivot(pivot, rotation)
     -- Translate the object and pivot to the origin
     self.x = self.x - pivot.x;

@@ -552,95 +552,6 @@ function Gizmos.UpdateGizmoTransform()
     end
 end
 
-function Gizmos.ApplyRotationMotionM(diff)
-    for i = 1, #SM.selectedObjects, 1 do
-
-        local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObjects[i]:GetActiveBoundingBox();
-        local h = (zMax - zMin) / 2;
-
-        local mat = SM.selectedObjects[i].matrix;
-        local pos = SM.selectedObjects[i].matrix:ExtractPosition();
-        local rot = SM.selectedObjects[i].matrix:ExtractRotation();
-        --local forward = Math.normalize(Math.rotateVector(rot.x, rot.y, rot.z, 1, 0, 0));
-        --local right = Math.normalize(Math.rotateVector(rot.x, rot.y, rot.z, 0, 1, 0));
-        --local up = Math.normalize(Math.rotateVector(rot.x, rot.y, rot.z, 0, 0, 1));
-        --Gizmos.forward:Set(forward[1], forward[2], forward[3]);
-        --Gizmos.right:Set(right[1], right[2], right[3]);
-        --Gizmos.up:Set(up[1], up[2], up[3]);
-        --Gizmos.up:Scale(-h);
-        local up = Vector3:New(mat.m20, mat.m21, mat.m22)
-        local pivotOffset = Vector3:New(up.x * -h, up.y * -h, up.z * -h);
-
-        local pivotMat = Matrix:New();
-        pivotMat:SetIdentity();
-        --pivotMat:SetMatrix(mat);
-        pivotMat:Translate(-pos.x, -pos.y, -pos.z);
-        --pivotMat:Translate(pivotOffset.x, pivotOffset.y, pivotOffset.z);
-        --local pos = Gizmos.initialObjectMatrices[i]:ExtractPosition();
-        --local rot = Gizmos.initialObjectMatrices[i]:ExtractRotation();
-        --local pos = SM.selectedObjects[i].matrix:ExtractPosition();
-        --local rot = SM.selectedObjects[i].matrix:ExtractRotation();
-        --pivotMat:Translate(-pos.x, -pos.y, -pos.z);
-        --pivotMat:RotateEuler(-rot.x, -rot.y, -rot.z);
-        --pivotMat:Translate(0, 0, -h);
-        --pivotMat:RotateEuler(rot.x, rot.y, rot.z);
-        --pivotMat:SetMatrix(Gizmos.initialObjectMatrices[i]);
-        --pivotMat:SetMatrix(Gizmos.initialObjectMatrices[i]);
-        --pivotMat:
-        --pivotMat.m30 = pivotMat.m30 + 0;
-        --pivotMat.m31 = pivotMat.m31 + 0;
-        --pivotMat.m32 = pivotMat.m32 + -h;
-        --local transMat = Matrix:New()
-        --transMat:Translate(0, -h, 0);
-        --pivotMat:Multiply(transMat);
-        local pivotMatInv = Matrix:New();
-        pivotMatInv:SetMatrix(pivotMat);
-        pivotMatInv:Invert();
-
-        --[[
-        pivotMat:Multiply(Gizmos.initialObjectMatrices[i]);
-        local rotationMat = Matrix:New();
-        rotationMat:CreateFromAxisAngle(Vector3:New(0, 1, 0), math.rad(-diff));
-        rotationMat:Multiply(pivotMat);
-        pivotMatInv:Multiply(rotationMat);
-        SM.selectedObjects[i].matrix:SetMatrix(pivotMatInv);
-        SM.selectedObjects[i]:ApplyTransformation();
-        --]]
-        
-        local matrix = Matrix:New();
-        matrix:SetMatrix(Gizmos.initialObjectMatrices[i])
-
-        matrix:Multiply(pivotMat);
-
-        local rotationMat = Matrix:New();
-        rotationMat:CreateFromAxisAngle(Vector3:New(0, 1, 0), math.rad(-diff));
-
-        matrix:Multiply(rotationMat);
-        
-        matrix:Multiply(pivotMatInv);
-
-        SM.selectedObjects[i].matrix:SetMatrix(matrix);
-        SM.selectedObjects[i]:ApplyTransformation();
-
-    end
-end
-
-function Gizmos.MotionToTransformM()
-    if (not Gizmos.isUsed) then
-        return;
-    end
-
-    -- when using the gizmo (clicked), keep it highlighted even if the mouse moves away
-    Gizmos.highlightedAxis = Gizmos.selectedAxis;
-
-    local xDiff = Input.mouseXRaw - Gizmos.LMBPrevious.x;
-    local yDiff = Input.mouseYRaw - Gizmos.LMBPrevious.y;
-    local diff = ((xDiff + yDiff) / 2);
-
-    Gizmos.ApplyRotationMotionM(diff);
-    OP.Refresh();
-end
-
 function Gizmos.ApplyPositionMotion(object, iPointDiff)
     if (not iPointDiff) then
         return;
@@ -654,8 +565,63 @@ end
 function Gizmos.ApplyRotationMotion(object, direction, mouseDiff)
 
     local rotation = object:GetQuaternionRotation();
+    local rotationOld = object:GetRotation();
+    local oldRx = rotationOld.x;
+    local oldRy = rotationOld.y;
+    local oldRz = rotationOld.z;
+
     rotation:RotateAroundAxis(direction, mouseDiff);
     local rotationE = rotation:ToEuler();
+
+    -- handle rotation that affects position
+    local position = object:GetPosition();
+    if (Gizmos.multiTransform == 0 and #SM.selectedObjects > 1) then
+        -- together
+        local offsetVec = Vector3:New();
+        if (Gizmos.selectedAxis == Gizmos.Axis.X) then
+            offsetVec.x = mouseDiff;
+        elseif (Gizmos.selectedAxis == Gizmos.Axis.Y) then
+            offsetVec.y = mouseDiff;
+        elseif (Gizmos.selectedAxis == Gizmos.Axis.Z) then
+            offsetVec.z = mouseDiff;
+        end
+
+        local pivotOffset = Vector3:New();
+        pivotOffset:SetVector3(position);
+        pivotOffset:RotateAroundPivot(
+            Vector3:New(Gizmos.center[1], Gizmos.center[2], Gizmos.center[3]),
+            offsetVec
+        );
+
+        object:SetPosition(pivotOffset.x, pivotOffset.y, pivotOffset.z);
+    else
+        -- individual
+        if (Gizmos.pivot == 1) then
+
+            local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
+            local h = (zMax - zMin) / 2;
+
+            local pivotCenter = Vector3:New();
+            if (Gizmos.selectedAxis == Gizmos.Axis.X) then
+                pivotCenter.x = h;
+            elseif (Gizmos.selectedAxis == Gizmos.Axis.Y) then
+                pivotCenter.y = h;
+            elseif (Gizmos.selectedAxis == Gizmos.Axis.Z) then
+                pivotCenter.z = h;
+            end
+
+            local pivotOffsetA = Vector3:New(0, 0, -h);
+            pivotOffsetA:RotateAroundPivot(pivotCenter, Vector3:New(oldRx, oldRy, oldRz));
+            local pivotOffset = Vector3:New(0, 0, -h);
+            pivotOffset:RotateAroundPivot(pivotCenter, Vector3:New(rotationE.x, rotationE.y, rotationE.z));
+
+            local px, py, pz = position.x, position.y, position.z;
+            px = px + (pivotOffsetA.x - pivotOffset.x);
+            py = py + (pivotOffsetA.y - pivotOffset.y);
+            pz = pz + (pivotOffsetA.z - pivotOffset.z);
+            object:SetPosition(px, py, pz);
+        end
+    end
 
     object:SetRotation(rotationE.x, rotationE.y, rotationE.z);
 end

@@ -125,6 +125,21 @@ function Quaternion:RotateAroundAxis(axis, angle)
     self:Multiply(rotationQuat);
 end
 
+function Quaternion:Conjugate()
+    return Quaternion:New(-self.x, -self.y, -self.z, self.w)
+end
+
+function Quaternion:MultiplyVector(v)
+    -- Quat * V * Quat^-1
+    local u = Quaternion:New(v.x, v.y, v.z, 0);
+    local conjugate = self:Conjugate();
+    u:Multiply(conjugate);
+    local result = Quaternion:New();
+    result:SetQuaternion(self);
+    result:Multiply(u);
+    return Vector3:New(result.x, result.y, result.z);
+end
+
 function Quaternion.Interpolate(a, b, t)
     -- http://jsperf.com/quaternion-slerp-implementations
     local output = Quaternion:New();
