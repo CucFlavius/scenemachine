@@ -58,10 +58,12 @@ function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
     local actorPropertyGroup = collapseList.bars[2].panel:GetFrame();
     OP.alphaField = UI.PropertyFieldFloat:New(-5, 20, actorPropertyGroup, L["ALPHA"], 1, OP.SetAlpha);
 
+    local onPropertyColorStartAction = function() Editor.StartAction(Actions.Action.Type.SceneProperties, SM.loadedScene.properties); end
+    local onPropertyColorFinishAction = function() Editor.FinishAction(SM.loadedScene.properties); end
     local scenePropertyGroup = collapseList.bars[3].panel:GetFrame();
-    OP.ambientColorField = UI.PropertyFieldColor:New(-5, 20, scenePropertyGroup, L["OP_AMBIENT_COLOR"], 0, 0, 0, 1, OP.SetAmbientColor);
-    OP.diffuseColorField = UI.PropertyFieldColor:New(-27, 20, scenePropertyGroup, L["OP_DIFFUSE_COLOR"], 0, 0, 0, 1, OP.SetDiffuseColor);
-    OP.backgroundColorField = UI.PropertyFieldColor:New(-49, 20, scenePropertyGroup, L["OP_BACKGROUND_COLOR"], 0.554,0.554,0.554,1, OP.SetBackgroundColor);
+    OP.ambientColorField = UI.PropertyFieldColor:New(-5, 20, scenePropertyGroup, L["OP_AMBIENT_COLOR"], 0, 0, 0, 1, OP.SetAmbientColor, onPropertyColorStartAction, onPropertyColorFinishAction);
+    OP.diffuseColorField = UI.PropertyFieldColor:New(-27, 20, scenePropertyGroup, L["OP_DIFFUSE_COLOR"], 0, 0, 0, 1, OP.SetDiffuseColor, onPropertyColorStartAction, onPropertyColorFinishAction);
+    OP.backgroundColorField = UI.PropertyFieldColor:New(-49, 20, scenePropertyGroup, L["OP_BACKGROUND_COLOR"], 0.554,0.554,0.554,1, OP.SetBackgroundColor, onPropertyColorStartAction, onPropertyColorFinishAction);
 
     OP.Refresh();
 end

@@ -11,6 +11,7 @@ Action.Type.DestroyObject = 2;
 Action.Type.CreateObject = 3;
 Action.Type.CreateTrack = 4;
 Action.Type.DestroyTrack = 5;
+Action.Type.SceneProperties = 6;
 
 setmetatable(Action, Action)
 

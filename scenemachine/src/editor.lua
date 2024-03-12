@@ -739,6 +739,8 @@ function Editor.StartAction(type, ...)
         SM.loadedScene.startedAction = Actions.DestroyTrack:New(...);
     elseif (type == Actions.Action.Type.CreateTrack) then
         SM.loadedScene.startedAction = Actions.CreateTrack:New(...);
+    elseif (type == Actions.Action.Type.SceneProperties) then
+        SM.loadedScene.startedAction = Actions.SceneProperties:New(...);
     else
         print ("NYI Editor.StartAction() type:" .. type);
     end

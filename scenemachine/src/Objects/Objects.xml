@@ -56,4 +56,5 @@ Structures
 	<Script file="Action/CreateObject.lua" />
 	<Script file="Action/DestroyTrack.lua" />
 	<Script file="Action/CreateTrack.lua" />
+	<Script file="Action/SceneProperties.lua" />
 </Ui>

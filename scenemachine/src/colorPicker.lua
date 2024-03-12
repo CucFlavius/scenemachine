@@ -443,10 +443,16 @@ function ColorPicker.Initialize(r, g, b)
     ColorPicker.RefreshSliders();
 end
 
-function ColorPicker.Open(r, g, b, a, onColorChanged)
+function ColorPicker.Open(r, g, b, a, onColorChanged, onStartAction, onFinishAction)
     ColorPicker.Close();
     ColorPicker.enabled = true;
     ColorPicker.window:Show();
+
+    if (onStartAction) then
+        onStartAction();
+        onStartAction = nil;
+    end
+    ColorPicker.onFinishAction = onFinishAction;
 
     ColorPicker.r = r;
     ColorPicker.g = g;
@@ -465,6 +471,11 @@ end
 function ColorPicker.Close()
     ColorPicker.enabled = false;
     ColorPicker.window:Hide();
+
+    if (ColorPicker.onFinishAction) then
+        ColorPicker.onFinishAction();
+        ColorPicker.onFinishAction = nil;
+    end
 
     ColorPicker.onColorChanged = nil;
 end

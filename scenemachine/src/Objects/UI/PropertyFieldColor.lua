@@ -5,7 +5,7 @@ local PropertyFieldColor = UI.PropertyFieldColor;
 PropertyFieldColor.__index = PropertyFieldColor;
 setmetatable(PropertyFieldColor, UI.PropertyField)
 
-function PropertyFieldColor:New(y, h, parent, title, R, G, B, A, onSetColor)
+function PropertyFieldColor:New(y, h, parent, title, R, G, B, A, onSetColor, onStartAction, onFinishAction)
 	local v = 
     {
         y = y or 0,
@@ -17,6 +17,8 @@ function PropertyFieldColor:New(y, h, parent, title, R, G, B, A, onSetColor)
         B = B or 0,
         A = A or 1,
         onSetColor = onSetColor or nil,
+        onStartAction = onStartAction or nil,
+        onFinishAction = onFinishAction or nil,
         visible = true,
     };
 
@@ -41,7 +43,7 @@ function PropertyFieldColor:Build()
         ColorPicker.Open(self.R, self.G, self.B, self.A, function(r, g, b, a)
             self:Set(r, g, b, a);
             self.onSetColor(self.R, self.G, self.B, self.A);
-        end);
+        end, self.onStartAction, self.onFinishAction);
     end);
 end
 
