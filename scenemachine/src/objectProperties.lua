@@ -46,7 +46,7 @@ function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
     groupContent:SetPoint("BOTTOMRIGHT", groupBG:GetFrame(), "BOTTOMRIGHT", 0, 0);
     groupContent:SetFrameLevel(startLevel + 2);
 
-    local collapseList = UI.CollapsableList:New(0, 0, w - 6, h - 20, { 71, 27, 71 }, groupContent:GetFrame(), "TOPLEFT", "TOPLEFT", { L["OP_TRANSFORM"], L["OP_ACTOR_PROPERTIES"], L["OP_SCENE_PROPERTIES"] }, c1[1], c1[2], c1[3], 1);
+    local collapseList = UI.CollapsableList:New(0, 0, w - 6, h - 20, { 71, 27, 93 }, groupContent:GetFrame(), "TOPLEFT", "TOPLEFT", { L["OP_TRANSFORM"], L["OP_ACTOR_PROPERTIES"], L["OP_SCENE_PROPERTIES"] }, c1[1], c1[2], c1[3], 1);
     collapseList:SetPoint("BOTTOMRIGHT", groupContent:GetFrame(), "BOTTOMRIGHT", 0, 0);
     collapseList:SetFrameLevel(startLevel + 3);
     
@@ -266,5 +266,10 @@ function OP.SetBackgroundColor(R, G, B, A)
 end
 
 function OP.ToggleLighting(on)
-    print(on);
+    Renderer.projectionFrame:SetLightVisible(on);
+    if (on) then
+        --Renderer.projectionFrame:SetLightType(0);
+    else
+        --Renderer.projectionFrame:SetLightType(1);
+    end
 end

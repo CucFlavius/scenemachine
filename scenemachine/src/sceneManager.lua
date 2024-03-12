@@ -568,7 +568,6 @@ function SM.CloneObject_internal(object, selectAfter)
         clone = SM.CreateCharacter(pos.x, pos.y, pos.z);
     end
     if (clone) then
-        clone.name = "A Clone";
         clone:SetRotation(rot.x, rot.y, rot.z);
         clone:SetScale(scale);
 
