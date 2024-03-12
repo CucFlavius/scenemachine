@@ -190,6 +190,7 @@ L["OP_TT_RESET_VALUE"] = "Reset value to default";
 L["OP_TT_X_FIELD"] = "X";
 L["OP_TT_Y_FIELD"] = "Y";
 L["OP_TT_Z_FIELD"] = "Z";
+L["OP_ENABLE_LIGHTING"] = "Enable Lighting";
 
 -- Scene Hierarchy --
 L["SH_TITLE"] = "Scene Hierarchy";

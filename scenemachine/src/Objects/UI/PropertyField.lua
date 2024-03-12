@@ -74,3 +74,11 @@ function PropertyField:BuildFloatField(setValue, default)
     end);
     return transform;
 end
+
+function PropertyField:BuildCheckboxField(setValue, default)
+    local myCheckButton = CreateFrame("CheckButton", "PropertyField.Checkbox", self.fieldGroup, "ChatConfigCheckButtonTemplate");
+    myCheckButton:SetChecked(default);
+    myCheckButton:SetScript("OnClick", function(frame) setValue(frame:GetChecked()); end)
+
+    return myCheckButton;
+end

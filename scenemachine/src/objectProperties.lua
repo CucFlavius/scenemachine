@@ -64,6 +64,7 @@ function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
     OP.ambientColorField = UI.PropertyFieldColor:New(-5, 20, scenePropertyGroup, L["OP_AMBIENT_COLOR"], 0, 0, 0, 1, OP.SetAmbientColor, onPropertyColorStartAction, onPropertyColorFinishAction);
     OP.diffuseColorField = UI.PropertyFieldColor:New(-27, 20, scenePropertyGroup, L["OP_DIFFUSE_COLOR"], 0, 0, 0, 1, OP.SetDiffuseColor, onPropertyColorStartAction, onPropertyColorFinishAction);
     OP.backgroundColorField = UI.PropertyFieldColor:New(-49, 20, scenePropertyGroup, L["OP_BACKGROUND_COLOR"], 0.554,0.554,0.554,1, OP.SetBackgroundColor, onPropertyColorStartAction, onPropertyColorFinishAction);
+    OP.enableLightingField = UI.PropertyFieldCheckbox:New(-71, 20, scenePropertyGroup, L["OP_ENABLE_LIGHTING"], true, OP.ToggleLighting);
 
     OP.Refresh();
 end
@@ -262,4 +263,8 @@ end
 function OP.SetBackgroundColor(R, G, B, A)
     Renderer.backgroundFrame.texture:SetColorTexture(R, G, B, 1);
     SM.loadedScene.properties.backgroundColor = { R, G, B, A };
+end
+
+function OP.ToggleLighting(on)
+    print(on);
 end
