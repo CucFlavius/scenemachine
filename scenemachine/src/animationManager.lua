@@ -9,6 +9,7 @@ local Track = SceneMachine.Track;
 local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
 local L = Editor.localization;
+local Actions = SceneMachine.Actions;
 
 local tabButtonHeight = 20;
 local tabPool = {};
@@ -1095,7 +1096,7 @@ function AM.CreateToolbar(x, y, w, h, parent, startLevel)
             tooltip = L["AM_TOOLBAR_TT_ADD_TRACK"], tooltipDetailed = L["AM_TOOLBAR_TTD_ADD_TRACK"],
         },
         { 
-            type = "Button", name = "RemoveObject", icon = toolbar:GetIcon("removeobj"), action = function(self) AM.RemoveTrack(AM.selectedTrack) end,
+            type = "Button", name = "RemoveObject", icon = toolbar:GetIcon("removeobj"), action = function(self) AM.RemoveTracks({ AM.selectedTrack }); end,
             tooltip = L["AM_TOOLBAR_TT_REMOVE_TRACK"],
         },
         { type = "Separator", name = "Separator2" },
@@ -1652,14 +1653,18 @@ function AM.AddTracks(objects)
         return;
     end
 
+    local tracks = {};
     for i = 1, #objects, 1 do
         if (objects[i]) then
-            AM.AddTrack(objects[i]);
+            tracks[i] = AM.AddTrack_internal(objects[i]);
         end
     end
+
+    Editor.StartAction(Actions.Action.Type.CreateTrack, tracks);
+    Editor.FinishAction();
 end
 
-function AM.AddTrack(object)
+function AM.AddTrack_internal(object)
     if (not object) then
         return;
     end
@@ -1684,9 +1689,20 @@ function AM.AddTrack(object)
 
     AM.SelectTrack(#AM.loadedTimeline.tracks);
     AM.RefreshWorkspace();
+
+    return track;
 end
 
-function AM.RemoveTrack(track)
+function AM.RemoveTracks(tracks)
+    for i = 1, #tracks, 1 do
+        AM.RemoveTrack_internal(tracks[i]);
+    end
+
+    Editor.StartAction(Actions.Action.Type.DestroyTrack, tracks);
+    Editor.FinishAction();
+end
+
+function AM.RemoveTrack_internal(track)
     if (not AM.loadedTimeline) then
         return;
     end
@@ -1702,6 +1718,15 @@ function AM.RemoveTrack(track)
     end
 
     --AM.SelectTrack(#AM.loadedTimeline.tracks);
+    AM.RefreshWorkspace();
+end
+
+function AM.UnremoveTrack_internal(track)
+    if (track == nil) then
+        return;
+    end
+
+    AM.loadedTimeline.tracks[#AM.loadedTimeline.tracks + 1] = track;
     AM.RefreshWorkspace();
 end
 
@@ -2740,7 +2765,7 @@ function AM.OpenAddAnimationWindow(track)
     if (not track) then
         if (#SM.selectedObjects > 0) then
             Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["AM_MSG_NO_TRACK_TITLE"], L["AM_MSG_NO_TRACK_MESSAGE"],
-            true, true, function() AM.AddTrack(SM.selectedObjects[1]) AM.OpenAddAnimationWindow(AM.selectedTrack) end, function() end);
+            true, true, function() AM.AddTracks({ SM.selectedObjects[1] }) AM.OpenAddAnimationWindow(AM.selectedTrack) end, function() end);
         end
         return;
     end
@@ -2770,7 +2795,7 @@ function AM.AddFullKey(track)
     if (not track) then
         if (#SM.selectedObjects > 0) then
             Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["AM_MSG_NO_TRACK_TITLE"], L["AM_MSG_NO_TRACK_MESSAGE"],
-            true, true, function() AM.AddTrack(SM.selectedObjects[1]); AM.AddFullKey(AM.selectedTrack); end, function() end);
+            true, true, function() AM.AddTracks({ SM.selectedObjects[1] }); AM.AddFullKey(AM.selectedTrack); end, function() end);
         end
         return;
     end
@@ -2788,7 +2813,7 @@ function AM.AddPosKey(track)
     if (not track) then
         if (#SM.selectedObjects > 0) then
             Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["AM_MSG_NO_TRACK_TITLE"], L["AM_MSG_NO_TRACK_MESSAGE"],
-            true, true, function() AM.AddTrack(SM.selectedObjects[1]); AM.AddPosKey(AM.selectedTrack); end, function() end);
+            true, true, function() AM.AddTracks({ SM.selectedObjects[1] }); AM.AddPosKey(AM.selectedTrack); end, function() end);
         end
         return;
     end
@@ -2806,7 +2831,7 @@ function AM.AddRotKey(track)
     if (not track) then
         if (#SM.selectedObjects > 0) then
             Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["AM_MSG_NO_TRACK_TITLE"], L["AM_MSG_NO_TRACK_MESSAGE"],
-            true, true, function() AM.AddTrack(SM.selectedObjects[1]); AM.AddRotKey(AM.selectedTrack); end, function() end);
+            true, true, function() AM.AddTracks({ SM.selectedObjects[1] }); AM.AddRotKey(AM.selectedTrack); end, function() end);
         end
         return;
     end
@@ -2824,7 +2849,7 @@ function AM.AddScaleKey(track)
     if (not track) then
         if (#SM.selectedObjects > 0) then
             Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["AM_MSG_NO_TRACK_TITLE"], L["AM_MSG_NO_TRACK_MESSAGE"],
-            true, true, function() AM.AddTrack(SM.selectedObjects[1]); AM.AddScaleKey(AM.selectedTrack); end, function() end);
+            true, true, function() AM.AddTracks({ SM.selectedObjects[1] }); AM.AddScaleKey(AM.selectedTrack); end, function() end);
         end
         return;
     end

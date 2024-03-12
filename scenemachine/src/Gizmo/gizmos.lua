@@ -799,7 +799,7 @@ function Gizmos.OnLMBDown(x, y, recordAction)
     end
 
     if (not Input.mouseState.isDraggingAssetFromUI and recordAction) then
-        Editor.StartAction(Actions.Action.Type.Transform, SM.selectedObjects);
+        Editor.StartAction(Actions.Action.Type.TransformObject, SM.selectedObjects);
     end
 end
 

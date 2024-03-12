@@ -1109,7 +1109,7 @@ function AssetBrowser.OnThumbnailDoubleClick(ID, name)
                 if (fileID == ID) then
                     local fileName = searchData[i].N;
                     local object = SM.CreateObject(fileID, fileName, 0, 0, 0);
-                    Editor.StartAction(Actions.Action.Type.Create, { object });
+                    Editor.StartAction(Actions.Action.Type.CreateObject, { object });
                     Editor.FinishAction();
                     SM.selectedObjects = { object };
                     Editor.lastSelectedType = "obj";
@@ -1144,7 +1144,7 @@ function AssetBrowser.OnThumbnailDoubleClick(ID, name)
                     if (fileID == ID) then
                         local fileName = AssetBrowser.currentDirectory["FN"][i];
                         local object = SM.CreateObject(fileID, fileName, 0, 0, 0);
-                        Editor.StartAction(Actions.Action.Type.Create, { object });
+                        Editor.StartAction(Actions.Action.Type.CreateObject, { object });
                         Editor.FinishAction();
                         SM.selectedObjects = { object };
                         Editor.lastSelectedType = "obj";
@@ -1167,7 +1167,7 @@ function AssetBrowser.OnThumbnailDoubleClick(ID, name)
                 local name = SceneMachine.creatureData[creatureID];
                 if (ID == creatureID) then
                     local object = SM.CreateCreature(displayID, name or "Creature", 0, 0, 0);
-                    Editor.StartAction(Actions.Action.Type.Create, { object });
+                    Editor.StartAction(Actions.Action.Type.CreateObject, { object });
                     Editor.FinishAction();
                     SM.selectedObjects = { object };
                     Editor.lastSelectedType = "obj";
@@ -1183,7 +1183,7 @@ function AssetBrowser.OnThumbnailDoubleClick(ID, name)
                 local name = SceneMachine.creatureData[creatureID];
                 if (ID == creatureID) then
                     local object = SM.CreateCreature(displayID, name or "Creature", 0, 0, 0);
-                    Editor.StartAction(Actions.Action.Type.Create, { object });
+                    Editor.StartAction(Actions.Action.Type.CreateObject, { object });
                     Editor.FinishAction();
                     SM.selectedObjects = { object };
                     Editor.lastSelectedType = "obj";
@@ -1208,7 +1208,7 @@ function AssetBrowser.OnThumbnailDoubleClick(ID, name)
                         end
                     end
                     local object = SM.CreateCreature(item.displayID, name or "Creature", 0, 0, 0);
-                    Editor.StartAction(Actions.Action.Type.Create, { object });
+                    Editor.StartAction(Actions.Action.Type.CreateObject, { object });
                     Editor.FinishAction();
                     SM.selectedObjects = { object };
                     Editor.lastSelectedType = "obj";
@@ -1218,7 +1218,7 @@ function AssetBrowser.OnThumbnailDoubleClick(ID, name)
                 elseif (item.fileID == ID) then
                     local name = AssetBrowser.GetFileName(item.fileID);
                     local object = SM.CreateObject(item.fileID, name or "Model", 0, 0, 0);
-                    Editor.StartAction(Actions.Action.Type.Create, { object });
+                    Editor.StartAction(Actions.Action.Type.CreateObject, { object });
                     Editor.FinishAction();
                     SM.selectedObjects = { object };
                     Editor.lastSelectedType = "obj";
@@ -1242,7 +1242,7 @@ function AssetBrowser.OnThumbnailDrag(ID)
                     local mouseRay = Camera.GetMouseRay();
                     local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
                     local object = SM.CreateObject(fileID, fileName, initialPosition.x, initialPosition.y, initialPosition.z);
-                    Editor.StartAction(Actions.Action.Type.Create, { object });
+                    Editor.StartAction(Actions.Action.Type.CreateObject, { object });
                     local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
                     object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
                     SM.selectedObjects = { object };
@@ -1269,7 +1269,7 @@ function AssetBrowser.OnThumbnailDrag(ID)
                         local mouseRay = Camera.GetMouseRay();
                         local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
                         local object = SM.CreateObject(fileID, fileName, initialPosition.x, initialPosition.y, initialPosition.z);
-                        Editor.StartAction(Actions.Action.Type.Create, { object });
+                        Editor.StartAction(Actions.Action.Type.CreateObject, { object });
                         local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
                         object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
                         SM.selectedObjects = { object };
@@ -1299,7 +1299,7 @@ function AssetBrowser.OnThumbnailDrag(ID)
                     local name = searchData[i].N;
                     local displayID = SceneMachine.creatureToDisplayID[creatureID];
                     local object = SM.CreateCreature(displayID, name or "Creature", 0, 0, 0);
-                    Editor.StartAction(Actions.Action.Type.Create, { object });
+                    Editor.StartAction(Actions.Action.Type.CreateObject, { object });
                     --local object = SM.CreateObject(fileID, fileName, initialPosition.x, initialPosition.y, initialPosition.z);
                     local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
                     local mouseRay = Camera.GetMouseRay();
@@ -1326,7 +1326,7 @@ function AssetBrowser.OnThumbnailDrag(ID)
                 local name = SceneMachine.creatureData[creatureID];
                 if (ID == creatureID) then
                     local object = SM.CreateCreature(displayID, name or "Creature", 0, 0, 0);
-                    Editor.StartAction(Actions.Action.Type.Create, { object });
+                    Editor.StartAction(Actions.Action.Type.CreateObject, { object });
                     local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
                     local mouseRay = Camera.GetMouseRay();
                     local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
@@ -1359,7 +1359,7 @@ function AssetBrowser.OnThumbnailDrag(ID)
                         end
                     end
                     local object = SM.CreateCreature(item.displayID, name or "Creature", 0, 0, 0);
-                    Editor.StartAction(Actions.Action.Type.Create, { object });
+                    Editor.StartAction(Actions.Action.Type.CreateObject, { object });
                     local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
                     local mouseRay = Camera.GetMouseRay();
                     local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
@@ -1380,7 +1380,7 @@ function AssetBrowser.OnThumbnailDrag(ID)
                     local mouseRay = Camera.GetMouseRay();
                     local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
                     local object = SM.CreateObject(item.fileID, name, initialPosition.x, initialPosition.y, initialPosition.z);
-                    Editor.StartAction(Actions.Action.Type.Create, { object });
+                    Editor.StartAction(Actions.Action.Type.CreateObject, { object });
                     local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
                     object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
                     SM.selectedObjects = { object };

@@ -2,23 +2,23 @@ local Math = SceneMachine.Math;
 local Vector3 = SceneMachine.Vector3;
 local SM = SceneMachine.Editor.SceneManager;
 
-SceneMachine.Actions.Create = {};
+SceneMachine.Actions.DestroyObject = {};
 
 local Action = SceneMachine.Actions.Action;
-local Create = SceneMachine.Actions.Create;
-Create.__index = Create;
-setmetatable(Create, Action)
+local DestroyObject = SceneMachine.Actions.DestroyObject;
+DestroyObject.__index = DestroyObject;
+setmetatable(DestroyObject, Action)
 
-function Create:New(objects)
+function DestroyObject:New(objects)
 	local v = 
     {
-        type = Action.Type.Create,
+        type = Action.Type.DestroyObject,
 		memorySize = 1,
 		memoryUsage = 0,
 		objects = {},
     };
 
-	setmetatable(v, Create)
+	setmetatable(v, DestroyObject)
 
 	-- save object states
 	for i = 1, #objects, 1 do
@@ -31,20 +31,20 @@ function Create:New(objects)
 	return v
 end
 
-function Create:Finish()
+function DestroyObject:Finish()
 
 end
 
-function Create:Undo()
-	for i = 1, #self.objects, 1 do
-		local obj = self.objects[i];
-		SM.DeleteObject_internal(obj);
-	end
-end
-
-function Create:Redo()
+function DestroyObject:Undo()
 	for i = 1, #self.objects, 1 do
 		local obj = self.objects[i];
 		SM.UndeleteObject_internal(obj);
+	end
+end
+
+function DestroyObject:Redo()
+	for i = 1, #self.objects, 1 do
+		local obj = self.objects[i];
+		SM.DeleteObject_internal(obj);
 	end
 end

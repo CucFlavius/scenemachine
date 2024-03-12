@@ -530,7 +530,7 @@ function SM.CloneObjects(objects, selectAfter)
             clones[i] = SM.CloneObject_internal(objects[i]);
         end
     end
-    Editor.StartAction(Actions.Action.Type.Create, clones);
+    Editor.StartAction(Actions.Action.Type.CreateObject, clones);
     Editor.FinishAction();
 
     if (selectAfter) then
@@ -608,7 +608,7 @@ function SM.DeleteObjects(objects)
         return;
     end
 
-    Editor.StartAction(Actions.Action.Type.Destroy, objects);
+    Editor.StartAction(Actions.Action.Type.DestroyObject, objects);
     for i = 1, #objects, 1 do
         if (objects[i]) then
             SM.DeleteObject_internal(objects[i]);
@@ -638,7 +638,7 @@ function SM.DeleteObject_internal(object)
     if (AM.loadedTimeline) then
 		for i in pairs(AM.loadedTimeline.tracks) do
 			if (AM.loadedTimeline.tracks[i].objectID == object.id) then
-				AM.RemoveTrack(AM.loadedTimeline.tracks[i]);
+				AM.RemoveTrack_internal(AM.loadedTimeline.tracks[i]);
 			end
 		end
 	end

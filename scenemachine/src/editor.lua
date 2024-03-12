@@ -320,15 +320,15 @@ function Editor.DeleteLastSelected()
         local hasKeyframes = AM.TrackHasKeyframes(AM.selectedTrack);
         if (hasAnims and hasKeyframes) then
             Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["EDITOR_MSG_DELETE_TRACK_TITLE"], L["EDITOR_MSG_DELETE_TRACK_A_K_MESSAGE"],
-                true, true, function() AM.RemoveTrack(AM.selectedTrack); end, function() end);
+                true, true, function() AM.RemoveTracks({ AM.selectedTrack }); end, function() end);
         elseif (hasAnims) then
             Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["EDITOR_MSG_DELETE_TRACK_TITLE"], L["EDITOR_MSG_DELETE_TRACK_A_MESSAGE"],
-                true, true, function() AM.RemoveTrack(AM.selectedTrack); end, function() end);
+                true, true, function() AM.RemoveTracks({ AM.selectedTrack }); end, function() end);
         elseif (hasKeyframes) then
             Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["EDITOR_MSG_DELETE_TRACK_TITLE"], L["EDITOR_MSG_DELETE_TRACK_K_MESSAGE"],
-                true, true, function() AM.RemoveTrack(AM.selectedTrack); end, function() end);
+                true, true, function() AM.RemoveTracks({ AM.selectedTrack }); end, function() end);
         else
-            AM.RemoveTrack(AM.selectedTrack);
+            AM.RemoveTracks({ AM.selectedTrack });
         end
     elseif (Editor.lastSelectedType == "anim") then
         AM.RemoveAnim(AM.selectedTrack, AM.selectedAnim);
@@ -720,13 +720,17 @@ end
 
 function Editor.StartAction(type, ...)
     --print("Start Action " .. type);
-    
-    if (type == Actions.Action.Type.Transform) then
-        Editor.startedAction = Actions.Transform:New(...);
-    elseif (type == Actions.Action.Type.Destroy) then
-        Editor.startedAction = Actions.Destroy:New(...);
-    elseif (type == Actions.Action.Type.Create) then
-        Editor.startedAction = Actions.Create:New(...);
+
+    if (type == Actions.Action.Type.TransformObject) then
+        Editor.startedAction = Actions.TransformObject:New(...);
+    elseif (type == Actions.Action.Type.DestroyObject) then
+        Editor.startedAction = Actions.DestroyObject:New(...);
+    elseif (type == Actions.Action.Type.CreateObject) then
+        Editor.startedAction = Actions.CreateObject:New(...);
+    elseif (type == Actions.Action.Type.DestroyTrack) then
+        Editor.startedAction = Actions.DestroyTrack:New(...);
+    elseif (type == Actions.Action.Type.CreateTrack) then
+        Editor.startedAction = Actions.CreateTrack:New(...);
     else
         print ("NYI Editor.StartAction() type:" .. type);
     end
@@ -788,11 +792,11 @@ function Editor.RefreshActionToolbar()
 
         if (Editor.mainToolbar.transformGroup.components[i].name == "Redo") then
             if (redoVisible) then
-                local coords = Editor.mainToolbar:GetIcon("undo")[2];
+                local coords = Editor.mainToolbar:GetIcon("redo")[2];
                 Editor.mainToolbar.transformGroup.components[i].icon:SetTexCoords(coords);
                 Editor.mainToolbar.transformGroup.components[i].inactive = false;
             else
-                local coords = Editor.mainToolbar:GetIcon("undooff")[2];
+                local coords = Editor.mainToolbar:GetIcon("redooff")[2];
                 Editor.mainToolbar.transformGroup.components[i].icon:SetTexCoords(coords);
                 Editor.mainToolbar.transformGroup.components[i].inactive = true;
             end

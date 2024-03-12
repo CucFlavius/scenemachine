@@ -1,17 +1,17 @@
 local Math = SceneMachine.Math;
 local Vector3 = SceneMachine.Vector3;
 
-SceneMachine.Actions.Transform = {};
+SceneMachine.Actions.TransformObject = {};
 
 local Action = SceneMachine.Actions.Action;
-local Transform = SceneMachine.Actions.Transform;
-Transform.__index = Transform;
-setmetatable(Transform, Action)
+local TransformObject = SceneMachine.Actions.TransformObject;
+TransformObject.__index = TransformObject;
+setmetatable(TransformObject, Action)
 
-function Transform:New(objects)
+function TransformObject:New(objects)
 	local v = 
     {
-        type = Action.Type.Transform,
+        type = Action.Type.TransformObject,
 		memorySize = 8,
 		memoryUsage = 0,
 		objects = {},
@@ -21,7 +21,7 @@ function Transform:New(objects)
 		startAlpha = {},
     };
 
-	setmetatable(v, Transform)
+	setmetatable(v, TransformObject)
 
 	-- save object states
 	for i = 1, #objects, 1 do
@@ -38,7 +38,7 @@ function Transform:New(objects)
 	return v
 end
 
-function Transform:Finish()
+function TransformObject:Finish()
 	self.endPos = {};
 	self.endRot = {};
 	self.endScale = {};
@@ -53,7 +53,7 @@ function Transform:Finish()
 	end
 end
 
-function Transform:Undo()
+function TransformObject:Undo()
 	for i = 1, #self.objects, 1 do
 		local obj = self.objects[i];
 		obj:SetPositionVector3(self.startPos[i]);
@@ -63,7 +63,7 @@ function Transform:Undo()
 	end
 end
 
-function Transform:Redo()
+function TransformObject:Redo()
 	for i = 1, #self.objects, 1 do
 		local obj = self.objects[i];
 		obj:SetPositionVector3(self.endPos[i]);

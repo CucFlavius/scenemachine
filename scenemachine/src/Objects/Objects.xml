@@ -51,7 +51,9 @@ Structures
 
 	<!-- Action Objects -->
 	<Script file="Action/Action.lua" />
-	<Script file="Action/Transform.lua" />
-	<Script file="Action/Destroy.lua" />
-	<Script file="Action/Create.lua" />
+	<Script file="Action/TransformObject.lua" />
+	<Script file="Action/DestroyObject.lua" />
+	<Script file="Action/CreateObject.lua" />
+	<Script file="Action/DestroyTrack.lua" />
+	<Script file="Action/CreateTrack.lua" />
 </Ui>

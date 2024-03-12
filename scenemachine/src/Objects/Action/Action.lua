@@ -6,9 +6,11 @@ local Action = SceneMachine.Actions.Action;
 
 Action.Type = {};
 Action.Type.None = 0;
-Action.Type.Transform = 1;
-Action.Type.Destroy = 2;
-Action.Type.Create = 3;
+Action.Type.TransformObject = 1;
+Action.Type.DestroyObject = 2;
+Action.Type.CreateObject = 3;
+Action.Type.CreateTrack = 4;
+Action.Type.DestroyTrack = 5;
 
 setmetatable(Action, Action)
 
