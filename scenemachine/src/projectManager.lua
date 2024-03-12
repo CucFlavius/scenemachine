@@ -135,10 +135,13 @@ function PM.LoadProject(ID)
         SM.LoadScene(1);
     end
 
+    SM.ClearSceneActions(SM.loadedScene);
+
     -- update scene tabs with available scenes
     SM.RefreshSceneTabs();
 
     Editor.RefreshProjectsDropdown();
+    Editor.ClearActions();
 end
 
 function PM.LoadLastProject()

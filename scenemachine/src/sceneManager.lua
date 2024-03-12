@@ -170,6 +170,10 @@ function SM.LoadScene(index)
     local scene = PM.currentProject.scenes[index];
     SM.loadedScene = scene;
 
+    scene.actionPool = scene.actionPool or {};
+    scene.startedAction = scene.startedAction or nil;
+    scene.actionPointer = scene.actionPointer or 0;
+
     if (scene.objects == nil) then
         scene.objects = {};
     end
@@ -270,6 +274,7 @@ function SM.LoadScene(index)
     SH.RefreshHierarchy();
     OP.Refresh();
     SM.ApplySelectionEffects();
+    Editor.RefreshActionToolbar();
 
     SM.selectedObjects = {};
 end
@@ -281,7 +286,12 @@ function SM.UnloadScene()
     
     SM.selectedObjects = {};
     Renderer.Clear();
-    Editor.ClearActions();
+end
+
+function SM.ClearSceneActions(scene)
+    scene.actionPool = scene.actionPool or {};
+    scene.startedAction = scene.startedAction or nil;
+    scene.actionPointer = scene.actionPointer or 0;
 end
 
 function SM.DeleteScene(index)

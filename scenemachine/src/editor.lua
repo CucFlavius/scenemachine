@@ -26,9 +26,6 @@ Editor.toolbarHeight = 15 + 30;
 Editor.isOpen = false;
 Editor.isInitialized = false;
 Editor.mode = Editor.MODE_LOCAL;
-Editor.actionPool = {};
-Editor.startedAction = nil;
-Editor.actionPointer = 0;
 
 local c1 = { 0.1757, 0.1757, 0.1875 };
 local c2 = { 0.242, 0.242, 0.25 };
@@ -691,13 +688,17 @@ function Editor.SetMode(mode)
 end
 
 function Editor.Undo()
-    if (Editor.actionPointer < 1) then
+    if (not SM.loadedScene) then
+        return;
+    end
+    
+    if (SM.loadedScene.actionPointer < 1) then
         return;
     end
 
-    Editor.actionPool[Editor.actionPointer]:Undo();
-    Editor.actionPointer = Editor.actionPointer - 1;
-    Editor.actionPointer = max(0, Editor.actionPointer);
+    SM.loadedScene.actionPool[SM.loadedScene.actionPointer]:Undo();
+    SM.loadedScene.actionPointer = SM.loadedScene.actionPointer - 1;
+    SM.loadedScene.actionPointer = max(0, SM.loadedScene.actionPointer);
 
     Editor.RefreshActionToolbar();
     SH.RefreshHierarchy();
@@ -705,13 +706,17 @@ function Editor.Undo()
 end
 
 function Editor.Redo()
-    if (Editor.actionPointer >= #Editor.actionPool) then
+    if (not SM.loadedScene) then
         return;
     end
 
-    Editor.actionPointer = Editor.actionPointer + 1;
-    Editor.actionPointer = min(#Editor.actionPool, Editor.actionPointer);
-    Editor.actionPool[Editor.actionPointer]:Redo();
+    if (SM.loadedScene.actionPointer >= #SM.loadedScene.actionPool) then
+        return;
+    end
+
+    SM.loadedScene.actionPointer = SM.loadedScene.actionPointer + 1;
+    SM.loadedScene.actionPointer = min(#SM.loadedScene.actionPool, SM.loadedScene.actionPointer);
+    SM.loadedScene.actionPool[SM.loadedScene.actionPointer]:Redo();
 
     Editor.RefreshActionToolbar();
     SH.RefreshHierarchy();
@@ -719,61 +724,76 @@ function Editor.Redo()
 end
 
 function Editor.StartAction(type, ...)
+    if (not SM.loadedScene) then
+        return;
+    end
     --print("Start Action " .. type);
 
     if (type == Actions.Action.Type.TransformObject) then
-        Editor.startedAction = Actions.TransformObject:New(...);
+        SM.loadedScene.startedAction = Actions.TransformObject:New(...);
     elseif (type == Actions.Action.Type.DestroyObject) then
-        Editor.startedAction = Actions.DestroyObject:New(...);
+        SM.loadedScene.startedAction = Actions.DestroyObject:New(...);
     elseif (type == Actions.Action.Type.CreateObject) then
-        Editor.startedAction = Actions.CreateObject:New(...);
+        SM.loadedScene.startedAction = Actions.CreateObject:New(...);
     elseif (type == Actions.Action.Type.DestroyTrack) then
-        Editor.startedAction = Actions.DestroyTrack:New(...);
+        SM.loadedScene.startedAction = Actions.DestroyTrack:New(...);
     elseif (type == Actions.Action.Type.CreateTrack) then
-        Editor.startedAction = Actions.CreateTrack:New(...);
+        SM.loadedScene.startedAction = Actions.CreateTrack:New(...);
     else
         print ("NYI Editor.StartAction() type:" .. type);
     end
 end
 
 function Editor.CancelAction()
-    Editor.startedAction = nil;
-end
-
-function Editor.FinishAction(...)
-    if (not Editor.startedAction) then
+    if (not SM.loadedScene) then
         return;
     end
 
-    --print("Finish Action " .. Editor.startedAction.type);
+    SM.loadedScene.startedAction = nil;
+end
 
-    Editor.actionPointer = Editor.actionPointer + 1;
-    Editor.startedAction:Finish(...);
-    Editor.actionPool[Editor.actionPointer] = Editor.startedAction;
-    Editor.startedAction = nil;
+function Editor.FinishAction(...)
+    if (not SM.loadedScene) then
+        return;
+    end
+
+    if (not SM.loadedScene.startedAction) then
+        return;
+    end
+
+    --print("Finish Action " .. SM.loadedScene.startedAction.type);
+
+    SM.loadedScene.actionPointer = SM.loadedScene.actionPointer + 1;
+    SM.loadedScene.startedAction:Finish(...);
+    SM.loadedScene.actionPool[SM.loadedScene.actionPointer] = SM.loadedScene.startedAction;
+    SM.loadedScene.startedAction = nil;
 
     -- performing an action has to clear the actionPool after the current action pointer
-    for i = #Editor.actionPool, Editor.actionPointer + 1, -1 do
-        table.remove(Editor.actionPool, i);
+    for i = #SM.loadedScene.actionPool, SM.loadedScene.actionPointer + 1, -1 do
+        table.remove(SM.loadedScene.actionPool, i);
     end
 
     Editor.RefreshActionToolbar();
 end
 
 function Editor.RefreshActionToolbar()
+    if (not SM.loadedScene) then
+        return;
+    end
+
     local undoVisible = true;
     local redoVisible = true;
 
-    if (#Editor.actionPool == 0) then
+    if (#SM.loadedScene.actionPool == 0) then
         undoVisible = false;
         redoVisible = false;
     end
 
-    if (Editor.actionPointer < 1) then
+    if (SM.loadedScene.actionPointer < 1) then
         undoVisible = false;
     end
 
-    if (Editor.actionPointer >= #Editor.actionPool) then
+    if (SM.loadedScene.actionPointer >= #SM.loadedScene.actionPool) then
         redoVisible = false;
     end
 
@@ -805,12 +825,33 @@ function Editor.RefreshActionToolbar()
 end
 
 function Editor.ClearActions()
-    for i = 1, #Editor.actionPool, 1 do
-        Editor.actionPool[i] = nil;
+    for i = 1, #SM.loadedScene.actionPool, 1 do
+        SM.loadedScene.actionPool[i] = nil;
     end
 
-    Editor.actionPool = {};
-    Editor.startedAction = nil;
-    Editor.actionPointer = 0;
+    SM.loadedScene.actionPool = {};
+    SM.loadedScene.startedAction = nil;
+    SM.loadedScene.actionPointer = 0;
     Editor.RefreshActionToolbar();
+end
+
+function Editor.PreprocessSavedVars()
+    if (not scenemachine_projects) then
+        return;
+    end
+
+    -- clear runtime data
+    for ID in pairs(scenemachine_projects) do
+        for s = 1, #scenemachine_projects[ID].scenes, 1 do
+            local scene = scenemachine_projects[ID].scenes[s];
+            scene.actionPool = nil;
+            scene.actionPointer = nil;
+
+            if (scene.objects) then
+                for o = 1, #scene.objects, 1 do
+                    scene.objects[o].matrix = nil;
+                end
+            end
+        end
+    end
 end

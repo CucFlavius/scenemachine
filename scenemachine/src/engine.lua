@@ -29,6 +29,9 @@ function SceneMachine.Start()
 	if (Debug) then Debug.Init(); end
 end
 
+function SceneMachine.End()
+	SceneMachine.Editor.PreprocessSavedVars();
+end
 
 SceneMachine.prefix = "sceneMachine123";
 
@@ -40,6 +43,9 @@ local function onevent(self, event, ...)
         f:UnregisterEvent("ADDON_LOADED");
 		C_ChatInfo.RegisterAddonMessagePrefix(SceneMachine.prefix);
 		SceneMachine.Start();
+	elseif (event == "ADDONS_UNLOADING") then
+		f:UnregisterEvent("ADDONS_UNLOADING");
+		SceneMachine.End();
 	elseif(event == "CHAT_MSG_ADDON") then
 		local prefix = ...;
 		if (prefix == SceneMachine.prefix) then
@@ -49,6 +55,7 @@ local function onevent(self, event, ...)
 end
 
 f:RegisterEvent("ADDON_LOADED");
+f:RegisterEvent("ADDONS_UNLOADING");
 f:RegisterEvent("CHAT_MSG_ADDON");
 f:SetScript("OnEvent", onevent);
 
