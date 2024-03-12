@@ -2697,10 +2697,11 @@ function AM.SetTime(timeMS, rounded)
                 local scale = track:SampleScaleKey(timeMS) or currentScale;
                 obj:SetScale(scale);
 
-                local currentAlpha = obj:GetAlpha();
-                local alpha = track:SampleAlphaKey(timeMS) or currentAlpha;
-                obj:SetAlpha(alpha);
-
+                if (obj:Visible()) then
+                    local currentAlpha = obj:GetAlpha();
+                    local alpha = track:SampleAlphaKey(timeMS) or currentAlpha;
+                    obj:SetAlpha(alpha);
+                end
             end
         end
     end

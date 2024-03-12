@@ -11,6 +11,7 @@ local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
 local L = Editor.localization;
 local Vector3 = SceneMachine.Vector3;
+local Actions = SceneMachine.Actions;
 
 local tabButtonHeight = 20;
 local tabPool = {};
@@ -517,18 +518,24 @@ function SM.CloneObjects(objects, selectAfter)
         return;
     end
 
+    local clones = {};
     for i = 1, #objects, 1 do
         if (objects[i]) then
-            local clone = SM.CloneObject(objects[i]);
-            if (selectAfter) then
-                SM.selectedObjects[i] = clone;
-            end
-            
+            clones[i] = SM.CloneObject_internal(objects[i]);
         end
     end
+    Editor.StartAction(Actions.Action.Type.Create, clones);
+    Editor.FinishAction();
+
+    if (selectAfter) then
+        SM.selectedObjects = clones;
+    end
+
+    SH.RefreshHierarchy();
+    OP.Refresh();
 end
 
-function SM.CloneObject(object, selectAfter)
+function SM.CloneObject_internal(object, selectAfter)
     if (object == nil) then
         return;
     end
@@ -544,8 +551,8 @@ function SM.CloneObject(object, selectAfter)
     elseif(object:GetType() == SceneMachine.ObjectType.Character) then
         clone = SM.CreateCharacter(pos.x, pos.y, pos.z);
     end
-    
     if (clone) then
+        clone.name = "A Clone";
         clone:SetRotation(rot.x, rot.y, rot.z);
         clone:SetScale(scale);
 
@@ -596,14 +603,16 @@ function SM.DeleteObjects(objects)
         return;
     end
 
+    Editor.StartAction(Actions.Action.Type.Destroy, objects);
     for i = 1, #objects, 1 do
         if (objects[i]) then
-            SM.DeleteObject(objects[i]);
+            SM.DeleteObject_internal(objects[i]);
         end
     end
+    Editor.FinishAction();
 end
 
-function SM.DeleteObject(object)
+function SM.DeleteObject_internal(object)
     if (object == nil) then
         return;
     end
@@ -629,6 +638,41 @@ function SM.DeleteObject(object)
 		end
 	end
 
+    -- refresh hierarchy
+    SH.RefreshHierarchy();
+    OP.Refresh();
+end
+
+function SM.UndeleteObject_internal(object)
+    if (object == nil) then
+        return;
+    end
+
+    SM.loadedScene.objects[#SM.loadedScene.objects + 1] = object;
+
+    local pos = object:GetPosition();
+    local actor;
+    if (object.type == SceneMachine.ObjectType.Model) then
+        actor = Renderer.AddActor(object.fileID, pos.x, pos.y, pos.z, object.type);
+    elseif (object.type == SceneMachine.ObjectType.Creature) then
+        actor = Renderer.AddActor(object.displayID, pos.x, pos.y, pos.z, object.type);
+    elseif (object.type == SceneMachine.ObjectType.Character) then
+        actor = Renderer.AddActor(-1, pos.x, pos.y, pos.z, object.type);
+    else
+        print("SM.UndeleteObject_internal(object) Unsupported obj.type : " .. object.type);
+        return;
+    end
+    object:SetActor(actor);
+    -- todo: restore timeline track
+    --[[
+    if (AM.loadedTimeline) then
+		for i in pairs(AM.loadedTimeline.tracks) do
+			if (AM.loadedTimeline.tracks[i].objectID == object.id) then
+				AM.RemoveTrack(AM.loadedTimeline.tracks[i]);
+			end
+		end
+	end
+    --]]
     -- refresh hierarchy
     SH.RefreshHierarchy();
     OP.Refresh();

@@ -13,6 +13,7 @@ local Quaternion = SceneMachine.Quaternion;
 local Ray = SceneMachine.Ray;
 local UI = SceneMachine.UI;
 local Matrix = SceneMachine.Matrix;
+local Actions = SceneMachine.Actions;
 
 Gizmos.isUsed = false;
 Gizmos.isHighlighted = false;
@@ -135,6 +136,10 @@ function Gizmos.CreateMarqueeSelectGizmo(parent, startLevel)
 end
 
 function Gizmos.StartMarqueeSelect()
+    if (not Gizmos.marqueeBox) then
+        return;
+    end
+
     Gizmos.marqueeOn = true;
     Gizmos.marqueeVisible = false;
     Gizmos.marqueeStartPoint = { Input.mouseX, Input.mouseY };
@@ -143,7 +148,10 @@ function Gizmos.StartMarqueeSelect()
 end
 
 function Gizmos.EndMarqueeSelect()
-    
+    if (not Gizmos.marqueeBox) then
+        return;
+    end
+
     if (Gizmos.marqueeAABBSSPoints) then
         local selectedObjects = {};
         for i = 1, #Gizmos.marqueeAABBSSPoints, 1 do
@@ -276,7 +284,7 @@ function Gizmos.UpdateMarquee(mouseX, mouseY)
             end
         end
 
-        if (Gizmos.marqueeVisible) then
+        if (Gizmos.marqueeVisible and Gizmos.marqueeBox) then
             Gizmos.marqueeBox:SetWidth(mouseX - Gizmos.marqueeStartPoint[1]);
             Gizmos.marqueeBox:SetHeight(mouseY - Gizmos.marqueeStartPoint[2]);
             Gizmos.marqueeBox:Show();
@@ -336,7 +344,7 @@ local function indexOfSmallestValue(tbl)
 end
 
 function Gizmos.SelectionCheck(mouseX, mouseY)
-    if not Gizmos.isUsed then
+    if not Gizmos.isUsed and Gizmos.MoveGizmo then
         -- Position --
         if (Gizmos.activeTransformGizmo == 1) then
             -- check against the rectangle XY
@@ -516,8 +524,10 @@ end
 
 function Gizmos.UpdateGizmoTransform()
 
-    if (SceneMachine.Gizmos.DebugGizmo.active == true) then
-        Gizmos.transformGizmo(SceneMachine.Gizmos.DebugGizmo, SceneMachine.Gizmos.DebugGizmo.position, SceneMachine.Gizmos.DebugGizmo.rotation, 1, {0, 0, 0}, 1, 0);
+    if (SceneMachine.Gizmos.DebugGizmo) then
+        if (SceneMachine.Gizmos.DebugGizmo.active == true) then
+            Gizmos.transformGizmo(SceneMachine.Gizmos.DebugGizmo, SceneMachine.Gizmos.DebugGizmo.position, SceneMachine.Gizmos.DebugGizmo.rotation, 1, {0, 0, 0}, 1, 0);
+        end
     end
 
     if (#SM.selectedObjects == 0) then
@@ -729,11 +739,12 @@ function Gizmos.MotionToTransform()
     OP.Refresh();
 end
 
-function Gizmos.OnLMBDown(x, y)
+function Gizmos.OnLMBDown(x, y, recordAction)
 	Gizmos.LMBPrevious.x = x;
 	Gizmos.LMBPrevious.y = y;
     Gizmos.isUsed = true;
     Gizmos.rotationIncrement = 0;
+    Gizmos.recordAction = recordAction;
 
     -- Store initial values so they can be diffed during mouse movement
     -- in order to get smooth transition
@@ -786,10 +797,17 @@ function Gizmos.OnLMBDown(x, y)
     if (not Gizmos.previousIPoint) then
         Gizmos.previousIPoint = { x = 0, y = 0, z = 0 };
     end
+
+    if (not Input.mouseState.isDraggingAssetFromUI and recordAction) then
+        Editor.StartAction(Actions.Action.Type.Transform, SM.selectedObjects);
+    end
 end
 
 function Gizmos.OnLMBUp()
     Gizmos.isUsed = false;
+    if (not Input.mouseState.isDraggingAssetFromUI and Gizmos.recordAction) then
+        Editor.FinishAction();
+    end
 end
 
 function Gizmos.transformGizmo(gizmo, position, rotation, scale, centerH, space, pivot)

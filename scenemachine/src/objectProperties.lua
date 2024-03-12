@@ -8,6 +8,7 @@ local Renderer = SceneMachine.Renderer;
 local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
 local L = Editor.localization;
+local Actions = SceneMachine.Actions;
 
 function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
     --local group = Editor.CreateGroup("Properties", h, leftPanel:GetFrame());
@@ -122,11 +123,13 @@ function OP.SetPosX(value)
     if (#SM.selectedObjects == 0) then
         return;
     end
-
+    
+    Editor.StartAction(Actions.Action.Type.Transform, SM.selectedObjects);
     for i = 1, #SM.selectedObjects, 1 do
         local pos = SM.selectedObjects[i]:GetPosition();
         SM.selectedObjects[i]:SetPosition(value, pos.y, pos.z);
     end
+    Editor.FinishAction();
 end
 
 function OP.SetPosY(value)
@@ -137,10 +140,12 @@ function OP.SetPosY(value)
         return;
     end
 
+    Editor.StartAction(Actions.Action.Type.Transform, SM.selectedObjects);
     for i = 1, #SM.selectedObjects, 1 do
         local pos = SM.selectedObjects[i]:GetPosition();
         SM.selectedObjects[i]:SetPosition(pos.x, value, pos.z);
     end
+    Editor.FinishAction();
 end
 
 function OP.SetPosZ(value)
@@ -151,10 +156,12 @@ function OP.SetPosZ(value)
         return;
     end
 
+    Editor.StartAction(Actions.Action.Type.Transform, SM.selectedObjects);
     for i = 1, #SM.selectedObjects, 1 do
         local pos = SM.selectedObjects[i]:GetPosition();
         SM.selectedObjects[i]:SetPosition(pos.x, pos.y, value);
     end
+    Editor.FinishAction();
 end
 
 function OP.SetRotX(value)
@@ -165,10 +172,12 @@ function OP.SetRotX(value)
         return;
     end
 
+    Editor.StartAction(Actions.Action.Type.Transform, SM.selectedObjects);
     for i = 1, #SM.selectedObjects, 1 do
         local rot = SM.selectedObjects[i]:GetRotation();
         SM.selectedObjects[i]:SetRotation(rad(value), rot.y, rot.z);
     end
+    Editor.FinishAction();
 end
 
 function OP.SetRotY(value)
@@ -179,10 +188,12 @@ function OP.SetRotY(value)
         return;
     end
 
+    Editor.StartAction(Actions.Action.Type.Transform, SM.selectedObjects);
     for i = 1, #SM.selectedObjects, 1 do
         local rot = SM.selectedObjects[i]:GetRotation();
         SM.selectedObjects[i]:SetRotation(rot.x, rad(value), rot.z);
     end
+    Editor.FinishAction();
 end
 
 function OP.SetRotZ(value)
@@ -193,10 +204,12 @@ function OP.SetRotZ(value)
         return;
     end
 
+    Editor.StartAction(Actions.Action.Type.Transform, SM.selectedObjects);
     for i = 1, #SM.selectedObjects, 1 do
         local rot = SM.selectedObjects[i]:GetRotation();
         SM.selectedObjects[i]:SetRotation(rot.x, rot.y, rad(value));
     end
+    Editor.FinishAction();
 end
 
 function OP.SetScale(value)
@@ -207,9 +220,11 @@ function OP.SetScale(value)
         return;
     end
 
+    Editor.StartAction(Actions.Action.Type.Transform, SM.selectedObjects);
     for i = 1, #SM.selectedObjects, 1 do
         SM.selectedObjects[i]:SetScale(value);
     end
+    Editor.FinishAction();
 end
 
 function OP.SetAlpha(value)
@@ -220,9 +235,11 @@ function OP.SetAlpha(value)
         return;
     end
 
+    Editor.StartAction(Actions.Action.Type.Transform, SM.selectedObjects);
     for i = 1, #SM.selectedObjects, 1 do
         SM.selectedObjects[i]:SetAlpha(value);
     end
+    Editor.FinishAction();
 end
 
 function OP.Truncate(num, digits)

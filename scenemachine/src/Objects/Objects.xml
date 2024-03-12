@@ -48,4 +48,10 @@ Structures
 	<Script file="Packet/SceneData.lua" />
 	<Script file="Packet/ReadyToWork.lua" />
 	<Script file="Packet/PlayerState.lua" />
+
+	<!-- Action Objects -->
+	<Script file="Action/Action.lua" />
+	<Script file="Action/Transform.lua" />
+	<Script file="Action/Destroy.lua" />
+	<Script file="Action/Create.lua" />
 </Ui>

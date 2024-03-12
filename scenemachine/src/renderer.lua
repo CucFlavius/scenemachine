@@ -129,7 +129,9 @@ function Renderer.AddActor(fileID, X, Y, Z, type)
 end
 
 function Renderer.RemoveActor(actor)
-    actor:Hide();
+    if (actor) then
+        actor:Hide();
+    end
 end
 
 function Renderer.Clear()

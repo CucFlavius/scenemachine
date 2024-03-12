@@ -46,6 +46,8 @@ L["EDITOR_IMPORT_EXPORT_WINDOW_TITLE"] = "Import - Export";
 L["EDITOR_NAME_RENAME_WINDOW_TITLE"] = "Name - Rename";
 L["EDITOR_TOOLBAR_TT_MULTITRANSFORM_TOGETHER"] = "Transform Together";
 L["EDITOR_TOOLBAR_TT_MULTITRANSFORM_INDIVIDUAL"] = "Transform Individual";
+L["EDITOR_TOOLBAR_TT_UNDO"] = "Undo";
+L["EDITOR_TOOLBAR_TT_REDO"] = "Redo";
 
 -- Main Menu --
 L["MM_FILE"] = "File";

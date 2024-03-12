@@ -118,7 +118,10 @@ function Input.Update()
                 -- Check if mouse is over asset browser, then delete object instead of placing it
                 local isOver = MouseIsOver(AssetBrowser.tabs[1]:GetFrame());
                 if (isOver) then
-                    SM.DeleteObject(SM.selectedObjects[1]); -- assuming only 1 object is selected, the one being pulled out
+                    Editor.CancelAction();
+                    SM.DeleteObject_internal(SM.selectedObjects[1]); -- assuming only 1 object is selected, the one being pulled out
+                else
+                    Editor.FinishAction();  -- record the object creation action
                 end
             end
             
@@ -258,12 +261,14 @@ function Input.OnDragStart(LMB, RMB, MMB)
         CC.OnRMBDown();
     elseif LMB then
         if (Gizmos.isHighlighted) then
+            local recordAction = true;
             if (SceneMachine.Input.ShiftModifier) then
                 -- clone object first
+                recordAction = false;
                 SM.CloneObjects(SM.selectedObjects, true);
             end
 
-            Gizmos.OnLMBDown(Input.mouseXRaw, Input.mouseYRaw);
+            Gizmos.OnLMBDown(Input.mouseXRaw, Input.mouseYRaw, recordAction);
         end
     end
 end
@@ -271,7 +276,7 @@ end
 function Input.OnDragStop()
     CC.OnRMBUp();
     if (Gizmos.isUsed) then
-        Gizmos.isUsed = false;
+        Gizmos.OnLMBUp();
     end
     Gizmos.EndMarqueeSelect();
 end

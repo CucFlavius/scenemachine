@@ -53,7 +53,7 @@ function Resources.Initialize(resourcePath)
         columns = 8,
         coords = {
             { "select", "move", "rotate", "scale", "worldpivot", "localpivot", "centerpivot", "basepivot" },
-            { "projects", "together", "individual", "", "", "", "", "" },
+            { "projects", "together", "individual", "undo", "undooff", "redo", "redooff", "" },
             { "", "", "", "", "", "", "", "" },
             { "", "", "", "", "", "", "", "" },
             { "", "", "", "", "", "", "", "" },

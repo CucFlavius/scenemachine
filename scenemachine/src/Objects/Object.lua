@@ -191,7 +191,7 @@ function Object:GetPosition()
     return self.position;
 end
 
-function Object:SetRotation(x, y, z, pivot)
+function Object:SetRotation(x, y, z)
     x = math.max(-1000000, math.min(1000000, x));
     y = math.max(-1000000, math.min(1000000, y));
     z = math.max(-1000000, math.min(1000000, z));
@@ -288,6 +288,14 @@ function Object:Hide()
     --self.actor:Hide();
     self.visible = false;
     self.actor:SetAlpha(0);
+end
+
+function Object:Hidden()
+    return not self.visible;
+end
+
+function Object:Visible()
+    return self.visible;
 end
 
 function Object:SetAlpha(alpha)

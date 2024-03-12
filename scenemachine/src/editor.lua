@@ -14,6 +14,7 @@ local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
 local ColorPicker = Editor.ColorPicker;
 local L = Editor.localization;
+local Actions = SceneMachine.Actions;
 
 Editor.MODE_LOCAL = 1;
 Editor.MODE_NETWORK = 2;
@@ -25,6 +26,9 @@ Editor.toolbarHeight = 15 + 30;
 Editor.isOpen = false;
 Editor.isInitialized = false;
 Editor.mode = Editor.MODE_LOCAL;
+Editor.actionPool = {};
+Editor.startedAction = nil;
+Editor.actionPointer = 0;
 
 local c1 = { 0.1757, 0.1757, 0.1875 };
 local c2 = { 0.242, 0.242, 0.25 };
@@ -72,6 +76,15 @@ function Editor.Initialize()
             {
                 type = "Dropdown", name = "ProjectList", width = 200, options = {}, action = function(index) Editor.ProjectManager.LoadProjectByIndex(index); end,
                 tooltip = L["EDITOR_TOOLBAR_TT_PROJECT_LIST"],
+            },
+            { type = "Separator" },
+            {
+                type = "Button", name = "Undo", icon = toolbar:GetIcon("undo"), action = function(self) Editor.Undo() end,
+                tooltip = L["EDITOR_TOOLBAR_TT_UNDO"],
+            },
+            {
+                type = "Button", name = "Redo", icon = toolbar:GetIcon("redo"), action = function(self) Editor.Redo() end,
+                tooltip = L["EDITOR_TOOLBAR_TT_REDO"],
             },
             { type = "Separator" },
             {
@@ -154,7 +167,17 @@ function Editor.Initialize()
     SceneMachine.Input.AddKeyBind("E", function() CC.Action.StrafeRight = true end, function() CC.Action.StrafeRight = false end);
     SceneMachine.Input.AddKeyBind("SPACE", function() CC.Action.MoveUp = true end, function() CC.Action.MoveUp = false end);
     SceneMachine.Input.AddKeyBind("X", function() CC.Action.MoveDown = true end, function() CC.Action.MoveDown = false end);
-	SceneMachine.Input.AddKeyBind("LSHIFT", function() 
+	SceneMachine.Input.AddKeyBind("Z", function() 
+        if (SceneMachine.Input.ControlModifier) then
+            Editor.Undo();
+        end
+    end);
+    SceneMachine.Input.AddKeyBind("Y", function()
+        if (SceneMachine.Input.ControlModifier) then
+            Editor.Redo();
+        end
+    end);
+    SceneMachine.Input.AddKeyBind("LSHIFT", function() 
         CC.Action.ShiftSpeed = true;
         SceneMachine.Input.ShiftModifier = true;
     end,
@@ -208,6 +231,8 @@ function Editor.Initialize()
     if (scenemachine_settings.editor_is_open) then
         Editor.Show();
     end
+
+    Editor.RefreshActionToolbar();
 end
 
 function Editor.Update()
@@ -662,5 +687,114 @@ function Editor.SetMode(mode)
         
     elseif (Editor.mode == Editor.MODE_NETWORK) then
 
+    end
+end
+
+function Editor.Undo()
+    if (Editor.actionPointer < 1) then
+        return;
+    end
+
+    Editor.actionPool[Editor.actionPointer]:Undo();
+    Editor.actionPointer = Editor.actionPointer - 1;
+    Editor.actionPointer = max(0, Editor.actionPointer);
+
+    Editor.RefreshActionToolbar();
+    SH.RefreshHierarchy();
+    OP.Refresh();
+end
+
+function Editor.Redo()
+    if (Editor.actionPointer >= #Editor.actionPool) then
+        return;
+    end
+
+    Editor.actionPointer = Editor.actionPointer + 1;
+    Editor.actionPointer = min(#Editor.actionPool, Editor.actionPointer);
+    Editor.actionPool[Editor.actionPointer]:Redo();
+
+    Editor.RefreshActionToolbar();
+    SH.RefreshHierarchy();
+    OP.Refresh();
+end
+
+function Editor.StartAction(type, ...)
+    print("Start Action " .. type);
+    if (type == Actions.Action.Type.Transform) then
+        Editor.startedAction = Actions.Transform:New(...);
+    elseif (type == Actions.Action.Type.Destroy) then
+        Editor.startedAction = Actions.Destroy:New(...);
+    elseif (type == Actions.Action.Type.Create) then
+        Editor.startedAction = Actions.Create:New(...);
+    else
+        print ("NYI Editor.StartAction() type:" .. type);
+    end
+end
+
+function Editor.CancelAction()
+    Editor.startedAction = nil;
+end
+
+function Editor.FinishAction(...)
+    if (not Editor.startedAction) then
+        return;
+    end
+
+    print("Finish Action " .. Editor.startedAction.type);
+
+    Editor.actionPointer = Editor.actionPointer + 1;
+    Editor.startedAction:Finish(...);
+    Editor.actionPool[Editor.actionPointer] = Editor.startedAction;
+    Editor.startedAction = nil;
+
+    -- performing an action has to clear the actionPool after the current action pointer
+    for i = #Editor.actionPool, Editor.actionPointer + 1, -1 do
+        table.remove(Editor.actionPool, i);
+    end
+
+    Editor.RefreshActionToolbar();
+end
+
+function Editor.RefreshActionToolbar()
+    local undoVisible = true;
+    local redoVisible = true;
+
+    if (#Editor.actionPool == 0) then
+        undoVisible = false;
+        redoVisible = false;
+    end
+
+    if (Editor.actionPointer < 1) then
+        undoVisible = false;
+    end
+
+    if (Editor.actionPointer >= #Editor.actionPool) then
+        redoVisible = false;
+    end
+
+    for i = 1, #Editor.mainToolbar.transformGroup.components, 1 do
+        if (Editor.mainToolbar.transformGroup.components[i].name == "Undo") then
+            if (undoVisible) then
+                local coords = Editor.mainToolbar:GetIcon("undo")[2];
+                Editor.mainToolbar.transformGroup.components[i].icon:SetTexCoords(coords);
+                Editor.mainToolbar.transformGroup.components[i].inactive = false;
+            else
+                local coords = Editor.mainToolbar:GetIcon("undooff")[2];
+                Editor.mainToolbar.transformGroup.components[i].icon:SetTexCoords(coords);
+                Editor.mainToolbar.transformGroup.components[i].inactive = true;
+            end
+        end
+
+        if (Editor.mainToolbar.transformGroup.components[i].name == "Redo") then
+            if (redoVisible) then
+                local coords = Editor.mainToolbar:GetIcon("undo")[2];
+                Editor.mainToolbar.transformGroup.components[i].icon:SetTexCoords(coords);
+                Editor.mainToolbar.transformGroup.components[i].inactive = false;
+            else
+                local coords = Editor.mainToolbar:GetIcon("undooff")[2];
+                Editor.mainToolbar.transformGroup.components[i].icon:SetTexCoords(coords);
+                Editor.mainToolbar.transformGroup.components[i].inactive = true;
+            end
+        end
     end
 end
