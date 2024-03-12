@@ -719,7 +719,8 @@ function Editor.Redo()
 end
 
 function Editor.StartAction(type, ...)
-    print("Start Action " .. type);
+    --print("Start Action " .. type);
+    
     if (type == Actions.Action.Type.Transform) then
         Editor.startedAction = Actions.Transform:New(...);
     elseif (type == Actions.Action.Type.Destroy) then
@@ -740,7 +741,7 @@ function Editor.FinishAction(...)
         return;
     end
 
-    print("Finish Action " .. Editor.startedAction.type);
+    --print("Finish Action " .. Editor.startedAction.type);
 
     Editor.actionPointer = Editor.actionPointer + 1;
     Editor.startedAction:Finish(...);
@@ -797,4 +798,15 @@ function Editor.RefreshActionToolbar()
             end
         end
     end
+end
+
+function Editor.ClearActions()
+    for i = 1, #Editor.actionPool, 1 do
+        Editor.actionPool[i] = nil;
+    end
+
+    Editor.actionPool = {};
+    Editor.startedAction = nil;
+    Editor.actionPointer = 0;
+    Editor.RefreshActionToolbar();
 end

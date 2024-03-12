@@ -46,24 +46,5 @@ function Create:Redo()
 	for i = 1, #self.objects, 1 do
 		local obj = self.objects[i];
 		SM.UndeleteObject_internal(obj);
-		--[[
-		local pos = obj:GetPosition();
-		local rot = obj:GetRotation();
-		local newObj;
-		if (obj.type == SceneMachine.ObjectType.Model) then
-			newObj = SM.CreateObject(obj.fileID, obj.name, pos.x, pos.y, pos.z);
-		elseif (obj.type == SceneMachine.ObjectType.Creature) then
-			newObj = SM.CreateCreature(obj.displayID, obj.name, pos.x, pos.y, pos.z);
-		elseif (obj.type == SceneMachine.ObjectType.Character) then
-			newObj = SM.CreateCharacter(pos.x, pos.y, pos.z);
-		else
-			print("Create:Redo() Unsupported obj.type : " .. obj.type);
-			return;
-		end
-		newObj:SetRotation(rot.x, rot.y, rot.z);
-		newObj:SetScale(obj:GetScale());
-		newObj:SetAlpha(obj:GetAlpha());
-		self.objects[i] = newObj;
---]]
 	end
 end

@@ -148,6 +148,11 @@ function SM.CreateScene(sceneName)
 end
 
 function SM.LoadScene(index)
+
+    if (index == SM.loadedSceneIndex) then
+        return;
+    end
+
     SM.loadedSceneIndex = index;
     SM.tabGroup.selectedIndex = index;
     --SM.loadedScene = {};
@@ -276,6 +281,7 @@ function SM.UnloadScene()
     
     SM.selectedObjects = {};
     Renderer.Clear();
+    Editor.ClearActions();
 end
 
 function SM.DeleteScene(index)
@@ -568,7 +574,6 @@ function SM.CloneObject_internal(object, selectAfter)
 end
 
 function SM.Clear()
-    print("clear")
     if (#SM.loadedScene.objects > 0) then
         for i in pairs(SM.loadedScene.objects) do
             Renderer.RemoveActor(SM.loadedScene.objects[i] .actor);
