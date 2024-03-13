@@ -74,7 +74,7 @@ function OP.Refresh()
     -- TODO: MOVE THIS outside of here, and call every time selection changes
     SM.CalculateObjectsAverage();
     
-    local pos, rot, scale, alpha;
+    local pos, rot, scale, alpha, desaturation;
 
     if (#SM.selectedObjects == 0) then
         OP.ToggleTransformFields(false);
@@ -82,24 +82,28 @@ function OP.Refresh()
         rot = { x=0, y=0, z=0 };
         scale = 1;
         alpha = 1;
+        desaturation = 0;
     elseif (#SM.selectedObjects == 1) then
         OP.ToggleTransformFields(true);
         pos = SM.selectedObjects[1]:GetPosition();
         rot = SM.selectedObjects[1]:GetRotation();
         scale = SM.selectedObjects[1]:GetScale();
         alpha = SM.selectedObjects[1]:GetAlpha();
+        desaturation = SM.selectedObjects[1]:GetDesaturation();
     else
         OP.ToggleTransformFields(true);
         pos = { x=0, y=0, z=0 };
         rot = { x=0, y=0, z=0 };
         scale = 1;
         alpha = 1;
+        desaturation = 0;
     end
 
     OP.positionField:Set(OP.Truncate(pos.x, 3), OP.Truncate(pos.y, 3), OP.Truncate(pos.z, 3));
     OP.rotationField:Set(OP.Truncate(math.deg(rot.x), 3), OP.Truncate(math.deg(rot.y), 3), OP.Truncate(math.deg(rot.z), 3));
     OP.scaleField:Set(OP.Truncate(scale, 3));
     OP.alphaField:Set(OP.Truncate(alpha, 3));
+    OP.saturationField:Set(OP.Truncate(desaturation, 3));
 
     if (Renderer.projectionFrame) then
         --local r, g, b = Renderer.projectionFrame:GetLightAmbientColor();

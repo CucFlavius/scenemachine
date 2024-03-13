@@ -18,6 +18,7 @@ SceneMachine.Object =
     rotation = Vector3:New(),
     scale = 1,
     alpha = 1,
+    desaturation = 0,
 	actor = nil,
 	class = "Object",
     type = SceneMachine.ObjectType.Model,
@@ -42,6 +43,7 @@ function Object:New(name, fileID, position, rotation, scale)
         rotation = rotation or Vector3:New(),
         scale = scale or 1,
         alpha = 1,
+        desaturation = 0,
         actor = nil,
         class = "Object",
         id = math.random(99999999);
@@ -65,6 +67,7 @@ function Object:NewCreature(name, displayID, position, rotation, scale)
         rotation = rotation or Vector3:New(),
         scale = scale or 1,	
         alpha = 1,
+        desaturation = 0,
         actor = nil,
         class = "Object",
         id = math.random(99999999);
@@ -88,6 +91,7 @@ function Object:NewCharacter(name, position, rotation, scale)
         rotation = rotation or Vector3:New(),
         scale = scale or 1,	
         alpha = 1,
+        desaturation = 0,
         actor = nil,
         class = "Object",
         id = math.random(99999999);
@@ -131,6 +135,7 @@ function Object:SetActor(actor)
     self.actor:SetPitch(self.rotation.y);
     self.actor:SetYaw(self.rotation.z);
     self.actor:SetAlpha(self.alpha);
+    self.actor:SetDesaturation(self.desaturation);
     self.actor:SetScale(s);
 end
 
@@ -312,6 +317,10 @@ function Object:SetDesaturation(desaturation)
     self.actor:SetDesaturation(desaturation);
 end
 
+function Object:GetDesaturation()
+    return self.desaturation;
+end
+
 function Object:ToggleFrozen()
     self.frozen = not self.frozen;
 end
@@ -394,6 +403,7 @@ function Object:ExportPacked()
         self.visible,
         self.frozen,
         self.alpha,
+        self.desaturation,
     }
 end
 
@@ -410,6 +420,7 @@ function Object:Export()
         visible = self.visible,
         frozen = self.frozen,
         alpha = self.alpha,
+        desaturation = self.desaturation,
         isRenamed = self.isRenamed,
     };
 
@@ -494,6 +505,11 @@ function Object:ImportPacked(data)
         self.alpha = 1.0;
     end
 
+    if(data[16] ~= nil) then
+        self.desaturation = data[16];
+    else
+        self.desaturation = 0.0;
+    end
 end
 
 function Object:GetFileName(fileID)
@@ -582,6 +598,12 @@ function Object:ImportData(data)
         self.alpha = data.alpha;
     else
         self.alpha = 1.0;
+    end
+
+    if(data.desaturation ~= nil) then
+        self.desaturation = data.desaturation;
+    else
+        self.desaturation = 0.0;
     end
 
     if (data.isRenamed ~= nil) then
