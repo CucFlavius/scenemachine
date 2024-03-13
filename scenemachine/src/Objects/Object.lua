@@ -325,8 +325,8 @@ function Object:ToggleFrozen()
     self.frozen = not self.frozen;
 end
 
-function Object:PlayAnimID(id)
-    self.actor:SetAnimation(id);
+function Object:PlayAnimID(id, variation)
+    self.actor:SetAnimation(id, variation);
 end
 
 function Object:PlayAnimKitID(id)

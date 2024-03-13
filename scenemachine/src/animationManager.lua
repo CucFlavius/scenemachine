@@ -817,6 +817,9 @@ function AM.CreateAnimationSelectWindow(x, y, w, h)
 				item.components[1]:SetScript("OnClick", function()
                     AM.selectedAnimID = animID;
                     AM.selectedAnimVariant = animVariant;
+                    if (#SM.selectedObjects > 0) then
+                        SM.selectedObjects[1]:PlayAnimID(animID, animVariant);
+                    end
                     AM.animScrollList:RefreshStatic();
                 end);
 
@@ -831,6 +834,15 @@ function AM.CreateAnimationSelectWindow(x, y, w, h)
 			end,
 	    }
     );
+
+    -- Override close window button
+    AM.animSelectWindow.closeButton:SetScript("OnClick", function()
+        AM.animSelectWindow:Hide();
+        -- reset preview animation to Stand
+        if (#SM.selectedObjects > 0) then
+            SM.selectedObjects[1]:PlayAnimID(0);
+        end
+    end);
 
     AM.animScrollList:SetFrameLevel(10);
 	AM.animScrollList:MakePool();

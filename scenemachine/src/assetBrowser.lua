@@ -644,7 +644,7 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
     local testButton = UI.Button:New(0, -233, 100, 20, parent, "TOPLEFT", "TOPLEFT", "TEST");
     testButton:SetScript("OnClick", function(_, button, up)
         if (#SM.selectedObjects > 0) then
-            local path = Resources.resourcePath .. "\\xyz.m2";
+            local path = Resources.resourcePath .. "\\7wd_warden_cavelight_felgreen01.m2";
             SM.selectedObjects[1].actor:SetModelByPath(path);
             --SM.selectedObjects[1].actor:TryOn(167988);
         end
