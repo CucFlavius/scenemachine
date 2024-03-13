@@ -18,7 +18,7 @@ local tabPool = {};
 
 SM.SCENE_DATA_VERSION = 1;
 
-SM.loadedSceneIndex = 1;
+SM.loadedSceneIndex = -1;
 SM.loadedScene = nil;
 SM.selectedObjects = {};
 
@@ -148,7 +148,6 @@ function SM.CreateScene(sceneName)
 end
 
 function SM.LoadScene(index)
-
     if (index == SM.loadedSceneIndex) then
         return;
     end
