@@ -417,6 +417,9 @@ end
 
 function SM.SelectObject(object)
 	if (not object) then
+        for i = 1, #SM.selectedObjects, 1 do
+            SM.selectedObjects[i]:Deselect();
+        end
 		SM.selectedObjects = {};
 	else
 		if (SceneMachine.Input.ControlModifier) then

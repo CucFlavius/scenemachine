@@ -315,17 +315,27 @@ function Editor.DeleteLastSelected()
     elseif (Editor.lastSelectedType == "track") then
         local hasAnims = AM.TrackHasAnims(AM.selectedTrack);
         local hasKeyframes = AM.TrackHasKeyframes(AM.selectedTrack);
+        local msgTitle = L["EDITOR_MSG_DELETE_TRACK_TITLE"];
+        local msgText;
+
         if (hasAnims and hasKeyframes) then
-            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["EDITOR_MSG_DELETE_TRACK_TITLE"], L["EDITOR_MSG_DELETE_TRACK_A_K_MESSAGE"],
-                true, true, function() AM.RemoveTracks({ AM.selectedTrack }); end, function() end);
+            msgText = L["EDITOR_MSG_DELETE_TRACK_A_K_MESSAGE"];
         elseif (hasAnims) then
-            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["EDITOR_MSG_DELETE_TRACK_TITLE"], L["EDITOR_MSG_DELETE_TRACK_A_MESSAGE"],
-                true, true, function() AM.RemoveTracks({ AM.selectedTrack }); end, function() end);
+            msgText = L["EDITOR_MSG_DELETE_TRACK_A_MESSAGE"];
         elseif (hasKeyframes) then
-            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["EDITOR_MSG_DELETE_TRACK_TITLE"], L["EDITOR_MSG_DELETE_TRACK_K_MESSAGE"],
-                true, true, function() AM.RemoveTracks({ AM.selectedTrack }); end, function() end);
+            msgText = L["EDITOR_MSG_DELETE_TRACK_K_MESSAGE"];
+        end
+
+        if (hasAnims or hasKeyframes) then
+            Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), msgTitle, msgText, true, true, function()
+                local obj = AM.GetObjectOfTrack(AM.selectedTrack);
+                AM.RemoveTracks({ AM.selectedTrack });
+                SM.SelectObject(obj);
+            end, function() end);
         else
+            local obj = AM.GetObjectOfTrack(AM.selectedTrack);
             AM.RemoveTracks({ AM.selectedTrack });
+            SM.SelectObject(obj);
         end
     elseif (Editor.lastSelectedType == "anim") then
         AM.RemoveAnim(AM.selectedTrack, AM.selectedAnim);
@@ -747,6 +757,8 @@ function Editor.StartAction(type, ...)
         SM.loadedScene.startedAction = Actions.CreateTimeline:New(...);
     elseif (type == Actions.Action.Type.TimelineProperties) then
         SM.loadedScene.startedAction = Actions.TimelineProperties:New(...);
+    elseif (type == Actions.Action.Type.TrackAnimations) then
+        SM.loadedScene.startedAction = Actions.TrackAnimations:New(...);
     else
         print ("NYI Editor.StartAction() type:" .. type);
     end

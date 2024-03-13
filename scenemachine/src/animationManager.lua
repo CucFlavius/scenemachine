@@ -1432,10 +1432,13 @@ function AM.GenerateAnimationElement(index, x, y, w, h, parent, R, G, B, A)
     element:SetNormalTexture(element.ntex);
     element:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
     element:SetScript("OnMouseDown", function(self, button)
+        local track = AM.loadedTimeline.tracks[self.trackIdx];
+        Editor.StartAction(Actions.Action.Type.TrackAnimations, track, AM.loadedTimeline);
         AM.inputState.movingAnim = index;
         AM.inputState.mousePosStartX = Input.mouseXRaw;
     end);
     element:SetScript("OnMouseUp", function(self, button)
+        Editor.FinishAction();
         AM.inputState.movingAnim = -1;
     end);
     element:SetScript("OnClick", function (self, button, down)
@@ -1460,11 +1463,15 @@ function AM.GenerateAnimationElement(index, x, y, w, h, parent, R, G, B, A)
     element.handleL:SetHighlightTexture(element.handleL.ntex);
     element.handleL:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
     element.handleL:SetScript("OnMouseDown", function(self, button)
+        local animElement = AM.AnimationPool[index];
+        local track = AM.loadedTimeline.tracks[animElement.trackIdx];
+        Editor.StartAction(Actions.Action.Type.TrackAnimations, track, AM.loadedTimeline);
         AM.inputState.movingAnimHandleL = index;
         AM.inputState.mousePosStartX = Input.mouseXRaw;
     end);
     element.handleL:SetScript("OnMouseUp", function(self, button)
         AM.inputState.movingAnimHandleL = -1;
+        Editor.FinishAction();
     end);
     element.handleL:SetScript("OnClick", function (self, button, down)
         if (button == "LeftButton" and down) then
@@ -1487,11 +1494,15 @@ function AM.GenerateAnimationElement(index, x, y, w, h, parent, R, G, B, A)
     element.handleR:SetHighlightTexture(element.handleR.ntex);
     element.handleR:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
     element.handleR:SetScript("OnMouseDown", function(self, button)
+        local animElement = AM.AnimationPool[index];
+        local track = AM.loadedTimeline.tracks[animElement.trackIdx];
+        Editor.StartAction(Actions.Action.Type.TrackAnimations, track, AM.loadedTimeline);
         AM.inputState.movingAnimHandleR = index;
         AM.inputState.mousePosStartX = Input.mouseXRaw;
     end);
     element.handleR:SetScript("OnMouseUp", function(self, button)
         AM.inputState.movingAnimHandleR = -1;
+        Editor.FinishAction();
     end);
     element.handleR:SetScript("OnClick", function (self, button, down)
         if (button == "LeftButton" and down) then
@@ -2577,6 +2588,8 @@ function AM.AddAnim(track, animID, animVariant)
         track.animations = {};
     end
 
+    Editor.StartAction(Actions.Action.Type.TrackAnimations, track, AM.loadedTimeline);
+
     animVariant = animVariant or 0;
 
     -- place after last in time
@@ -2623,6 +2636,8 @@ function AM.AddAnim(track, animID, animVariant)
         name = name,
     };
 
+    Editor.FinishAction();
+
     AM.RefreshWorkspace();
 end
 
@@ -2636,11 +2651,15 @@ function AM.RemoveAnim(track, anim)
         AM.SelectAnimation(-1);
     end
 
+    Editor.StartAction(Actions.Action.Type.TrackAnimations, track, AM.loadedTimeline);
+
     for i in pairs(track.animations) do
         if (track.animations[i] == anim) then
             table.remove(track.animations, i);
         end
     end
+
+    Editor.FinishAction();
 
     AM.RefreshWorkspace();
 end
@@ -3083,6 +3102,10 @@ function AM.SelectTrackOfObject(obj)
 end
 
 function AM.TrackHasAnims(track)
+    if (not track) then
+        return false;
+    end
+
     if (track.animations and #track.animations > 0) then
         return true;
     end
@@ -3091,6 +3114,10 @@ function AM.TrackHasAnims(track)
 end
 
 function AM.TrackHasKeyframes(track)
+    if (not track) then
+        return false;
+    end
+
     if (track.keysPx and #track.keysPx > 0) then
         return true;
     end

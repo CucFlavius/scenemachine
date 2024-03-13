@@ -61,4 +61,5 @@ Structures
 	<Script file="Action/DestroyTimeline.lua" />
 	<Script file="Action/CreateTimeline.lua" />
 	<Script file="Action/TimelineProperties.lua" />
+	<Script file="Action/TrackAnimations.lua" />
 </Ui>

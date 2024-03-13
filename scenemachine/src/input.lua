@@ -300,9 +300,18 @@ function Input.OnClickUp(LMB, RMB, MMB, x, y)
         AM.inputState.movingCenter = false;
         AM.inputState.movingScrollbar = false;
         AM.inputState.movingTime = false;
-        AM.inputState.movingAnim = -1;
-        AM.inputState.movingAnimHandleL = -1;
-        AM.inputState.movingAnimHandleR = -1;
+        if (AM.inputState.movingAnim ~= -1) then
+            AM.inputState.movingAnim = -1;
+            Editor.FinishAction();
+        end
+        if (AM.inputState.movingAnimHandleL ~= -1) then
+            AM.inputState.movingAnimHandleL = -1;
+            Editor.FinishAction();
+        end
+        if (AM.inputState.movingAnimHandleR ~= -1) then
+            AM.inputState.movingAnimHandleR = -1;
+            Editor.FinishAction();
+        end
         Gizmos.EndMarqueeSelect();
     elseif (RMB) then
         -- open RMB renderer context menu --
