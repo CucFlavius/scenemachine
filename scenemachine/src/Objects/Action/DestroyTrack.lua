@@ -8,12 +8,13 @@ local DestroyTrack = SceneMachine.Actions.DestroyTrack;
 DestroyTrack.__index = DestroyTrack;
 setmetatable(DestroyTrack, Action)
 
-function DestroyTrack:New(tracks)
+function DestroyTrack:New(tracks, timeline)
 	local v = 
     {
         type = Action.Type.DestroyTrack,
 		memorySize = 1,
 		memoryUsage = 0,
+		timeline = timeline,
 		tracks = {},
     };
 
@@ -37,13 +38,13 @@ end
 function DestroyTrack:Undo()
 	for i = 1, #self.tracks, 1 do
 		local trk = self.tracks[i];
-		AM.UnremoveTrack_internal(trk);
+		AM.UnremoveTrack_internal(trk, self.timeline);
 	end
 end
 
 function DestroyTrack:Redo()
 	for i = 1, #self.tracks, 1 do
 		local trk = self.tracks[i];
-		AM.RemoveTrack_internal(trk);
+		AM.RemoveTrack_internal(trk, self.timeline);
 	end
 end

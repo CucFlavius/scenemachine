@@ -58,4 +58,7 @@ Structures
 	<Script file="Action/DestroyTrack.lua" />
 	<Script file="Action/CreateTrack.lua" />
 	<Script file="Action/SceneProperties.lua" />
+	<Script file="Action/DestroyTimeline.lua" />
+	<Script file="Action/CreateTimeline.lua" />
+	<Script file="Action/TimelineProperties.lua" />
 </Ui>

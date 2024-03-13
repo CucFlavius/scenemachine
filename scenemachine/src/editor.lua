@@ -741,6 +741,12 @@ function Editor.StartAction(type, ...)
         SM.loadedScene.startedAction = Actions.CreateTrack:New(...);
     elseif (type == Actions.Action.Type.SceneProperties) then
         SM.loadedScene.startedAction = Actions.SceneProperties:New(...);
+    elseif (type == Actions.Action.Type.DestroyTimeline) then
+        SM.loadedScene.startedAction = Actions.DestroyTimeline:New(...);
+    elseif (type == Actions.Action.Type.CreateTimeline) then
+        SM.loadedScene.startedAction = Actions.CreateTimeline:New(...);
+    elseif (type == Actions.Action.Type.TimelineProperties) then
+        SM.loadedScene.startedAction = Actions.TimelineProperties:New(...);
     else
         print ("NYI Editor.StartAction() type:" .. type);
     end

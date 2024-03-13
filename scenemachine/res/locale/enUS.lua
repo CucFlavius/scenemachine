@@ -8,6 +8,7 @@ L["POSITION"] = "Position";
 L["ROTATION"] = "Rotation";
 L["SCALE"] = "Scale";
 L["ALPHA"] = "Alpha";   -- Transparency
+L["DESATURATION"] = "Desaturation";
 L["SEARCH"] = "Search";
 L["RENAME"] = "Rename";
 L["EDIT"] = "Edit";

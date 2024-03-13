@@ -12,6 +12,9 @@ Action.Type.CreateObject = 3;
 Action.Type.CreateTrack = 4;
 Action.Type.DestroyTrack = 5;
 Action.Type.SceneProperties = 6;
+Action.Type.CreateTimeline = 7;
+Action.Type.DestroyTimeline = 8;
+Action.Type.TimelineProperties = 9;
 
 setmetatable(Action, Action)
 

@@ -46,7 +46,7 @@ function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
     groupContent:SetPoint("BOTTOMRIGHT", groupBG:GetFrame(), "BOTTOMRIGHT", 0, 0);
     groupContent:SetFrameLevel(startLevel + 2);
 
-    local collapseList = UI.CollapsableList:New(0, 0, w - 6, h - 20, { 71, 27, 93 }, groupContent:GetFrame(), "TOPLEFT", "TOPLEFT", { L["OP_TRANSFORM"], L["OP_ACTOR_PROPERTIES"], L["OP_SCENE_PROPERTIES"] }, c1[1], c1[2], c1[3], 1);
+    local collapseList = UI.CollapsableList:New(0, 0, w - 6, h - 20, { 71, 49, 93 }, groupContent:GetFrame(), "TOPLEFT", "TOPLEFT", { L["OP_TRANSFORM"], L["OP_ACTOR_PROPERTIES"], L["OP_SCENE_PROPERTIES"] }, c1[1], c1[2], c1[3], 1);
     collapseList:SetPoint("BOTTOMRIGHT", groupContent:GetFrame(), "BOTTOMRIGHT", 0, 0);
     collapseList:SetFrameLevel(startLevel + 3);
     
@@ -57,6 +57,7 @@ function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
 
     local actorPropertyGroup = collapseList.bars[2].panel:GetFrame();
     OP.alphaField = UI.PropertyFieldFloat:New(-5, 20, actorPropertyGroup, L["ALPHA"], 1, OP.SetAlpha);
+    OP.saturationField = UI.PropertyFieldFloat:New(-27, 20, actorPropertyGroup, L["DESATURATION"], 0, OP.SetDesaturation);
 
     local onPropertyColorStartAction = function() Editor.StartAction(Actions.Action.Type.SceneProperties, SM.loadedScene.properties); end
     local onPropertyColorFinishAction = function() Editor.FinishAction(SM.loadedScene.properties); end
@@ -241,6 +242,21 @@ function OP.SetAlpha(value)
     Editor.StartAction(Actions.Action.Type.TransformObject, SM.selectedObjects);
     for i = 1, #SM.selectedObjects, 1 do
         SM.selectedObjects[i]:SetAlpha(value);
+    end
+    Editor.FinishAction();
+end
+
+function OP.SetDesaturation(value)
+    if (not value) then
+        return;
+    end
+    if (#SM.selectedObjects == 0) then
+        return;
+    end
+
+    Editor.StartAction(Actions.Action.Type.TransformObject, SM.selectedObjects);
+    for i = 1, #SM.selectedObjects, 1 do
+        SM.selectedObjects[i]:SetDesaturation(value);
     end
     Editor.FinishAction();
 end

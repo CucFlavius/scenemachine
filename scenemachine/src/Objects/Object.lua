@@ -307,6 +307,11 @@ function Object:GetAlpha()
     return self.alpha;
 end
 
+function Object:SetDesaturation(desaturation)
+    self.desaturation = desaturation;
+    self.actor:SetDesaturation(desaturation);
+end
+
 function Object:ToggleFrozen()
     self.frozen = not self.frozen;
 end

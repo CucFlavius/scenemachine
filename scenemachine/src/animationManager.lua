@@ -734,7 +734,7 @@ function AM.CreateAnimationManager(x, y, w, h, parent, startLevel)
 
             SceneMachine.mainWindow:PopupWindowMenu(rx, ry, menuOptions);
         end,
-        addAction = function(text) AM.AddTimeline(text) end,
+        addAction = function(text) AM.CreateTimeline(text) end,
         refreshItem = function(data, item, index)
             -- timeline name text --
             item.components[2]:SetWidth(1000);
@@ -1614,24 +1614,22 @@ function AM.CreateDefaultTimeline()
     return AM.CreateTimeline();
 end
 
-function AM.AddTimeline(text)
-    SM.loadedScene.timelines[#SM.loadedScene.timelines + 1] = AM.CreateTimeline(text);
-    AM.RefreshTimelineTabs();
-end
-
 function AM.RenameTimeline(text, index)
     if (text ~= nil and text ~= "") then
         -- rename existing scene
-        SM.loadedScene.timelines[index].name = text;
+        local timeline = SM.loadedScene.timelines[index];
+        Editor.StartAction(Actions.Action.Type.TimelineProperties, timeline);
+        timeline.name = text;
+        Editor.FinishAction(timeline);
         AM.RefreshTimelineTabs();
     end
 end
 
-function AM.Button_EditTimeline()
+function AM.Button_EditTimeline(index)
     -- not sure what this will do
 end
 
-function AM.Button_DeleteTimeline()
+function AM.Button_DeleteTimeline(index)
     Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["AM_MSG_DELETE_TIMELINE_TITLE"], L["AM_MSG_DELETE_TIMELINE_MESSAGE"], true, true, function() AM.DeleteTimeline(index); end, function() end);
 end
 
@@ -1640,12 +1638,79 @@ function AM.CreateTimeline(timelineName)
         timelineName = "Timeline " .. #SM.loadedScene.timelines;
     end
 
-    return {
+    local timeline = AM.CreateTimeline_internal(timelineName);
+
+    Editor.StartAction(Actions.Action.Type.CreateTimeline, timeline);
+    Editor.FinishAction();
+
+    return timeline;
+end
+
+function AM.CreateTimeline_internal(timelineName)
+    local timeline = {
         name = timelineName,
         currentTime = 0,
         duration = 30000, -- 30000 miliseconds, 30 seconds
         tracks = {},
     }
+
+    SM.loadedScene.timelines[#SM.loadedScene.timelines + 1] = timeline;
+    AM.RefreshTimelineTabs();
+    AM.RefreshWorkspace();
+
+    return timeline;
+end
+
+function AM.DeleteTimeline(index)
+    -- switch to a different timeline because the currently loaded is being deleted
+    -- load first that isn't this one
+    for i in pairs(SM.loadedScene.timelines) do
+        if (i ~= index) then
+            AM.LoadTimeline(i);
+            break;
+        end
+    end
+
+    print(index)
+    local timeline = SM.loadedScene.timelines[index];
+
+    -- delete it
+    AM.DeleteTimeline_internal(timeline);
+
+    Editor.StartAction(Actions.Action.Type.DestroyTimeline, timeline);
+    Editor.FinishAction();
+
+    -- if this was the only timeline then create a new default one
+    if (#SM.loadedScene.timelines == 0) then
+        SM.loadedScene.timelines[1] = AM.CreateDefaultTimeline();
+        AM.LoadTimeline(1);
+    end
+end
+
+function AM.DeleteTimeline_internal(timeline)
+    for i = 1, #SM.loadedScene.timelines, 1 do
+        local t = SM.loadedScene.timelines[i];
+        if (t == timeline) then
+            table.remove(SM.loadedScene.timelines, i);
+            break;
+        end
+    end
+
+    
+    AM.selectedTrack = nil;
+    AM.selectedKeys = nil;
+
+    -- refresh ui
+    AM.RefreshTimelineTabs();
+    AM.RefreshWorkspace();
+end
+
+function AM.UndeleteTimeline_internal(timeline)
+    SM.loadedScene.timelines[#SM.loadedScene.timelines + 1] = timeline;
+
+    -- refresh ui
+    AM.RefreshTimelineTabs();
+    AM.RefreshWorkspace();
 end
 
 function AM.AddTracks(objects)
@@ -1660,7 +1725,7 @@ function AM.AddTracks(objects)
         end
     end
 
-    Editor.StartAction(Actions.Action.Type.CreateTrack, tracks);
+    Editor.StartAction(Actions.Action.Type.CreateTrack, tracks, AM.loadedTimeline);
     Editor.FinishAction();
 end
 
@@ -1695,38 +1760,41 @@ end
 
 function AM.RemoveTracks(tracks)
     for i = 1, #tracks, 1 do
-        AM.RemoveTrack_internal(tracks[i]);
+        AM.RemoveTrack_internal(tracks[i], AM.loadedTimeline);
     end
 
-    Editor.StartAction(Actions.Action.Type.DestroyTrack, tracks);
+    Editor.StartAction(Actions.Action.Type.DestroyTrack, tracks, AM.loadedTimeline);
     Editor.FinishAction();
 end
 
-function AM.RemoveTrack_internal(track)
-    if (not AM.loadedTimeline) then
+function AM.RemoveTrack_internal(track, timeline)
+
+    if (not timeline or not track) then
         return;
     end
+
     if (AM.selectedTrack == track) then
         AM.selectedTrack = nil;
     end
-    if (#AM.loadedTimeline.tracks > 0) then
-        for i in pairs(AM.loadedTimeline.tracks) do
-            if (AM.loadedTimeline.tracks[i] == track) then
-                table.remove(AM.loadedTimeline.tracks, i);
+
+    if (#timeline.tracks > 0) then
+        for i in pairs(timeline.tracks) do
+            if (timeline.tracks[i] == track) then
+                table.remove(timeline.tracks, i);
             end
         end
     end
 
-    --AM.SelectTrack(#AM.loadedTimeline.tracks);
+    --AM.SelectTrack(#timeline.tracks);
     AM.RefreshWorkspace();
 end
 
-function AM.UnremoveTrack_internal(track)
-    if (track == nil) then
+function AM.UnremoveTrack_internal(track, timeline)
+    if (not timeline or not track) then
         return;
     end
 
-    AM.loadedTimeline.tracks[#AM.loadedTimeline.tracks + 1] = track;
+    timeline.tracks[#timeline.tracks + 1] = track;
     AM.RefreshWorkspace();
 end
 
@@ -1792,34 +1860,6 @@ end
 
 function AM.UnloadTimeline()
     SM.selectedObjects = {};
-end
-
-function AM.DeleteTimeline()
-    -- switch to a different timeline because the currently loaded is being deleted
-    -- load first that isn't this one
-    for i in pairs(SM.loadedScene.timelines) do
-        local timeline = SM.loadedScene.timelines[i];
-        if (i ~= index) then
-            AM.LoadTimeline(i);
-            break;
-        end
-    end
-
-    -- delete it
-    table.remove(SM.loadedScene.timelines, index);
-
-    -- if this was the only timeline then create a new default one
-    if (#SM.loadedScene.timelines == 0) then
-        SM.loadedScene.timelines[1] = AM.CreateDefaultTimeline();
-        AM.LoadTimeline(1);
-    end
-
-    AM.selectedTrack = nil;
-    AM.selectedKeys = nil;
-
-    -- refresh ui
-    AM.RefreshTimelineTabs();
-    AM.RefreshWorkspace();
 end
 
 function AM.CreateNewTimelineTab(x, y, w, h, parent, startLevel)

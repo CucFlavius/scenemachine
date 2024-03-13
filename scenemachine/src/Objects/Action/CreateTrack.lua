@@ -8,12 +8,13 @@ local CreateTrack = SceneMachine.Actions.CreateTrack;
 CreateTrack.__index = CreateTrack;
 setmetatable(CreateTrack, Action)
 
-function CreateTrack:New(tracks)
+function CreateTrack:New(tracks, timeline)
 	local v = 
     {
         type = Action.Type.CreateTrack,
 		memorySize = 1,
 		memoryUsage = 0,
+		timeline = timeline,
 		tracks = {},
     };
 
@@ -37,13 +38,13 @@ end
 function CreateTrack:Undo()
 	for i = 1, #self.tracks, 1 do
 		local trk = self.tracks[i];
-		AM.RemoveTrack_internal(trk);
+		AM.RemoveTrack_internal(trk, self.timeline);
 	end
 end
 
 function CreateTrack:Redo()
 	for i = 1, #self.tracks, 1 do
 		local trk = self.tracks[i];
-		AM.UnremoveTrack_internal(trk);
+		AM.UnremoveTrack_internal(trk, self.timeline);
 	end
 end

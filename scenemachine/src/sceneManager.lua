@@ -647,7 +647,7 @@ function SM.DeleteObject_internal(object)
     if (AM.loadedTimeline) then
 		for i in pairs(AM.loadedTimeline.tracks) do
 			if (AM.loadedTimeline.tracks[i].objectID == object.id) then
-				AM.RemoveTrack_internal(AM.loadedTimeline.tracks[i]);
+				AM.RemoveTrack_internal(AM.loadedTimeline.tracks[i], AM.loadedTimeline);
 			end
 		end
 	end
