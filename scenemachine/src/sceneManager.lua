@@ -12,6 +12,7 @@ local Resources = SceneMachine.Resources;
 local L = Editor.localization;
 local Vector3 = SceneMachine.Vector3;
 local Actions = SceneMachine.Actions;
+local Gizmos = SceneMachine.Gizmos;
 
 local tabButtonHeight = 20;
 local tabPool = {};
@@ -216,13 +217,14 @@ function SM.LoadScene(index)
             elseif(object.type == SceneMachine.ObjectType.Character) then
                 id = -1;
             end
-            local actor = Renderer.AddActor(id, object.position.x, object.position.y, object.position.z, object.type);
-            object:SetActor(actor);
+            if (object:HasActor()) then
+                local actor = Renderer.AddActor(id, object.position.x, object.position.y, object.position.z, object.type);
+                object:SetActor(actor);
 
-            if (not object.visible) then
-                actor:SetAlpha(0);
+                if (not object.visible) then
+                    actor:SetAlpha(0);
+                end
             end
-
             -- assigning the new object so that we have access to the class functions (which get stripped when exporting to savedata)
             SM.loadedScene.objects[i] = object;
         end
@@ -269,9 +271,10 @@ function SM.LoadScene(index)
         CameraController.position:Set(scene.lastCameraPosition[1], scene.lastCameraPosition[2], scene.lastCameraPosition[3]);
     end
     if (scene.lastCameraEuler ~= nil) then
+        scene.lastCameraEuler[1] = 0;
         Camera.eulerRotation:Set(scene.lastCameraEuler[1], scene.lastCameraEuler[2], scene.lastCameraEuler[3]);
     end
-    CameraController.Direction = deg(Camera.eulerRotation.x);
+    CameraController.Direction = math.deg(Camera.eulerRotation.z);
 
     -- refresh the scene tabs
     SM.RefreshSceneTabs();
@@ -330,7 +333,7 @@ end
 function SM.CreateObject(_fileID, _name, _x, _y, _z)
     local object = SceneMachine.Object:New(_name, _fileID, Vector3:New(_x, _y, _z));
 
-    local scene = SM.loadedScene;--PM.currentProject.scenes[SM.loadedSceneIndex];
+    local scene = SM.loadedScene;
     scene.objects[#scene.objects + 1] = object;
 
     -- Create actor
@@ -384,6 +387,35 @@ function SM.CreateCharacter(_x, _y, _z)
     return object;
 end
 
+function SM.CreateCamera()
+    local name = "New Camera";
+    local position = Vector3:New();
+    local rotation = Vector3:New();
+    local fov = math.rad(60);
+    local nearClip = 0.01;
+    local farClip = 1000;
+
+    -- get info from current viewport camera settings
+    fov = Camera.fov;
+    nearClip = Camera.nearClip;
+    farClip = Camera.farClip;
+    position:SetVector3(Camera.position);
+    rotation:SetVector3(Camera.eulerRotation);
+
+    local object = SceneMachine.Object:NewCamera(name, position, rotation, fov, nearClip, farClip);
+    
+    local scene = SM.loadedScene;
+    scene.objects[#scene.objects + 1] = object;
+
+    SM.SelectObject(object);
+
+    -- Refresh
+    SH.RefreshHierarchy();
+    OP.Refresh();
+
+    return object;
+end
+
 function SM.IsObjectSelected(object)
     if (not object) then
         return false;
@@ -422,6 +454,14 @@ function SM.SelectObjects(objects)
         AM.SelectTrackOfObject(SM.selectedObjects[1]);
 		Editor.lastSelectedType = "obj";
 	end
+end
+
+function SM.SelectObjectByIndex(index)
+    if (index <= 0) then
+        SM.SelectObject(nil);
+        return;
+    end
+    SM.SelectObject(SM.loadedScene.objects[index]);
 end
 
 function SM.SelectObject(object)
@@ -467,8 +507,12 @@ function SM.CalculateObjectsAverage()
         SM.selectedScale = SM.selectedObjects[1]:GetScale();
         SM.selectedAlpha = 1.0;
 
-        local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObjects[1]:GetActiveBoundingBox();
-        SM.selectedBounds = { xMin, yMin, zMin, xMax, yMax, zMax };
+        if (SM.selectedObjects[1]:GetGizmoType() == Gizmos.Type.Object) then
+            local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObjects[1]:GetActiveBoundingBox();
+            SM.selectedBounds = { xMin, yMin, zMin, xMax, yMax, zMax };
+        elseif (SM.selectedObjects[1]:GetGizmoType() == Gizmos.Type.Camera) then
+            SM.selectedBounds = { 0, 0, 0, 0, 0, 0 };
+        end
     else
         -- Position (Calculate center position)
         --local x, y, z = 0, 0, 0;
@@ -495,14 +539,26 @@ function SM.CalculateObjectsAverage()
 
         -- Iterate through the rest of the objects in the array
         for i = 1, #SM.selectedObjects do
-            local xmin, ymin, zmin, xmax, ymax, zmax = SM.selectedObjects[i]:GetActiveBoundingBox();
-            local bbCenter = {(xmax - xmin) / 2, (ymax - ymin) / 2, (zmax - zmin) / 2};
-            xmin = -bbCenter[1];
-            ymin = -bbCenter[2];
-            zmin = -bbCenter[3];
-            xmax = bbCenter[1];
-            ymax = bbCenter[2];
-            zmax = bbCenter[3];
+            local xmin, ymin, zmin, xmax, ymax, zmax = 0, 0, 0, 0, 0, 0;
+            if (SM.selectedObjects[1]:GetGizmoType() == Gizmos.Type.Object) then
+                xmin, ymin, zmin, xmax, ymax, zmax = SM.selectedObjects[i]:GetActiveBoundingBox();
+                if (xmin and ymin and zmin and xmax and ymax and zmax) then
+                    local bbCenter = {(xmax - xmin) / 2, (ymax - ymin) / 2, (zmax - zmin) / 2};
+                    xmin = -bbCenter[1];
+                    ymin = -bbCenter[2];
+                    zmin = -bbCenter[3];
+                    xmax = bbCenter[1];
+                    ymax = bbCenter[2];
+                    zmax = bbCenter[3];
+                end
+            elseif (SM.selectedObjects[1]:GetGizmoType() == Gizmos.Type.Camera) then
+                xmin = 0;
+                ymin = 0;
+                zmin = 0;
+                xmax = 0;
+                ymax = 0;
+                zmax = 0;
+            end
 
             -- Get position of the object
             local Pos = SM.selectedObjects[i]:GetPosition();
@@ -1033,9 +1089,10 @@ function SM.LoadNetworkScene(scene)
         CameraController.position:Set(scene.lastCameraPosition[1], scene.lastCameraPosition[2], scene.lastCameraPosition[3]);
     end
     if (scene.lastCameraEuler ~= nil) then
+        scene.lastCameraEuler[1] = 0;
         Camera.eulerRotation:Set(scene.lastCameraEuler[1], scene.lastCameraEuler[2], scene.lastCameraEuler[3]);
     end
-    CameraController.Direction = deg(Camera.eulerRotation.x);
+    CameraController.Direction = math.deg(Camera.eulerRotation.z);
 
     -- refresh the scene tabs
     SM.RefreshSceneTabs();

@@ -37,7 +37,8 @@ Camera.viewMatrix = Matrix:New();
 function Camera.Update()
     if (Renderer.projectionFrame == nil) then return end
     Renderer.projectionFrame:SetCameraPosition(Camera.position:Get());
-    Renderer.projectionFrame:SetCameraOrientationByYawPitchRoll(Camera.eulerRotation:Get());
+    local roll, pitch, yaw = Camera.eulerRotation:Get();
+    Renderer.projectionFrame:SetCameraOrientationByYawPitchRoll(yaw, pitch, roll);
     Renderer.projectionFrame:SetCameraFieldOfView(Camera.fov);
     Renderer.projectionFrame:SetCameraFarClip(Camera.farClip)
     Renderer.projectionFrame:SetCameraNearClip(Camera.nearClip);

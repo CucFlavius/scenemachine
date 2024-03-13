@@ -31,8 +31,10 @@ function MousePick.Pick(x, y)
     for i in pairs(SM.loadedScene.objects) do
         local object = SM.loadedScene.objects[i];
 
+        local gizmoType = object:GetGizmoType();
+
         -- Can't select invisible/frozen, only in the hierarchy
-        if (object.visible) and (not object.frozen) then
+        if (object.visible) and (not object.frozen) and (gizmoType == Gizmos.Type.Object) then
 
             local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
             

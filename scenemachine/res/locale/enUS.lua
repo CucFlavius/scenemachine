@@ -49,6 +49,7 @@ L["EDITOR_TOOLBAR_TT_MULTITRANSFORM_TOGETHER"] = "Transform Together";
 L["EDITOR_TOOLBAR_TT_MULTITRANSFORM_INDIVIDUAL"] = "Transform Individual";
 L["EDITOR_TOOLBAR_TT_UNDO"] = "Undo";
 L["EDITOR_TOOLBAR_TT_REDO"] = "Redo";
+L["EDITOR_TOOLBAR_TT_CREATE_CAMERA"] = "Create Camera";
 
 -- Main Menu --
 L["MM_FILE"] = "File";

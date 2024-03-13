@@ -60,68 +60,7 @@ function Editor.Initialize()
     -- Create all of the UI --
     Editor.CreateMainWindow(1);
     Editor.MainMenu.Create();
-    local toolbar = UI.Toolbar:New(0, -15, Editor.width, 30, SceneMachine.mainWindow:GetFrame(), SceneMachine.mainWindow, Resources.iconData["MainToolbar"]);
-    toolbar:SetFrameLevel(2);
-    Editor.mainToolbar = toolbar;
-    Editor.mainToolbar.transformGroup = toolbar:CreateGroup(0, 0, Editor.width, 30,
-        {
-            { type = "DragHandle" },
-            {
-                type = "Button", name = "Project", icon = toolbar:GetIcon("projects"), action = function(self) Editor.ProjectManager.OpenWindow() end,
-                tooltip = L["EDITOR_TOOLBAR_TT_OPEN_PROJECT_MANAGER"],
-            },
-            {
-                type = "Dropdown", name = "ProjectList", width = 200, options = {}, action = function(index) Editor.ProjectManager.LoadProjectByIndex(index); end,
-                tooltip = L["EDITOR_TOOLBAR_TT_PROJECT_LIST"],
-            },
-            { type = "Separator" },
-            {
-                type = "Button", name = "Undo", icon = toolbar:GetIcon("undo"), action = function(self) Editor.Undo() end,
-                tooltip = L["EDITOR_TOOLBAR_TT_UNDO"],
-            },
-            {
-                type = "Button", name = "Redo", icon = toolbar:GetIcon("redo"), action = function(self) Editor.Redo() end,
-                tooltip = L["EDITOR_TOOLBAR_TT_REDO"],
-            },
-            { type = "Separator" },
-            {
-                type = "Button", name = "Select", icon = toolbar:GetIcon("select"), action = function(self) Gizmos.activeTransformGizmo = 0; end,
-                tooltip = L["EDITOR_TOOLBAR_TT_SELECT_TOOL"],
-            },
-            {
-                type = "Button", name = "Move", icon = toolbar:GetIcon("move"), action = function(self) Gizmos.activeTransformGizmo = 1; end,
-                tooltip = L["EDITOR_TOOLBAR_TT_MOVE_TOOL"],
-            },
-            {
-                type = "Button", name = "Rotate", icon = toolbar:GetIcon("rotate"), action = function(self) Gizmos.activeTransformGizmo = 2; end,
-                tooltip = L["EDITOR_TOOLBAR_TT_ROTATE_TOOL"],
-            },
-            {
-                type = "Button", name = "Scale", icon = toolbar:GetIcon("scale"), action = function(self) Gizmos.activeTransformGizmo = 3; end,
-                tooltip = L["EDITOR_TOOLBAR_TT_SCALE_TOOL"],
-            },
-            { type = "Separator" },
-            {
-                type = "Toggle", name = "PivotSpace", iconOn = toolbar:GetIcon("localpivot"), iconOff = toolbar:GetIcon("worldpivot"),
-                action = function(self, on) if (on) then Gizmos.space = 1; else Gizmos.space = 0; end end,
-                default = true, tooltips = { L["EDITOR_TOOLBAR_TT_PIVOT_LOCAL_SPACE"], L["EDITOR_TOOLBAR_TT_PIVOT_WORLD_SPACE"] },
-            },
-            {
-                type = "Toggle", name = "PivotLocation", iconOn = toolbar:GetIcon("centerpivot"), iconOff = toolbar:GetIcon("basepivot"),
-                action = function(self, on) if (on) then Editor.SetPivotMode(0); else Editor.SetPivotMode(1); end end,
-                default = true, tooltips = { L["EDITOR_TOOLBAR_TT_PIVOT_CENTER"], L["EDITOR_TOOLBAR_TT_PIVOT_BASE"] },
-            },
-            {
-                type = "Toggle", name = "MultiTransform", iconOn = toolbar:GetIcon("together"), iconOff = toolbar:GetIcon("individual"),
-                action = function(self, on) if (on) then Editor.SetMultiTransformMode(0); else Editor.SetMultiTransformMode(1); end end,
-                default = true, tooltips = { L["EDITOR_TOOLBAR_TT_MULTITRANSFORM_TOGETHER"], L["EDITOR_TOOLBAR_TT_MULTITRANSFORM_INDIVIDUAL"] },
-            },
-            { type = "Separator" },
-        }
-    );
-
-    Editor.mainToolbar.transformGroup:SetFrameLevel(3);
-
+    Editor.CreateToolbar();
     Editor.CreateRightPanel(2);
     Editor.CreateLeftPanel(2);
     Editor.CreateBottomPanel(2);
@@ -237,6 +176,75 @@ function Editor.Update()
     if (ColorPicker.enabled) then
         ColorPicker.Update();
     end
+end
+
+function Editor.CreateToolbar()
+    local toolbar = UI.Toolbar:New(0, -15, Editor.width, 30, SceneMachine.mainWindow:GetFrame(), SceneMachine.mainWindow, Resources.iconData["MainToolbar"]);
+    toolbar:SetFrameLevel(2);
+    Editor.mainToolbar = toolbar;
+    Editor.mainToolbar.transformGroup = toolbar:CreateGroup(0, 0, Editor.width, 30,
+        {
+            { type = "DragHandle" },
+            {
+                type = "Button", name = "Project", icon = toolbar:GetIcon("projects"), action = function(self) Editor.ProjectManager.OpenWindow() end,
+                tooltip = L["EDITOR_TOOLBAR_TT_OPEN_PROJECT_MANAGER"],
+            },
+            {
+                type = "Dropdown", name = "ProjectList", width = 200, options = {}, action = function(index) Editor.ProjectManager.LoadProjectByIndex(index); end,
+                tooltip = L["EDITOR_TOOLBAR_TT_PROJECT_LIST"],
+            },
+            { type = "Separator" },
+            {
+                type = "Button", name = "Undo", icon = toolbar:GetIcon("undo"), action = function(self) Editor.Undo() end,
+                tooltip = L["EDITOR_TOOLBAR_TT_UNDO"],
+            },
+            {
+                type = "Button", name = "Redo", icon = toolbar:GetIcon("redo"), action = function(self) Editor.Redo() end,
+                tooltip = L["EDITOR_TOOLBAR_TT_REDO"],
+            },
+            { type = "Separator" },
+            {
+                type = "Button", name = "Select", icon = toolbar:GetIcon("select"), action = function(self) Gizmos.activeTransformGizmo = 0; end,
+                tooltip = L["EDITOR_TOOLBAR_TT_SELECT_TOOL"],
+            },
+            {
+                type = "Button", name = "Move", icon = toolbar:GetIcon("move"), action = function(self) Gizmos.activeTransformGizmo = 1; end,
+                tooltip = L["EDITOR_TOOLBAR_TT_MOVE_TOOL"],
+            },
+            {
+                type = "Button", name = "Rotate", icon = toolbar:GetIcon("rotate"), action = function(self) Gizmos.activeTransformGizmo = 2; end,
+                tooltip = L["EDITOR_TOOLBAR_TT_ROTATE_TOOL"],
+            },
+            {
+                type = "Button", name = "Scale", icon = toolbar:GetIcon("scale"), action = function(self) Gizmos.activeTransformGizmo = 3; end,
+                tooltip = L["EDITOR_TOOLBAR_TT_SCALE_TOOL"],
+            },
+            { type = "Separator" },
+            {
+                type = "Toggle", name = "PivotSpace", iconOn = toolbar:GetIcon("localpivot"), iconOff = toolbar:GetIcon("worldpivot"),
+                action = function(self, on) if (on) then Gizmos.space = 1; else Gizmos.space = 0; end end,
+                default = true, tooltips = { L["EDITOR_TOOLBAR_TT_PIVOT_LOCAL_SPACE"], L["EDITOR_TOOLBAR_TT_PIVOT_WORLD_SPACE"] },
+            },
+            {
+                type = "Toggle", name = "PivotLocation", iconOn = toolbar:GetIcon("centerpivot"), iconOff = toolbar:GetIcon("basepivot"),
+                action = function(self, on) if (on) then Editor.SetPivotMode(0); else Editor.SetPivotMode(1); end end,
+                default = true, tooltips = { L["EDITOR_TOOLBAR_TT_PIVOT_CENTER"], L["EDITOR_TOOLBAR_TT_PIVOT_BASE"] },
+            },
+            {
+                type = "Toggle", name = "MultiTransform", iconOn = toolbar:GetIcon("together"), iconOff = toolbar:GetIcon("individual"),
+                action = function(self, on) if (on) then Editor.SetMultiTransformMode(0); else Editor.SetMultiTransformMode(1); end end,
+                default = true, tooltips = { L["EDITOR_TOOLBAR_TT_MULTITRANSFORM_TOGETHER"], L["EDITOR_TOOLBAR_TT_MULTITRANSFORM_INDIVIDUAL"] },
+            },
+            { type = "Separator" },
+            { type = "DragHandle" },
+            {
+                type = "Button", name = "AddCamera", icon = toolbar:GetIcon("addcamera"), action = function(self) SM.CreateCamera(); end,
+                tooltip = L["EDITOR_TOOLBAR_TT_CREATE_CAMERA"],
+            },
+        }
+    );
+
+    Editor.mainToolbar.transformGroup:SetFrameLevel(3);
 end
 
 function Editor.RefreshProjectsDropdown()

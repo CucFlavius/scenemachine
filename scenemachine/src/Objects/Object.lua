@@ -2,12 +2,14 @@ local Math = SceneMachine.Math;
 local Vector3 = SceneMachine.Vector3;
 local Matrix = SceneMachine.Matrix;
 local Quaternion = SceneMachine.Quaternion;
+local Gizmos = SceneMachine.Gizmos;
 
 SceneMachine.ObjectType = {};
 SceneMachine.ObjectType.Group = 0;
 SceneMachine.ObjectType.Model = 1;
 SceneMachine.ObjectType.Creature = 2;
 SceneMachine.ObjectType.Character = 3;
+SceneMachine.ObjectType.Camera = 4;
 
 SceneMachine.Object = 
 {
@@ -105,6 +107,31 @@ function Object:NewCharacter(name, position, rotation, scale)
 	return v
 end
 
+function Object:NewCamera(name, position, rotation, fov, nearClip, farClip)
+    local v = 
+    {
+        name = name or "NewObject",
+        position = position or Vector3:New(),
+        rotation = rotation or Vector3:New(),
+        scale = scale or 1,
+        alpha = 1,
+        desaturation = 0,
+        actor = nil,
+        class = "Object",
+        id = math.random(99999999);
+        visible = true,
+        frozen = false,
+        isRenamed = false,
+        type = SceneMachine.ObjectType.Camera,
+        fov = fov,
+        nearClip = nearClip,
+        farClip = farClip,
+    };
+
+	setmetatable(v, Object)
+	return v
+end
+
 function Object:GetFileID()
     return self.fileID;
 end
@@ -143,7 +170,43 @@ function Object:GetActor()
     return self.actor;
 end
 
+function Object:HasActor()
+    if (self.type == SceneMachine.ObjectType.Model or
+        self.type == SceneMachine.ObjectType.Creature or
+        self.type == SceneMachine.ObjectType.Character) then
+        return true;
+    end
+
+    if (self.type == SceneMachine.ObjectType.Group or
+        self.type == SceneMachine.ObjectType.Camera) then
+        return false;
+    end
+
+    print("Object:HasActor() undefined type " .. self.type);
+    return false;
+end
+
+function Object:GetGizmoType()
+    if (self.type == SceneMachine.ObjectType.Model or
+        self.type == SceneMachine.ObjectType.Creature or
+        self.type == SceneMachine.ObjectType.Character or
+        self.type == SceneMachine.ObjectType.Group) then
+        return Gizmos.Type.Object;
+    end
+
+    if (self.type == SceneMachine.ObjectType.Camera) then
+        return Gizmos.Type.Camera;
+    end
+
+    print("Object:GetGizmoType() undefined type " .. self.type);
+    return Gizmos.Type.None;
+end
+
 function Object:GetActiveBoundingBox()
+    if (not self:HasActor()) then
+        return nil;
+    end
+
     local xMin, yMin, zMin, xMax, yMax, zMax = self.actor:GetActiveBoundingBox();
 
     if (xMin == nil or yMin == nil or zMin == nil) then
@@ -334,23 +397,26 @@ function Object:PlayAnimKitID(id)
 end
 
 function Object:SetSpellVisualKitID(id, oneShot)
-    self.actor:SetSpellVisualKit(id, oneShot);
-    self.spellVisualKitID = id;
+    if (self:HasActor()) then 
+        self.actor:SetSpellVisualKit(id, oneShot);
+        self.spellVisualKitID = id;
+    end
 end
 
 function Object:ClearSpellVisualKits()
+    if (self:HasActor()) then 
+        self:SetSpellVisualKitID(-1);
 
-    self:SetSpellVisualKitID(-1);
-
-    if (self.type == SceneMachine.ObjectType.Model) then
-        self.actor:SetModelByFileID(self.fileID);
-    elseif (self.type == SceneMachine.ObjectType.Creature) then
-        self.actor:SetModelByCreatureDisplayID(self.displayID);
-    elseif (self.type == SceneMachine.ObjectType.Character) then
-        self.actor:SetModelByUnit("player");
+        if (self.type == SceneMachine.ObjectType.Model) then
+            self.actor:SetModelByFileID(self.fileID);
+        elseif (self.type == SceneMachine.ObjectType.Creature) then
+            self.actor:SetModelByCreatureDisplayID(self.displayID);
+        elseif (self.type == SceneMachine.ObjectType.Character) then
+            self.actor:SetModelByUnit("player");
+        end
+        
+        self.spellVisualKitID = nil;
     end
-
-    self.spellVisualKitID = nil;
 end
 
 function Object:Select()
@@ -422,6 +488,9 @@ function Object:Export()
         alpha = self.alpha,
         desaturation = self.desaturation,
         isRenamed = self.isRenamed,
+        fov = self.fov,
+        nearClip = self.nearClip,
+        farClip = self.farClip,
     };
 
     return data;
@@ -610,7 +679,31 @@ function Object:ImportData(data)
         self.isRenamed = data.isRenamed;
     end
 
+    if (data.fov ~= nil) then
+        self.fov = data.fov;
+    end
+
+    if (data.nearClip ~= nil) then
+        self.nearClip = data.nearClip;
+    end
+
+    if (data.farClip ~= nil) then
+        self.farClip = data.farClip;
+    end
+
     self.id = data.id or math.random(99999999);
+end
+
+function Object:GetFoV()
+    return self.fov;
+end
+
+function Object:GetNearClip()
+    return self.nearClip;
+end
+
+function Object:GetFarClip()
+    return self.farClip;
 end
 
 Object.__tostring = function(self)

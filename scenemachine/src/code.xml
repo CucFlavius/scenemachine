@@ -39,10 +39,12 @@
     <Script file="scenescript.lua" />
     <Script file="network.lua" />
 
+    <!-- Gizmos -->
     <Script file="Gizmo\gizmos.lua" />
     <Script file="Gizmo\moveGizmo.lua" />
     <Script file="Gizmo\rotationGizmo.lua" />
     <Script file="Gizmo\scaleGizmo.lua" />
     <Script file="Gizmo\selectionGizmo.lua" />
     <Script file="Gizmo\debugGizmo.lua" />
+    <Script file="Gizmo\cameraGizmo.lua" />
 </Ui>

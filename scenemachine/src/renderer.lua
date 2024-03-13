@@ -9,6 +9,7 @@ local Input = SceneMachine.Input;
 local Math = SceneMachine.Math;
 local CC = SceneMachine.CameraController;
 local Vector3 = SceneMachine.Vector3;
+local Resources = SceneMachine.Resources;
 
 --- WTF ---
 local sqrt = math.sqrt;
@@ -16,6 +17,10 @@ local floor = math.floor;
 
 Renderer.FrameBufferSize = 1;
 Renderer.FrameBufferFrames = {};
+Renderer.SpriteBufferSize = 1;
+Renderer.SpriteBufferFrames = {};
+Renderer.spriteFrameStartLevel = 0;
+Renderer.usedSprites = 0;
 Renderer.actors = {};
 Renderer.delayedUnitsQueue = {};
 Renderer.delayedUnitsQueueHasItems = false;
@@ -26,7 +31,7 @@ SceneMachine.lineThickness = 2;
 
 function Renderer.GenerateFrameBuffer(startLevel)
 
-    -- Frames --
+    -- Quads --
 	for t = 1, Renderer.FrameBufferSize, 1 do
 		Renderer.FrameBufferFrames[t] = CreateFrame("Frame", "Renderer.FramebufferFrame_" .. t, Renderer.projectionFrame);
 		Renderer.FrameBufferFrames[t]:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
@@ -45,6 +50,37 @@ function Renderer.GenerateFrameBuffer(startLevel)
         Renderer.FrameBufferFrames[t]:SetScript('OnLeave', function() print("Exit " .. t) end);
 		Renderer.FrameBufferFrames[t]:Hide();
 	end
+
+    -- Sprites --
+    Renderer.spriteFrameStartLevel = startLevel;
+    for t = 1, Renderer.SpriteBufferSize, 1 do
+        Renderer.SpriteBufferFrames[t] = Renderer.GenerateSpriteFrame(t);
+	end
+end
+
+function Renderer.GenerateSpriteFrame(t)
+    local spriteFrame = CreateFrame("Button", "Renderer.SpritebufferFrame_" .. t, Renderer.projectionFrame);
+    spriteFrame:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
+    spriteFrame:SetFrameLevel(Renderer.spriteFrameStartLevel + t);
+    spriteFrame:SetWidth(30);
+    spriteFrame:SetHeight(30);
+    spriteFrame.texture = spriteFrame:CreateTexture("Renderer.FramebufferFrame_" .. t ..".texture", "ARTWORK");
+    spriteFrame.texture:SetVertexColor(1,1,1,0.5);
+    spriteFrame.texture:SetAllPoints(spriteFrame);
+    spriteFrame.texture:SetTexture(Resources.textures["SceneSprites"], "REPEAT", "REPEAT");
+    
+    spriteFrame:EnableMouse(true);
+    spriteFrame:SetScript("OnClick", function(self)
+        SM.SelectObjectByIndex(self.objIdx);
+    end);
+    spriteFrame:SetScript('OnEnter', function()
+        spriteFrame.texture:SetVertexColor(1,1,1,1);
+    end);
+    spriteFrame:SetScript('OnLeave', function()
+        spriteFrame.texture:SetVertexColor(1,1,1,0.5);
+    end);
+    spriteFrame:Hide();
+    return spriteFrame;
 end
 
 function Renderer.CreateRenderer(x, y, w, h, parent, startLevel)
@@ -74,7 +110,7 @@ function Renderer.CreateRenderer(x, y, w, h, parent, startLevel)
 	Renderer.projectionFrame:SetCameraPosition(4,0,0);
 	Renderer.projectionFrame:SetCameraOrientationByYawPitchRoll(0, 0, 0);
     Renderer.projectionFrame:SetFrameLevel(startLevel + 2);
-	--Renderer.GenerateFrameBuffer(startLevel + 3);
+	Renderer.GenerateFrameBuffer(startLevel + 30);
 
 	Renderer.active = false;
 end
@@ -180,6 +216,7 @@ end
 
 function Renderer.Update()
     Renderer.RenderGizmos();
+    Renderer.RenderSprites();
     Renderer.CheckQueuedTasks();
 end
 
@@ -204,6 +241,61 @@ function Renderer.CheckQueuedTasks()
     end
 end
 
+function Renderer.GetAvailableSprite()
+    local i = Renderer.usedSprites + 1;
+    Renderer.usedSprites = Renderer.usedSprites + 1;
+
+    if (i > #Renderer.SpriteBufferFrames) then
+        -- generate new sprite
+        Renderer.SpriteBufferFrames[i] = Renderer.GenerateSpriteFrame(i);
+    end
+
+    return Renderer.SpriteBufferFrames[i];
+end
+
+function Renderer.RenderSprites()
+    Renderer.usedSprites = 0;
+    if (not SM.loadedScene) then
+        -- hide all
+        return;
+    end
+
+    for i = 1, #SM.loadedScene.objects, 1 do
+        local object = SM.loadedScene.objects[i];
+        if (object:GetGizmoType() == Gizmos.Type.Camera) then
+            local sprite = Renderer.GetAvailableSprite();
+            sprite.objIdx = i;
+            local pos = object:GetPosition();
+            -- Near plane face culling --
+            --local cull = Renderer.NearPlaneFaceCullingLine(vert, Camera.planePosition.x, Camera.planePosition.y, Camera.planePosition.z, Camera.forward.x, Camera.forward.y, Camera.forward.z, 0);
+
+            --if (not cull) then
+                -- Project to screen space --
+                local aX, aY, aZ = Renderer.projectionFrame:Project3DPointTo2D(pos.x, pos.y, pos.z);
+                local size = 20;
+                local hSize = size / 2;
+                -- Render --
+                if (aX ~= nil and aY ~= nil) then
+                    sprite:Show();
+                    sprite:ClearAllPoints();
+                    sprite:SetPoint("BOTTOMLEFT", Renderer.projectionFrame, "BOTTOMLEFT", aX * Renderer.scale - hSize, aY * Renderer.scale - hSize);
+                    sprite:SetSize(size, size);
+                    sprite.texture:SetTexCoord(0, 0.25, 0, 0.25);
+                    --line:SetVertexColor(faceColor[1], faceColor[2], faceColor[3], faceColor[4] or 1);
+                    --line:SetStartPoint("BOTTOMLEFT", aX * Renderer.scale, aY * Renderer.scale) -- start topleft
+                    --line:SetEndPoint("BOTTOMLEFT", bX * Renderer.scale, bY * Renderer.scale)   -- end bottomright
+                end
+            --end
+        end
+    end
+
+    for i = Renderer.usedSprites + 1, #Renderer.SpriteBufferFrames, 1 do
+        if (Renderer.SpriteBufferFrames[i]) then
+            Renderer.SpriteBufferFrames[i]:Hide();
+        end
+    end
+end
+
 function Renderer.RenderGizmos()
     if (Renderer.projectionFrame == nil) then return end
     if (Renderer.active == true) then
@@ -220,9 +312,14 @@ function Renderer.RenderGizmos()
                 --ShadeScaleGizmo(SceneMachine.Gizmos.DebugGizmo);
             end
         end
+
         if #SM.selectedObjects > 0 then
-            RenderGizmoLines(SceneMachine.Gizmos.WireBox);
-            ShadeSelectionGizmo(SceneMachine.Gizmos.WireBox);
+            if (SM.selectedObjects[1]:GetGizmoType() == Gizmos.Type.Object) then
+                RenderGizmoLines(SceneMachine.Gizmos.WireBox);
+                ShadeSelectionGizmo(SceneMachine.Gizmos.WireBox);
+            elseif (SM.selectedObjects[1]:GetGizmoType() == Gizmos.Type.Camera) then
+                RenderGizmoLines(SceneMachine.Gizmos.CameraGizmo);
+            end
         end
         
         if (SceneMachine.Gizmos.activeTransformGizmo == 1) then

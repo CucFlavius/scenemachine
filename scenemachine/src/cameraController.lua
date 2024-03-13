@@ -6,6 +6,7 @@ local Input = SceneMachine.Input;
 local Camera = SceneMachine.Camera;
 local Math = SceneMachine.Math;
 local Vector3 = SceneMachine.Vector3;
+local Quaternion = SceneMachine.Quaternion;
 
 ----------------------------------
 --			CC State	 		--
@@ -26,6 +27,8 @@ CC.Focus =
 {
 	startPos = Vector3:New(0, 0, 0);
 	endPos = Vector3:New(0, 0, 0);
+	startRot = Quaternion:New();
+	endRot = Quaternion:New();
 	distance = 0;
 	startTime = 0;
 	focusing = false;
@@ -126,12 +129,12 @@ function CC.Update(deltaTime)
 		CC.RMBPrevious.y = Input.mouseYRaw;
 
 		-- if camera is in flight mode then handle that --
-		SceneMachine.Camera.eulerRotation.x = clampAngle(SceneMachine.Camera.eulerRotation.x - rad(xDiff * CC.mouseTurnSpeed));
+		SceneMachine.Camera.eulerRotation.z = clampAngle(SceneMachine.Camera.eulerRotation.z - rad(xDiff * CC.mouseTurnSpeed));
 		SceneMachine.Camera.eulerRotation.y = clampAngle(SceneMachine.Camera.eulerRotation.y - rad(yDiff * CC.mouseTurnSpeed));
         CC.Direction = CC.Direction - xDiff * CC.mouseTurnSpeed;
         CC.Pitch = CC.Pitch - yDiff * CC.mouseTurnSpeed;
 	else
-        SceneMachine.Camera.eulerRotation.x = clampAngle(rad(CC.Direction));
+        SceneMachine.Camera.eulerRotation.z = clampAngle(rad(CC.Direction));
     end
 
 	-- handle focus
@@ -150,6 +153,12 @@ function CC.Update(deltaTime)
 		end
 
 		CC.position:Lerp(CC.Focus.startPos, CC.Focus.endPos, fractionOfJourney);
+		local rotQ = Quaternion:New();
+		rotQ:Lerp(CC.Focus.startRot, CC.Focus.endRot, fractionOfJourney)
+		Camera.eulerRotation:SetVector3(rotQ:ToEuler());
+		--Camera.eulerRotation:Lerp(CC.Focus.startRot, CC.Focus.endRot, fractionOfJourney);
+		-- override direction
+		CC.Direction = math.deg(Camera.eulerRotation.z);
 
 		if (fractionOfJourney >= 1) then
 			CC.Focus.focusing = false;
@@ -186,23 +195,35 @@ function CC.FocusObject(object)
 
 	-- set start position
 	CC.Focus.startPos:SetVector3(Camera.position);
+	CC.Focus.startRot:SetFromEuler(Camera.eulerRotation);
 
 	local objectPos = object:GetPosition();--Vector3
+	local objectRot = object:GetRotation();
 	local objectScale = object:GetScale();--Float
 	local vector = Vector3:New();
 	vector:SetVector3(Camera.eulerRotation);
 	vector:EulerToDirection();
 	vector:Normalize();
 
-	local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
-	local objectCenter = Vector3:New( objectPos.x * objectScale, objectPos.y * objectScale, (objectPos.z + (zMax / 2)) * objectScale );
-	local radius = math.max(xMax, math.max(yMax, zMax));
-	local dist = radius / (math.sin(Camera.fov) * 0.5);
-	vector:Scale(dist);
-	objectCenter:Subtract(vector);
+	local objectCenter;
+	if (object:GetGizmoType() == Gizmos.Type.Object) then
+		local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
+		objectCenter = Vector3:New( objectPos.x * objectScale, objectPos.y * objectScale, (objectPos.z + (zMax / 2)) * objectScale );
+		local radius = math.max(xMax, math.max(yMax, zMax));
+		local dist = radius / (math.sin(Camera.fov) * 0.5);
+		vector:Scale(dist);
+		objectCenter:Subtract(vector);
+	elseif (object:GetGizmoType() == Gizmos.Type.Camera) then
+		objectCenter = Vector3:New( objectPos.x * objectScale, objectPos.y * objectScale, objectPos.z * objectScale );
+		-- set camera properties that don't need animating
+		Camera.fov = object:GetFoV();
+		Camera.nearClip = object:GetNearClip();
+		Camera.farClip = object:GetFarClip();
+	end
 
 	-- set end position
 	CC.Focus.endPos:SetVector3(objectCenter);
+	CC.Focus.endRot:SetFromEuler(objectRot);
 
 	CC.Focus.startTime = SceneMachine.time;
 

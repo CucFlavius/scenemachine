@@ -42,7 +42,8 @@ function Resources.Initialize(resourcePath)
     Resources.textures["ResetIcon"] = Resources.texturesPath .. "\\resetIcon.png";
     Resources.textures["Add"] = Resources.texturesPath .. "\\add.png";
     Resources.textures["ToolbarAssetExplorer"] = Resources.texturesPath .. "\\toolbarAssetExplorer.png";
-    Resources.textures["Dropshadow"] = Resources.texturesPath .. "\\dropshadow.png"
+    Resources.textures["Dropshadow"] = Resources.texturesPath .. "\\dropshadow.png";
+    Resources.textures["SceneSprites"] = Resources.texturesPath .. "\\sceneSprites.png";
 
     -- Icons --
     Resources.iconData = {};
@@ -53,7 +54,7 @@ function Resources.Initialize(resourcePath)
         columns = 8,
         coords = {
             { "select", "move", "rotate", "scale", "worldpivot", "localpivot", "centerpivot", "basepivot" },
-            { "projects", "together", "individual", "undo", "undooff", "redo", "redooff", "" },
+            { "projects", "together", "individual", "undo", "undooff", "redo", "redooff", "addcamera" },
             { "", "", "", "", "", "", "", "" },
             { "", "", "", "", "", "", "", "" },
             { "", "", "", "", "", "", "", "" },

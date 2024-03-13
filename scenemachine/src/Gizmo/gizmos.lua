@@ -60,28 +60,19 @@ Gizmos.axisToDirectionVector =
     [Gizmos.Axis.YZ] = Gizmos.forward,
 };
 
+Gizmos.Type = {};
+Gizmos.Type.None = 0;
+Gizmos.Type.Object = 1;
+Gizmos.Type.Camera = 2;
+
 function Gizmos.Create()
     Gizmos.CreateSelectionGizmo();
     Gizmos.CreateMoveGizmo();
     Gizmos.CreateRotateGizmo();
     Gizmos.CreateScaleGizmo();
     Gizmos.CreateDebugGizmo();
+    Gizmos.CreateCameraGizmo();
     Gizmos.CreateMarqueeSelectGizmo(Renderer.projectionFrame, Renderer.projectionFrame:GetFrameLevel() + 1);
-
-    -- test shit
-    --[[
-    local r = Vector3:New(0, 0, -math.rad(90));
-    print (r);
-    local q = Quaternion:New();
-    q:SetFromEuler(r);
-
-    local m = Matrix:New();
-    m:TRS(Vector3:New(0, 0, 0), q, Vector3:New(1, 1, 1));
-
-    local q2 = m:ExtractRotation();
-
-    print(q2:ToEuler());
-    --]]
 end
 
 function Gizmos.CreateMarqueeSelectGizmo(parent, startLevel)
@@ -495,7 +486,13 @@ function Gizmos.VisibilityCheck()
     end
 
     if (#SM.selectedObjects > 0) then
-        Gizmos.frames["SelectionGizmoFrame"]:Show();
+        if (SM.selectedObjects[1]:GetGizmoType() == Gizmos.Type.Object) then
+            Gizmos.frames["CameraGizmoFrame"]:Hide();
+            Gizmos.frames["SelectionGizmoFrame"]:Show();
+        elseif (SM.selectedObjects[1]:GetGizmoType() == Gizmos.Type.Camera) then
+            Gizmos.frames["SelectionGizmoFrame"]:Hide();
+            Gizmos.frames["CameraGizmoFrame"]:Show();
+        end
 
         if(Gizmos.activeTransformGizmo == 1) then
             Gizmos.frames["MoveGizmoFrame"]:Show();
@@ -519,6 +516,7 @@ function Gizmos.VisibilityCheck()
         Gizmos.frames["MoveGizmoFrame"]:Hide();
         Gizmos.frames["RotateGizmoFrame"]:Hide();
         Gizmos.frames["ScaleGizmoFrame"]:Hide();
+        Gizmos.frames["CameraGizmoFrame"]:Hide();
     end
 end
 
@@ -541,12 +539,23 @@ function Gizmos.UpdateGizmoTransform()
     local position = SM.selectedPosition;
     local rotation = SM.selectedRotation;
     local scale = SM.selectedScale;
-    local bb = SM.selectedBounds;
-    local xMin, yMin, zMin, xMax, yMax, zMax = bb[1], bb[2], bb[3], bb[4], bb[5], bb[6];
-    local bbCenter = {(xMax - xMin) / 2, (yMax - yMin) / 2, (zMax - zMin) / 2};
-    local centerH = -(zMax - zMin) / 2 * scale;
-    Gizmos.transformToAABB(SceneMachine.Gizmos.WireBox, bbCenter);
-    Gizmos.transformGizmo(SceneMachine.Gizmos.WireBox, position, rotation, scale, bbCenter, 1, 0);
+    local centerH = 0;
+
+    if (SM.selectedObjects[1]:GetGizmoType() == Gizmos.Type.Object) then
+        local bb = SM.selectedBounds;
+        local xMin, yMin, zMin, xMax, yMax, zMax = bb[1], bb[2], bb[3], bb[4], bb[5], bb[6];
+        local bbCenter = {(xMax - xMin) / 2, (yMax - yMin) / 2, (zMax - zMin) / 2};
+        centerH = -(zMax - zMin) / 2 * scale;
+        Gizmos.transformToAABB(SceneMachine.Gizmos.WireBox, bbCenter);
+        Gizmos.transformGizmo(SceneMachine.Gizmos.WireBox, position, rotation, scale, centerH, 1, 0);
+    elseif (SM.selectedObjects[1]:GetGizmoType() == Gizmos.Type.Camera) then
+        local fov = SM.selectedObjects[1]:GetFoV();
+        local aspect = 1 / Camera.aspectRatio;
+        local near = 1;
+        local far = 20;
+        Gizmos.GenerateCameraFrustumVertices(fov, aspect, 1, 20);
+        Gizmos.transformGizmo(SceneMachine.Gizmos.CameraGizmo, SM.selectedObjects[1]:GetPosition(), SM.selectedObjects[1]:GetRotation(), 1, { 0, 0, 0 }, Gizmos.space, 0);
+    end
 
     if (Gizmos.activeTransformGizmo == 1) then
         -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
