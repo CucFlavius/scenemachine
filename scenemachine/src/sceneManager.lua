@@ -185,11 +185,17 @@ function SM.LoadScene(index)
     if (scene.properties == nil) then
         local ar, ag, ab = Renderer.projectionFrame:GetLightAmbientColor();
         local dr, dg, db = Renderer.projectionFrame:GetLightDiffuseColor();
+        local enableLighting = Renderer.projectionFrame:IsLightVisible();
         scene.properties = {
             ambientColor = { ar, ag, ab, 1 },
             diffuseColor = { dr, dg, db, 1 },
-            backgroundColor = { 0.554, 0.554, 0.554, 1 }
+            backgroundColor = { 0.554, 0.554, 0.554, 1 },
+            enableLighting = enableLighting,
         };
+    end
+
+    if (scene.properties.enableLighting == nil) then
+        scene.properties.enableLighting = true;
     end
 
     -- create loaded scene (so that objects get loaded from data not referenced) --
@@ -248,6 +254,7 @@ function SM.LoadScene(index)
         OP.SetAmbientColor(scene.properties.ambientColor[1], scene.properties.ambientColor[2], scene.properties.ambientColor[2], 1);
         OP.SetDiffuseColor(scene.properties.diffuseColor[1], scene.properties.diffuseColor[2], scene.properties.diffuseColor[2], 1);
         OP.SetBackgroundColor(scene.properties.backgroundColor[1], scene.properties.backgroundColor[2], scene.properties.backgroundColor[2], 1);
+        OP.ToggleLighting(scene.properties.enableLighting);
     end
 
     AM.RefreshTimelineTabs();
@@ -289,6 +296,9 @@ function SM.UnloadScene()
 end
 
 function SM.ClearSceneActions(scene)
+    if (not scene) then
+        return;
+    end
     scene.actionPool = scene.actionPool or {};
     scene.startedAction = scene.startedAction or nil;
     scene.actionPointer = scene.actionPointer or 0;
@@ -944,10 +954,12 @@ function SM.LoadNetworkScene(scene)
     if (scene.properties == nil) then
         local ar, ag, ab = Renderer.projectionFrame:GetLightAmbientColor();
         local dr, dg, db = Renderer.projectionFrame:GetLightDiffuseColor();
+        local enableLighting = Renderer.projectionFrame:IsLightVisible() or true;
         scene.properties = {
             ambientColor = { ar, ag, ab, 1 },
             diffuseColor = { dr, dg, db, 1 },
-            backgroundColor = { 0.554, 0.554, 0.554, 1 }
+            backgroundColor = { 0.554, 0.554, 0.554, 1 },
+            enableLighting = enableLighting,
         };
     end
 
@@ -1006,6 +1018,7 @@ function SM.LoadNetworkScene(scene)
         OP.SetAmbientColor(scene.properties.ambientColor[1], scene.properties.ambientColor[2], scene.properties.ambientColor[2], 1);
         OP.SetDiffuseColor(scene.properties.diffuseColor[1], scene.properties.diffuseColor[2], scene.properties.diffuseColor[2], 1);
         OP.SetBackgroundColor(scene.properties.backgroundColor[1], scene.properties.backgroundColor[2], scene.properties.backgroundColor[2], 1);
+        OP.ToggleLighting(scene.properties.enableLighting);
     end
 
     AM.RefreshTimelineTabs();

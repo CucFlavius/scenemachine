@@ -845,6 +845,10 @@ function Editor.RefreshActionToolbar()
 end
 
 function Editor.ClearActions()
+    if (not SM.loadedScene) then
+        return;
+    end
+    
     for i = 1, #SM.loadedScene.actionPool, 1 do
         SM.loadedScene.actionPool[i] = nil;
     end

@@ -143,6 +143,10 @@ function ScrollbarHorizontal:Update()
 end
 
 function ScrollbarHorizontal:Resize(viewportW, listW)
+    if (not listW) then
+        return;
+    end
+
     local minScrollbarHorizontal = 20;
     local maxScrollbarHorizontal = viewportW;
     local desiredScrollbarHorizontal = (viewportW / listW) * viewportW;
@@ -180,6 +184,10 @@ function ScrollbarHorizontal:SetValue(value)
 end
 
 function ScrollbarHorizontal:SetValueWithoutAction(value)
+    if (not value) then
+        return;
+    end
+    
     self.currentValue = value;
     local newPoint = value * (self.width - self.scrollbarSlider:GetWidth());
     self.scrollbarSlider:ClearAllPoints();

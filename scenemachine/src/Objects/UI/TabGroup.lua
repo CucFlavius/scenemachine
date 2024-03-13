@@ -161,6 +161,10 @@ function TabGroup:RenameTab(index, item, onRename)
 end
 
 function TabGroup:SetPosition(value)
+    if (not value) then
+        return;
+    end
+    
     if (value >= 1) then value = 0.999; end -- this fixes my bad logic which causes a pop when scrolling to the end
     local offs = (value * self.totalWidth) - (value * self.viewportWidth);
     local dif = 0;

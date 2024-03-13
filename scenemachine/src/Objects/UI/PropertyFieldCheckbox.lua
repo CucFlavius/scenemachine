@@ -31,10 +31,11 @@ function PropertyFieldCheckbox:Build()
 end
 
 function PropertyFieldCheckbox:Set(value)
-    self.field:SetText(tostring(value));
+    self.field:SetChecked(value);
 end
 
 function PropertyFieldCheckbox:SetEnabled(enabled)
+    --[[
     local c = 0.5;
     if (enabled) then
         c = 1;
@@ -42,4 +43,5 @@ function PropertyFieldCheckbox:SetEnabled(enabled)
 
     self.field:SetEnabled(enabled);
     self.field:SetTextColor(1, 1, 1, c);
+    --]]
 end

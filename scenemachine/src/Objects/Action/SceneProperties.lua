@@ -23,6 +23,7 @@ function SceneProperties:New(properties)
 	v.startProperties.ambientColor = properties.ambientColor;
 	v.startProperties.diffuseColor = properties.diffuseColor;
 	v.startProperties.backgroundColor = properties.backgroundColor;
+	v.startProperties.enableLighting = properties.enableLighting;
 
 	v.memoryUsage = v.memorySize;
 
@@ -34,6 +35,7 @@ function SceneProperties:Finish(properties)
 	self.endProperties.ambientColor = properties.ambientColor;
 	self.endProperties.diffuseColor = properties.diffuseColor;
 	self.endProperties.backgroundColor = properties.backgroundColor;
+	self.endProperties.enableLighting = properties.enableLighting;
 end
 
 function SceneProperties:Undo()
@@ -46,6 +48,7 @@ function SceneProperties:Undo()
 	R, G, B, A = self.startProperties.backgroundColor[1], self.startProperties.backgroundColor[2], self.startProperties.backgroundColor[3], self.startProperties.backgroundColor[4];
 	Renderer.backgroundFrame.texture:SetColorTexture(R, G, B, 1);
     SM.loadedScene.properties.backgroundColor = { R, G, B, A };
+	Renderer.projectionFrame:SetLightVisible(self.startProperties.enableLighting);
 end
 
 function SceneProperties:Redo()
@@ -58,4 +61,5 @@ function SceneProperties:Redo()
 	R, G, B, A = self.endProperties.backgroundColor[1], self.endProperties.backgroundColor[2], self.endProperties.backgroundColor[3], self.endProperties.backgroundColor[4];
 	Renderer.backgroundFrame.texture:SetColorTexture(R, G, B, 1);
     SM.loadedScene.properties.backgroundColor = { R, G, B, A };
+	Renderer.projectionFrame:SetLightVisible(self.endProperties.enableLighting);
 end

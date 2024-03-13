@@ -114,6 +114,8 @@ function OP.Refresh()
         OP.diffuseColorField:Set(dif[1], dif[2], dif[3], 1);
         local bg = SM.loadedScene.properties.backgroundColor;
         OP.backgroundColorField:Set(bg[1], bg[2], bg[3], 1);
+        local enableLighting = SM.loadedScene.properties.enableLighting;
+        OP.enableLightingField:Set(enableLighting);
     end
 end
 
@@ -287,6 +289,7 @@ end
 
 function OP.ToggleLighting(on)
     Renderer.projectionFrame:SetLightVisible(on);
+    SM.loadedScene.properties.enableLighting = on;
     if (on) then
         --Renderer.projectionFrame:SetLightType(0);
     else
