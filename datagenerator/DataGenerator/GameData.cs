@@ -1,6 +1,7 @@
 ﻿using CASCLib;
 using DBCD;
 using System.Diagnostics;
+using System.Drawing;
 
 namespace DataGenerator
 {
@@ -217,6 +218,99 @@ namespace DataGenerator
             sw.WriteLine("}");
         }
 
+        public void GenerateLightData(string outputPath)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Generate Light Data");
+            Console.ResetColor();
+            using var sw = new StreamWriter(outputPath);
+
+            sw.WriteLine("SceneMachine.lightData={");
+
+            foreach (KeyValuePair<ulong, CASCFile> item in CASCFile.Files)
+            {
+                string filePath = item.Value.FullName;
+                string fileExtension = Path.GetExtension(filePath);
+
+                // Skip unknown files
+                if (fileExtension == NullExtension)
+                {
+                    try
+                    {
+                        // Try to read the file header, see if it's an M2
+                    }
+                    catch
+                    {
+
+                    }
+                }
+                else if (fileExtension == M2Extension)
+                {
+                    try
+                    {
+                        var fileID = this.wowRootHandler.GetFileDataIdByHash(item.Value.Hash);
+
+                        // Determine if it's a light only model
+                        using var str = cascHandler.OpenFile(fileID);
+                        using var br = new BinaryReader(str);
+
+                        br.BaseStream.Position = 68;
+                        uint nVertices = br.ReadUInt32();
+
+                        br.BaseStream.Position = 272;
+                        uint nLights = br.ReadUInt32();
+                        uint ofsLights = br.ReadUInt32();
+
+                        br.BaseStream.Position = 304;
+                        uint nParticleEmitters = br.ReadUInt32();
+
+                        br.BaseStream.Position = ofsLights + 8;
+
+                        ushort lightType = br.ReadUInt16();
+                        ushort bone = br.ReadUInt16();
+                        float posX = br.ReadSingle();
+                        float posY = br.ReadSingle();
+                        float posZ = br.ReadSingle();
+
+                        // Ambient color track
+                        br.BaseStream.Position += 20;
+
+                        // Ambient intensity track
+                        br.BaseStream.Position += 20;
+
+                        // Diffuse color track
+                        br.ReadUInt16();    // Interpolation type
+                        br.ReadInt16();     // Global seq
+                        br.ReadUInt32();    // Timestamps Size
+                        br.ReadUInt32();    // Timestamps Offset
+                        br.ReadUInt32();    // Values Size
+                        var offs = br.ReadUInt32();    // Values Offset
+
+                        br.BaseStream.Position = offs + 8;
+                        var nValue = br.ReadUInt32();
+                        var nOffs = br.ReadUInt32();
+
+                        br.BaseStream.Position = nOffs + 8;
+                        float r = br.ReadSingle();
+                        float g = br.ReadSingle();
+                        float b = br.ReadSingle();
+
+                        if (nLights > 0 && nVertices == 0 && nParticleEmitters == 0)
+                        {
+                            sw.WriteLine($"{{[{fileID}]={{{r},{g},{b}}}}},");
+                            //Console.WriteLine($"{filePath} {r}, {g}, {b}");
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+                    catch { }
+                }
+            }
+
+            sw.WriteLine("}");
+        }
 
         List<(ushort, ushort, uint)>? GetAnimDataFromM2(int fileID)
         {
