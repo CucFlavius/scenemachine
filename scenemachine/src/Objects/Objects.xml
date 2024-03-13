@@ -62,4 +62,5 @@ Structures
 	<Script file="Action/CreateTimeline.lua" />
 	<Script file="Action/TimelineProperties.lua" />
 	<Script file="Action/TrackAnimations.lua" />
+	<Script file="Action/TrackKeyframes.lua" />
 </Ui>

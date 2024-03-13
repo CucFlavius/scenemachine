@@ -16,6 +16,7 @@ Action.Type.CreateTimeline = 7;
 Action.Type.DestroyTimeline = 8;
 Action.Type.TimelineProperties = 9;
 Action.Type.TrackAnimations = 10;
+Action.Type.TrackKeyframes = 11;
 
 setmetatable(Action, Action)
 

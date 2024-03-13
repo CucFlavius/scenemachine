@@ -933,6 +933,8 @@ function AM.GenerateKeyframeElement(index, x, y, w, h, parent, R, G, B, A)
     element:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
     element:SetScript("OnMouseDown", function(self, button)
         if (button == "LeftButton") then
+            local track = AM.loadedTimeline.tracks[self.trackIdx];
+            Editor.StartAction(Actions.Action.Type.TrackKeyframes, track, AM.loadedTimeline);
             if (SceneMachine.Input.ShiftModifier) then
                 -- clone keys
                 AM.CloneSelectedKeys();
@@ -1114,10 +1116,8 @@ function AM.CreateToolbar(x, y, w, h, parent, startLevel)
             splitaction = function(v) AM.Button_SetKeyAddMode(v); end, action = function() AM.Button_AddKey(); end,
             tooltip = L["AM_TOOLBAR_TT_ADD_KEYFRAME"], tooltipDetailed = L["AM_TOOLBAR_TTD_ADD_KEYFRAME"],
         },
-        { type = "Button", name = "RemoveKey", icon = toolbar:GetIcon("removekey"), action = function(self) 
-            for i = 1, #AM.selectedKeys, 1 do
-                AM.RemoveKey(AM.selectedTrack, AM.selectedKeys[i]);
-            end end,
+        { type = "Button", name = "RemoveKey", icon = toolbar:GetIcon("removekey"), action = function(self)
+            AM.RemoveKeys(AM.selectedTrack, AM.selectedKeys); end,
             tooltip = L["AM_TOOLBAR_TT_REMOVE_KEYFRAME"],
         },
         { type = "Separator", name = "Separator4" },
@@ -2859,12 +2859,14 @@ function AM.AddFullKey(track)
         return;
     end
 
+    Editor.StartAction(Actions.Action.Type.TrackKeyframes, track, AM.loadedTimeline);
     local timeMS = AM.loadedTimeline.currentTime;
     local obj = AM.GetObjectOfTrack(track);
     if (obj) then
         track:AddFullKeyframe(timeMS, obj:GetPosition(), obj:GetRotation(), obj:GetScale(), obj:GetAlpha(), AM.currentInterpolationIn, AM.currentInterpolationOut);
     end
 
+    Editor.FinishAction();
     AM.RefreshWorkspace();
 end
 
@@ -2877,12 +2879,14 @@ function AM.AddPosKey(track)
         return;
     end
 
+    Editor.StartAction(Actions.Action.Type.TrackKeyframes, track, AM.loadedTimeline);
     local timeMS = AM.loadedTimeline.currentTime;
     local obj = AM.GetObjectOfTrack(track);
     if (obj) then
         track:AddPositionKeyframe(timeMS, obj:GetPosition(), AM.currentInterpolationIn, AM.currentInterpolationOut);
     end
 
+    Editor.FinishAction();
     AM.RefreshWorkspace();
 end
 
@@ -2895,12 +2899,14 @@ function AM.AddRotKey(track)
         return;
     end
 
+    Editor.StartAction(Actions.Action.Type.TrackKeyframes, track, AM.loadedTimeline);
     local timeMS = AM.loadedTimeline.currentTime;
     local obj = AM.GetObjectOfTrack(track);
     if (obj) then
         track:AddRotationKeyframe(timeMS, obj:GetRotation(), AM.currentInterpolationIn, AM.currentInterpolationOut);
     end
 
+    Editor.FinishAction();
     AM.RefreshWorkspace();
 end
 
@@ -2913,13 +2919,31 @@ function AM.AddScaleKey(track)
         return;
     end
 
+    Editor.StartAction(Actions.Action.Type.TrackKeyframes, track, AM.loadedTimeline);
     local timeMS = AM.loadedTimeline.currentTime;
     local obj = AM.GetObjectOfTrack(track);
     if (obj) then
         track:AddScaleKeyframe(timeMS, obj:GetScale(), AM.currentInterpolationIn, AM.currentInterpolationOut);
     end
+    Editor.FinishAction();
 
     AM.RefreshWorkspace();
+end
+
+function AM.RemoveKeys(track, keys)
+    if (not track) then
+        return;
+    end
+
+    if (not keys) then
+        return;
+    end
+
+    Editor.StartAction(Actions.Action.Type.TrackKeyframes, track, AM.loadedTimeline);
+    for i = 1, #keys, 1 do
+        AM.RemoveKey_internal(track, keys[i]);
+    end
+    Editor.FinishAction();
 end
 
 function AM.RemoveKey(track, key)
@@ -2930,6 +2954,14 @@ function AM.RemoveKey(track, key)
     if (not key) then
         return;
     end
+
+    Editor.StartAction(Actions.Action.Type.TrackKeyframes, track, AM.loadedTimeline);
+    AM.RemoveKey_internal(track, key);
+    Editor.FinishAction();
+end
+
+function AM.RemoveKey_internal(track, key)
+    
 
     if (track.keysPx) then
         for i in pairs(track.keysPx) do
@@ -3438,7 +3470,7 @@ function AM.OnFinishedKeyRetiming()
     if (AM.toOverrideKeys) then
         for i = 1, #AM.toOverrideKeys, 1 do
             if (AM.toOverrideKeys[i]) then
-                AM.RemoveKey(AM.selectedTrack, AM.toOverrideKeys[i]);
+                AM.RemoveKey_internal(AM.selectedTrack, AM.toOverrideKeys[i]);
             end
         end
 
@@ -3448,11 +3480,12 @@ function AM.OnFinishedKeyRetiming()
     if (AM.clonedKeys and #AM.clonedKeys > 0) then
         if (AM.clonedKeys[1].time == AM.selectedKeys[1].time) then
             for i = 1, #AM.clonedKeys, 1 do
-                AM.RemoveKey(AM.selectedTrack, AM.clonedKeys[i]);
+                AM.RemoveKey_internal(AM.selectedTrack, AM.clonedKeys[i]);
             end
         end
         AM.clonedKeys = nil;
     end
 
     AM.selectedTrack:SortKeyframes();
+    Editor.FinishAction();
 end

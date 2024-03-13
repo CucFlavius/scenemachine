@@ -453,8 +453,24 @@ function AssetBrowser.CreateCollectionsTab(x, y, parent, startLevel)
 end
 
 function AssetBrowser.CreateDebugTab(parent, w, h)
-    local creatureDisplayIDText = UI.Label:New(0, -5, 100, 20, parent, "TOPLEFT", "TOPLEFT", "CreatureDisplayID", 9);
-    local creatureDisplayIDEditBox = UI.TextBox:New(100, -5, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "41918");
+    local fileIDText = UI.Label:New(0, -5, 100, 20, parent, "TOPLEFT", "TOPLEFT", "FileID", 9);
+    local fileIDTextEditBox = UI.TextBox:New(100, -5, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    fileIDTextEditBox:SetScript('OnEnterPressed', function(self1)
+        -- set value
+        local valText = self1:GetText();
+        if (valText == nil or valText == "") then
+            return;
+        end
+        local val = tonumber(valText);
+        if (val ~= nil) then
+            SM.CreateObject(val, "Model", 0, 0, 0);
+        end
+        self1:ClearFocus();
+        Editor.ui.focused = false;
+    end);
+
+    local creatureDisplayIDText = UI.Label:New(0, -27, 100, 20, parent, "TOPLEFT", "TOPLEFT", "CreatureDisplayID", 9);
+    local creatureDisplayIDEditBox = UI.TextBox:New(100, -27, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "41918");
     creatureDisplayIDEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
         local valText = self1:GetText();
@@ -469,8 +485,8 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         Editor.ui.focused = false;
     end);
 
-    local creatureIDText = UI.Label:New(0, -27, 100, 20, parent, "TOPLEFT", "TOPLEFT", "CreatureID", 9);
-    local creatureIDEditBox = UI.TextBox:New(100, -27, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    local creatureIDText = UI.Label:New(0, -49, 100, 20, parent, "TOPLEFT", "TOPLEFT", "CreatureID", 9);
+    local creatureIDEditBox = UI.TextBox:New(100, -49, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     creatureIDEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
         local valText = self1:GetText();
@@ -488,8 +504,8 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         Editor.ui.focused = false;
     end);
 
-    local creatureAnimationText = UI.Label:New(0, -49, 100, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimID", 9);
-    local creatureAnimationEditBox = UI.TextBox:New(100, -49, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    local creatureAnimationText = UI.Label:New(0, -71, 100, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimID", 9);
+    local creatureAnimationEditBox = UI.TextBox:New(100, -71, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     creatureAnimationEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
         local valText = self1:GetText();
@@ -506,8 +522,8 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         Editor.ui.focused = false;
     end);
 
-    local creatureAnimationKitText = UI.Label:New(0, -71, 100, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimKitID", 9);
-    local creatureAnimationKitEditBox = UI.TextBox:New(100, -71, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    local creatureAnimationKitText = UI.Label:New(0, -93, 100, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimKitID", 9);
+    local creatureAnimationKitEditBox = UI.TextBox:New(100, -93, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     creatureAnimationKitEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
         local valText = self1:GetText();
@@ -524,12 +540,12 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         Editor.ui.focused = false;
     end);
     
-    local characterButton = UI.Button:New(0, -93, 100, 20, parent, "TOPLEFT", "TOPLEFT", "Create Character");
+    local characterButton = UI.Button:New(0, -113, 100, 20, parent, "TOPLEFT", "TOPLEFT", "Create Character");
     characterButton:SetScript("OnClick", function(_, button, up)
         SM.CreateCharacter(0, 0, 0);
     end);
 
-    local undressButton = UI.Button:New(0, -113, 100, 20, parent, "TOPLEFT", "TOPLEFT", "Undress");
+    local undressButton = UI.Button:New(0, -133, 100, 20, parent, "TOPLEFT", "TOPLEFT", "Undress");
     local creatureDisplayID = 4;
     undressButton:SetScript("OnClick", function(_, button, up)
         if (#SM.selectedObjects > 0) then
@@ -537,7 +553,7 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         end
     end);
 
-    local dressButton = UI.Button:New(0, -133, 150, 20, parent, "TOPLEFT", "TOPLEFT", "Dress with current items");
+    local dressButton = UI.Button:New(0, -153, 150, 20, parent, "TOPLEFT", "TOPLEFT", "Dress with current items");
     local creatureDisplayID = 4;
     dressButton:SetScript("OnClick", function(_, button, up)
         if (#SM.selectedObjects > 0) then
@@ -545,7 +561,7 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         end
     end);
 
-    local dalaranButton = UI.Button:New(0, -153, 150, 20, parent, "TOPLEFT", "TOPLEFT", "Make Dalaran");
+    local dalaranButton = UI.Button:New(0, -173, 150, 20, parent, "TOPLEFT", "TOPLEFT", "Make Dalaran");
     local dalaranIDs = { 1486995, 1486996, 1486997, 1486998, 1486999, 1487000, 1487001, 1487002, 1487010, 1487011, 1487012 };
     dalaranButton:SetScript("OnClick", function(_, button, up)
         local toDelete = {};
@@ -568,8 +584,8 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         end
     end);
 
-    local spellKitText = UI.Label:New(0, -173, 100, 20, parent, "TOPLEFT", "TOPLEFT", "SetSpellVisualKitID", 9);
-    local spellKitEditBox = UI.TextBox:New(100, -173, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    local spellKitText = UI.Label:New(0, -193, 100, 20, parent, "TOPLEFT", "TOPLEFT", "SetSpellVisualKitID", 9);
+    local spellKitEditBox = UI.TextBox:New(100, -193, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     local currentKit = 0;
     spellKitEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
@@ -587,7 +603,7 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         self1:ClearFocus();
         Editor.ui.focused = false;
     end);
-    local nextKitButton = UI.Button:New(100 + w * 0.3, -173, 30, 20, parent, "TOPLEFT", "TOPLEFT", " > ");
+    local nextKitButton = UI.Button:New(100 + w * 0.3, -193, 30, 20, parent, "TOPLEFT", "TOPLEFT", " > ");
     nextKitButton:SetScript("OnClick", function(_, button, up)
         if (#SM.selectedObjects > 0) then
             currentKit = currentKit + 1;
@@ -595,15 +611,15 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
             SM.selectedObjects[1]:SetSpellVisualKitID(currentKit);
         end
     end);
-    local clearKitButton = UI.Button:New(100 + w * 0.3 + 30, -173, 30, 20, parent, "TOPLEFT", "TOPLEFT", " C ");
+    local clearKitButton = UI.Button:New(100 + w * 0.3 + 30, -193, 30, 20, parent, "TOPLEFT", "TOPLEFT", " C ");
     clearKitButton:SetScript("OnClick", function(_, button, up)
         if (#SM.selectedObjects > 0) then
             SM.selectedObjects[1]:ClearSpellVisualKits();
         end
     end);
 
-    local dispIDToNameButton = UI.Label:New(0, -193, 100, 20, parent, "TOPLEFT", "TOPLEFT", "DisplayID to Name", 9);
-    local dispIDToNameEditBox = UI.TextBox:New(100, -193, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    local dispIDToNameButton = UI.Label:New(0, -213, 100, 20, parent, "TOPLEFT", "TOPLEFT", "DisplayID to Name", 9);
+    local dispIDToNameEditBox = UI.TextBox:New(100, -213, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     local currentKit = 0;
     dispIDToNameEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
@@ -625,10 +641,12 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
     end);
 
 
-    local testButton = UI.Button:New(0, -213, 100, 20, parent, "TOPLEFT", "TOPLEFT", "TEST");
+    local testButton = UI.Button:New(0, -233, 100, 20, parent, "TOPLEFT", "TOPLEFT", "TEST");
     testButton:SetScript("OnClick", function(_, button, up)
         if (#SM.selectedObjects > 0) then
-            SM.selectedObjects[1].actor:TryOn(167988);
+            local path = Resources.resourcePath .. "\\xyz.m2";
+            SM.selectedObjects[1].actor:SetModelByPath(path);
+            --SM.selectedObjects[1].actor:TryOn(167988);
         end
         --SM.ExportSceneForPrint(SM.loadedScene);
     end);

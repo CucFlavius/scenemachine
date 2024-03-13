@@ -340,9 +340,7 @@ function Editor.DeleteLastSelected()
     elseif (Editor.lastSelectedType == "anim") then
         AM.RemoveAnim(AM.selectedTrack, AM.selectedAnim);
     elseif (Editor.lastSelectedType == "key") then
-        for i = 1, #AM.selectedKeys, 1 do
-            AM.RemoveKey(AM.selectedTrack, AM.selectedKeys[i]);
-        end
+        AM.RemoveKeys(AM.selectedTrack, AM.selectedKeys);
     end
 end
 
@@ -759,6 +757,8 @@ function Editor.StartAction(type, ...)
         SM.loadedScene.startedAction = Actions.TimelineProperties:New(...);
     elseif (type == Actions.Action.Type.TrackAnimations) then
         SM.loadedScene.startedAction = Actions.TrackAnimations:New(...);
+    elseif (type == Actions.Action.Type.TrackKeyframes) then
+        SM.loadedScene.startedAction = Actions.TrackKeyframes:New(...);
     else
         print ("NYI Editor.StartAction() type:" .. type);
     end
