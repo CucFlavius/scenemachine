@@ -189,8 +189,8 @@ function Input.Update()
             ioWindow = Editor.importExportWindow:IsVisible();
         end
         local renameWindow = nil;
-        if (Editor.renameWindow) then
-            renameWindow = Editor.renameWindow:IsVisible();
+        if (Editor.quickTextWindow) then
+            renameWindow = Editor.quickTextWindow:IsVisible();
         end
         local messageBox = nil;
         if (Editor.messageBox) then

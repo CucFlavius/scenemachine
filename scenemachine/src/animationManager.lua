@@ -2678,6 +2678,7 @@ function AM.AddAnim(track, animID, animVariant)
         startT = startT,
         endT = endT,
         name = name,
+        speed = 1,
     };
 
     Editor.FinishAction();
@@ -2739,7 +2740,6 @@ function AM.ReplaceAnim(track, currentAnim, newID, newVariant)
         end
     end
 
-
     currentAnim.id = newID;
     currentAnim.variation = newVariant;
     currentAnim.animLength = animLength;
@@ -2792,7 +2792,20 @@ function AM.Button_DeleteAnimation(index)
 end
 
 function AM.Button_SetAnimationSpeed(index)
+    if (not AM.selectedAnim) then
+        return;
+    end
 
+    -- using percentage in the text box, easier to type than floats
+    local currentSpeed = AM.selectedAnim.speed or 1;
+    local action = function(text)
+        local value = tonumber(text);
+        if (value) then
+            AM.selectedAnim.speed = value / 100;
+        end
+        AM.RefreshWorkspace();
+    end
+    Editor.OpenQuickTextbox(action, tostring(currentSpeed * 100), L["AM_SET_ANIMATION_SPEED_PERCENT"]);
 end
 
 function AM.Button_RandomizeAnimColor(index)
@@ -2856,11 +2869,10 @@ function AM.SetTime(timeMS, rounded)
             local obj = AM.GetObjectOfTrack(track);
             if (obj) then
                 -- animate object
-                local animID, variationID, animMS = track:SampleAnimation(timeMS);
+                local animID, variationID, animMS, animSpeed = track:SampleAnimation(timeMS);
 
                 if (AM.playing) then
                     -- Sample playback
-                    local animSpeed = 1;
                     if (obj.currentAnimID ~= animID or obj.currentAnimVariationID ~= variationID) then
                         if (animID ~= -1) then
                             obj.actor:SetAnimation(animID, variationID, animSpeed, animMS / 1000);
@@ -2870,7 +2882,7 @@ function AM.SetTime(timeMS, rounded)
                     end
                 else
                     -- Sample single key
-                    local animSpeed = 0;
+                    animSpeed = 0;
                     obj.currentAnimID = nil;
                     obj.currentAnimVariationID = nil;
                     if (animID ~= -1) then

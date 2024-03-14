@@ -741,7 +741,7 @@ function AssetBrowser.CreateToolbar(parent, y, w, startLevel)
             { type = "DragHandle" },
             {
                 type = "Button", name = "NewCollection", icon = AssetBrowser.toolbar:GetIcon("newcollection"),
-                action = function(self) Editor.ShowRenameWindow(AssetBrowser.NewCollection, "MyCollection") end,
+                action = function(self) Editor.OpenQuickTextbox(AssetBrowser.NewCollection, "MyCollection", L["AB_COLLECTION_NAME"]) end,
                 tooltip = L["AB_TOOLBAR_TT_NEW_COLLECTION"],
             },
             {
@@ -753,7 +753,7 @@ function AssetBrowser.CreateToolbar(parent, y, w, startLevel)
                 type = "Button", name = "RenameCollection", icon = AssetBrowser.toolbar:GetIcon("renamecollection"),
                 action = function(self)
                     if (AssetBrowser.selectedCollection) then
-                        Editor.ShowRenameWindow(AssetBrowser.RenameSelectedCollection, AssetBrowser.selectedCollection.name);
+                        Editor.OpenQuickTextbox(AssetBrowser.RenameSelectedCollection, AssetBrowser.selectedCollection.name, L["AB_COLLECTION_RENAME"]);
                     end
                 end,
                 tooltip = L["AB_TOOLBAR_TT_RENAME_COLLECTION"],

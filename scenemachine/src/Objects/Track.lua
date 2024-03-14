@@ -206,16 +206,17 @@ function Track:SampleAnimation(timeMS)
             --{ id, variation, animLength, startT, endT, colorId, name }
             if (animation.startT <= timeMS and animation.endT > timeMS) then
                 -- anim is in range
-                local animMS = mod(timeMS - animation.startT, animation.animLength);
+                local animSpeed = animation.speed or 1;
+                local animMS = mod((timeMS - animation.startT) * animSpeed, animation.animLength);
                 local animID = animation.id;
                 local variationID = animation.variation;
 
-                return animID, variationID, animMS;
+                return animID, variationID, animMS, animSpeed;
             end
         end
     end
 
-    return -1, -1
+    return -1, -1, 1, 1;
 end
 
 function Track:AddKeyframe(time, value, keyframes, interpolationIn, interpolationOut)

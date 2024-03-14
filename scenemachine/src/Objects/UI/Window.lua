@@ -197,6 +197,10 @@ function Window:PopupWindowMenu(mx, my, menuOptions)
 	self.popup.menu:SetPoint("TOPLEFT", self.popup, "TOPLEFT", mx, my);
 end
 
+function Window:SetTitleText(t)
+	self:SetTitle(t);
+end
+
 function Window:SetTitle(t)
     self.titleBar_text:SetText(t);
 end

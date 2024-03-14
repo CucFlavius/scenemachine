@@ -70,6 +70,9 @@ L["MM_SCENE_REMOVE"] = "Remove";
 L["MM_SCENE_RENAME"] = "Rename";
 L["MM_SCENE_EXPORT"] = "Export";
 L["MM_SCENE_IMPORT"] = "Import";
+L["MM_TITLE_SCENE_NAME"] = "Scene Name";
+L["MM_TITLE_SCENE_RENAME"] = "Scene Rename";
+
 
 -- Context Menu --
 L["CM_SELECT"] = "Select";
@@ -149,6 +152,7 @@ L["AM_RMB_CHANGE_ANIM"] = "Change Animation";
 L["AM_RMB_SET_ANIM_SPEED"] = "Set Animation Speed";
 L["AM_RMB_DELETE_ANIM"] = "Delete Animation";
 L["AM_RMB_DIFFERENT_COLOR"] = "Different Color";
+L["AM_SET_ANIMATION_SPEED_PERCENT"] = "Set Animation Speed %";
 
 -- AssetBrowser/AssetExplorer --
 L["AB_RESULTS"] = "%d Results";             -- <number> results (search results)
@@ -163,6 +167,8 @@ L["AB_TOOLBAR_TT_ADD_OBJECT"] = "Add Selected Object";
 L["AB_TOOLBAR_TT_REMOVE_OBJECT"] = "Remove Object";
 L["AB_RMB_FILE_INFO"] = "File Info";
 L["AB_RMB_ADD_TO_COLLECTION"] = "Add to Collection";
+L["AB_COLLECTION_NAME"] = "Collection Name";
+L["AB_COLLECTION_RENAME"] = "Rename Collection";
 
 -- Project Manager --
 L["PM_WINDOW_TITLE"] = "Project Manager";

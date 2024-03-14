@@ -579,41 +579,43 @@ function Editor.ShowImportExportWindow(action, text)
     Editor.importExportWindow:Show();
 end
 
-function Editor.ShowRenameWindow(action, text)
+function Editor.OpenQuickTextbox(action, text, title)
     -- create
-    if (not Editor.renameWindow) then
+    if (not Editor.quickTextWindow) then
         local xOffset, yOffset = 10, -10;
         local windowWidth, windowHeight = 400, 60;
 
-        Editor.renameWindow = UI.Window:New(xOffset, yOffset, windowWidth, windowHeight, SceneMachine.mainWindow:GetFrame(), "CENTER", "CENTER", L["EDITOR_NAME_RENAME_WINDOW_TITLE"]);
-        Editor.renameWindow:SetFrameStrata(Editor.SUB_FRAME_STRATA);
-        Editor.renameWindow:GetFrame():SetResizeBounds(windowWidth - 200, windowHeight, windowWidth + 200, windowHeight);
-        Editor.renameWindow:MakeWholeWindowDraggable();
+        Editor.quickTextWindow = UI.Window:New(xOffset, yOffset, windowWidth, windowHeight, SceneMachine.mainWindow:GetFrame(), "CENTER", "CENTER", L["EDITOR_NAME_RENAME_WINDOW_TITLE"]);
+        Editor.quickTextWindow:SetFrameStrata(Editor.SUB_FRAME_STRATA);
+        Editor.quickTextWindow:GetFrame():SetResizeBounds(windowWidth - 200, windowHeight, windowWidth + 200, windowHeight);
+        Editor.quickTextWindow:MakeWholeWindowDraggable();
 
         local textHeight = 9;
         local ebWidth, ebHeight = 390, 30; -- this just gets eaten by the anchors anyways but might as well keep it
-        Editor.renameWindow.editBox = UI.TextBox:New(xOffset, yOffset, ebWidth, ebHeight, Editor.renameWindow:GetFrame(), "TOPLEFT", "TOPLEFT", "", textHeight);
+        Editor.quickTextWindow.editBox = UI.TextBox:New(xOffset, yOffset, ebWidth, ebHeight, Editor.quickTextWindow:GetFrame(), "TOPLEFT", "TOPLEFT", "", textHeight);
 
-        Editor.renameWindow.editBox:SetPoint("BOTTOMRIGHT", Editor.renameWindow:GetFrame(), -xOffset, -yOffset);
-        Editor.renameWindow.editBox:SetScript('OnEscapePressed', function()
-            Editor.renameWindow.editBox:ClearFocus();
+        Editor.quickTextWindow.editBox:SetPoint("BOTTOMRIGHT", Editor.quickTextWindow:GetFrame(), -xOffset, -yOffset);
+        Editor.quickTextWindow.editBox:SetScript('OnEscapePressed', function()
+            Editor.quickTextWindow.editBox:ClearFocus();
             Editor.ui.focused = false;
-            Editor.renameWindow.editBox:SetText("");
+            Editor.quickTextWindow.editBox:SetText("");
         end);
     end
     
-    Editor.renameWindow.editBox:SetText(text);
+    Editor.quickTextWindow.editBox:SetText(text);
 
-    Editor.renameWindow.editBox:SetScript('OnEnterPressed', function(self1)
-        Editor.renameWindow.editBox:ClearFocus();
+    Editor.quickTextWindow:SetTitleText(title or L["EDITOR_NAME_RENAME_WINDOW_TITLE"]);
+
+    Editor.quickTextWindow.editBox:SetScript('OnEnterPressed', function(self1)
+        Editor.quickTextWindow.editBox:ClearFocus();
         Editor.ui.focused = false;
         if (action) then
             action(self1:GetText());
         end
-        Editor.renameWindow:Hide();
+        Editor.quickTextWindow:Hide();
     end);
 
-    Editor.renameWindow:Show();
+    Editor.quickTextWindow:Show();
 end
 
 function Editor.SetPivotMode(mode)

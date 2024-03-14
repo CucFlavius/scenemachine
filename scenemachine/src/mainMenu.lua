@@ -40,9 +40,9 @@ function MainMenu.Create()
         {
             ["Name"] = L["MM_SCENE"],
             ["Options"] = {
-                { ["Name"] = L["MM_SCENE_NEW"], ["Action"] = function() Editor.ShowRenameWindow(SM.AddScene, L["MM_SCENE_NEW"]); end },
+                { ["Name"] = L["MM_SCENE_NEW"], ["Action"] = function() Editor.OpenQuickTextbox(SM.AddScene, L["MM_SCENE_NEW"], L["MM_TITLE_SCENE_NAME"]); end },
                 { ["Name"] = L["MM_SCENE_REMOVE"], ["Action"] = function() SM.Button_DeleteScene(SM.loadedSceneIndex); end },
-                { ["Name"] = L["MM_SCENE_RENAME"], ["Action"] = function() Editor.ShowRenameWindow(SM.RenameSelectedScene, SM.GetSceneName()); end },
+                { ["Name"] = L["MM_SCENE_RENAME"], ["Action"] = function() Editor.OpenQuickTextbox(SM.RenameSelectedScene, SM.GetSceneName(), L["MM_TITLE_SCENE_RENAME"]); end },
                 { ["Name"] = L["MM_SCENE_IMPORT"], ["Action"] = function() SM.Button_ImportScene(); end },
                 { ["Name"] = L["MM_SCENE_EXPORT"], ["Action"] = function() SM.Button_ExportScene(SM.loadedSceneIndex); end },
             },
