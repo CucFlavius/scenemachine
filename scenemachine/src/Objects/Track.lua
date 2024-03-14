@@ -308,7 +308,7 @@ function Track:SortKeyframes()
     self:SortAlphaKeyframes();
 end
 
-function Track:SampleKey(timeMS, keys)
+function Track:SampleKey(timeMS, keys, isRotation)
     if (not keys) then return nil; end
     if (#keys == 0) then return nil; end
 
@@ -384,7 +384,13 @@ function Track:SampleKey(timeMS, keys)
                 B = Track:InterpolateBezier(t1, t2, timeMS, 0, 1, 0, 2);
             end
 
-            r = (A + (B - A) * alpha);
+            --if (isRotation) then
+            --    local diff = (B - A + math.pi) % (2 * math.pi) - math.pi  -- Calculate the shortest difference between A and B
+            --    local interpolated_angle = A + diff * alpha  -- Interpolate
+            --    r = (interpolated_angle + math.pi) % (2 * math.pi) - math.pi  -- Map the result back to the -π to π range
+            --else
+                r = (A + (B - A) * alpha);
+            --end
         end
     end
 
@@ -407,15 +413,15 @@ function Track:SamplePositionZKey(timeMS)
 end
 
 function Track:SampleRotationXKey(timeMS)
-    return Track:SampleKey(timeMS, self.keysRx);
+    return Track:SampleKey(timeMS, self.keysRx, true);
 end
 
 function Track:SampleRotationYKey(timeMS)
-    return Track:SampleKey(timeMS, self.keysRy);
+    return Track:SampleKey(timeMS, self.keysRy, true);
 end
 
 function Track:SampleRotationZKey(timeMS)
-    return Track:SampleKey(timeMS, self.keysRz);
+    return Track:SampleKey(timeMS, self.keysRz, true);
 end
 
 function Track:SampleScaleKey(timeMS)

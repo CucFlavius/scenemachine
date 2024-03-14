@@ -10,6 +10,8 @@ local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
 local L = Editor.localization;
 local Actions = SceneMachine.Actions;
+local CC = SceneMachine.CameraController;
+local Camera = SceneMachine.Camera;
 
 local tabButtonHeight = 20;
 local tabPool = {};
@@ -2801,6 +2803,33 @@ function AM.SetTime(timeMS, rounded)
             end
         end
     end
+
+    if (CC.ControllingCameraObject ~= nil) then
+        -- transfer object motion to camera controller
+        local pos = CC.ControllingCameraObject:GetPosition();
+        local rot = CC.ControllingCameraObject:GetRotation();
+        --rot.x = AM.NormalizeAngle(rot.x);
+        --rot.y = AM.NormalizeAngle(rot.y);
+        --rot.z = AM.NormalizeAngle(rot.z);
+        CC.position:SetVector3(pos);
+        Camera.position:SetVector3(pos);
+        Camera.eulerRotation:SetVector3(rot);
+        -- override direction
+        CC.Direction = math.deg(Camera.eulerRotation.z);
+    end
+
+    OP.Refresh();
+end
+
+function AM.NormalizeAngle(angle)
+    --[[
+    local result = angle % (2 * math.pi)
+    if result >= math.pi then
+        result = result - 2 * math.pi
+    end
+    return result
+    --]]
+    --return (math.pi * 2) - (angle - math.pi);
 end
 
 function AM.GetObjectOfTrack(track)

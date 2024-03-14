@@ -8,6 +8,7 @@ local Math = SceneMachine.Math;
 local Vector3 = SceneMachine.Vector3;
 local Quaternion = SceneMachine.Quaternion;
 local SM = SceneMachine.Editor.SceneManager;
+local AM = SceneMachine.Editor.AnimationManager;
 
 ----------------------------------
 --			CC State	 		--
@@ -58,10 +59,14 @@ function CC.Initialize()
 end
 
 local twoPi = 2 * math.pi
+
 local function clampAngle(angle)
     angle = angle % twoPi  -- Ensure the angle is within [0, 2π)
     if angle < 0 then
         angle = angle + twoPi  -- Make sure the angle is positive
+    end
+    if angle > math.pi then
+        angle = angle - twoPi  -- Convert to range [-π, π]
     end
     return angle
 end
@@ -71,6 +76,11 @@ function CC.Update(deltaTime)
 	if (Gizmos.marqueeOn) then
 		return
 	end;
+
+	-- don't allow control when playing an animation and it's controling the camera
+	if (AM.playing and CC.ControllingCameraObject ~= nil) then
+		return;
+	end
 
 	if (CC.Action.ShiftSpeed == true) then
 		CC.acceleration = CC.acceleration + deltaTime;
@@ -133,10 +143,22 @@ function CC.Update(deltaTime)
 		CC.RMBPrevious.y = Input.mouseYRaw;
 
 		-- if camera is in flight mode then handle that --
-		SceneMachine.Camera.eulerRotation.z = clampAngle(SceneMachine.Camera.eulerRotation.z - rad(xDiff * CC.mouseTurnSpeed));
-		SceneMachine.Camera.eulerRotation.y = clampAngle(SceneMachine.Camera.eulerRotation.y - rad(yDiff * CC.mouseTurnSpeed));
-        CC.Direction = CC.Direction - xDiff * CC.mouseTurnSpeed;
-        CC.Pitch = CC.Pitch - yDiff * CC.mouseTurnSpeed;
+		-- Clamping the rotation on the z-axis
+		SceneMachine.Camera.eulerRotation.z = clampAngle(SceneMachine.Camera.eulerRotation.z - rad(xDiff * CC.mouseTurnSpeed))
+
+		-- Clamping the rotation on the y-axis
+		local newPitch = SceneMachine.Camera.eulerRotation.y - rad(yDiff * CC.mouseTurnSpeed)
+		if newPitch > math.pi / 2 then
+			SceneMachine.Camera.eulerRotation.y = math.pi / 2
+		elseif newPitch < -math.pi / 2 then
+			SceneMachine.Camera.eulerRotation.y = -math.pi / 2
+		else
+			SceneMachine.Camera.eulerRotation.y = newPitch
+		end
+
+		-- Adjusting CC.Direction and CC.Pitch
+		CC.Direction = CC.Direction - xDiff * CC.mouseTurnSpeed
+		CC.Pitch = SceneMachine.Camera.eulerRotation.y  -- Ensure CC.Pitch is synchronized with the clamped y-axis rotation
 	else
         SceneMachine.Camera.eulerRotation.z = clampAngle(rad(CC.Direction));
     end
@@ -160,7 +182,6 @@ function CC.Update(deltaTime)
 		local rotQ = Quaternion:New();
 		rotQ:Lerp(CC.Focus.startRot, CC.Focus.endRot, fractionOfJourney)
 		Camera.eulerRotation:SetVector3(rotQ:ToEuler());
-		--Camera.eulerRotation:Lerp(CC.Focus.startRot, CC.Focus.endRot, fractionOfJourney);
 		-- override direction
 		CC.Direction = math.deg(Camera.eulerRotation.z);
 

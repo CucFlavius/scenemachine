@@ -368,7 +368,9 @@ end
 
 function Object:SetAlpha(alpha)
     self.alpha = alpha;
-    self.actor:SetAlpha(alpha);
+    if (self.actor) then
+        self.actor:SetAlpha(alpha);
+    end
 end
 
 function Object:GetAlpha()
