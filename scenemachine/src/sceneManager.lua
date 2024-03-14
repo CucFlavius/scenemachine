@@ -43,6 +43,7 @@ function SM.Create(x, y, w, h, parent, startLevel)
     SM.viewportButton:SetScript("OnClick", function()
         CC.ControllingCameraObject = nil;
         SM.viewportButton:Hide();
+        Camera.fov = math.rad(70);
     end);
     SM.viewportButton:Hide();
 

@@ -700,12 +700,24 @@ function Object:GetFoV()
     return self.fov;
 end
 
+function Object:SetFoV(fov)
+    self.fov = fov;
+end
+
 function Object:GetNearClip()
     return self.nearClip;
 end
 
+function Object:SetNearClip(near)
+    self.nearClip = near;
+end
+
 function Object:GetFarClip()
     return self.farClip;
+end
+
+function Object:SetFarClip(far)
+    self.farClip = far;
 end
 
 Object.__tostring = function(self)

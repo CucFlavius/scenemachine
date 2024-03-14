@@ -193,6 +193,10 @@ L["OP_TT_X_FIELD"] = "X";
 L["OP_TT_Y_FIELD"] = "Y";
 L["OP_TT_Z_FIELD"] = "Z";
 L["OP_ENABLE_LIGHTING"] = "Enable Lighting";
+L["OP_CAMERA_PROPERTIES"] = "Camera Properties";
+L["FOV"] = "Field of View";
+L["NEARCLIP"] = "Near Clip";
+L["FARCLIP"] = "Far Clip";
 
 -- Scene Hierarchy --
 L["SH_TITLE"] = "Scene Hierarchy";

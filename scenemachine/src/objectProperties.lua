@@ -9,6 +9,8 @@ local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
 local L = Editor.localization;
 local Actions = SceneMachine.Actions;
+local CC = SceneMachine.CameraController;
+local Camera = SceneMachine.Camera;
 
 function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
     --local group = Editor.CreateGroup("Properties", h, leftPanel:GetFrame());
@@ -46,7 +48,9 @@ function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
     groupContent:SetPoint("BOTTOMRIGHT", groupBG:GetFrame(), "BOTTOMRIGHT", 0, 0);
     groupContent:SetFrameLevel(startLevel + 2);
 
-    OP.collapseList = UI.CollapsableList:New(0, 0, w - 6, h - 20, { 71, 49, 93 }, groupContent:GetFrame(), "TOPLEFT", "TOPLEFT", { L["OP_TRANSFORM"], L["OP_ACTOR_PROPERTIES"], L["OP_SCENE_PROPERTIES"] }, c1[1], c1[2], c1[3], 1);
+    OP.collapseList = UI.CollapsableList:New(0, 0, w - 6, h - 20, { 71, 49, 93, 71 }, groupContent:GetFrame(), "TOPLEFT", "TOPLEFT",
+    { L["OP_TRANSFORM"], L["OP_ACTOR_PROPERTIES"], L["OP_SCENE_PROPERTIES"], L["OP_CAMERA_PROPERTIES"], },
+    c1[1], c1[2], c1[3], 1);
     OP.collapseList:SetPoint("BOTTOMRIGHT", groupContent:GetFrame(), "BOTTOMRIGHT", 0, 0);
     OP.collapseList:SetFrameLevel(startLevel + 3);
     
@@ -67,6 +71,11 @@ function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
     OP.backgroundColorField = UI.PropertyFieldColor:New(-49, 20, OP.scenePropertyGroup.panel:GetFrame(), L["OP_BACKGROUND_COLOR"], 0.554,0.554,0.554,1, OP.SetBackgroundColor, onPropertyColorStartAction, onPropertyColorFinishAction);
     OP.enableLightingField = UI.PropertyFieldCheckbox:New(-71, 20, OP.scenePropertyGroup.panel:GetFrame(), L["OP_ENABLE_LIGHTING"], true, OP.ToggleLighting);
 
+    OP.cameraPropertyGroup = OP.collapseList.bars[4];
+    OP.fieldOfViewField = UI.PropertyFieldFloat:New(-5, 20, OP.cameraPropertyGroup.panel:GetFrame(), L["FOV"], 70, OP.SetFoV);
+    OP.nearClipField = UI.PropertyFieldFloat:New(-27, 20, OP.cameraPropertyGroup.panel:GetFrame(), L["NEARCLIP"], 0.01, OP.SetNearClip);
+    OP.farClipField = UI.PropertyFieldFloat:New(-49, 20, OP.cameraPropertyGroup.panel:GetFrame(), L["FARCLIP"], 1000, OP.SetFarClip);
+
     OP.Refresh();
 end
 
@@ -85,6 +94,7 @@ function OP.Refresh()
         desaturation = 0;
         OP.transformPropertyGroup:Hide();
         OP.actorPropertyGroup:Hide();
+        OP.cameraPropertyGroup:Hide();
         OP.collapseList:Sort();
     elseif (#SM.selectedObjects == 1) then
         OP.ToggleTransformFields(true);
@@ -102,6 +112,18 @@ function OP.Refresh()
         else
             OP.actorPropertyGroup:Hide();
         end
+
+        if (SM.selectedObjects[1].type == SceneMachine.ObjectType.Camera) then
+            OP.cameraPropertyGroup:Show();
+            local fov = SM.selectedObjects[1]:GetFoV();
+            OP.fieldOfViewField:Set(OP.Truncate(math.deg(fov), 2));
+            local near = SM.selectedObjects[1]:GetNearClip();
+            OP.nearClipField:Set(OP.Truncate(near, 2));
+            local far = SM.selectedObjects[1]:GetFarClip();
+            OP.farClipField:Set(OP.Truncate(far, 2));
+        else
+            OP.cameraPropertyGroup:Hide();
+        end
         OP.collapseList:Sort();
     else
         OP.ToggleTransformFields(true);
@@ -112,6 +134,8 @@ function OP.Refresh()
         desaturation = 0;
 
         OP.transformPropertyGroup:Show();
+        OP.actorPropertyGroup:Hide();
+        OP.cameraPropertyGroup:Hide();
         OP.collapseList:Sort();
     end
 
@@ -310,5 +334,29 @@ function OP.ToggleLighting(on)
         --Renderer.projectionFrame:SetLightType(0);
     else
         --Renderer.projectionFrame:SetLightType(1);
+    end
+end
+
+function OP.SetFoV(fovDeg)
+    SM.selectedObjects[1]:SetFoV(math.rad(fovDeg));
+
+    if (CC.ControllingCameraObject == SM.selectedObjects[1]) then
+        Camera.fov = math.rad(fovDeg);
+    end
+end
+
+function OP.SetNearClip(near)
+    SM.selectedObjects[1]:SetNearClip(near);
+
+    if (CC.ControllingCameraObject == SM.selectedObjects[1]) then
+        Camera.nearClip = near;
+    end
+end
+
+function OP.SetFarClip(far)
+    SM.selectedObjects[1]:SetFarClip(far);
+
+    if (CC.ControllingCameraObject == SM.selectedObjects[1]) then
+        Camera.farClip = far;
     end
 end
