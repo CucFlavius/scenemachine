@@ -88,6 +88,7 @@ L["AM_MSG_DELETE_TIMELINE_MESSAGE"] = "Are you sure you wish to continue?";
 L["AM_MSG_NO_TRACK_TITLE"] = "No Track";
 L["AM_MSG_NO_TRACK_MESSAGE"] = "The object doesn't have an animation track, do you want to add one?";
 L["AM_BUTTON_ADD_ANIMATION"] = "Add Anim";
+L["AM_BUTTON_CHANGE_ANIMATION"] = "Change Anim";
 L["AM_TIMELINE_NAME"] = "Timeline Name";
 L["AM_TOOLBAR_TRACKS"] = "Tracks";
 L["AM_TOOLBAR_KEYFRAMES"] = "Keyframes";
@@ -144,6 +145,10 @@ L["AM_TOOLBAR_TT_SEEK_TO_END"] = "Seek to End";
 L["AM_TOOLBAR_TT_LOOP"] = "Loop Playback on/off";
 L["AM_TT_LIST"] = "Select Timeline";
 L["AM_TT_ADDTIMELINE"] = "Add Timeline";
+L["AM_RMB_CHANGE_ANIM"] = "Change Animation";
+L["AM_RMB_SET_ANIM_SPEED"] = "Set Animation Speed";
+L["AM_RMB_DELETE_ANIM"] = "Delete Animation";
+L["AM_RMB_DIFFERENT_COLOR"] = "Different Color";
 
 -- AssetBrowser/AssetExplorer --
 L["AB_RESULTS"] = "%d Results";             -- <number> results (search results)

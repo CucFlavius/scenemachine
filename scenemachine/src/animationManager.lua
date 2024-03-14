@@ -794,6 +794,7 @@ function AM.CreateAnimationSelectWindow(x, y, w, h)
     AM.animScrollList:SetPoint("BOTTOMRIGHT", AM.animSelectWindow:GetFrame(), "BOTTOMRIGHT", 0, 30);
 	AM.animScrollList:SetItemTemplate(
 		{
+            replaceAnim = nil,
 			height = 20,
 			buildItem = function(item)
 				-- main button --
@@ -849,9 +850,16 @@ function AM.CreateAnimationSelectWindow(x, y, w, h)
     AM.animScrollList:SetFrameLevel(10);
 	AM.animScrollList:MakePool();
 
-    AM.animSelectWindow.loadAnimBtn = UI.Button:New(5, 5, 60, 20, AM.animSelectWindow:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", L["AM_BUTTON_ADD_ANIMATION"], nil);
-    AM.animSelectWindow.loadAnimBtn:SetScript("OnClick", function(_) AM.AddAnim(AM.selectedTrack, AM.selectedAnimID, AM.selectedAnimVariant); AM.animSelectWindow:Hide(); end);
-    AM.animSelectWindow.filterBox = UI.TextBox:New(70, 5, 100, 20, AM.animSelectWindow:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "", 9);
+    AM.animSelectWindow.loadAnimBtn = UI.Button:New(5, 5, 70, 20, AM.animSelectWindow:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", L["AM_BUTTON_ADD_ANIMATION"], nil);
+    AM.animSelectWindow.loadAnimBtn:SetScript("OnClick", function(self)
+        if (not AM.animScrollList.replaceAnim) then
+            AM.AddAnim(AM.selectedTrack, AM.selectedAnimID, AM.selectedAnimVariant);
+        else
+            AM.ReplaceAnim(AM.selectedTrack, AM.animScrollList.replaceAnim, AM.selectedAnimID, AM.selectedAnimVariant);
+        end
+        AM.animSelectWindow:Hide();
+    end);
+    AM.animSelectWindow.filterBox = UI.TextBox:New(80, 5, 100, 20, AM.animSelectWindow:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "", 9);
     AM.animSelectWindow.filterBox:SetPoint("BOTTOMRIGHT", AM.animSelectWindow:GetFrame(), "BOTTOMRIGHT", -5, 0);
     AM.animSelectWindow.filterBox:SetScript("OnTextChanged", function(self, userInput) AM.FilterAnimList(self:GetText()); end );
     AM.animSelectWindow:Hide();
@@ -1444,7 +1452,7 @@ function AM.GenerateAnimationElement(index, x, y, w, h, parent, R, G, B, A)
     element.ntex:SetAllPoints();
     element.ntex:SetVertexColor(AM.colors[colIdx][1] / 255, AM.colors[colIdx][2] / 255, AM.colors[colIdx][3] / 255,1);
     element:SetNormalTexture(element.ntex);
-    element:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
+    element:RegisterForClicks("LeftButtonUp", "LeftButtonDown", "RightButtonDown");
     element:SetScript("OnMouseDown", function(self, button)
         local track = AM.loadedTimeline.tracks[self.trackIdx];
         Editor.StartAction(Actions.Action.Type.TrackAnimations, track, AM.loadedTimeline);
@@ -1459,6 +1467,25 @@ function AM.GenerateAnimationElement(index, x, y, w, h, parent, R, G, B, A)
         if (button == "LeftButton" and down) then
             AM.SelectAnimation(index);
             AM.SelectKeyAtIndex(-1);
+        elseif (button == "RightButton" and down) then
+            AM.SelectAnimation(index);
+            AM.SelectKeyAtIndex(-1);
+
+            local point, relativeTo, relativePoint, xOfs, yOfs = element:GetPoint(1);
+            local x = -(element:GetLeft() - Input.mouseXRaw);
+            local y = -(element:GetTop() - Input.mouseYRaw);
+
+            local rx = x + xOfs + (parent:GetLeft() - SceneMachine.mainWindow:GetLeft()) + 6;
+            local ry = y + yOfs + (parent:GetTop() - SceneMachine.mainWindow:GetTop());
+
+            local menuOptions = {
+                [1] = { ["Name"] = L["AM_RMB_CHANGE_ANIM"], ["Action"] = function() AM.Button_ChangeAnimation(index); end },
+                [2] = { ["Name"] = L["AM_RMB_SET_ANIM_SPEED"], ["Action"] = function()  AM.Button_SetAnimationSpeed(index) end },
+                [3] = { ["Name"] = L["AM_RMB_DELETE_ANIM"], ["Action"] = function() AM.Button_DeleteAnimation(index); end },
+                [4] = { ["Name"] = L["AM_RMB_DIFFERENT_COLOR"], ["Action"] = function() AM.Button_RandomizeAnimColor(index); end },
+            };
+
+            SceneMachine.mainWindow:PopupWindowMenu(rx, ry, menuOptions);
         end
     end)
 
@@ -2067,10 +2094,10 @@ function AM.RefreshWorkspace()
                             usedAnimations = usedAnimations + 1;
                             local startMS = AM.currentCrop.min * AM.loadedTimeline.duration;
                             local endMS = AM.currentCrop.max * AM.loadedTimeline.duration;
-                            local xMS = track.animations[a].startT;
-                            local yMS = track.animations[a].endT;
+                            local xMS = track.animations[a].startT or 0;
+                            local yMS = track.animations[a].endT or 3000;
                             local colorID = track.animations[a].colorId;
-                
+                            
                             -- check if on screen or cropped out
                             -- check if any of the points are on screen, or if both points are larger than screen else hide
                             if (xMS >= startMS and xMS <= endMS) or (yMS >= startMS and yMS <= endMS) or (xMS <= startMS and yMS >= endMS ) then
@@ -2611,6 +2638,9 @@ function AM.AddAnim(track, animID, animVariant)
 
     -- get length
     local obj = AM.GetObjectOfTrack(track);
+    if (not obj) then
+        return;
+    end
     if (obj.fileID == nil or obj.fileID <= 0) then
         local ignore, ignore2, idString = strsplit(" ", obj.actor:GetModelPath());
         obj.fileID = tonumber(idString);
@@ -2644,9 +2674,9 @@ function AM.AddAnim(track, animID, animVariant)
         id = animID,
         variation = animVariant,
         animLength = animLength,
+        colorId = colorId,
         startT = startT,
         endT = endT,
-        colorId = colorId,
         name = name,
     };
 
@@ -2675,6 +2705,50 @@ function AM.RemoveAnim(track, anim)
 
     Editor.FinishAction();
 
+    AM.RefreshWorkspace();
+end
+
+function AM.ReplaceAnim(track, currentAnim, newID, newVariant)
+    Editor.StartAction(Actions.Action.Type.TrackAnimations, track, AM.loadedTimeline);
+
+    -- get name
+    local name = SceneMachine.animationNames[newID];
+    name = name or ("Anim_" .. newID);
+    if (newVariant ~= 0) then
+        name = name .. " " .. newVariant;
+    end
+
+    -- get length
+    local obj = AM.GetObjectOfTrack(track);
+    if (not obj) then
+        return;
+    end
+    if (obj.fileID == nil or obj.fileID <= 0) then
+        local ignore, ignore2, idString = strsplit(" ", obj.actor:GetModelPath());
+        obj.fileID = tonumber(idString);
+    end
+    
+    local animData = SceneMachine.animationData[obj.fileID];
+    local animLength = 3000;
+    if (animData) then
+        for i in pairs(animData) do
+            local entry = animData[i];
+            if (entry[1] == newID and entry[2] == newVariant) then
+                animLength = entry[3];
+            end
+        end
+    end
+
+
+    currentAnim.id = newID;
+    currentAnim.variation = newVariant;
+    currentAnim.animLength = animLength;
+    currentAnim.name = name;
+    -- leave these the same so we don't have to shift other animations around to fit a new size
+    --currentAnim.startT =
+    --currentAnim.endT =
+
+    Editor.FinishAction();
     AM.RefreshWorkspace();
 end
 
@@ -2707,6 +2781,34 @@ function AM.SelectAnimation(index)
     AM.animationSelectionBox:Show();
 
     AM.RefreshWorkspace();
+end
+
+function AM.Button_ChangeAnimation(index)
+    AM.OpenAddAnimationWindow(AM.selectedTrack, AM.selectedAnim);
+end
+
+function AM.Button_DeleteAnimation(index)
+    AM.RemoveAnim(AM.selectedTrack, AM.selectedAnim)
+end
+
+function AM.Button_SetAnimationSpeed(index)
+
+end
+
+function AM.Button_RandomizeAnimColor(index)
+    local colorId = math.random(1, #AM.colors);
+
+    -- use alpha to desaturate the animation bars
+    -- so that they don't draw more attention than the scene
+    -- calculate an alpha value based on percieved R,G,B
+    local R = AM.colors[colorId][1] / 255;
+    local G = AM.colors[colorId][2] / 255;
+    local B = AM.colors[colorId][3] / 255;
+    local alpha = 1.0 - ((R + G + (B / 2)) / 3);
+    alpha = max(0, min(1, alpha));
+
+    AM.selectedAnim.colorId = colorId;
+    AM.AnimationPool[index].ntex:SetVertexColor(R, G, B, alpha);
 end
 
 function AM.SetTime(timeMS, rounded)
@@ -2808,9 +2910,6 @@ function AM.SetTime(timeMS, rounded)
         -- transfer object motion to camera controller
         local pos = CC.ControllingCameraObject:GetPosition();
         local rot = CC.ControllingCameraObject:GetRotation();
-        --rot.x = AM.NormalizeAngle(rot.x);
-        --rot.y = AM.NormalizeAngle(rot.y);
-        --rot.z = AM.NormalizeAngle(rot.z);
         CC.position:SetVector3(pos);
         Camera.position:SetVector3(pos);
         Camera.eulerRotation:SetVector3(rot);
@@ -2819,17 +2918,6 @@ function AM.SetTime(timeMS, rounded)
     end
 
     OP.Refresh();
-end
-
-function AM.NormalizeAngle(angle)
-    --[[
-    local result = angle % (2 * math.pi)
-    if result >= math.pi then
-        result = result - 2 * math.pi
-    end
-    return result
-    --]]
-    --return (math.pi * 2) - (angle - math.pi);
 end
 
 function AM.GetObjectOfTrack(track)
@@ -2861,11 +2949,11 @@ function AM.GetTimeNormalized(timeMS)
     return timeNorm;
 end
 
-function AM.OpenAddAnimationWindow(track)
+function AM.OpenAddAnimationWindow(track, replaceAnim)
     if (not track) then
         if (#SM.selectedObjects > 0) then
             Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["AM_MSG_NO_TRACK_TITLE"], L["AM_MSG_NO_TRACK_MESSAGE"],
-            true, true, function() AM.AddTracks({ SM.selectedObjects[1] }) AM.OpenAddAnimationWindow(AM.selectedTrack) end, function() end);
+            true, true, function() AM.AddTracks({ SM.selectedObjects[1] }) AM.OpenAddAnimationWindow(AM.selectedTrack, replaceAnim) end, function() end);
         end
         return;
     end
@@ -2886,6 +2974,12 @@ function AM.OpenAddAnimationWindow(track)
         AM.animScrollList:SetData(animData);
         AM.animSelectWindow.filterBox:SetText("");
         AM.animSelectWindow:Show();
+        if (replaceAnim) then
+            AM.animSelectWindow.loadAnimBtn:SetText(L["AM_BUTTON_CHANGE_ANIMATION"]);
+        else
+            AM.animSelectWindow.loadAnimBtn:SetText(L["AM_BUTTON_ADD_ANIMATION"]);
+        end
+        AM.animScrollList.replaceAnim = replaceAnim;
     else
         print("SceneMachine.animationData is missing key " .. obj.fileID);
     end
