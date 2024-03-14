@@ -102,10 +102,13 @@ function CollapsableList:Sort()
         bar:SetPoint("TOPRIGHT", bar:GetParent(), "TOPRIGHT", bar.x, y);
         bar:SetHeight(12);
 
-        if (not bar.bar.isCollapsed) then
-            y = y - (bar.panel:GetHeight() + 13);
-        else
-            y = y - 13;
+        local visible = bar:IsVisible();
+        if (visible) then
+            if (not bar.bar.isCollapsed) then
+                y = y - (bar.panel:GetHeight() + 13);
+            else
+                y = y - 13;
+            end
         end
     end
 end

@@ -457,9 +457,9 @@ function SM.SelectObjects(objects)
     SH.RefreshHierarchy();
 	OP.Refresh();
 
-    -- also select track if available
-	-- only select a track if a one single object is selected, no multi-track selection support needed
     if (#SM.selectedObjects == 1) then
+        -- also select track if available
+        -- only select a track if a one single object is selected, no multi-track selection support needed
         AM.SelectTrackOfObject(SM.selectedObjects[1]);
 		Editor.lastSelectedType = "obj";
 	end
@@ -551,15 +551,15 @@ function SM.CalculateObjectsAverage()
             local xmin, ymin, zmin, xmax, ymax, zmax = 0, 0, 0, 0, 0, 0;
             if (SM.selectedObjects[1]:GetGizmoType() == Gizmos.Type.Object) then
                 xmin, ymin, zmin, xmax, ymax, zmax = SM.selectedObjects[i]:GetActiveBoundingBox();
-                if (xmin and ymin and zmin and xmax and ymax and zmax) then
-                    local bbCenter = {(xmax - xmin) / 2, (ymax - ymin) / 2, (zmax - zmin) / 2};
-                    xmin = -bbCenter[1];
-                    ymin = -bbCenter[2];
-                    zmin = -bbCenter[3];
-                    xmax = bbCenter[1];
-                    ymax = bbCenter[2];
-                    zmax = bbCenter[3];
-                end
+                xmin = xmin or 0; ymin = ymin or 0; zmin = zmin or 0;
+                xmax = xmax or 0; ymax = ymax or 0; zmax = zmax or 0;
+                local bbCenter = {(xmax - xmin) / 2, (ymax - ymin) / 2, (zmax - zmin) / 2};
+                xmin = -bbCenter[1];
+                ymin = -bbCenter[2];
+                zmin = -bbCenter[3];
+                xmax = bbCenter[1];
+                ymax = bbCenter[2];
+                zmax = bbCenter[3];
             elseif (SM.selectedObjects[1]:GetGizmoType() == Gizmos.Type.Camera) then
                 xmin = 0;
                 ymin = 0;

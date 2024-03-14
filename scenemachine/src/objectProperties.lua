@@ -46,26 +46,26 @@ function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
     groupContent:SetPoint("BOTTOMRIGHT", groupBG:GetFrame(), "BOTTOMRIGHT", 0, 0);
     groupContent:SetFrameLevel(startLevel + 2);
 
-    local collapseList = UI.CollapsableList:New(0, 0, w - 6, h - 20, { 71, 49, 93 }, groupContent:GetFrame(), "TOPLEFT", "TOPLEFT", { L["OP_TRANSFORM"], L["OP_ACTOR_PROPERTIES"], L["OP_SCENE_PROPERTIES"] }, c1[1], c1[2], c1[3], 1);
-    collapseList:SetPoint("BOTTOMRIGHT", groupContent:GetFrame(), "BOTTOMRIGHT", 0, 0);
-    collapseList:SetFrameLevel(startLevel + 3);
+    OP.collapseList = UI.CollapsableList:New(0, 0, w - 6, h - 20, { 71, 49, 93 }, groupContent:GetFrame(), "TOPLEFT", "TOPLEFT", { L["OP_TRANSFORM"], L["OP_ACTOR_PROPERTIES"], L["OP_SCENE_PROPERTIES"] }, c1[1], c1[2], c1[3], 1);
+    OP.collapseList:SetPoint("BOTTOMRIGHT", groupContent:GetFrame(), "BOTTOMRIGHT", 0, 0);
+    OP.collapseList:SetFrameLevel(startLevel + 3);
     
-    local transformPropertyGroup = collapseList.bars[1].panel:GetFrame();
-    OP.positionField = UI.PropertyFieldVector3:New(-5, 20, transformPropertyGroup, L["POSITION"], {0, 0, 0}, OP.SetPosX, OP.SetPosY, OP.SetPosZ);
-    OP.rotationField = UI.PropertyFieldVector3:New(-27, 20, transformPropertyGroup, L["ROTATION"], {0, 0, 0}, OP.SetRotX, OP.SetRotY, OP.SetRotZ);
-    OP.scaleField = UI.PropertyFieldFloat:New(-49, 20, transformPropertyGroup, L["SCALE"], 1, OP.SetScale);
+    OP.transformPropertyGroup = OP.collapseList.bars[1];
+    OP.positionField = UI.PropertyFieldVector3:New(-5, 20, OP.transformPropertyGroup.panel:GetFrame(), L["POSITION"], {0, 0, 0}, OP.SetPosX, OP.SetPosY, OP.SetPosZ);
+    OP.rotationField = UI.PropertyFieldVector3:New(-27, 20, OP.transformPropertyGroup.panel:GetFrame(), L["ROTATION"], {0, 0, 0}, OP.SetRotX, OP.SetRotY, OP.SetRotZ);
+    OP.scaleField = UI.PropertyFieldFloat:New(-49, 20, OP.transformPropertyGroup.panel:GetFrame(), L["SCALE"], 1, OP.SetScale);
 
-    local actorPropertyGroup = collapseList.bars[2].panel:GetFrame();
-    OP.alphaField = UI.PropertyFieldFloat:New(-5, 20, actorPropertyGroup, L["ALPHA"], 1, OP.SetAlpha);
-    OP.saturationField = UI.PropertyFieldFloat:New(-27, 20, actorPropertyGroup, L["DESATURATION"], 0, OP.SetDesaturation);
+    OP.actorPropertyGroup = OP.collapseList.bars[2];
+    OP.alphaField = UI.PropertyFieldFloat:New(-5, 20, OP.actorPropertyGroup.panel:GetFrame(), L["ALPHA"], 1, OP.SetAlpha);
+    OP.saturationField = UI.PropertyFieldFloat:New(-27, 20, OP.actorPropertyGroup.panel:GetFrame(), L["DESATURATION"], 0, OP.SetDesaturation);
 
     local onPropertyColorStartAction = function() Editor.StartAction(Actions.Action.Type.SceneProperties, SM.loadedScene.properties); end
     local onPropertyColorFinishAction = function() Editor.FinishAction(SM.loadedScene.properties); end
-    local scenePropertyGroup = collapseList.bars[3].panel:GetFrame();
-    OP.ambientColorField = UI.PropertyFieldColor:New(-5, 20, scenePropertyGroup, L["OP_AMBIENT_COLOR"], 0, 0, 0, 1, OP.SetAmbientColor, onPropertyColorStartAction, onPropertyColorFinishAction);
-    OP.diffuseColorField = UI.PropertyFieldColor:New(-27, 20, scenePropertyGroup, L["OP_DIFFUSE_COLOR"], 0, 0, 0, 1, OP.SetDiffuseColor, onPropertyColorStartAction, onPropertyColorFinishAction);
-    OP.backgroundColorField = UI.PropertyFieldColor:New(-49, 20, scenePropertyGroup, L["OP_BACKGROUND_COLOR"], 0.554,0.554,0.554,1, OP.SetBackgroundColor, onPropertyColorStartAction, onPropertyColorFinishAction);
-    OP.enableLightingField = UI.PropertyFieldCheckbox:New(-71, 20, scenePropertyGroup, L["OP_ENABLE_LIGHTING"], true, OP.ToggleLighting);
+    OP.scenePropertyGroup = OP.collapseList.bars[3];
+    OP.ambientColorField = UI.PropertyFieldColor:New(-5, 20, OP.scenePropertyGroup.panel:GetFrame(), L["OP_AMBIENT_COLOR"], 0, 0, 0, 1, OP.SetAmbientColor, onPropertyColorStartAction, onPropertyColorFinishAction);
+    OP.diffuseColorField = UI.PropertyFieldColor:New(-27, 20, OP.scenePropertyGroup.panel:GetFrame(), L["OP_DIFFUSE_COLOR"], 0, 0, 0, 1, OP.SetDiffuseColor, onPropertyColorStartAction, onPropertyColorFinishAction);
+    OP.backgroundColorField = UI.PropertyFieldColor:New(-49, 20, OP.scenePropertyGroup.panel:GetFrame(), L["OP_BACKGROUND_COLOR"], 0.554,0.554,0.554,1, OP.SetBackgroundColor, onPropertyColorStartAction, onPropertyColorFinishAction);
+    OP.enableLightingField = UI.PropertyFieldCheckbox:New(-71, 20, OP.scenePropertyGroup.panel:GetFrame(), L["OP_ENABLE_LIGHTING"], true, OP.ToggleLighting);
 
     OP.Refresh();
 end
@@ -83,6 +83,9 @@ function OP.Refresh()
         scale = 1;
         alpha = 1;
         desaturation = 0;
+        OP.transformPropertyGroup:Hide();
+        OP.actorPropertyGroup:Hide();
+        OP.collapseList:Sort();
     elseif (#SM.selectedObjects == 1) then
         OP.ToggleTransformFields(true);
         pos = SM.selectedObjects[1]:GetPosition();
@@ -90,6 +93,16 @@ function OP.Refresh()
         scale = SM.selectedObjects[1]:GetScale();
         alpha = SM.selectedObjects[1]:GetAlpha();
         desaturation = SM.selectedObjects[1]:GetDesaturation();
+
+        -- change available properties when selecting a single object
+        OP.transformPropertyGroup:Show();
+        OP.actorPropertyGroup:Show();
+        if (SM.selectedObjects[1]:HasActor()) then
+            OP.actorPropertyGroup:Show();
+        else
+            OP.actorPropertyGroup:Hide();
+        end
+        OP.collapseList:Sort();
     else
         OP.ToggleTransformFields(true);
         pos = { x=0, y=0, z=0 };
@@ -97,6 +110,9 @@ function OP.Refresh()
         scale = 1;
         alpha = 1;
         desaturation = 0;
+
+        OP.transformPropertyGroup:Show();
+        OP.collapseList:Sort();
     end
 
     OP.positionField:Set(OP.Truncate(pos.x, 3), OP.Truncate(pos.y, 3), OP.Truncate(pos.z, 3));

@@ -233,9 +233,14 @@ function Gizmos.UpdateMarquee(mouseX, mouseY)
                         local position = object:GetPosition();
                         local rotation = object:GetRotation();
                         local scale = object:GetScale();
-                        local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
-                        local bbCenter = {(xMax - xMin) / 2, (yMax - yMin) / 2, (zMax - zMin) / 2};
 
+                        local bbCenter;
+                        if (object:HasActor()) then
+                            local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
+                            bbCenter = {(xMax - xMin) / 2, (yMax - yMin) / 2, (zMax - zMin) / 2};
+                        else
+                            bbCenter = { 0, 0, 0, };
+                        end
                         -- transformToAABB
                         local chX = bbCenter[1];
                         local chY = bbCenter[2];
