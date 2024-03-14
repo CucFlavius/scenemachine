@@ -7,6 +7,7 @@ local Camera = SceneMachine.Camera;
 local Math = SceneMachine.Math;
 local Vector3 = SceneMachine.Vector3;
 local Quaternion = SceneMachine.Quaternion;
+local SM = SceneMachine.Editor.SceneManager;
 
 ----------------------------------
 --			CC State	 		--
@@ -32,7 +33,10 @@ CC.Focus =
 	distance = 0;
 	startTime = 0;
 	focusing = false;
+	gizmoType = 0;
+	focusedObject = nil;
 };
+CC.ControllingCameraObject = nil;
 
 ----------------------------------
 --			Variables	 		--
@@ -140,7 +144,7 @@ function CC.Update(deltaTime)
 	-- handle focus
 	if (CC.Action.MoveForward or CC.Action.MoveBackward or CC.Action.StrafeLeft or CC.Action.StrafeRight or CC.Action.MoveUp or CC.Action.MoveDown) then
 		-- cancel focus if any movement key is pressed
-		CC.Focus.focusing = false;
+		CC.FocusEnd(true);
 	end
 
 	if (CC.Focus.focusing) then
@@ -161,8 +165,13 @@ function CC.Update(deltaTime)
 		CC.Direction = math.deg(Camera.eulerRotation.z);
 
 		if (fractionOfJourney >= 1) then
-			CC.Focus.focusing = false;
+			CC.FocusEnd(false);
 		end
+	end
+
+	if (CC.ControllingCameraObject ~= nil) then
+		CC.ControllingCameraObject:SetPositionVector3(SceneMachine.Camera.position);
+		CC.ControllingCameraObject:SetRotation(Camera.eulerRotation.x, Camera.eulerRotation.y, Camera.eulerRotation.z);
 	end
 end
 
@@ -188,10 +197,22 @@ function CC.FocusObjects(objects)
 	-- TODO: Focus multiple objects
 end
 
+function CC.FocusEnd(cancelled)
+	CC.Focus.focusing = false;
+	if (not cancelled) then
+		if (CC.Focus.gizmoType == Gizmos.Type.Camera) then
+			CC.ControllingCameraObject = CC.Focus.focusedObject;
+			SM.viewportButton:Show();
+		end
+	end
+end
+
 function CC.FocusObject(object)
 	if (object == nil) then
 		return;
 	end
+
+	CC.Focus.focusedObject = object;
 
 	-- set start position
 	CC.Focus.startPos:SetVector3(Camera.position);
@@ -206,14 +227,15 @@ function CC.FocusObject(object)
 	vector:Normalize();
 
 	local objectCenter;
-	if (object:GetGizmoType() == Gizmos.Type.Object) then
+	CC.Focus.gizmoType = object:GetGizmoType();
+	if (CC.Focus.gizmoType == Gizmos.Type.Object) then
 		local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
 		objectCenter = Vector3:New( objectPos.x * objectScale, objectPos.y * objectScale, (objectPos.z + (zMax / 2)) * objectScale );
 		local radius = math.max(xMax, math.max(yMax, zMax));
 		local dist = radius / (math.sin(Camera.fov) * 0.5);
 		vector:Scale(dist);
 		objectCenter:Subtract(vector);
-	elseif (object:GetGizmoType() == Gizmos.Type.Camera) then
+	elseif (CC.Focus.gizmoType == Gizmos.Type.Camera) then
 		objectCenter = Vector3:New( objectPos.x * objectScale, objectPos.y * objectScale, objectPos.z * objectScale );
 		-- set camera properties that don't need animating
 		Camera.fov = object:GetFoV();

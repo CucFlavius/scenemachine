@@ -263,13 +263,15 @@ function Renderer.RenderSprites()
     for i = 1, #SM.loadedScene.objects, 1 do
         local object = SM.loadedScene.objects[i];
         if (object:GetGizmoType() == Gizmos.Type.Camera) then
-            local sprite = Renderer.GetAvailableSprite();
-            sprite.objIdx = i;
+            
             local pos = object:GetPosition();
+            
             -- Near plane face culling --
-            --local cull = Renderer.NearPlaneFaceCullingLine(vert, Camera.planePosition.x, Camera.planePosition.y, Camera.planePosition.z, Camera.forward.x, Camera.forward.y, Camera.forward.z, 0);
+            local cull = Renderer.NearPlaneFaceCullingVert({pos.x, pos.y, pos.z}, Camera.planePosition.x, Camera.planePosition.y, Camera.planePosition.z, Camera.forward.x, Camera.forward.y, Camera.forward.z)
+            if (not cull) then
+                local sprite = Renderer.GetAvailableSprite();
+                sprite.objIdx = i;
 
-            --if (not cull) then
                 -- Project to screen space --
                 local aX, aY, aZ = Renderer.projectionFrame:Project3DPointTo2D(pos.x, pos.y, pos.z);
                 local size = 20;
@@ -281,11 +283,8 @@ function Renderer.RenderSprites()
                     sprite:SetPoint("BOTTOMLEFT", Renderer.projectionFrame, "BOTTOMLEFT", aX * Renderer.scale - hSize, aY * Renderer.scale - hSize);
                     sprite:SetSize(size, size);
                     sprite.texture:SetTexCoord(0, 0.25, 0, 0.25);
-                    --line:SetVertexColor(faceColor[1], faceColor[2], faceColor[3], faceColor[4] or 1);
-                    --line:SetStartPoint("BOTTOMLEFT", aX * Renderer.scale, aY * Renderer.scale) -- start topleft
-                    --line:SetEndPoint("BOTTOMLEFT", bX * Renderer.scale, bY * Renderer.scale)   -- end bottomright
                 end
-            --end
+            end
         end
     end
 

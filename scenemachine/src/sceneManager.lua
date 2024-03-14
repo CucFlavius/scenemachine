@@ -13,6 +13,7 @@ local L = Editor.localization;
 local Vector3 = SceneMachine.Vector3;
 local Actions = SceneMachine.Actions;
 local Gizmos = SceneMachine.Gizmos;
+local CC = SceneMachine.CameraController;
 
 local tabButtonHeight = 20;
 local tabPool = {};
@@ -36,6 +37,14 @@ function SM.Create(x, y, w, h, parent, startLevel)
     SM.groupBG:SetFrameLevel(startLevel);
     SM.groupBG:SetClipsChildren(true);
     SceneMachine.Renderer.CreateRenderer(0, 0, w, h - tabButtonHeight, SM.groupBG:GetFrame(), startLevel + 1);
+    
+    SM.viewportButton = UI.Button:New(0, 0, 100, 20, SceneMachine.Renderer.projectionFrame, "TOPLEFT", "TOPLEFT", "Exit Camera");
+    SM.viewportButton:SetFrameLevel(SceneMachine.Renderer.projectionFrame:GetFrameLevel() + 100);
+    SM.viewportButton:SetScript("OnClick", function()
+        CC.ControllingCameraObject = nil;
+        SM.viewportButton:Hide();
+    end);
+    SM.viewportButton:Hide();
 
     SM.tabGroup = UI.TabGroup:New(0, 0, 100, tabButtonHeight, SM.groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", startLevel + 2, true);
     SM.tabGroup:SetPoint("TOPRIGHT", SM.groupBG:GetFrame(), "TOPRIGHT", 0, 0);
