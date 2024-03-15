@@ -152,6 +152,7 @@ L["AM_RMB_SET_ANIM_SPEED"] = "Set Animation Speed";
 L["AM_RMB_DELETE_ANIM"] = "Delete Animation";
 L["AM_RMB_DIFFERENT_COLOR"] = "Different Color";
 L["AM_SET_ANIMATION_SPEED_PERCENT"] = "Set Animation Speed %";
+L["AM_TIMER_SET_DURATION"] = "Set Timeline Duration";
 
 -- AssetBrowser/AssetExplorer --
 L["AB_RESULTS"] = "%d Results";             -- <number> results (search results)

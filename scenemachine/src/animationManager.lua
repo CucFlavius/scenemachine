@@ -1188,8 +1188,21 @@ function AM.CreateToolbar(x, y, w, h, parent, startLevel)
     AM.mainToolbarGroup = mainGroup;
 
     -- timer
-    AM.timerTextBox = UI.Label:New(0, 0, 90, h, mainGroup:GetFrame(), "RIGHT", "RIGHT", "00:00 / 00:00", 16, Resources.fonts["Digital"]);
+    AM.timerTextBox = UI.Button:New(0, 0, 90, h, mainGroup:GetFrame(), "RIGHT", "RIGHT", "00:00 / 00:00");
+    AM.timerTextBox:SetFont(Resources.fonts["Digital"], 16);
     AM.timerTextBox:SetFrameLevel(startLevel + 2);
+    AM.timerTextBox:SetScript("OnClick", function()
+        local currentDuration = AM.loadedTimeline.duration;
+        -- convert from miliseconds to seconds
+        local action = function(text)
+            local value = tonumber(text);
+            if (value) then
+                AM.loadedTimeline.duration = value * 1000;
+                AM.RefreshWorkspace();
+            end
+        end;
+        Editor.OpenQuickTextbox(action, tostring(currentDuration / 1000), L["AM_TIMER_SET_DURATION"]);
+    end);
 end
 
 function AM.CreateWorkArea(x, y, w, h, parent, startLevel)

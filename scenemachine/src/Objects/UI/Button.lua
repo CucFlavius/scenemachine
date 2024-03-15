@@ -98,6 +98,10 @@ function Button:SetText(text)
     self.textField:SetText(text);
 end
 
+function Button:SetFont(font, size)
+    self.textField:SetFont(font, size, "NORMAL");
+end
+
 function Button:SetColor(state, R, G, B, A)
     if (state == UI.Button.State.Normal) then
         self.ntex:SetColorTexture(R, G, B, A);

@@ -70,7 +70,7 @@ end
 
 function Dropdown:SetOptions(newOptions)
     for o = 1, #newOptions, 1 do
-        self.options[o] = { ["Name"] = newOptions[o], ["Action"] = function() self.button:SetText("  " .. self.optionNames[o]); self.onSelect(o); end };
+        self.options[o] = { ["Name"] = newOptions[o], ["Action"] = function() self.button:SetText("  " .. newOptions[o]); self.onSelect(o); end };
     end
 end
 
