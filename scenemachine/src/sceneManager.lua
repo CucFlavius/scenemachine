@@ -654,10 +654,16 @@ function SM.CloneObject_internal(object, selectAfter)
     local clone = nil;
     if (object:GetType() == SceneMachine.GameObjects.Object.Type.Model) then
         clone = SM.CreateObject(object:GetFileID(), object:GetName(), pos.x, pos.y, pos.z);
+        clone:SetAlpha(object:GetAlpha());
+        clone:SetDesaturation(object:GetDesaturation());
     elseif(object:GetType() == SceneMachine.GameObjects.Object.Type.Creature) then
         clone = SM.CreateCreature(object:GetDisplayID(), object:GetName(), pos.x, pos.y, pos.z);
+        clone:SetAlpha(object:GetAlpha());
+        clone:SetDesaturation(object:GetDesaturation());
     elseif(object:GetType() == SceneMachine.GameObjects.Object.Type.Character) then
         clone = SM.CreateCharacter(pos.x, pos.y, pos.z);
+        clone:SetAlpha(object:GetAlpha());
+        clone:SetDesaturation(object:GetDesaturation());
     end
     if (clone) then
         clone:SetRotation(rot.x, rot.y, rot.z);
