@@ -2874,7 +2874,9 @@ function AM.SetTime(timeMS, rounded)
                 if (AM.playing) then
                     -- Sample playback
                     if (obj.currentAnimID ~= animID or obj.currentAnimVariationID ~= variationID) then
+                        -- Animation switch
                         if (animID ~= -1) then
+                            --obj.actor:SetAnimationBlendOperation(1);  -- 0: don't blend, 1: blend
                             obj.actor:SetAnimation(animID, variationID, animSpeed, animMS / 1000);
                         end
                         obj.currentAnimID = animID;

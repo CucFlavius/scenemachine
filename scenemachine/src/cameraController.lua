@@ -185,7 +185,7 @@ function CC.Update(deltaTime)
 		-- override direction
 		CC.Direction = math.deg(Camera.eulerRotation.z);
 
-		if (fractionOfJourney >= 1) then
+		if (fractionOfJourney >= 1 or fractionOfJourney == 0) then
 			CC.FocusEnd(false);
 		end
 	end

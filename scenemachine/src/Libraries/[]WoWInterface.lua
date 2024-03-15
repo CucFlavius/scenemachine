@@ -65,6 +65,7 @@ function abs(num) end
 function floor(num) end
 function sqrt(num) end
 function clamp(num) end
+function mod(value,modulus) end
 
 --------------------
 --       ui       --

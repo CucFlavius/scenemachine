@@ -73,7 +73,6 @@ L["MM_SCENE_IMPORT"] = "Import";
 L["MM_TITLE_SCENE_NAME"] = "Scene Name";
 L["MM_TITLE_SCENE_RENAME"] = "Scene Rename";
 
-
 -- Context Menu --
 L["CM_SELECT"] = "Select";
 L["CM_MOVE"] = "Move";
@@ -190,6 +189,7 @@ L["SM_MSG_DELETE_SCENE_MESSAGE"] = "Are you sure you wish to continue?";
 L["SM_SCENE_NAME"] = "Scene Name";
 L["SM_TT_LIST"] = "Select scene";
 L["SM_TT_ADDSCENE"] = "Add Scene";
+L["SM_EXIT_CAMERA"] = "Exit Camera";
 
 -- Object Properties --
 L["OP_TITLE"] = "Properties";

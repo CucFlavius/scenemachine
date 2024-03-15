@@ -38,7 +38,7 @@ function SM.Create(x, y, w, h, parent, startLevel)
     SM.groupBG:SetClipsChildren(true);
     SceneMachine.Renderer.CreateRenderer(0, 0, w, h - tabButtonHeight, SM.groupBG:GetFrame(), startLevel + 1);
     
-    SM.viewportButton = UI.Button:New(0, 0, 100, 20, SceneMachine.Renderer.projectionFrame, "TOPLEFT", "TOPLEFT", "Exit Camera");
+    SM.viewportButton = UI.Button:New(0, 0, 100, 20, SceneMachine.Renderer.projectionFrame, "TOPLEFT", "TOPLEFT", L["SM_EXIT_CAMERA"]);
     SM.viewportButton:SetFrameLevel(SceneMachine.Renderer.projectionFrame:GetFrameLevel() + 100);
     SM.viewportButton:SetScript("OnClick", function()
         CC.ControllingCameraObject = nil;
@@ -305,6 +305,8 @@ function SM.UnloadScene()
     
     SM.selectedObjects = {};
     Renderer.Clear();
+    SM.viewportButton:Hide();
+    CC.ControllingCameraObject = nil;
 end
 
 function SM.ClearSceneActions(scene)
