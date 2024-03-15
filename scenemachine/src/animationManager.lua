@@ -858,6 +858,7 @@ function AM.CreateAnimationSelectWindow(x, y, w, h)
             AM.ReplaceAnim(AM.selectedTrack, AM.animScrollList.replaceAnim, AM.selectedAnimID, AM.selectedAnimVariant);
         end
         AM.animSelectWindow:Hide();
+        AM.SetTime(AM.loadedTimeline.currentTime);
     end);
     AM.animSelectWindow.filterBox = UI.TextBox:New(80, 5, 100, 20, AM.animSelectWindow:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "", 9);
     AM.animSelectWindow.filterBox:SetPoint("BOTTOMRIGHT", AM.animSelectWindow:GetFrame(), "BOTTOMRIGHT", -5, 0);
@@ -2925,9 +2926,11 @@ function AM.SetTime(timeMS, rounded)
                 obj:SetScale(scale);
 
                 if (obj:Visible()) then
-                    local currentAlpha = obj:GetAlpha();
-                    local alpha = track:SampleAlphaKey(timeMS) or currentAlpha;
-                    obj:SetAlpha(alpha);
+                    if (obj:HasActor()) then
+                        local currentAlpha = obj:GetAlpha();
+                        local alpha = track:SampleAlphaKey(timeMS) or currentAlpha;
+                        obj:SetAlpha(alpha);
+                    end
                 end
             end
         end
@@ -2988,6 +2991,12 @@ function AM.OpenAddAnimationWindow(track, replaceAnim)
     -- find available animations
     local obj = AM.GetObjectOfTrack(track);
     if (not obj) then
+        return;
+    end
+
+    print(obj.name, obj:HasActor())
+    if (not obj:HasActor()) then
+        -- can only add animation clips to objects that have actors
         return;
     end
 

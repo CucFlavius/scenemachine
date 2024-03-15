@@ -33,10 +33,6 @@ function Object:GetActor()
     return self.actor;
 end
 
-function Object:HasActor()
-    return true;
-end
-
 function Object:GetActiveBoundingBox()
     local xMin, yMin, zMin, xMax, yMax, zMax = self.actor:GetActiveBoundingBox();
 

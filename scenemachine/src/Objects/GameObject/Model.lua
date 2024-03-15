@@ -27,6 +27,7 @@ function Model:New(name, fileID, position, rotation, scale)
         isRenamed = false,
         type = Object.Type.Model,
         gizmoType = Gizmos.Type.Object,
+        hasActor = true,
     };
 
 	setmetatable(v, Object)

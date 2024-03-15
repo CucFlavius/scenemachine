@@ -27,7 +27,7 @@ function Object:GetName()
 end
 
 function Object:HasActor()
-    return false;
+    return self.hasActor;
 end
 
 function Object:GetGizmoType()

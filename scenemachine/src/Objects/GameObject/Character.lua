@@ -29,6 +29,7 @@ function Character:New(name, position, rotation, scale)
         isRenamed = false,
         type = Object.Type.Character,
         gizmoType = Gizmos.Type.Object,
+        hasActor = true,
     };
 
 	setmetatable(v, Object)

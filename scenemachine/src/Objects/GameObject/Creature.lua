@@ -28,6 +28,7 @@ function Creature:New(name, displayID, position, rotation, scale)
         isRenamed = false,
         type = Object.Type.Creature,
         gizmoType = Gizmos.Type.Object,
+        hasActor = true,
     };
 
 	setmetatable(v, Object)
