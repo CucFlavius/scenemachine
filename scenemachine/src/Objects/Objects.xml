@@ -11,9 +11,17 @@ Structures
 	<Script file="Matrix.lua" />
 	<Script file="Ray.lua" />
 	<Script file="BoundingBox.lua" />
-	<Script file="Object.lua" />
 	<Script file="Track.lua" />
 
+	<!-- Game Objects -->
+	<Script file="GameObject/Object.lua" />
+	<Script file="GameObject/Actor.lua" />
+	<Script file="GameObject/Model.lua" />
+	<Script file="GameObject/Creature.lua" />
+	<Script file="GameObject/Character.lua" />
+	<Script file="GameObject/Group.lua" />
+	<Script file="GameObject/Camera.lua" />
+	
 	<!-- UI Objects -->
 	<Script file="UI/UI.lua" />
 	<Script file="UI/Element.lua" />

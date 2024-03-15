@@ -113,7 +113,7 @@ function OP.Refresh()
             OP.actorPropertyGroup:Hide();
         end
 
-        if (SM.selectedObjects[1].type == SceneMachine.ObjectType.Camera) then
+        if (SM.selectedObjects[1].type == SceneMachine.GameObjects.Object.Type.Camera) then
             OP.cameraPropertyGroup:Show();
             local fov = SM.selectedObjects[1]:GetFoV();
             OP.fieldOfViewField:Set(OP.Truncate(math.deg(fov), 2));

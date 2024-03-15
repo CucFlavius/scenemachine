@@ -120,7 +120,7 @@ function Renderer.AddActor(fileID, X, Y, Z, type)
     if (Y == nil) then Y = 0 end
     if (Z == nil) then Z = 0 end
 
-    type = type or SceneMachine.ObjectType.Model;
+    type = type or SceneMachine.GameObjects.Object.Type.Model;
 
     if (Renderer.projectionFrame == nil) then
         print("Renderer: AddActor() - called before CreateRenderer()");
@@ -145,11 +145,11 @@ function Renderer.AddActor(fileID, X, Y, Z, type)
     end
 
     actor:Show();
-    if (type == SceneMachine.ObjectType.Model) then
+    if (type == SceneMachine.GameObjects.Object.Type.Model) then
         actor:SetModelByFileID(fileID);
-    elseif (type == SceneMachine.ObjectType.Creature) then
+    elseif (type == SceneMachine.GameObjects.Object.Type.Creature) then
         actor:SetModelByCreatureDisplayID(fileID);
-    elseif (type == SceneMachine.ObjectType.Character) then
+    elseif (type == SceneMachine.GameObjects.Object.Type.Character) then
         local worked = actor:SetModelByUnit("player");
         if (not worked) then
             Renderer.delayedUnitsQueueHasItems = true;
@@ -262,27 +262,29 @@ function Renderer.RenderSprites()
 
     for i = 1, #SM.loadedScene.objects, 1 do
         local object = SM.loadedScene.objects[i];
-        if (object:GetGizmoType() == Gizmos.Type.Camera) then
-            
-            local pos = object:GetPosition();
-            
-            -- Near plane face culling --
-            local cull = Renderer.NearPlaneFaceCullingVert({pos.x, pos.y, pos.z}, Camera.planePosition.x, Camera.planePosition.y, Camera.planePosition.z, Camera.forward.x, Camera.forward.y, Camera.forward.z)
-            if (not cull) then
-                local sprite = Renderer.GetAvailableSprite();
-                sprite.objIdx = i;
 
-                -- Project to screen space --
-                local aX, aY, aZ = Renderer.projectionFrame:Project3DPointTo2D(pos.x, pos.y, pos.z);
-                local size = 20;
-                local hSize = size / 2;
-                -- Render --
-                if (aX ~= nil and aY ~= nil) then
-                    sprite:Show();
-                    sprite:ClearAllPoints();
-                    sprite:SetPoint("BOTTOMLEFT", Renderer.projectionFrame, "BOTTOMLEFT", aX * Renderer.scale - hSize, aY * Renderer.scale - hSize);
-                    sprite:SetSize(size, size);
-                    sprite.texture:SetTexCoord(0, 0.25, 0, 0.25);
+        if (object:GetGizmoType() == Gizmos.Type.Camera) then
+            if (object:Visible()) then
+                local pos = object:GetPosition();
+                
+                -- Near plane face culling --
+                local cull = Renderer.NearPlaneFaceCullingVert({pos.x, pos.y, pos.z}, Camera.planePosition.x, Camera.planePosition.y, Camera.planePosition.z, Camera.forward.x, Camera.forward.y, Camera.forward.z)
+                if (not cull) then
+                    local sprite = Renderer.GetAvailableSprite();
+                    sprite.objIdx = i;
+
+                    -- Project to screen space --
+                    local aX, aY, aZ = Renderer.projectionFrame:Project3DPointTo2D(pos.x, pos.y, pos.z);
+                    local size = 20;
+                    local hSize = size / 2;
+                    -- Render --
+                    if (aX ~= nil and aY ~= nil) then
+                        sprite:Show();
+                        sprite:ClearAllPoints();
+                        sprite:SetPoint("BOTTOMLEFT", Renderer.projectionFrame, "BOTTOMLEFT", aX * Renderer.scale - hSize, aY * Renderer.scale - hSize);
+                        sprite:SetSize(size, size);
+                        sprite.texture:SetTexCoord(0, 0.25, 0, 0.25);
+                    end
                 end
             end
         end

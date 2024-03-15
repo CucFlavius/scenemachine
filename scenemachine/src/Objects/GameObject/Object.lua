@@ -4,141 +4,19 @@ local Matrix = SceneMachine.Matrix;
 local Quaternion = SceneMachine.Quaternion;
 local Gizmos = SceneMachine.Gizmos;
 
-SceneMachine.ObjectType = {};
-SceneMachine.ObjectType.Group = 0;
-SceneMachine.ObjectType.Model = 1;
-SceneMachine.ObjectType.Creature = 2;
-SceneMachine.ObjectType.Character = 3;
-SceneMachine.ObjectType.Camera = 4;
+SceneMachine.GameObjects.Object = {}
+local Object = SceneMachine.GameObjects.Object;
 
-SceneMachine.Object = 
-{
-    fileID = 0,
-    displayID = 0,
-    name = "",
-    position = Vector3:New(),
-    rotation = Vector3:New(),
-    scale = 1,
-    alpha = 1,
-    desaturation = 0,
-	actor = nil,
-	class = "Object",
-    type = SceneMachine.ObjectType.Model,
-    id = 0,
-    visible = true,
-    frozen = false,
-    isRenamed = false,  -- toggle this bool on when a user renames the object (NYI)
-}
+Object.Type = {};
+Object.Type.Group = 0;
+Object.Type.Model = 1;
+Object.Type.Creature = 2;
+Object.Type.Character = 3;
+Object.Type.Camera = 4;
 
-local Object = SceneMachine.Object;
-
-setmetatable(Object, Object)
+setmetatable(Object, Object);
 
 local fields = {}
-
-function Object:New(name, fileID, position, rotation, scale)
-	local v = 
-    {
-        fileID = fileID or 0,
-        name = name or "NewObject",
-        position = position or Vector3:New(),
-        rotation = rotation or Vector3:New(),
-        scale = scale or 1,
-        alpha = 1,
-        desaturation = 0,
-        actor = nil,
-        class = "Object",
-        id = math.random(99999999);
-        visible = true,
-        frozen = false, -- could check here if path is skybox and freeze automagically
-        isRenamed = false,
-        type = SceneMachine.ObjectType.Model,
-    };
-
-	setmetatable(v, Object)
-	return v
-end
-
-function Object:NewCreature(name, displayID, position, rotation, scale)
-	local v = 
-    {
-        fileID = 0,
-        displayID = displayID or 0,
-        name = name or "NewObject",
-        position = position or Vector3:New(),
-        rotation = rotation or Vector3:New(),
-        scale = scale or 1,	
-        alpha = 1,
-        desaturation = 0,
-        actor = nil,
-        class = "Object",
-        id = math.random(99999999);
-        visible = true,
-        frozen = false,
-        isRenamed = false,
-        type = SceneMachine.ObjectType.Creature,
-    };
-
-	setmetatable(v, Object)
-	return v
-end
-
-function Object:NewCharacter(name, position, rotation, scale)
-	local v = 
-    {
-        fileID = -1,
-        displayID = -1,
-        name = name or "Character",
-        position = position or Vector3:New(),
-        rotation = rotation or Vector3:New(),
-        scale = scale or 1,	
-        alpha = 1,
-        desaturation = 0,
-        actor = nil,
-        class = "Object",
-        id = math.random(99999999);
-        visible = true,
-        frozen = false,
-        isRenamed = false,
-        type = SceneMachine.ObjectType.Character,
-    };
-
-	setmetatable(v, Object)
-	return v
-end
-
-function Object:NewCamera(name, position, rotation, fov, nearClip, farClip)
-    local v = 
-    {
-        name = name or "NewObject",
-        position = position or Vector3:New(),
-        rotation = rotation or Vector3:New(),
-        scale = scale or 1,
-        alpha = 1,
-        desaturation = 0,
-        actor = nil,
-        class = "Object",
-        id = math.random(99999999);
-        visible = true,
-        frozen = false,
-        isRenamed = false,
-        type = SceneMachine.ObjectType.Camera,
-        fov = fov,
-        nearClip = nearClip,
-        farClip = farClip,
-    };
-
-	setmetatable(v, Object)
-	return v
-end
-
-function Object:GetFileID()
-    return self.fileID;
-end
-
-function Object:GetDisplayID()
-    return self.displayID;
-end
 
 function Object:GetType()
     return self.type;
@@ -148,72 +26,12 @@ function Object:GetName()
     return self.name;
 end
 
-function Object:SetActor(actor)
-    self.actor = actor;
-
-    -- also set all properties
-    local s = 1.0;
-    if (type(self.scale) == "number") then
-        s = self.scale;
-    end
-
-    self.actor:SetPosition(self.position.x / s, self.position.y / s, self.position.z / s);
-    self.actor:SetRoll(self.rotation.x);
-    self.actor:SetPitch(self.rotation.y);
-    self.actor:SetYaw(self.rotation.z);
-    self.actor:SetAlpha(self.alpha);
-    self.actor:SetDesaturation(self.desaturation);
-    self.actor:SetScale(s);
-end
-
-function Object:GetActor()
-    return self.actor;
-end
-
 function Object:HasActor()
-    if (self.type == SceneMachine.ObjectType.Model or
-        self.type == SceneMachine.ObjectType.Creature or
-        self.type == SceneMachine.ObjectType.Character) then
-        return true;
-    end
-
-    if (self.type == SceneMachine.ObjectType.Group or
-        self.type == SceneMachine.ObjectType.Camera) then
-        return false;
-    end
-
-    print("Object:HasActor() undefined type " .. self.type);
     return false;
 end
 
 function Object:GetGizmoType()
-    if (self.type == SceneMachine.ObjectType.Model or
-        self.type == SceneMachine.ObjectType.Creature or
-        self.type == SceneMachine.ObjectType.Character or
-        self.type == SceneMachine.ObjectType.Group) then
-        return Gizmos.Type.Object;
-    end
-
-    if (self.type == SceneMachine.ObjectType.Camera) then
-        return Gizmos.Type.Camera;
-    end
-
-    print("Object:GetGizmoType() undefined type " .. self.type);
-    return Gizmos.Type.None;
-end
-
-function Object:GetActiveBoundingBox()
-    if (not self:HasActor()) then
-        return nil;
-    end
-
-    local xMin, yMin, zMin, xMax, yMax, zMax = self.actor:GetActiveBoundingBox();
-
-    if (xMin == nil or yMin == nil or zMin == nil) then
-        xMin, yMin, zMin, xMax, yMax, zMax = -1, -1, -1, 1, 1, 1;
-    end
-
-    return xMin, yMin, zMin, xMax, yMax, zMax;
+    return self.gizmoType or Gizmos.Type.None;
 end
 
 function Object:SetPosition(x, y, z)
@@ -229,15 +47,7 @@ function Object:SetPosition(x, y, z)
 end
 
 function Object:SetPositionVector3(pos)
-    self.position.x = pos.x;
-    self.position.y = pos.y;
-    self.position.z = pos.z;
-
-    -- apply to actor
-    if (self.actor ~= nil) then
-        local s = self.scale;
-        self.actor:SetPosition(pos.x / s, pos.y / s, pos.z / s);
-    end
+    self:SetPosition(pos.x, pos.y, pos.z);
 end
 
 function Object:SetRotationQuaternion(rot)
@@ -308,16 +118,6 @@ function Object:CreateMatrix()
         self.matrix = Matrix:New();
     end
     self.matrix:TRS(self:GetPosition(), self:GetQuaternionRotation(), self:GetVector3Scale());
-
-    --[[
-    self.matrix = Matrix:New();
-    self.matrix:SetIdentity();
-    --self.matrix:RotateEuler(self.rotation.x, self.rotation.y, self.rotation.z);
-    local q = Quaternion:New();
-    q:SetFromEuler(self.rotation);
-    self.matrix:CreateFromQuaternion(q);
-    self.matrix:Translate(self.position.x, self.position.y, self.position.z);
-    --]]
 end
 
 function Object:GetMatrix()
@@ -349,13 +149,17 @@ end
 function Object:Show()
     --self.actor:Show();
     self.visible = true;
-    self.actor:SetAlpha(1);
+    if (self.actor) then
+        self.actor:SetAlpha(1);
+    end
 end
 
 function Object:Hide()
     --self.actor:Hide();
     self.visible = false;
-    self.actor:SetAlpha(0);
+    if (self.actor) then
+        self.actor:SetAlpha(0);
+    end
 end
 
 function Object:Hidden()
@@ -366,73 +170,8 @@ function Object:Visible()
     return self.visible;
 end
 
-function Object:SetAlpha(alpha)
-    self.alpha = alpha;
-    if (self.actor) then
-        self.actor:SetAlpha(alpha);
-    end
-end
-
-function Object:GetAlpha()
-    return self.alpha;
-end
-
-function Object:SetDesaturation(desaturation)
-    self.desaturation = desaturation;
-    self.actor:SetDesaturation(desaturation);
-end
-
-function Object:GetDesaturation()
-    return self.desaturation;
-end
-
 function Object:ToggleFrozen()
     self.frozen = not self.frozen;
-end
-
-function Object:PlayAnimID(id, variation)
-    self.actor:SetAnimation(id, variation);
-end
-
-function Object:PlayAnimKitID(id)
-    self.actor:PlayAnimationKit(id);
-end
-
-function Object:SetSpellVisualKitID(id, oneShot)
-    if (self:HasActor()) then 
-        self.actor:SetSpellVisualKit(id, oneShot);
-        self.spellVisualKitID = id;
-    end
-end
-
-function Object:ClearSpellVisualKits()
-    if (self:HasActor()) then 
-        self:SetSpellVisualKitID(-1);
-
-        if (self.type == SceneMachine.ObjectType.Model) then
-            self.actor:SetModelByFileID(self.fileID);
-        elseif (self.type == SceneMachine.ObjectType.Creature) then
-            self.actor:SetModelByCreatureDisplayID(self.displayID);
-        elseif (self.type == SceneMachine.ObjectType.Character) then
-            self.actor:SetModelByUnit("player");
-        end
-        
-        self.spellVisualKitID = nil;
-    end
-end
-
-function Object:Select()
-    if (not self.selected) then
-        self:SetSpellVisualKitID(70682);
-        self.selected = true;
-    end
-end
-
-function Object:Deselect()
-    if (self.selected) then
-        self:ClearSpellVisualKits();
-        self.selected = false;
-    end
 end
 
 function Object:PackRotation(rotation)
@@ -518,7 +257,7 @@ function Object:ImportPacked(data)
     if (data[3] ~= nil) then
         self.type = data[3];
     else
-        self.type = SceneMachine.ObjectType.Model;
+        self.type = Object.Type.Model;
     end
 
     if (data[4] ~= nil and data[4] ~= "") then
@@ -526,7 +265,7 @@ function Object:ImportPacked(data)
         self.isRenamed = true;
     else
         -- fetch name from displayID
-        if (self.type == SceneMachine.ObjectType.Creature and self.displayID ~= 0) then
+        if (self.type == Object.Type.Creature and self.displayID ~= 0) then
             local found = false;
             for creatureID, displayID in pairs(SceneMachine.creatureToDisplayID) do
                 if (displayID == self.displayID) then
@@ -536,7 +275,7 @@ function Object:ImportPacked(data)
         end
 
         -- fetch name from fileID
-        if (self.type == SceneMachine.ObjectType.Model and self.fileID ~= 0) then
+        if (self.type == Object.Type.Model and self.fileID ~= 0) then
             self.name = self:GetFileName(self.fileID);
         end
 
@@ -583,37 +322,6 @@ function Object:ImportPacked(data)
     end
 end
 
-function Object:GetFileName(fileID)
-    return self:GetFileNameRecursive(fileID, SceneMachine.modelData[1]);
-end
-
-function Object:GetFileNameRecursive(value, dir)
-    -- File Scan
-    if (not dir) then return nil; end
-
-    if (dir["FN"] ~= nil) then
-        local fileCount = #dir["FN"];
-        for i = 1, fileCount, 1 do
-            local fileID = dir["FI"][i];
-            if (fileID == value) then
-                local fileName = dir["FN"][i];
-                return fileName;
-            end
-        end
-    end
-
-    -- Directory scan
-    if (dir["D"] ~= nil) then
-        local directoryCount = #dir["D"];
-        for i = 1, directoryCount, 1 do
-            local n = self:GetFileNameRecursive(value, dir["D"][i]);
-            if (n) then return n; end
-        end
-    end
-
-    return nil;
-end
-
 function Object:ImportData(data)
     if (data == nil) then
         print("Object:ImportData() data was nil.");
@@ -634,7 +342,7 @@ function Object:ImportData(data)
     if (data.type ~= nil) then
         self.type = data.type;
     else
-        self.type = SceneMachine.ObjectType.Model;
+        self.type = Object.Type.Model;
     end
 
     if (data.name ~= nil and data.name ~= "") then
@@ -694,30 +402,6 @@ function Object:ImportData(data)
     end
 
     self.id = data.id or math.random(99999999);
-end
-
-function Object:GetFoV()
-    return self.fov;
-end
-
-function Object:SetFoV(fov)
-    self.fov = fov;
-end
-
-function Object:GetNearClip()
-    return self.nearClip;
-end
-
-function Object:SetNearClip(near)
-    self.nearClip = near;
-end
-
-function Object:GetFarClip()
-    return self.farClip;
-end
-
-function Object:SetFarClip(far)
-    self.farClip = far;
 end
 
 Object.__tostring = function(self)

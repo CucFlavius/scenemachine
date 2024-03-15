@@ -1,4 +1,3 @@
-SceneMachine.Actions = {};
 SceneMachine.Actions.Action = {};
 
 local Actions = SceneMachine.Actions;

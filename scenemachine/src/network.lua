@@ -269,6 +269,6 @@ end
 
 function Net.MakeAvatar(playerName)
     Net.playerAvatars[playerName] = {};
-    Net.playerAvatars[playerName].actor = Renderer.AddActor(167145, 0, 0, 0, SceneMachine.ObjectType.Model);
+    Net.playerAvatars[playerName].actor = Renderer.AddActor(167145, 0, 0, 0, SceneMachine.GameObjects.Object.Type.Model);
     Net.playerAvatars[playerName].actor:SetModelByUnit("player");
 end

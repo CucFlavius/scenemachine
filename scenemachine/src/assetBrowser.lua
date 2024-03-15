@@ -230,9 +230,9 @@ function AssetBrowser.AddObjectToCollection(object, collectionIndex)
     end
 
     -- switch based on object type
-    if (object.type == SceneMachine.ObjectType.Model) then
+    if (object.type == SceneMachine.GameObjects.Object.Type.Model) then
         AssetBrowser.AddFileIDToCollection(object.fileID, collectionIndex)
-    elseif(object.type == SceneMachine.ObjectType.Creature) then
+    elseif(object.type == SceneMachine.GameObjects.Object.Type.Creature) then
         AssetBrowser.AddDisplayIDToCollection(object.displayID, collectionIndex)
     end
 

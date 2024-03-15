@@ -214,18 +214,30 @@ function SM.LoadScene(index)
 
     if (#scene.objects > 0) then
         for i in pairs(scene.objects) do
-            local object = SceneMachine.Object:New();
-            object:ImportData(scene.objects[i]);
-            object:CreateMatrix();
+            local type = scene.objects[i].type;
 
             -- Create actor
+            local object;
             local id = 0;
-            if (object.type == SceneMachine.ObjectType.Model) then
+            if (type == SceneMachine.GameObjects.Object.Type.Model) then
+                object = SceneMachine.GameObjects.Model:New();
+                object:ImportData(scene.objects[i]);
+                object:CreateMatrix();
                 id = object.fileID;
-            elseif(object.type == SceneMachine.ObjectType.Creature) then
+            elseif(type == SceneMachine.GameObjects.Object.Type.Creature) then
+                object = SceneMachine.GameObjects.Creature:New();
+                object:ImportData(scene.objects[i]);
+                object:CreateMatrix();
                 id = object.displayID;
-            elseif(object.type == SceneMachine.ObjectType.Character) then
+            elseif(type == SceneMachine.GameObjects.Object.Type.Character) then
+                object = SceneMachine.GameObjects.Character:New();
+                object:ImportData(scene.objects[i]);
+                object:CreateMatrix();
                 id = -1;
+            elseif(type == SceneMachine.GameObjects.Object.Type.Camera) then
+                object = SceneMachine.GameObjects.Camera:New();
+                object:ImportData(scene.objects[i]);
+                object:CreateMatrix();
             end
             if (object:HasActor()) then
                 local actor = Renderer.AddActor(id, object.position.x, object.position.y, object.position.z, object.type);
@@ -343,14 +355,14 @@ function SM.DeleteScene(index)
 end
 
 function SM.CreateObject(_fileID, _name, _x, _y, _z)
-    local object = SceneMachine.Object:New(_name, _fileID, Vector3:New(_x, _y, _z));
+    local object = SceneMachine.GameObjects.Model:New(_name, _fileID, Vector3:New(_x, _y, _z));
 
     local scene = SM.loadedScene;
     scene.objects[#scene.objects + 1] = object;
 
     -- Create actor
     if (object.fileID ~= nil) then
-        local actor = Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z, SceneMachine.ObjectType.Model);
+        local actor = Renderer.AddActor(object.fileID, object.position.x, object.position.y, object.position.z, SceneMachine.GameObjects.Object.Type.Model);
         object:SetActor(actor);
     end
 
@@ -362,14 +374,14 @@ function SM.CreateObject(_fileID, _name, _x, _y, _z)
 end
 
 function SM.CreateCreature(_displayID, _name, _x, _y, _z)
-    local object = SceneMachine.Object:NewCreature(_name, _displayID, Vector3:New(_x, _y, _z));
+    local object = SceneMachine.GameObjects.Creature:New(_name, _displayID, Vector3:New(_x, _y, _z));
 
     local scene = SM.loadedScene;
     scene.objects[#scene.objects + 1] = object;
 
     -- Create actor
     if (object.fileID ~= nil) then
-        local actor = Renderer.AddActor(object.displayID, object.position.x, object.position.y, object.position.z, SceneMachine.ObjectType.Creature);
+        local actor = Renderer.AddActor(object.displayID, object.position.x, object.position.y, object.position.z, SceneMachine.GameObjects.Object.Type.Creature);
         object:SetActor(actor);
     end
 
@@ -381,14 +393,14 @@ function SM.CreateCreature(_displayID, _name, _x, _y, _z)
 end
 
 function SM.CreateCharacter(_x, _y, _z)
-    local object = SceneMachine.Object:NewCharacter(UnitName("player"), Vector3:New(_x, _y, _z));
+    local object = SceneMachine.GameObjects.Character:New(UnitName("player"), Vector3:New(_x, _y, _z));
 
     local scene = SM.loadedScene;
     scene.objects[#scene.objects + 1] = object;
 
     -- Create actor
     if (object.fileID ~= nil) then
-        local actor = Renderer.AddActor(-1, object.position.x, object.position.y, object.position.z, SceneMachine.ObjectType.Character);
+        local actor = Renderer.AddActor(-1, object.position.x, object.position.y, object.position.z, SceneMachine.GameObjects.Object.Type.Character);
         object:SetActor(actor);
     end
 
@@ -414,7 +426,7 @@ function SM.CreateCamera()
     position:SetVector3(Camera.position);
     rotation:SetVector3(Camera.eulerRotation);
 
-    local object = SceneMachine.Object:NewCamera(name, position, rotation, fov, nearClip, farClip);
+    local object = SceneMachine.GameObjects.Camera:New(name, position, rotation, fov, nearClip, farClip);
     
     local scene = SM.loadedScene;
     scene.objects[#scene.objects + 1] = object;
@@ -640,11 +652,11 @@ function SM.CloneObject_internal(object, selectAfter)
     local rot = object:GetRotation();
     local scale = object:GetScale();
     local clone = nil;
-    if (object:GetType() == SceneMachine.ObjectType.Model) then
+    if (object:GetType() == SceneMachine.GameObjects.Object.Type.Model) then
         clone = SM.CreateObject(object:GetFileID(), object:GetName(), pos.x, pos.y, pos.z);
-    elseif(object:GetType() == SceneMachine.ObjectType.Creature) then
+    elseif(object:GetType() == SceneMachine.GameObjects.Object.Type.Creature) then
         clone = SM.CreateCreature(object:GetDisplayID(), object:GetName(), pos.x, pos.y, pos.z);
-    elseif(object:GetType() == SceneMachine.ObjectType.Character) then
+    elseif(object:GetType() == SceneMachine.GameObjects.Object.Type.Character) then
         clone = SM.CreateCharacter(pos.x, pos.y, pos.z);
     end
     if (clone) then
@@ -746,11 +758,11 @@ function SM.UndeleteObject_internal(object)
 
     local pos = object:GetPosition();
     local actor;
-    if (object.type == SceneMachine.ObjectType.Model) then
+    if (object.type == SceneMachine.GameObjects.Object.Type.Model) then
         actor = Renderer.AddActor(object.fileID, pos.x, pos.y, pos.z, object.type);
-    elseif (object.type == SceneMachine.ObjectType.Creature) then
+    elseif (object.type == SceneMachine.GameObjects.Object.Type.Creature) then
         actor = Renderer.AddActor(object.displayID, pos.x, pos.y, pos.z, object.type);
-    elseif (object.type == SceneMachine.ObjectType.Character) then
+    elseif (object.type == SceneMachine.GameObjects.Object.Type.Character) then
         actor = Renderer.AddActor(-1, pos.x, pos.y, pos.z, object.type);
     else
         print("SM.UndeleteObject_internal(object) Unsupported obj.type : " .. object.type);
@@ -910,9 +922,20 @@ function SM.ImportVersion1Scene(sceneData)
 
     if (#sceneData.objects > 0) then
         for i = 1, #sceneData.objects, 1 do
-            local object = SceneMachine.Object:New();
-            object:ImportPacked(sceneData.objects[i]);
-            scene.objects[i] = object;
+            local type = sceneData.objects[i][3];
+            local object;
+            if (type == SceneMachine.GameObjects.Object.Type.Model) then
+                object = SceneMachine.GameObjects.Model:New();
+            elseif(type == SceneMachine.GameObjects.Object.Type.Creature) then
+                object = SceneMachine.GameObjects.Creature:New();
+            elseif(type == SceneMachine.GameObjects.Object.Type.Character) then
+                object = SceneMachine.GameObjects.Character:New();
+            end
+
+            if (object) then
+                object:ImportPacked(sceneData.objects[i]);
+                scene.objects[i] = object;
+            end
         end
     end
 
@@ -948,14 +971,29 @@ function SM.ImportVersion1Scene(sceneData)
     SM.LoadScene(#PM.currentProject.scenes);
 end
 
+function SM.ImportVersion2Scene(sceneData)
+
+end
+
 function SM.ImportNetworkScene(sceneData)
     local scene = SM.CreateScene(sceneData.name);
 
     if (#sceneData.objects > 0) then
         for i = 1, #sceneData.objects, 1 do
-            local object = SceneMachine.Object:New();
-            object:ImportPacked(sceneData.objects[i]);
-            scene.objects[i] = object;
+            local type = sceneData.objects[i][3];
+            local object;
+            if (type == SceneMachine.GameObjects.Object.Type.Model) then
+                object = SceneMachine.GameObjects.Model:New();
+            elseif(type == SceneMachine.GameObjects.Object.Type.Creature) then
+                object = SceneMachine.GameObjects.Creature:New();
+            elseif(type == SceneMachine.GameObjects.Object.Type.Character) then
+                object = SceneMachine.GameObjects.Character:New();
+            end
+
+            if (object) then
+                object:ImportPacked(sceneData.objects[i]);
+                scene.objects[i] = object;
+            end
         end
     end
 
@@ -1036,16 +1074,28 @@ function SM.LoadNetworkScene(scene)
 
     if (#scene.objects > 0) then
         for i in pairs(scene.objects) do
-            local object = SceneMachine.Object:New();
-            object:ImportData(scene.objects[i]);
+            local type = scene.objects[i][3];
+            local object;
+            if (type == SceneMachine.GameObjects.Object.Type.Model) then
+                object = SceneMachine.GameObjects.Model:New();
+            elseif(type == SceneMachine.GameObjects.Object.Type.Creature) then
+                object = SceneMachine.GameObjects.Creature:New();
+            elseif(type == SceneMachine.GameObjects.Object.Type.Character) then
+                object = SceneMachine.GameObjects.Character:New();
+            end
+
+            if (object) then
+                object:ImportPacked(scene.objects[i]);
+                scene.objects[i] = object;
+            end
 
             -- Create actor
             local id = 0;
-            if (object.type == SceneMachine.ObjectType.Model) then
+            if (object.type == SceneMachine.GameObjects.Object.Type.Model) then
                 id = object.fileID;
-            elseif(object.type == SceneMachine.ObjectType.Creature) then
+            elseif(object.type == SceneMachine.GameObjects.Object.Type.Creature) then
                 id = object.displayID;
-            elseif(object.type == SceneMachine.ObjectType.Character) then
+            elseif(object.type == SceneMachine.GameObjects.Object.Type.Character) then
                 id = -1;
             end
             local actor = Renderer.AddActor(id, object.position.x, object.position.y, object.position.z, object.type);

@@ -1,5 +1,3 @@
-SceneMachine.UI = {};
-
 SceneMachine.UI.UI = 
 {
     updateElements = {}

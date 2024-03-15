@@ -13,6 +13,9 @@ SceneMachine.Gizmos = {};
 SceneMachine.Input = {};
 SceneMachine.Network = {};
 SceneMachine.Network.Packets = {};
+SceneMachine.GameObjects = {};
+SceneMachine.UI = {};
+SceneMachine.Actions = {};
 
 SceneMachine.Editor = {};
 SceneMachine.Editor.Toolbar = {};
