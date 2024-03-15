@@ -6,6 +6,7 @@ local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
 local L = Editor.localization;
 local Input = SceneMachine.Input;
+local OP = Editor.ObjectProperties;
 
 function SH.CreatePanel(w, h, leftPanel, startLevel)
     --local group = Editor.CreateGroup("Hierarchy", h, leftPanel:GetFrame());
@@ -53,7 +54,6 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 						SM.SelectObject(data);
 						SM.ApplySelectionEffects();
 
-						
 						local point, relativeTo, relativePoint, xOfs, yOfs = item:GetPoint(1);
 						local x = -(item:GetLeft() - Input.mouseXRaw);
 						local y = -(item:GetTop() - Input.mouseYRaw);
@@ -62,10 +62,20 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 						local ry = y + yOfs + (SH.scrollList:GetTop() - SceneMachine.mainWindow:GetTop());
 			
 						local menuOptions = {
-							[1] = { ["Name"] = L["AM_RMB_CHANGE_ANIM"], ["Action"] = function()  end },
-							[2] = { ["Name"] = L["AM_RMB_SET_ANIM_SPEED"], ["Action"] = function()   end },
-							[3] = { ["Name"] = L["AM_RMB_DELETE_ANIM"], ["Action"] = function()  end },
-							[4] = { ["Name"] = L["AM_RMB_DIFFERENT_COLOR"], ["Action"] = function()  end },
+							{ ["Name"] = L["CM_DELETE"], ["Action"] = function() SM.DeleteObjects(SM.selectedObjects); end },
+							{ ["Name"] = L["CM_HIDE_SHOW"], ["Action"] = function() SM.ToggleObjectsVisibility(SM.selectedObjects); end },
+							{ ["Name"] = L["CM_FREEZE_UNFREEZE"], ["Action"] = function()
+								SM.ToggleObjectsFreezeState(SM.selectedObjects);
+								if (#SM.selectedObjects > 0) then
+									for i= #SM.selectedObjects, 1, -1 do
+										if (SM.selectedObjects[i].frozen) then
+											table.remove(SM.selectedObjects, i);
+										end
+									end
+									SH.RefreshHierarchy();
+									OP.Refresh();
+								end
+							end },
 						};
 			
 						SceneMachine.mainWindow:PopupWindowMenu(rx, ry, menuOptions);
