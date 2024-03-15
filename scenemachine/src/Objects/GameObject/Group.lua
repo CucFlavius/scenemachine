@@ -12,15 +12,13 @@ function Group:New(name)
     local v = 
     {
         name = name or "NewGroup",
-        class = "Object",
         id = math.random(99999999);
         visible = true,
         frozen = false,
         isRenamed = false,
         type = Object.Type.Group,
-        gizmoType = Gizmos.Type.Object,
     };
 
-	setmetatable(v, Object)
+	setmetatable(v, Group)
 	return v
 end

@@ -27,14 +27,12 @@ function Creature:New(name, displayID, position, rotation, scale)
         frozen = false,
         isRenamed = false,
         type = Object.Type.Creature,
-        gizmoType = Gizmos.Type.Object,
-        hasActor = true,
     };
 
-	setmetatable(v, Object)
+	setmetatable(v, Creature)
 	return v
 end
 
-function Object:GetDisplayID()
+function Creature:GetDisplayID()
     return self.displayID;
 end

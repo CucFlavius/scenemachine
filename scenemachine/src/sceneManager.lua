@@ -531,10 +531,10 @@ function SM.CalculateObjectsAverage()
         SM.selectedScale = SM.selectedObjects[1]:GetScale();
         SM.selectedAlpha = 1.0;
 
-        if (SM.selectedObjects[1]:GetGizmoType() == Gizmos.Type.Object) then
+        if (SM.selectedObjects[1]:HasActor()) then
             local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObjects[1]:GetActiveBoundingBox();
             SM.selectedBounds = { xMin, yMin, zMin, xMax, yMax, zMax };
-        elseif (SM.selectedObjects[1]:GetGizmoType() == Gizmos.Type.Camera) then
+        else
             SM.selectedBounds = { 0, 0, 0, 0, 0, 0 };
         end
     else

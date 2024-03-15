@@ -7,11 +7,11 @@ local Actor = SceneMachine.GameObjects.Actor;
 Actor.__index = Actor;
 setmetatable(Actor, Object)
 
-function Object:GetFileID()
+function Actor:GetFileID()
     return self.fileID;
 end
 
-function Object:SetActor(actor)
+function Actor:SetActor(actor)
     self.actor = actor;
 
     -- also set all properties
@@ -29,11 +29,15 @@ function Object:SetActor(actor)
     self.actor:SetScale(s);
 end
 
-function Object:GetActor()
+function Actor:GetActor()
     return self.actor;
 end
 
-function Object:GetActiveBoundingBox()
+function Actor:HasActor()
+    return true;
+end
+
+function Actor:GetActiveBoundingBox()
     local xMin, yMin, zMin, xMax, yMax, zMax = self.actor:GetActiveBoundingBox();
 
     if (xMin == nil or yMin == nil or zMin == nil) then
@@ -43,39 +47,39 @@ function Object:GetActiveBoundingBox()
     return xMin, yMin, zMin, xMax, yMax, zMax;
 end
 
-function Object:SetAlpha(alpha)
+function Actor:SetAlpha(alpha)
     self.alpha = alpha;
     self.actor:SetAlpha(alpha);
 end
 
-function Object:GetAlpha()
+function Actor:GetAlpha()
     return self.alpha;
 end
 
-function Object:SetDesaturation(desaturation)
+function Actor:SetDesaturation(desaturation)
     self.desaturation = desaturation;
     self.actor:SetDesaturation(desaturation);
 end
 
-function Object:GetDesaturation()
+function Actor:GetDesaturation()
     return self.desaturation;
 end
 
 
-function Object:PlayAnimID(id, variation)
+function Actor:PlayAnimID(id, variation)
     self.actor:SetAnimation(id, variation);
 end
 
-function Object:PlayAnimKitID(id)
+function Actor:PlayAnimKitID(id)
     self.actor:PlayAnimationKit(id);
 end
 
-function Object:SetSpellVisualKitID(id, oneShot)
+function Actor:SetSpellVisualKitID(id, oneShot)
     self.actor:SetSpellVisualKit(id, oneShot);
     self.spellVisualKitID = id;
 end
 
-function Object:ClearSpellVisualKits()
+function Actor:ClearSpellVisualKits()
     self:SetSpellVisualKitID(-1);
 
     if (self.type == Object.Type.Model) then
@@ -89,25 +93,25 @@ function Object:ClearSpellVisualKits()
     self.spellVisualKitID = nil;
 end
 
-function Object:Select()
+function Actor:Select()
     if (not self.selected) then
         self:SetSpellVisualKitID(70682);
         self.selected = true;
     end
 end
 
-function Object:Deselect()
+function Actor:Deselect()
     if (self.selected) then
         self:ClearSpellVisualKits();
         self.selected = false;
     end
 end
 
-function Object:GetFileName(fileID)
+function Actor:GetFileName(fileID)
     return self:GetFileNameRecursive(fileID, SceneMachine.modelData[1]);
 end
 
-function Object:GetFileNameRecursive(value, dir)
+function Actor:GetFileNameRecursive(value, dir)
     -- File Scan
     if (not dir) then return nil; end
 

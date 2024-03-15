@@ -23,34 +23,49 @@ function Camera:New(name, position, rotation, fov, nearClip, farClip)
         fov = fov,
         nearClip = nearClip,
         farClip = farClip,
-        gizmoType = Gizmos.Type.Camera,
     };
 
 
-	setmetatable(v, Object)
+	setmetatable(v, Camera)
 	return v
 end
 
-function Object:GetFoV()
+function Camera:GetGizmoType()
+    return Gizmos.Type.Camera;
+end
+
+function Camera:GetFoV()
     return self.fov;
 end
 
-function Object:SetFoV(fov)
+function Camera:SetFoV(fov)
     self.fov = fov;
 end
 
-function Object:GetNearClip()
+function Camera:GetNearClip()
     return self.nearClip;
 end
 
-function Object:SetNearClip(near)
+function Camera:SetNearClip(near)
     self.nearClip = near;
 end
 
-function Object:GetFarClip()
+function Camera:GetFarClip()
     return self.farClip;
 end
 
-function Object:SetFarClip(far)
+function Camera:SetFarClip(far)
     self.farClip = far;
+end
+
+function Camera:Select()
+    if (not self.selected) then
+        self.selected = true;
+    end
+end
+
+function Camera:Deselect()
+    if (self.selected) then
+        self.selected = false;
+    end
 end

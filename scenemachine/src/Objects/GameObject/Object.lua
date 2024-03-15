@@ -14,6 +14,14 @@ Object.Type.Creature = 2;
 Object.Type.Character = 3;
 Object.Type.Camera = 4;
 
+Object.TypeNames = {
+    [Object.Type.Group] = "Group",
+    [Object.Type.Model] = "Model",
+    [Object.Type.Creature] = "Creature",
+    [Object.Type.Character] = "Character",
+    [Object.Type.Camera] = "Camera",
+};
+
 setmetatable(Object, Object);
 
 local fields = {}
@@ -22,16 +30,20 @@ function Object:GetType()
     return self.type;
 end
 
+function Object:GetTypeName()
+    return Object.TypeNames[self.type];
+end
+
 function Object:GetName()
     return self.name;
 end
 
 function Object:HasActor()
-    return self.hasActor;
+    return false;
 end
 
 function Object:GetGizmoType()
-    return self.gizmoType or Gizmos.Type.None;
+    return Gizmos.Type.Object;
 end
 
 function Object:SetPosition(x, y, z)
@@ -402,6 +414,14 @@ function Object:ImportData(data)
     end
 
     self.id = data.id or math.random(99999999);
+end
+
+function Object:Select()
+    print("Select() not implemented for type " .. self:GetTypeName());
+end
+
+function Object:Deselect()
+    print("Deselect() not implemented for type " .. self:GetTypeName());
 end
 
 Object.__tostring = function(self)

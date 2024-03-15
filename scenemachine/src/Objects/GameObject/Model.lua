@@ -26,10 +26,8 @@ function Model:New(name, fileID, position, rotation, scale)
         frozen = false, -- could check here if path is skybox and freeze automagically
         isRenamed = false,
         type = Object.Type.Model,
-        gizmoType = Gizmos.Type.Object,
-        hasActor = true,
     };
 
-	setmetatable(v, Object)
+	setmetatable(v, Model)
 	return v
 end

@@ -1737,7 +1737,6 @@ function AM.DeleteTimeline(index)
         end
     end
 
-    print(index)
     local timeline = SM.loadedScene.timelines[index];
 
     -- delete it
@@ -2883,31 +2882,32 @@ function AM.SetTime(timeMS, rounded)
             local obj = AM.GetObjectOfTrack(track);
             if (obj) then
                 -- animate object
-                local animID, variationID, animMS, animSpeed = track:SampleAnimation(timeMS);
+                if (obj:HasActor()) then
+                    local animID, variationID, animMS, animSpeed = track:SampleAnimation(timeMS);
 
-                if (AM.playing) then
-                    -- Sample playback
-                    if (obj.currentAnimID ~= animID or obj.currentAnimVariationID ~= variationID) then
-                        -- Animation switch
-                        if (animID ~= -1) then
-                            --obj.actor:SetAnimationBlendOperation(1);  -- 0: don't blend, 1: blend
-                            obj.actor:SetAnimation(animID, variationID, animSpeed, animMS / 1000);
+                    if (AM.playing) then
+                        -- Sample playback
+                        if (obj.currentAnimID ~= animID or obj.currentAnimVariationID ~= variationID) then
+                            -- Animation switch
+                            if (animID ~= -1) then
+                                --obj.actor:SetAnimationBlendOperation(1);  -- 0: don't blend, 1: blend
+                                obj.actor:SetAnimation(animID, variationID, animSpeed, animMS / 1000);
+                            end
+                            obj.currentAnimID = animID;
+                            obj.currentAnimVariationID = variationID;
                         end
-                        obj.currentAnimID = animID;
-                        obj.currentAnimVariationID = variationID;
-                    end
-                else
-                    -- Sample single key
-                    animSpeed = 0;
-                    obj.currentAnimID = nil;
-                    obj.currentAnimVariationID = nil;
-                    if (animID ~= -1) then
-                        obj.actor:SetAnimation(animID, variationID, animSpeed, animMS / 1000);
                     else
-                        -- stop playback
+                        -- Sample single key
+                        animSpeed = 0;
+                        obj.currentAnimID = nil;
+                        obj.currentAnimVariationID = nil;
+                        if (animID ~= -1) then
+                            obj.actor:SetAnimation(animID, variationID, animSpeed, animMS / 1000);
+                        else
+                            -- stop playback
+                        end
                     end
                 end
-
                 -- animate keyframes
                 local currentPos = obj:GetPosition();
                 local posX = track:SamplePositionXKey(timeMS) or currentPos.x;
@@ -2994,7 +2994,6 @@ function AM.OpenAddAnimationWindow(track, replaceAnim)
         return;
     end
 
-    print(obj.name, obj:HasActor())
     if (not obj:HasActor()) then
         -- can only add animation clips to objects that have actors
         return;

@@ -2,13 +2,10 @@ local Editor = SceneMachine.Editor;
 local PM = Editor.ProjectManager;
 local SM = Editor.SceneManager;
 local SH = Editor.SceneHierarchy;
-local Gizmos = SceneMachine.Gizmos;
-local CC = SceneMachine.CameraController;
-local OP = Editor.ObjectProperties;
-local AM = SceneMachine.Editor.AnimationManager;
 local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
 local L = Editor.localization;
+local Input = SceneMachine.Input;
 
 function SH.CreatePanel(w, h, leftPanel, startLevel)
     --local group = Editor.CreateGroup("Hierarchy", h, leftPanel:GetFrame());
@@ -34,6 +31,7 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 			buildItem = function(item)
 				-- main button --
 				item.components[1] = UI.Button:New(0, 0, 50, 18, item:GetFrame(), "CENTER", "CENTER", "");
+				item.components[1]:GetFrame():RegisterForClicks("LeftButtonUp", "RightButtonUp");
 				item.components[1]:ClearAllPoints();
 				item.components[1]:SetAllPoints(item:GetFrame());
 
@@ -47,7 +45,32 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 			end,
 			refreshItem = function(data, item)
 				-- main button --
-				item.components[1]:SetScript("OnClick", function() SM.SelectObject(data); SM.ApplySelectionEffects(); end);
+				item.components[1]:SetScript("OnClick", function(self, button, down)
+					if (button == "LeftButton") then
+						SM.SelectObject(data);
+						SM.ApplySelectionEffects();
+					elseif(button == "RightButton") then
+						SM.SelectObject(data);
+						SM.ApplySelectionEffects();
+
+						
+						local point, relativeTo, relativePoint, xOfs, yOfs = item:GetPoint(1);
+						local x = -(item:GetLeft() - Input.mouseXRaw);
+						local y = -(item:GetTop() - Input.mouseYRaw);
+			
+						local rx = x + xOfs + (SH.scrollList:GetLeft() - SceneMachine.mainWindow:GetLeft());
+						local ry = y + yOfs + (SH.scrollList:GetTop() - SceneMachine.mainWindow:GetTop());
+			
+						local menuOptions = {
+							[1] = { ["Name"] = L["AM_RMB_CHANGE_ANIM"], ["Action"] = function()  end },
+							[2] = { ["Name"] = L["AM_RMB_SET_ANIM_SPEED"], ["Action"] = function()   end },
+							[3] = { ["Name"] = L["AM_RMB_DELETE_ANIM"], ["Action"] = function()  end },
+							[4] = { ["Name"] = L["AM_RMB_DIFFERENT_COLOR"], ["Action"] = function()  end },
+						};
+			
+						SceneMachine.mainWindow:PopupWindowMenu(rx, ry, menuOptions);
+					end
+				end);
 				item.components[1]:SetColor(UI.Button.State.Normal, 0.1757, 0.1757, 0.1875, 1);
 				for i = 1, #SM.selectedObjects, 1 do
 					if (data == SM.selectedObjects[i]) then

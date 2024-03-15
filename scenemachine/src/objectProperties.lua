@@ -101,9 +101,10 @@ function OP.Refresh()
         pos = SM.selectedObjects[1]:GetPosition();
         rot = SM.selectedObjects[1]:GetRotation();
         scale = SM.selectedObjects[1]:GetScale();
-        alpha = SM.selectedObjects[1]:GetAlpha();
-        desaturation = SM.selectedObjects[1]:GetDesaturation();
-
+        if (SM.selectedObjects[1]:HasActor()) then
+            alpha = SM.selectedObjects[1]:GetAlpha();
+            desaturation = SM.selectedObjects[1]:GetDesaturation();
+        end
         -- change available properties when selecting a single object
         OP.transformPropertyGroup:Show();
         OP.actorPropertyGroup:Show();
@@ -142,9 +143,12 @@ function OP.Refresh()
     OP.positionField:Set(OP.Truncate(pos.x, 3), OP.Truncate(pos.y, 3), OP.Truncate(pos.z, 3));
     OP.rotationField:Set(OP.Truncate(math.deg(rot.x), 3), OP.Truncate(math.deg(rot.y), 3), OP.Truncate(math.deg(rot.z), 3));
     OP.scaleField:Set(OP.Truncate(scale, 3));
-    OP.alphaField:Set(OP.Truncate(alpha, 3));
-    OP.saturationField:Set(OP.Truncate(desaturation, 3));
-
+    if (alpha) then
+        OP.alphaField:Set(OP.Truncate(alpha, 3));
+    end
+    if (desaturation) then
+        OP.saturationField:Set(OP.Truncate(desaturation, 3));
+    end
     if (Renderer.projectionFrame) then
         --local r, g, b = Renderer.projectionFrame:GetLightAmbientColor();
         local amb = SM.loadedScene.properties.ambientColor;
