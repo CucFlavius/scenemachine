@@ -80,7 +80,12 @@ L["CM_ROTATE"] = "Rotate";
 L["CM_SCALE"] = "Scale";
 L["CM_DELETE"] = "Delete";
 L["CM_HIDE_SHOW"] = "Hide/Show";
+L["CM_HIDE"] = "Hide";
+L["CM_SHOW"] = "Show";
 L["CM_FREEZE_UNFREEZE"] = "Freeze/Unfreeze";
+L["CM_FREEZE"] = "Freeze";
+L["CM_UNFREEZE"] = "Unfreeze";
+L["CM_RENAME"] = "Rename";
 
 -- Animation Manager --
 L["AM_ANIMATION_LIST_WINDOW_TITLE"] = "Animation List";

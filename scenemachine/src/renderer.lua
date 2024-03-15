@@ -264,7 +264,7 @@ function Renderer.RenderSprites()
         local object = SM.loadedScene.objects[i];
 
         if (object:GetGizmoType() == Gizmos.Type.Camera) then
-            if (object:Visible()) then
+            if (object:IsVisible()) then
                 local pos = object:GetPosition();
                 
                 -- Near plane face culling --

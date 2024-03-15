@@ -2925,7 +2925,7 @@ function AM.SetTime(timeMS, rounded)
                 local scale = track:SampleScaleKey(timeMS) or currentScale;
                 obj:SetScale(scale);
 
-                if (obj:Visible()) then
+                if (obj:IsVisible()) then
                     if (obj:HasActor()) then
                         local currentAlpha = obj:GetAlpha();
                         local alpha = track:SampleAlphaKey(timeMS) or currentAlpha;

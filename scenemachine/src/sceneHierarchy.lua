@@ -61,24 +61,7 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 						local rx = x + xOfs + (SH.scrollList:GetLeft() - SceneMachine.mainWindow:GetLeft());
 						local ry = y + yOfs + (SH.scrollList:GetTop() - SceneMachine.mainWindow:GetTop());
 			
-						local menuOptions = {
-							{ ["Name"] = L["CM_DELETE"], ["Action"] = function() SM.DeleteObjects(SM.selectedObjects); end },
-							{ ["Name"] = L["CM_HIDE_SHOW"], ["Action"] = function() SM.ToggleObjectsVisibility(SM.selectedObjects); end },
-							{ ["Name"] = L["CM_FREEZE_UNFREEZE"], ["Action"] = function()
-								SM.ToggleObjectsFreezeState(SM.selectedObjects);
-								if (#SM.selectedObjects > 0) then
-									for i= #SM.selectedObjects, 1, -1 do
-										if (SM.selectedObjects[i].frozen) then
-											table.remove(SM.selectedObjects, i);
-										end
-									end
-									SH.RefreshHierarchy();
-									OP.Refresh();
-								end
-							end },
-						};
-			
-						SceneMachine.mainWindow:PopupWindowMenu(rx, ry, menuOptions);
+						SH.OpenItemContextMenu(rx, ry, data);
 					end
 				end);
 				item.components[1]:SetColor(UI.Button.State.Normal, 0.1757, 0.1757, 0.1875, 1);
@@ -121,4 +104,38 @@ function SH.RefreshHierarchy()
     end
 
 	SH.scrollList:SetData(SM.loadedScene.objects);
+end
+
+function SH.OpenItemContextMenu(rx, ry, object)
+
+	local menuOptions = {};
+
+	table.insert(menuOptions, { ["Name"] = L["CM_DELETE"], ["Action"] = function() SM.DeleteObjects(object); end });
+
+	if (object:IsVisible()) then
+		table.insert(menuOptions, { ["Name"] = L["CM_HIDE"], ["Action"] = function() object:Hide(); end });
+	else
+		table.insert(menuOptions, { ["Name"] = L["CM_SHOW"], ["Action"] = function() object:Show(); end });
+	end
+
+	if (object:IsFrozen()) then
+		table.insert(menuOptions, { ["Name"] = L["CM_UNFREEZE"], ["Action"] = function() object:Unfreeze(); end });
+	else
+		table.insert(menuOptions, { ["Name"] = L["CM_FREEZE"], ["Action"] = function() object:Freeze();
+			if (#SM.selectedObjects > 0) then
+				for i= #SM.selectedObjects, 1, -1 do
+					if (SM.selectedObjects[i].frozen) then
+						table.remove(SM.selectedObjects, i);
+					end
+				end
+				SH.RefreshHierarchy();
+				OP.Refresh();
+			end
+		end });
+	end
+
+	local renameAction = function(text) object:Rename(text); SH.RefreshHierarchy(); end
+	table.insert(menuOptions, { ["Name"] = L["CM_RENAME"], ["Action"] = function() Editor.OpenQuickTextbox(renameAction, object:GetName(), L["CM_RENAME"]); end });
+
+	SceneMachine.mainWindow:PopupWindowMenu(rx, ry, menuOptions);
 end

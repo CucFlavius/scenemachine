@@ -174,16 +174,33 @@ function Object:Hide()
     end
 end
 
-function Object:Hidden()
+function Object:IsHidden()
     return not self.visible;
 end
 
-function Object:Visible()
+function Object:IsVisible()
     return self.visible;
 end
 
 function Object:ToggleFrozen()
     self.frozen = not self.frozen;
+end
+
+function Object:IsFrozen()
+    return self.frozen;
+end
+
+function Object:Freeze()
+    self.frozen = true;
+end
+
+function Object:Unfreeze()
+    self.frozen = false;
+end
+
+function Object:Rename(newName)
+    self.isRenamed = true;
+    self.name = newName;
 end
 
 function Object:PackRotation(rotation)
