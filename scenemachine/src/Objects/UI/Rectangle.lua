@@ -35,9 +35,16 @@ function Rectangle:Build()
 	self.frame.texture:SetAllPoints(self.frame);
 end
 
-
 function Rectangle:SetVertexOffset(vertexIndex, offsetX, offsetY)
     self.frame.texture:SetVertexOffset(vertexIndex, offsetX, offsetY);
+end
+
+function Rectangle:SetColor(R, G, B, A)
+    self.R = R;
+    self.G = G;
+    self.B = B;
+    self.A = A;
+    self.frame.texture:SetColorTexture(self.R, self.G, self.B, self.A);
 end
 
 Rectangle.__tostring = function(self)

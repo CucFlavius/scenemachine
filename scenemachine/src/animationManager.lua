@@ -1467,11 +1467,13 @@ function AM.GenerateAnimationElement(index, x, y, w, h, parent, R, G, B, A)
     element.ntex:SetVertexColor(AM.colors[colIdx][1] / 255, AM.colors[colIdx][2] / 255, AM.colors[colIdx][3] / 255,1);
     element:SetNormalTexture(element.ntex);
     element:RegisterForClicks("LeftButtonUp", "LeftButtonDown", "RightButtonDown");
-    element:SetScript("OnMouseDown", function(self, button)
-        local track = AM.loadedTimeline.tracks[self.trackIdx];
-        Editor.StartAction(Actions.Action.Type.TrackAnimations, track, AM.loadedTimeline);
-        AM.inputState.movingAnim = index;
-        AM.inputState.mousePosStartX = Input.mouseXRaw;
+    element:SetScript("OnMouseDown", function(self, button, down)
+        if (button == "LeftButton") then
+            local track = AM.loadedTimeline.tracks[self.trackIdx];
+            Editor.StartAction(Actions.Action.Type.TrackAnimations, track, AM.loadedTimeline);
+            AM.inputState.movingAnim = index;
+            AM.inputState.mousePosStartX = Input.mouseXRaw;
+        end
     end);
     element:SetScript("OnMouseUp", function(self, button)
         Editor.FinishAction();

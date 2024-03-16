@@ -5,6 +5,7 @@ local Gizmos = SceneMachine.Gizmos;
 local Input = SceneMachine.Input;
 local Editor = SceneMachine.Editor;
 local AM = SceneMachine.Editor.AnimationManager;
+local SH = Editor.SceneHierarchy;
 
 print("Running SceneMachine")
 
@@ -110,6 +111,7 @@ local function SG_UpdateLoop ()
 		Gizmos.Update();
 		Renderer.Update();
 		AM.Update(SceneMachine.deltaTime);
+		SH.Update(SceneMachine.deltaTime);
 		SceneMachine.Network.Update(SceneMachine.deltaTime);
 		if (Debug) then Debug.FlushLinePool(); end
 	end

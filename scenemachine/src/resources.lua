@@ -44,6 +44,7 @@ function Resources.Initialize(resourcePath)
     Resources.textures["ToolbarAssetExplorer"] = Resources.texturesPath .. "\\toolbarAssetExplorer.png";
     Resources.textures["Dropshadow"] = Resources.texturesPath .. "\\dropshadow.png";
     Resources.textures["SceneSprites"] = Resources.texturesPath .. "\\sceneSprites.png";
+    Resources.textures["LinearHighlight"] = Resources.texturesPath .. "\\linearHighlight.png";
 
     -- Icons --
     Resources.iconData = {};
