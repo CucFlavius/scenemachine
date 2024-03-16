@@ -61,6 +61,7 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 			end,
 			refreshItem = function(data, item, d)
 				-- main button --
+				item.dataIndex = d;
 				item.components[1]:SetScript("OnClick", function(self, button, down)
 					if (button == "LeftButton") then
 						SM.SelectObject(data);
@@ -275,12 +276,12 @@ function SH.OnDraggingItem()
 		-- determine which item the mouse is over
 		local scale = SH.inputState.viewportScale;
 		local mouseOverItem;
-		local mouseOverItemIndex;
+		--local mouseOverItemIndex;
 		local itemBuf;
-		local indexBuf;
+		--local indexBuf;
 		for i = 1, #SH.scrollList.itemPool, 1 do
 			itemBuf = SH.scrollList.itemPool[i];
-			indexBuf = i;
+			--indexBuf = i;
 			if (itemBuf:IsVisible()) then
 				local xmin = itemBuf:GetLeft() * scale;
 				local ymin = itemBuf:GetBottom() * scale;
@@ -290,7 +291,7 @@ function SH.OnDraggingItem()
 				
 				if (Input.mouseXRaw > xmin and Input.mouseXRaw < xmax and Input.mouseYRaw > ymin and Input.mouseYRaw < ymax) then
 					mouseOverItem = itemBuf;
-					mouseOverItemIndex = i;
+					--mouseOverItemIndex = i;
 				end
 			else
 				break;
@@ -300,11 +301,11 @@ function SH.OnDraggingItem()
 		if (not mouseOverItem) then
 			-- use last visible, if mouse is blow it
 			mouseOverItem = itemBuf;
-			mouseOverItemIndex = indexBuf;
+			--mouseOverItemIndex = indexBuf;
 			local xmin = mouseOverItem:GetLeft() * scale;
 			local ymin = mouseOverItem:GetBottom() * scale;
 			if (Input.mouseYRaw < ymin) then
-				SH.InsertSpacing(xmin, ymin + SH.scrollList.template.height, mouseOverItemIndex);
+				SH.InsertSpacing(xmin, ymin + SH.scrollList.template.height, mouseOverItem.dataIndex);
 			end
 		else
 			if (mouseOverItem) then
@@ -315,11 +316,11 @@ function SH.OnDraggingItem()
 				-- if closer to top edge
 				if (math.abs(Input.mouseYRaw - ymin) < 5) then
 					-- insert above
-					SH.InsertSpacing(xmin, ymin, mouseOverItemIndex + 1);
+					SH.InsertSpacing(xmin, ymin, mouseOverItem.dataIndex + 1);
 				-- if closer to bottom edge
 				elseif (math.abs(Input.mouseYRaw - ymax) < 5) then
 					-- insert below
-					SH.InsertSpacing(xmin, ymin + SH.scrollList.template.height, mouseOverItemIndex);
+					SH.InsertSpacing(xmin, ymin + SH.scrollList.template.height, mouseOverItem.dataIndex);
 				-- if closer to center
 				else
 					SH.InsertSpacing();
