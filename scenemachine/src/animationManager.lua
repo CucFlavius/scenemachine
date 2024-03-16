@@ -726,7 +726,8 @@ function AM.CreateAnimationManager(x, y, w, h, parent, startLevel)
             -- open rmb menu with option to delete, edit, rename the scene
             local point, relativeTo, relativePoint, xOfs, yOfs = item:GetPoint(1);
             local rx = xOfs + (AM.parentFrame:GetLeft() - SceneMachine.mainWindow:GetLeft());
-            local ry = (AM.parentFrame:GetTop() - SceneMachine.mainWindow:GetTop());
+            local ry = (AM.parentFrame:GetTop() - SceneMachine.mainWindow:GetTop()) - item:GetHeight();
+            local scale =  SceneMachine.mainWindow:GetEffectiveScale();
 
             local menuOptions = {
                 [1] = { ["Name"] = L["RENAME"], ["Action"] = function() AM.tabGroup:RenameTab(index, item, AM.RenameTimeline); end },
@@ -734,7 +735,7 @@ function AM.CreateAnimationManager(x, y, w, h, parent, startLevel)
                 [3] = { ["Name"] = L["DELETE"], ["Action"] = function() AM.Button_DeleteTimeline(index); end },
             };
 
-            SceneMachine.mainWindow:PopupWindowMenu(rx, ry, menuOptions);
+            SceneMachine.mainWindow:PopupWindowMenu(rx * scale, ry * scale, menuOptions);
         end,
         addAction = function(text) AM.CreateTimeline(text) end,
         refreshItem = function(data, item, index)
@@ -1487,12 +1488,9 @@ function AM.GenerateAnimationElement(index, x, y, w, h, parent, R, G, B, A)
             AM.SelectAnimation(index);
             AM.SelectKeyAtIndex(-1);
 
-            local point, relativeTo, relativePoint, xOfs, yOfs = element:GetPoint(1);
-            local x = -(element:GetLeft() - Input.mouseXRaw);
-            local y = -(element:GetTop() - Input.mouseYRaw);
-
-            local rx = x + xOfs + (parent:GetLeft() - SceneMachine.mainWindow:GetLeft()) + 6;
-            local ry = y + yOfs + (parent:GetTop() - SceneMachine.mainWindow:GetTop());
+            local scale = SceneMachine.mainWindow:GetEffectiveScale();
+            local rx = Input.mouseXRaw / scale - SceneMachine.mainWindow:GetLeft();
+            local ry = Input.mouseYRaw / scale - SceneMachine.mainWindow:GetTop();
 
             local menuOptions = {
                 [1] = { ["Name"] = L["AM_RMB_CHANGE_ANIM"], ["Action"] = function() AM.Button_ChangeAnimation(index); end },
@@ -1501,7 +1499,7 @@ function AM.GenerateAnimationElement(index, x, y, w, h, parent, R, G, B, A)
                 [4] = { ["Name"] = L["AM_RMB_DIFFERENT_COLOR"], ["Action"] = function() AM.Button_RandomizeAnimColor(index); end },
             };
 
-            SceneMachine.mainWindow:PopupWindowMenu(rx, ry, menuOptions);
+            SceneMachine.mainWindow:PopupWindowMenu(rx * scale, ry * scale, menuOptions);
         end
     end)
 
@@ -1518,13 +1516,15 @@ function AM.GenerateAnimationElement(index, x, y, w, h, parent, R, G, B, A)
     element.handleL.ntex:SetAllPoints();
     element.handleL.ntex:SetVertexColor(1, 1, 1, 0.1);
     element.handleL:SetHighlightTexture(element.handleL.ntex);
-    element.handleL:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
+    element.handleL:RegisterForClicks("LeftButtonUp", "LeftButtonDown", "RightButtonDown");
     element.handleL:SetScript("OnMouseDown", function(self, button)
-        local animElement = AM.AnimationPool[index];
-        local track = AM.loadedTimeline.tracks[animElement.trackIdx];
-        Editor.StartAction(Actions.Action.Type.TrackAnimations, track, AM.loadedTimeline);
-        AM.inputState.movingAnimHandleL = index;
-        AM.inputState.mousePosStartX = Input.mouseXRaw;
+        if (button == "LeftButton") then
+            local animElement = AM.AnimationPool[index];
+            local track = AM.loadedTimeline.tracks[animElement.trackIdx];
+            Editor.StartAction(Actions.Action.Type.TrackAnimations, track, AM.loadedTimeline);
+            AM.inputState.movingAnimHandleL = index;
+            AM.inputState.mousePosStartX = Input.mouseXRaw;
+        end
     end);
     element.handleL:SetScript("OnMouseUp", function(self, button)
         AM.inputState.movingAnimHandleL = -1;
@@ -1549,13 +1549,15 @@ function AM.GenerateAnimationElement(index, x, y, w, h, parent, R, G, B, A)
     element.handleR.ntex:SetAllPoints();
     element.handleR.ntex:SetVertexColor(1, 1, 1, 0.1);
     element.handleR:SetHighlightTexture(element.handleR.ntex);
-    element.handleR:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
+    element.handleR:RegisterForClicks("LeftButtonUp", "LeftButtonDown", "RightButtonDown");
     element.handleR:SetScript("OnMouseDown", function(self, button)
-        local animElement = AM.AnimationPool[index];
-        local track = AM.loadedTimeline.tracks[animElement.trackIdx];
-        Editor.StartAction(Actions.Action.Type.TrackAnimations, track, AM.loadedTimeline);
-        AM.inputState.movingAnimHandleR = index;
-        AM.inputState.mousePosStartX = Input.mouseXRaw;
+        if (button == "LeftButton") then
+            local animElement = AM.AnimationPool[index];
+            local track = AM.loadedTimeline.tracks[animElement.trackIdx];
+            Editor.StartAction(Actions.Action.Type.TrackAnimations, track, AM.loadedTimeline);
+            AM.inputState.movingAnimHandleR = index;
+            AM.inputState.mousePosStartX = Input.mouseXRaw;
+        end
     end);
     element.handleR:SetScript("OnMouseUp", function(self, button)
         AM.inputState.movingAnimHandleR = -1;

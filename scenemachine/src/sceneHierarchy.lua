@@ -74,15 +74,7 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 					elseif(button == "RightButton") then
 						SM.SelectObject(data);
 						SM.ApplySelectionEffects();
-
-						local point, relativeTo, relativePoint, xOfs, yOfs = item:GetPoint(1);
-						local x = -(item:GetLeft() - Input.mouseXRaw);
-						local y = -(item:GetTop() - Input.mouseYRaw);
-			
-						local rx = x + xOfs + (SH.scrollList:GetLeft() - SceneMachine.mainWindow:GetLeft());
-						local ry = y + yOfs + (SH.scrollList:GetTop() - SceneMachine.mainWindow:GetTop());
-
-						SH.OpenItemContextMenu(rx, ry, data);
+						SH.OpenItemContextMenu(data);
 					end
 
 					if (not down) then
@@ -156,7 +148,7 @@ function SH.RefreshHierarchy()
 	end
 end
 
-function SH.OpenItemContextMenu(rx, ry, object)
+function SH.OpenItemContextMenu(object)
 
 	local menuOptions = {};
 
@@ -187,7 +179,11 @@ function SH.OpenItemContextMenu(rx, ry, object)
 	local renameAction = function(text) object:Rename(text); SH.RefreshHierarchy(); end
 	table.insert(menuOptions, { ["Name"] = L["CM_RENAME"], ["Action"] = function() Editor.OpenQuickTextbox(renameAction, object:GetName(), L["CM_RENAME"]); end });
 
-	SceneMachine.mainWindow:PopupWindowMenu(rx, ry, menuOptions);
+	local scale = SceneMachine.mainWindow:GetEffectiveScale();
+	local rx = Input.mouseXRaw / scale - SceneMachine.mainWindow:GetLeft();
+	local ry = Input.mouseYRaw / scale - SceneMachine.mainWindow:GetTop();
+
+	SceneMachine.mainWindow:PopupWindowMenu(rx * scale, ry * scale, menuOptions);
 end
 
 function SH.Update(deltaTime)
@@ -276,12 +272,9 @@ function SH.OnDraggingItem()
 		-- determine which item the mouse is over
 		local scale = SH.inputState.viewportScale;
 		local mouseOverItem;
-		--local mouseOverItemIndex;
 		local itemBuf;
-		--local indexBuf;
 		for i = 1, #SH.scrollList.itemPool, 1 do
 			itemBuf = SH.scrollList.itemPool[i];
-			--indexBuf = i;
 			if (itemBuf:IsVisible()) then
 				local xmin = itemBuf:GetLeft() * scale;
 				local ymin = itemBuf:GetBottom() * scale;
@@ -291,7 +284,6 @@ function SH.OnDraggingItem()
 				
 				if (Input.mouseXRaw > xmin and Input.mouseXRaw < xmax and Input.mouseYRaw > ymin and Input.mouseYRaw < ymax) then
 					mouseOverItem = itemBuf;
-					--mouseOverItemIndex = i;
 				end
 			else
 				break;
@@ -301,7 +293,6 @@ function SH.OnDraggingItem()
 		if (not mouseOverItem) then
 			-- use last visible, if mouse is blow it
 			mouseOverItem = itemBuf;
-			--mouseOverItemIndex = indexBuf;
 			local xmin = mouseOverItem:GetLeft() * scale;
 			local ymin = mouseOverItem:GetBottom() * scale;
 			if (Input.mouseYRaw < ymin) then

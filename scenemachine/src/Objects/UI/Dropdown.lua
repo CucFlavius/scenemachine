@@ -50,7 +50,8 @@ function Dropdown:Build()
     self.button:SetScript("OnClick", function ()
 		local rx = self.x + (self.parent:GetLeft() - SceneMachine.mainWindow:GetLeft());
 		local ry = self.y + (self.parent:GetBottom() - SceneMachine.mainWindow:GetTop());
-	    self.window:PopupWindowMenu(rx, ry, self.options);
+		local scale = SceneMachine.mainWindow:GetEffectiveScale();
+	    self.window:PopupWindowMenu(rx * scale, ry * scale, self.options);
 	end);
 	self.button:SetScript("OnEnter", function ()
 		if (self.tooltip) then

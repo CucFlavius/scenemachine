@@ -58,7 +58,8 @@ function TabGroup:Build()
         end
         local rx = (self.dropdownButton:GetLeft() - SceneMachine.mainWindow:GetLeft()) - SceneMachine.mainWindow.popup.menu:GetWidth() + self.h;
         local ry = (self.dropdownButton:GetTop() - SceneMachine.mainWindow:GetTop()) - self.h;
-        SceneMachine.mainWindow:PopupWindowMenu(rx, ry, menuOptions);
+        local scale =  SceneMachine.mainWindow:GetEffectiveScale();
+        SceneMachine.mainWindow:PopupWindowMenu(rx * scale, ry * scale, menuOptions);
     end);
 
     local buttonSpace = self.h;

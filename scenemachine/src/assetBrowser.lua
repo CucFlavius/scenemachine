@@ -891,20 +891,16 @@ function AssetBrowser.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
                         AssetBrowser.selectedGridViewItem = item;
                         AssetBrowser.gridList:RefreshStatic();
                     elseif (button == "RightButton") then
-
-                        local point, relativeTo, relativePoint, xOfs, yOfs = item:GetPoint(1);
-                        local x = -(item:GetLeft() - Input.mouseXRaw);
-                        local y = -(item:GetTop() - Input.mouseYRaw);
-
-                        local rx = x + xOfs + (AssetBrowser.gridList:GetLeft() - SceneMachine.mainWindow:GetLeft());
-                        local ry = y + yOfs + (AssetBrowser.gridList:GetTop() - SceneMachine.mainWindow:GetTop());
+                        local scale = SceneMachine.mainWindow:GetEffectiveScale();
+                        local rx = Input.mouseXRaw / scale - SceneMachine.mainWindow:GetLeft();
+                        local ry = Input.mouseYRaw / scale - SceneMachine.mainWindow:GetTop();
+                        
                         if (entry.fileID or entry.displayID) then
                             local menuOptions = {
                                 [1] = { ["Name"] = L["LOAD"],
                                         ["Action"] = function() AssetBrowser.GridLoad(entry) end },
                                 [2] = { ["Name"] = L["AB_RMB_FILE_INFO"],
                                         ["Action"] = function() AssetBrowser.GridShowFileInfo(entry) end },
-                                
                             };
 
                             if (entry.collectionItem) then
@@ -914,7 +910,7 @@ function AssetBrowser.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
                                 menuOptions[#menuOptions + 1] = { ["Name"] = L["AB_RMB_ADD_TO_COLLECTION"],
                                         ["Action"] = function() AssetBrowser.GridAddToCollection(entry) end }
                             end
-                            SceneMachine.mainWindow:PopupWindowMenu(rx, ry, menuOptions);
+                            SceneMachine.mainWindow:PopupWindowMenu(rx * scale, ry * scale, menuOptions);
                         end
                     end
                 end);

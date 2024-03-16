@@ -649,7 +649,8 @@ function Editor.OpenContextMenu(x, y)
         end },
 	};
 
-    SceneMachine.mainWindow:PopupWindowMenu(x, y, menuOptions);
+    local scale =  SceneMachine.mainWindow:GetEffectiveScale();
+    SceneMachine.mainWindow:PopupWindowMenu(x * scale, y * scale, menuOptions);
 end
 
 function Editor.OpenMessageBox( window, title, message, hasYesButton, hasNoButton, onYesButton, onNoButton )

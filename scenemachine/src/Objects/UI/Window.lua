@@ -95,15 +95,17 @@ function Window:WindowCreateMenuBar(menu)
 
 	menubar.buttons = {};
 
+	local scale = SceneMachine.mainWindow:GetEffectiveScale();
+
 	for m = 1, #menu, 1 do
 		menubar.buttons[m] = UI.Button:New((m - 1) * 50, 0, 50, 15, menubar:GetFrame(), "LEFT", "LEFT", menu[m]["Name"]);
 		menubar.buttons[m]:SetScript("OnClick", function ()
-			self:PopupWindowMenu((m - 1) * 50, -20, menu[m]["Options"]);
+			self:PopupWindowMenu((m - 1) * 50, -20, menu[m]["Options"], true);
 		end);
 		menubar.buttons[m]:EnableMouse(true);
 		menubar.buttons[m]:HookScript("OnEnter", function ()
 			if (self.menuIsOpen == true) then
-				self:PopupWindowMenu((m - 1) * 50, -20, menu[m]["Options"]);
+				self:PopupWindowMenu((m - 1) * 50, -20, menu[m]["Options"], true);
 			end
 		end);
 	end
@@ -147,9 +149,13 @@ function Window:CreateMenu(parent)
 	return popup;
 end
 
-function Window:PopupWindowMenu(mx, my, menuOptions)
+function Window:PopupWindowMenu(mx, my, menuOptions, scale)
 	self.menuIsOpen = true;
-	self.popup:SetScale(self:GetEffectiveScale());
+	if (scale) then
+		self.popup:SetScale(self:GetEffectiveScale());
+	else
+		self.popup:SetScale(1);
+	end
 	if (menuOptions == nil) then return end
 	local optionCount = #menuOptions;
 	if (optionCount == 0) then return end

@@ -72,7 +72,8 @@ function SM.Create(x, y, w, h, parent, startLevel)
                 [4] = { ["Name"] = L["DELETE"], ["Action"] = function() SM.Button_DeleteScene(index); end },
             };
 
-            SceneMachine.mainWindow:PopupWindowMenu(rx, ry, menuOptions);
+            local scale =  SceneMachine.mainWindow:GetEffectiveScale();
+            SceneMachine.mainWindow:PopupWindowMenu(rx * scale, ry * scale, menuOptions);
         end,
         addAction = function(text) SM.AddScene(text) end,
         refreshItem = function(data, item, index)
