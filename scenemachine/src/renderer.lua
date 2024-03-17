@@ -262,28 +262,29 @@ function Renderer.RenderSprites()
 
     for i = 1, #SM.loadedScene.objects, 1 do
         local object = SM.loadedScene.objects[i];
+        if (object) then
+            if (object:GetGizmoType() == Gizmos.Type.Camera) then
+                if (object:IsVisible()) then
+                    local pos = object:GetPosition();
+                    
+                    -- Near plane face culling --
+                    local cull = Renderer.NearPlaneFaceCullingVert({pos.x, pos.y, pos.z}, Camera.planePosition.x, Camera.planePosition.y, Camera.planePosition.z, Camera.forward.x, Camera.forward.y, Camera.forward.z)
+                    if (not cull) then
+                        local sprite = Renderer.GetAvailableSprite();
+                        sprite.objIdx = i;
 
-        if (object:GetGizmoType() == Gizmos.Type.Camera) then
-            if (object:IsVisible()) then
-                local pos = object:GetPosition();
-                
-                -- Near plane face culling --
-                local cull = Renderer.NearPlaneFaceCullingVert({pos.x, pos.y, pos.z}, Camera.planePosition.x, Camera.planePosition.y, Camera.planePosition.z, Camera.forward.x, Camera.forward.y, Camera.forward.z)
-                if (not cull) then
-                    local sprite = Renderer.GetAvailableSprite();
-                    sprite.objIdx = i;
-
-                    -- Project to screen space --
-                    local aX, aY, aZ = Renderer.projectionFrame:Project3DPointTo2D(pos.x, pos.y, pos.z);
-                    local size = 20;
-                    local hSize = size / 2;
-                    -- Render --
-                    if (aX ~= nil and aY ~= nil) then
-                        sprite:Show();
-                        sprite:ClearAllPoints();
-                        sprite:SetPoint("BOTTOMLEFT", Renderer.projectionFrame, "BOTTOMLEFT", aX * Renderer.scale - hSize, aY * Renderer.scale - hSize);
-                        sprite:SetSize(size, size);
-                        sprite.texture:SetTexCoord(0, 0.25, 0, 0.25);
+                        -- Project to screen space --
+                        local aX, aY, aZ = Renderer.projectionFrame:Project3DPointTo2D(pos.x, pos.y, pos.z);
+                        local size = 20;
+                        local hSize = size / 2;
+                        -- Render --
+                        if (aX ~= nil and aY ~= nil) then
+                            sprite:Show();
+                            sprite:ClearAllPoints();
+                            sprite:SetPoint("BOTTOMLEFT", Renderer.projectionFrame, "BOTTOMLEFT", aX * Renderer.scale - hSize, aY * Renderer.scale - hSize);
+                            sprite:SetSize(size, size);
+                            sprite.texture:SetTexCoord(0, 0.25, 0, 0.25);
+                        end
                     end
                 end
             end

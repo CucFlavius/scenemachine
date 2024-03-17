@@ -614,11 +614,15 @@ function SM.ApplySelectionEffects()
     end
 
     for i = 1, #SM.loadedScene.objects, 1 do
-        SM.loadedScene.objects[i]:Deselect();
+        if (SM.loadedScene.objects[i]) then
+            SM.loadedScene.objects[i]:Deselect();
+        end
     end
 
     for i = 1, #SM.selectedObjects, 1 do
-        SM.selectedObjects[i]:Select();
+        if (SM.loadedScene.objects[i]) then
+            SM.selectedObjects[i]:Select();
+        end
     end
 end
 

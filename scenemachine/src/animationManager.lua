@@ -1109,6 +1109,7 @@ function AM.CreateToolbar(x, y, w, h, parent, startLevel)
             if (value) then
                 AM.loadedTimeline.duration = value * 1000;
                 AM.RefreshWorkspace();
+                AM.RefreshTimebar();
             end
         end;
         Editor.OpenQuickTextbox(action, tostring(currentDuration / 1000), L["AM_TIMER_SET_DURATION"]);

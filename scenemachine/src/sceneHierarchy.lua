@@ -20,6 +20,7 @@ SH.inputState = {
 	viewportYMax = 0;
 	viewportScale = 1;
 	insertIndex = -1;
+	previousIndex = -1;
 };
 
 function SH.CreatePanel(w, h, leftPanel, startLevel)
@@ -60,58 +61,60 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 				item.components[3]:SetAlpha(0.6);
 			end,
 			refreshItem = function(data, item, d)
-				-- main button --
-				item.dataIndex = d;
-				item.components[1]:SetScript("OnClick", function(self, button, down)
-					if (button == "LeftButton") then
-						SM.SelectObject(data);
-						SM.ApplySelectionEffects();
-						if (down) then
-							SH.inputState.startedMovingObject = data;
-							SH.inputState.mousePosStartX = Input.mouseXRaw;
-							SH.inputState.mousePosStartY = Input.mouseYRaw;
+				if (data) then
+					-- main button --
+					item.dataIndex = d;
+					item.components[1]:SetScript("OnClick", function(self, button, down)
+						if (button == "LeftButton") then
+							SM.SelectObjectByIndex(d);
+							SM.ApplySelectionEffects();
+							if (down) then
+								SH.inputState.startedMovingObject = data;
+								SH.inputState.mousePosStartX = Input.mouseXRaw;
+								SH.inputState.mousePosStartY = Input.mouseYRaw;
+							end
+						elseif(button == "RightButton") then
+							SM.SelectObjectByIndex(d);
+							SM.ApplySelectionEffects();
+							SH.OpenItemContextMenu(data);
 						end
-					elseif(button == "RightButton") then
-						SM.SelectObject(data);
-						SM.ApplySelectionEffects();
-						SH.OpenItemContextMenu(data);
-					end
 
-					if (not down) then
-						SH.inputState.startedMovingObject = nil;
-						SH.OnFinishedDraggingItem();
-						SH.inputState.movingObject = nil;
-					end
-				end);
-				item.components[1]:SetColor(UI.Button.State.Normal, 0.1757, 0.1757, 0.1875, 1);
-				if (SH.inputState.dragging) then
-					item.components[1]:SetColor(UI.Button.State.Pressed, 0.1757, 0.1757, 0.1875, 1);	-- disable button pressed
-				else
-					item.components[1]:SetColor(UI.Button.State.Pressed, 0, 0.4765, 0.7968, 1);	-- enable button pressed
-					for i = 1, #SM.selectedObjects, 1 do
-						if (data == SM.selectedObjects[i]) then
-							item.components[1]:SetColor(UI.Button.State.Normal, 0, 0.4765, 0.7968, 1);
+						if (not down) then
+							SH.inputState.startedMovingObject = nil;
+							SH.OnFinishedDraggingItem();
+							SH.inputState.movingObject = nil;
+						end
+					end);
+					item.components[1]:SetColor(UI.Button.State.Normal, 0.1757, 0.1757, 0.1875, 1);
+					if (SH.inputState.dragging) then
+						item.components[1]:SetColor(UI.Button.State.Pressed, 0.1757, 0.1757, 0.1875, 1);	-- disable button pressed
+					else
+						item.components[1]:SetColor(UI.Button.State.Pressed, 0, 0.4765, 0.7968, 1);	-- enable button pressed
+						for i = 1, #SM.selectedObjects, 1 do
+							if (data == SM.selectedObjects[i]) then
+								item.components[1]:SetColor(UI.Button.State.Normal, 0, 0.4765, 0.7968, 1);
+							end
 						end
 					end
-				end
 
-				-- frozen --
-				if (data.frozen) then
-					item.components[2]:SetTextColor(1, 1, 1, 0.5);
-				else
-					item.components[2]:SetTextColor(1, 1, 1, 1);
-				end
+					-- frozen --
+					if (data.frozen) then
+						item.components[2]:SetTextColor(1, 1, 1, 0.5);
+					else
+						item.components[2]:SetTextColor(1, 1, 1, 1);
+					end
 
-				-- object name text --
-				item.components[2]:SetText(data.name);
+					-- object name text --
+					item.components[2]:SetText(data.name);
 
-				-- visibility icon --
-				if (data.visible) then
-					item.components[3]:SetTexCoords(SH.eyeIconVisibleTexCoord);
-				else
-					item.components[3]:SetTexCoords(SH.eyeIconInvisibleTexCoord);
+					-- visibility icon --
+					if (data.visible) then
+						item.components[3]:SetTexCoords(SH.eyeIconVisibleTexCoord);
+					else
+						item.components[3]:SetTexCoords(SH.eyeIconInvisibleTexCoord);
+					end
+					item.components[3]:SetScript("OnClick", function(_, button, down) SM.ToggleObjectVisibility(data); end);
 				end
-				item.components[3]:SetScript("OnClick", function(_, button, down) SM.ToggleObjectVisibility(data); end);
 			end,
 		});
 
@@ -141,11 +144,7 @@ function SH.RefreshHierarchy()
         return
     end
 
-	if (not SH.inputState.dragging) then
-		SH.scrollList:SetData(SM.loadedScene.objects);
-	else
-		SH.scrollList:SetData(SH.tempDraggingData);
-	end
+	SH.scrollList:SetData(SM.loadedScene.objects);
 end
 
 function SH.OpenItemContextMenu(object)
@@ -213,6 +212,18 @@ function SH.Update(deltaTime)
 	end
 end
 
+function SH.InsertSpacing(x, y, index)
+	if (x and y) then
+		local h = SH.insertMarker:GetHeight();
+		SH.insertMarker:Show();
+		SH.insertMarker:SetSinglePoint("BOTTOMLEFT", x, y - (h/2));
+		SH.inputState.insertIndex = index;
+	else
+		SH.insertMarker:Hide();
+		SH.inputState.insertIndex = SH.inputState.previousIndex;
+	end
+end
+
 function SH.OnStartedDraggingItem()
 	SH.inputState.dragging = true;
 	SH.draggableItem:SetWidth(SH.scrollList.viewport:GetWidth());
@@ -229,32 +240,15 @@ function SH.OnStartedDraggingItem()
 	SH.inputState.viewportYMax = SH.inputState.viewportYMin + (SH.scrollList.viewport:GetHeight() * SH.inputState.viewportScale);
 
 	-- exclude current item from data
-	SH.GenerateDraggingData();
-end
-
-function SH.GenerateDraggingData()
-	SH.tempDraggingData = {};
-	local idx = 1;
 	for i = 1, #SM.loadedScene.objects, 1 do
-		if (SM.loadedScene.objects[i] ~= SH.inputState.movingObject) then
-			SH.tempDraggingData[idx] = SM.loadedScene.objects[i];
-			idx = idx + 1;
+		if (SM.loadedScene.objects[i] == SH.inputState.movingObject) then
+			table.remove(SM.loadedScene.objects, i);
+			SH.inputState.previousIndex = i;
+			break;
 		end
 	end
 
 	SH.RefreshHierarchy();
-end
-
-function SH.InsertSpacing(x, y, index)
-	if (x and y) then
-		local h = SH.insertMarker:GetHeight();
-		SH.insertMarker:Show();
-		SH.insertMarker:SetSinglePoint("BOTTOMLEFT", x, y - (h/2));
-		SH.inputState.insertIndex = index;
-	else
-		SH.insertMarker:Hide();
-		SH.inputState.insertIndex = -1;
-	end
 end
 
 function SH.OnDraggingItem()
@@ -331,10 +325,10 @@ function SH.OnFinishedDraggingItem()
 	SH.draggableItem:Hide();
 	SH.insertMarker:Hide();
 
-	if (SH.inputState.insertIndex ~= -1) then
-		table.insert(SH.tempDraggingData, SH.inputState.insertIndex, SH.inputState.movingObject);
-		SM.loadedScene.objects = SH.tempDraggingData;
+	if (SH.inputState.insertIndex ~= -1 and SH.inputState.movingObject) then
+		table.insert(SM.loadedScene.objects, SH.inputState.insertIndex, SH.inputState.movingObject);
+		SH.inputState.insertIndex = -1;
 	end
 
-	SH.scrollList:SetData(SM.loadedScene.objects);
+	SH.RefreshHierarchy();
 end

@@ -710,6 +710,10 @@ function Gizmos.MotionToTransform()
         end
 
         if (iPoint) then
+            if (not Gizmos.previousIPoint) then
+                Gizmos.previousIPoint = Vector3:New();
+            end
+
             local iPointDiff = Vector3:New();
             iPointDiff:SetVector3(iPoint);
             iPointDiff:Subtract(Gizmos.previousIPoint);
@@ -809,7 +813,7 @@ function Gizmos.OnLMBDown(x, y, recordAction)
     end
 
     if (not Gizmos.previousIPoint) then
-        Gizmos.previousIPoint = { x = 0, y = 0, z = 0 };
+        Gizmos.previousIPoint = Vector3:New();
     end
 
     if (not Input.mouseState.isDraggingAssetFromUI and recordAction) then
