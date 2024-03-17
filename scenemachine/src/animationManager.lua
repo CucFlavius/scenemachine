@@ -23,29 +23,19 @@ AM.maxShownNeedles = 25;
 AM.needles = {};
 AM.currentCrop = {
     min = 0;
-    max = 0.3;
+    max = 0.5;
 };
 
 AM.keyframeGroups = {};
 
 AM.inputState = {
-    minFramePosStart = 0;
-    maxFramePosStart = 0;
-    centerFramePosStart = 0;
     timebarFramePosStart = 0;
     mousePosStartX = 0;
-    mousePosStartY = 0;
-    movingMin = false;
-    movingMax = false;
-    movingCenter = false;
     movingTime = false;
     movingKeyframe = false;
     movingAnim = -1;
     movingAnimHandleL = -1;
     movingAnimHandleR = -1;
-
-    movingScrollbar = false;
-    scrollbarFramePosStart = 0;
 };
 AM.loadedTimelineIndex = 1;
 AM.loadedTimeline = nil;
@@ -147,103 +137,6 @@ function AM.Update(deltaTime)
 
             AM.SetTime(nextTime, false);
         end
-    end
-
-    if (AM.inputState.movingMin) then
-        local groupBgW = AM.workAreaViewport:GetWidth() + 6;
-        local mouseDiff = (AM.inputState.mousePosStartX - Input.mouseXRaw) * Renderer.scale;
-        local nextPoint = AM.inputState.minFramePosStart - mouseDiff;
-        local newPoint = 0;
-        if (nextPoint >= 0 and nextPoint < AM.inputState.maxFramePosStart - 32) then
-            AM.cropperLeftDrag:ClearAllPoints();
-            newPoint = nextPoint;
-            AM.cropperLeftDrag:SetPoint("LEFT", nextPoint, 0);
-        else
-            if (nextPoint <= 0) then
-                AM.cropperLeftDrag:ClearAllPoints();
-                newPoint = 0;
-                AM.cropperLeftDrag:SetPoint("LEFT", 0, 0);
-            end
-            if (nextPoint >= AM.inputState.maxFramePosStart - 32) then
-                AM.cropperLeftDrag:ClearAllPoints();
-                newPoint = AM.inputState.maxFramePosStart - 32;
-                AM.cropperLeftDrag:SetPoint("LEFT", AM.inputState.maxFramePosStart - 32, 0);
-            end
-        end
-
-        AM.cropperSlider:ClearAllPoints();
-        AM.cropperSlider:SetPoint("LEFT", AM.cropperBg:GetFrame(), "LEFT", newPoint + 16, 0);
-        AM.cropperSlider:SetPoint("RIGHT", AM.cropperBg:GetFrame(), "LEFT", AM.inputState.maxFramePosStart, 0);
-        local newPointNormalized = newPoint / groupBgW;
-        AM.currentCrop.min = newPointNormalized;
-        AM.RefreshTimebar();
-        AM.RefreshWorkspace();
-    end
-
-    if (AM.inputState.movingMax) then
-        local groupBgW = AM.workAreaViewport:GetWidth() + 6;
-        local mouseDiff = (AM.inputState.mousePosStartX - Input.mouseXRaw) * Renderer.scale;
-        local nextPoint = AM.inputState.maxFramePosStart - mouseDiff;
-        local newPoint = 0;
-        if (nextPoint > AM.inputState.minFramePosStart + 32 and nextPoint < groupBgW) then
-            AM.cropperRightDrag:ClearAllPoints();
-            newPoint = nextPoint;
-            AM.cropperRightDrag:SetPoint("LEFT", nextPoint, 0);
-        else
-            if (nextPoint <= AM.inputState.minFramePosStart + 32) then
-                AM.cropperRightDrag:ClearAllPoints();
-                newPoint = AM.inputState.minFramePosStart + 32;
-                AM.cropperRightDrag:SetPoint("LEFT", AM.inputState.minFramePosStart + 32, 0);
-            end
-            if (nextPoint > groupBgW) then
-                AM.cropperRightDrag:ClearAllPoints();
-                newPoint = groupBgW;
-                AM.cropperRightDrag:SetPoint("LEFT", groupBgW, 0);
-            end
-        end
-
-        AM.cropperSlider:ClearAllPoints();
-        AM.cropperSlider:SetPoint("RIGHT", AM.cropperBg:GetFrame(), "LEFT", newPoint, 0);
-        AM.cropperSlider:SetPoint("LEFT", AM.cropperBg:GetFrame(), "LEFT", AM.inputState.minFramePosStart + 16, 0);
-        local newPointNormalized = newPoint / groupBgW;
-        AM.currentCrop.max = newPointNormalized;
-        AM.RefreshTimebar();
-        AM.RefreshWorkspace();
-    end
-
-    if (AM.inputState.movingCenter) then
-        local groupBgW = AM.workAreaViewport:GetWidth() + 6;
-        local sliderSize = AM.inputState.maxFramePosStart - AM.inputState.minFramePosStart;
-        local mouseDiff = (AM.inputState.mousePosStartX - Input.mouseXRaw) * Renderer.scale;
-        local nextPoint = AM.inputState.centerFramePosStart - mouseDiff;
-        local newPoint = 0;
-        if (nextPoint > 0 and nextPoint < (groupBgW) - sliderSize) then
-            newPoint = nextPoint;
-        else
-            if (nextPoint <= 0) then
-                newPoint = 0;
-            end
-            if (nextPoint > groupBgW - sliderSize) then
-                newPoint = groupBgW - sliderSize;
-            end
-        end
-
-        AM.cropperSlider:ClearAllPoints();
-        AM.cropperSlider:SetPoint("RIGHT", AM.cropperBg:GetFrame(), "LEFT", newPoint + sliderSize, 0);
-        AM.cropperSlider:SetPoint("LEFT", AM.cropperBg:GetFrame(), "LEFT", newPoint + 16, 0);
-        
-        AM.cropperRightDrag:ClearAllPoints();
-        AM.cropperRightDrag:SetPoint("LEFT", newPoint + sliderSize, 0);
-        
-        AM.cropperLeftDrag:ClearAllPoints();
-        AM.cropperLeftDrag:SetPoint("LEFT", newPoint, 0);
-
-        local newPointMinNormalized = newPoint / groupBgW;
-        local newPointMaxNormalized = (newPoint + sliderSize) / groupBgW;
-        AM.currentCrop.max = newPointMaxNormalized;
-        AM.currentCrop.min = newPointMinNormalized;
-        AM.RefreshTimebar();
-        AM.RefreshWorkspace();
     end
 
     if (AM.inputState.movingTime) then
@@ -702,6 +595,10 @@ function AM.CreateAnimationManager(x, y, w, h, parent, startLevel)
                 AM.workAreaScrollbar:Resize(height - 106, AM.keyframeAreaList:GetHeight());
             end
         end
+        if (AM.rangeBar) then
+            AM.rangeBar:Resize();
+        end;
+
         if (AM.TimeSliderBar) then
             AM.TimeSliderBar:SetHeight(height - 80);
         end
@@ -775,7 +672,16 @@ function AM.CreateAnimationManager(x, y, w, h, parent, startLevel)
     AM.CreateWorkArea(workAreaX - 6, workAreaY, workAreaW, workAreaH, AM.groupBG:GetFrame(), startLevel + 3);
     AM.CreateKeyframeView(workAreaX - 6, workAreaY, workAreaW, workAreaH, AM.groupBG:GetFrame(), startLevel + 3);
     AM.CreateCurveView(workAreaX - 6, curveViewY, workAreaW, curveViewH, AM.groupBG:GetFrame(), startLevel + 3);
-    AM.CreateCropperBar(0, cropperBarY, w - 14, cropperBarH, AM.groupBG:GetFrame(), startLevel + 3);
+
+    local onRangeChange = function(min, max)
+        AM.currentCrop.min = min;
+        AM.currentCrop.max = max;
+        AM.RefreshTimebar();
+        AM.RefreshWorkspace();
+    end
+    AM.rangeBar = UI.RangeScrollbar:New(x, cropperBarY, cropperBarH, AM.groupBG:GetFrame(), onRangeChange);
+    AM.rangeBar:SetFrameLevel(startLevel + 3);
+    AM.rangeBar:SetRange(AM.currentCrop.min, AM.currentCrop.max);
 
     AM.CreateAnimationSelectWindow(0, 0, 300, 500);
 
@@ -1590,94 +1496,6 @@ function AM.GetAvailableAnimationElement()
     end
 
     return AM.AnimationPool[i];
-end
-
-function AM.CreateCropperBar(x, y, w, h, parent)
-    AM.cropperBg = UI.Rectangle:New(x, y, w, h, parent, "BOTTOMLEFT", "BOTTOMLEFT",  0, 0, 0, 0);
-    AM.cropperBg:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", x, y);
-
-    AM.cropperBgCenter = UI.ImageBox:New(h, 0, w - (h * 2), h, AM.cropperBg:GetFrame(), "LEFT", "LEFT", Resources.textures["CropBar"], { 0.25 + 0.125, 0.75 - 0.125, 0, 0.5 });
-    AM.cropperBgCenter:SetPoint("RIGHT", AM.cropperBg:GetFrame(), "RIGHT", -h, y);
-    AM.cropperBgCenter:SetVertexColor(0.18,0.18,0.18,1);
-
-    AM.cropperBgLeft = UI.ImageBox:New(0, 0, h, h, AM.cropperBg:GetFrame(), "LEFT", "LEFT", Resources.textures["CropBar"], { 0, 0.5, 0, 0.5 });
-    AM.cropperBgLeft:SetVertexColor(0.18,0.18,0.18,1);
-
-    AM.cropperBgRight = UI.ImageBox:New(0, 0, h, h, AM.cropperBg:GetFrame(), "RIGHT", "RIGHT", Resources.textures["CropBar"], { 0.5, 1.0, 0, 0.5 });
-    AM.cropperBgRight:SetVertexColor(0.18,0.18,0.18,1);
-
-    local initialSliderLength = w * (AM.currentCrop.max - AM.currentCrop.min) - 10;
-
-    -- Left handle
-    AM.cropperLeftDrag = CreateFrame("Button", "AM.cropperLeftDrag", AM.cropperBg:GetFrame())
-	AM.cropperLeftDrag:SetPoint("LEFT", AM.cropperBg:GetFrame(), "LEFT", 0, 0);
-	AM.cropperLeftDrag:SetSize(h, h);
-    --AM.cropperLeftDrag:SetAlpha(0.5);
-    AM.cropperLeftDrag.ntex = AM.cropperLeftDrag:CreateTexture();
-    AM.cropperLeftDrag.ntex:SetTexture(Resources.textures["CropBar"]);
-    AM.cropperLeftDrag.ntex:SetTexCoord(0, 0.5, 0, 0.5);    -- (left,right,top,bottom)
-    AM.cropperLeftDrag.ntex:SetAllPoints();
-    AM.cropperLeftDrag.ntex:SetVertexColor(0.3,0.3,0.3,1);
-    AM.cropperLeftDrag:SetNormalTexture(AM.cropperLeftDrag.ntex);
-    AM.cropperLeftDrag:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
-    AM.cropperLeftDrag:SetScript("OnMouseDown", function(self, button)
-        AM.inputState.movingMin = true;
-        local gpointL, grelativeToL, grelativePointL, gxOfsL, gyOfsL = AM.cropperLeftDrag:GetPoint(1);
-        AM.inputState.minFramePosStart = gxOfsL;
-        local gpointR, grelativeToR, grelativePointR, gxOfsR, gyOfsR = AM.cropperRightDrag:GetPoint(1);
-        AM.inputState.maxFramePosStart = gxOfsR;
-        AM.inputState.mousePosStartX = Input.mouseXRaw;
-    end);
-    AM.cropperLeftDrag:SetScript("OnMouseUp", function(self, button) AM.inputState.movingMin = false; end);
-    local burgerLD = UI.ImageBox:New(0, 0, h, h, AM.cropperLeftDrag, "CENTER", "CENTER", Resources.textures["CropBar"], { 0, 0.5, 0.5, 1 });
-    burgerLD:SetAlpha(0.2);
-
-    -- Right handle
-    AM.cropperRightDrag = CreateFrame("Button", "AM.cropperRightDrag", AM.cropperBg:GetFrame())
-	AM.cropperRightDrag:SetPoint("LEFT", AM.cropperBg:GetFrame(), "LEFT", initialSliderLength, 0);
-	AM.cropperRightDrag:SetSize(h, h);
-    --AM.cropperRightDrag:SetAlpha(0.5);
-    AM.cropperRightDrag.ntex = AM.cropperRightDrag:CreateTexture();
-    AM.cropperRightDrag.ntex:SetTexture(Resources.textures["CropBar"]);
-    AM.cropperRightDrag.ntex:SetTexCoord(0.5, 1.0, 0, 0.5);    -- (left,right,top,bottom)
-    AM.cropperRightDrag.ntex:SetAllPoints();
-    AM.cropperRightDrag.ntex:SetVertexColor(0.3,0.3,0.3,1);
-    AM.cropperRightDrag:SetNormalTexture(AM.cropperRightDrag.ntex);
-    AM.cropperRightDrag:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
-    AM.cropperRightDrag:SetScript("OnMouseDown", function(self, button)
-        AM.inputState.movingMax = true;
-        local gpointL, grelativeToL, grelativePointL, gxOfsL, gyOfsL = AM.cropperLeftDrag:GetPoint(1);
-        AM.inputState.minFramePosStart = gxOfsL;
-        local gpointR, grelativeToR, grelativePointR, gxOfsR, gyOfsR = AM.cropperRightDrag:GetPoint(1);
-        AM.inputState.maxFramePosStart = gxOfsR;
-        AM.inputState.mousePosStartX = Input.mouseXRaw;
-    end);
-    AM.cropperRightDrag:SetScript("OnMouseUp", function(self, button) AM.inputState.movingMax = false; end);
-    local burgerRD = UI.ImageBox:New(0, 0, h, h, AM.cropperRightDrag, "CENTER", "CENTER", Resources.textures["CropBar"], { 0, 0.5, 0.5, 1 })
-    burgerRD:SetAlpha(0.2);
-
-    -- Middle handle
-    AM.cropperSlider = CreateFrame("Button", "AM.cropperSlider", AM.cropperBg:GetFrame())
-	AM.cropperSlider:SetPoint("LEFT", AM.cropperBg:GetFrame(), "LEFT", h, 0);
-	AM.cropperSlider:SetSize(initialSliderLength-h, h);
-    --AM.cropperSlider:SetAlpha(0.5);
-    AM.cropperSlider.ntex = AM.cropperSlider:CreateTexture();
-    AM.cropperSlider.ntex:SetTexture(Resources.textures["CropBar"]);
-    AM.cropperSlider.ntex:SetTexCoord(0.25 + 0.125, 0.75 - 0.125, 0, 0.5);    -- (left,right,top,bottom)
-    AM.cropperSlider.ntex:SetAllPoints();
-    AM.cropperSlider.ntex:SetVertexColor(0.3,0.3,0.3,1);
-    AM.cropperSlider:SetNormalTexture(AM.cropperSlider.ntex);
-    AM.cropperSlider:SetScript("OnMouseDown", function(self, button)
-        AM.inputState.movingCenter = true;
-        local gpointC, grelativeToC, grelativePointC, gxOfsC, gyOfsC = AM.cropperSlider:GetPoint(1);
-        AM.inputState.centerFramePosStart = gxOfsC - 16;
-        local gpointL, grelativeToL, grelativePointL, gxOfsL, gyOfsL = AM.cropperLeftDrag:GetPoint(1);
-        AM.inputState.minFramePosStart = gxOfsL;
-        local gpointR, grelativeToR, grelativePointR, gxOfsR, gyOfsR = AM.cropperRightDrag:GetPoint(1);
-        AM.inputState.maxFramePosStart = gxOfsR;
-        AM.inputState.mousePosStartX = Input.mouseXRaw;
-    end);
-    AM.cropperSlider:SetScript("OnMouseUp", function(self, button) AM.inputState.movingCenter = false; end);
 end
 
 function AM.CreateDefaultTimeline()

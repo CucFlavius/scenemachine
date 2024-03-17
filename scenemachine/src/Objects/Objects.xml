@@ -27,6 +27,7 @@ Structures
 	<Script file="UI/Element.lua" />
 	<Script file="UI/Scrollbar.lua" />
 	<Script file="UI/ScrollbarHorizontal.lua" />
+	<Script file="UI/RangeScrollbar.lua" />
 	<Script file="UI/Rectangle.lua" />
 	<Script file="UI/Label.lua" />
 	<Script file="UI/TextBox.lua" />
