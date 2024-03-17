@@ -45,6 +45,7 @@ function Resources.Initialize(resourcePath)
     Resources.textures["Dropshadow"] = Resources.texturesPath .. "\\dropshadow.png";
     Resources.textures["SceneSprites"] = Resources.texturesPath .. "\\sceneSprites.png";
     Resources.textures["LinearHighlight"] = Resources.texturesPath .. "\\linearHighlight.png";
+    Resources.textures["TimeNeedle"] = Resources.texturesPath .. "\\timeNeedle.png";
 
     -- Icons --
     Resources.iconData = {};

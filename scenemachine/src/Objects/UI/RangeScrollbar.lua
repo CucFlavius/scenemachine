@@ -174,7 +174,7 @@ function RangeScrollbar:Update()
         self.middleDrag:SetPoint("LEFT", self.frame:GetFrame(), "LEFT", newPoint + 16, 0);
         self.middleDrag:SetPoint("RIGHT", self.frame:GetFrame(), "LEFT", self.inputState.maxFramePosStart, 0);
         local newPointNormalized = newPoint / groupBgW;
-        self.currentMin = newPointNormalized;
+        self.currentMin = max(0, newPointNormalized);
         if (self.onRangeChange) then
             self.onRangeChange(self.currentMin, self.currentMax);
         end
@@ -207,7 +207,7 @@ function RangeScrollbar:Update()
         self.middleDrag:SetPoint("RIGHT", self.frame:GetFrame(), "LEFT", newPoint, 0);
         self.middleDrag:SetPoint("LEFT", self.frame:GetFrame(), "LEFT", self.inputState.minFramePosStart + 16, 0);
         local newPointNormalized = newPoint / groupBgW;
-        self.currentMax = newPointNormalized;
+        self.currentMax = min(1, newPointNormalized);
         if (self.onRangeChange) then
             self.onRangeChange(self.currentMin, self.currentMax);
         end
@@ -243,8 +243,8 @@ function RangeScrollbar:Update()
 
         local newPointMinNormalized = newPoint / groupBgW;
         local newPointMaxNormalized = (newPoint + sliderSize) / groupBgW;
-        self.currentMax = newPointMaxNormalized;
-        self.currentMin = newPointMinNormalized;
+        self.currentMax = min(1, newPointMaxNormalized);
+        self.currentMin = max(0, newPointMinNormalized);
         if (self.onRangeChange) then
             self.onRangeChange(self.currentMin, self.currentMax);
         end
@@ -258,7 +258,7 @@ function RangeScrollbar:SetRange(min, max)
 
     local groupBgW = self.parent:GetWidth() - 16;
     local minDenormalized = min * groupBgW;
-    local maxDenormalized = max * groupBgW - 16;
+    local maxDenormalized = max * groupBgW;
 
     self.middleDrag:ClearAllPoints();
     self.middleDrag:SetPoint("RIGHT", self.frame:GetFrame(), "LEFT", maxDenormalized, 0);

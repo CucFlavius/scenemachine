@@ -676,6 +676,7 @@ function AM.CreateAnimationManager(x, y, w, h, parent, startLevel)
     local onRangeChange = function(min, max)
         AM.currentCrop.min = min;
         AM.currentCrop.max = max;
+        --print(min, max);
         AM.RefreshTimebar();
         AM.RefreshWorkspace();
     end
@@ -985,7 +986,8 @@ function AM.CreateTimeSlider(workAreaH, startLevel)
 end
 
 function AM.CreateNeedle()
-    local needle = UI.Rectangle:New(0, 0, 1, 4, AM.timebarGroup, "TOPLEFT", "TOPLEFT",  1, 1, 1, 0.5);
+    local needle = UI.ImageBox:New(0, 0, 10, 4, AM.timebarGroup, "TOPLEFT", "TOPLEFT", Resources.textures["TimeNeedle"]);
+    needle:SetVertexColor(1,1,1,0.7);
     needle.text = needle:GetFrame():CreateFontString("needle text");
 	needle.text:SetFont(Resources.defaultFont, 8, "NORMAL");
 	needle.text:SetPoint("TOP", needle.frame, "TOP", 0, 12);
@@ -1797,96 +1799,74 @@ function AM.RefreshTimebar()
         AM.needles[i]:Hide();
     end
 
-    -- Refresh needles
     local timeBarW = AM.timebarGroup:GetWidth();
-    local workAreaW = AM.workAreaViewport:GetWidth() - 8;
     local totalTimeMs = AM.loadedTimeline.duration or 0;
-    
-    local startTimeMs = AM.currentCrop.min * totalTimeMs;
+
+    local startTimeMs = math.floor(AM.currentCrop.min * totalTimeMs);
     local startTimeS = startTimeMs / 1000;
-    local endTimeMs = AM.currentCrop.max * totalTimeMs;
+    local endTimeMs = math.ceil(AM.currentCrop.max * totalTimeMs);
     local endTimeS = endTimeMs / 1000;
     local croppedTimeMs = endTimeMs - startTimeMs;
     local croppedTimeS = croppedTimeMs / 1000;
 
-    local needlesNeededF = croppedTimeS + 1;
-    local needleSpacing = workAreaW / (needlesNeededF - 1);
-    
+    local needlesNeededF = croppedTimeS;
+
+    local maxloop = 1000;
     local needleTimeSpacing = 1;    -- 1 second
     while (needlesNeededF < AM.minShownNeedles) do
         needlesNeededF = needlesNeededF * 2;
         needleTimeSpacing = needleTimeSpacing / 2;
+        maxloop = maxloop - 1;
+        if (maxloop < 0) then
+            break;
+        end
     end
+    local maxloop = 1000;
     while (needlesNeededF > AM.maxShownNeedles) do
         needlesNeededF = needlesNeededF / 2;
         needleTimeSpacing = needleTimeSpacing * 2;
-    end
-
-    local needleStartOffs = 0;
-    local numberOffs = 0;
-    local dif = (math.ceil(startTimeS, 1) - startTimeS);
-    if (needleTimeSpacing > 1) then
-        dif = (math.ceil(startTimeS, (1 / needleTimeSpacing)) - startTimeS);
-    end
-
-    if (dif ~= 0) then
-        needleStartOffs = -needleSpacing * (1.0 - dif);
-        numberOffs = 1;
-        if (needleTimeSpacing > 1) then
-            needleStartOffs = -needleSpacing * (1.0 - dif);
+        maxloop = maxloop - 1;
+        if (maxloop < 0) then
+            break;
         end
-        --print(dif)
-        --print(needleStartOffs)
     end
 
-    local needlesNeededCount = math.ceil(needlesNeededF);
-    if (needleTimeSpacing < 1) then
-        needlesNeededCount = needlesNeededCount - (1 / needleTimeSpacing);
+    local needleSpacing = timeBarW / needlesNeededF;
+    local startDiff = 0;
+    if (needleTimeSpacing == 1) then
+        startDiff = (math.floor(startTimeS) - startTimeS) * needleSpacing;
+    elseif (needleTimeSpacing < 1) then
+        startDiff = (math.floor(startTimeS) - startTimeS) * needleSpacing / needleTimeSpacing;
+    elseif (needleTimeSpacing > 1) then
+        startDiff = ((math.floor(startTimeS / needleTimeSpacing) * needleTimeSpacing) - (startTimeS)) * needleSpacing / needleTimeSpacing;
     end
 
-    if (needleStartOffs ~= 0 and needleTimeSpacing < 1) then
-        needlesNeededCount = needlesNeededCount + (1 / needleTimeSpacing);
-    end
-
-    needleSpacing = needleSpacing * needleTimeSpacing * 1.003;
-
-    if (needleTimeSpacing > 1) then
-        --needleStartOffs = needleStartOffs * needleTimeSpacing;
-        --startTimeS = startTimeS + 1.0
-    end
+    local needlesNeededCount = math.ceil(needlesNeededF) + 2;
 
     for i = 1, needlesNeededCount, 1 do
-        local pos = needleStartOffs + ((i - 1) * needleSpacing) + 9.5;
-        local text = math.ceil(startTimeS) + ((i - 1) * needleTimeSpacing) - numberOffs .. "s";
+        local pos = startDiff + ((i - 1) * needleSpacing) + 5;
+
+        local text;
+        if (needleTimeSpacing == 1) then
+            text = math.floor(startTimeS) + (i - 1) .. "s";
+        elseif (needleTimeSpacing < 1) then
+            text = math.floor(startTimeS) + ((i - 1) * needleTimeSpacing) .. "s";
+        elseif (needleTimeSpacing > 1) then
+            text = (math.floor(startTimeS / needleTimeSpacing) * needleTimeSpacing) + ((i - 1) * needleTimeSpacing) .. "s";
+        end
+
         local needle = AM.GetNeedle();
         needle:SetSinglePoint("BOTTOMLEFT", pos, 0);
         needle.text:SetText(text);
         needle:Show();
 
-        -- hide last one if out of bounds
-        if (pos > timeBarW) then
+        if (pos < 0) then
             needle:Hide();
         end
 
-        -- hide first one if out of bounds
-        if (i == 1) then
-            if (pos < 0) then
-                needle:Hide();
-            end
+        if (pos > timeBarW) then
+            needle:Hide();
         end
-    end
-
-    -- move ze slider
-    local groupBgH = AM.timebarGroup:GetWidth() - 26;
-    local timeNorm = AM.GetTimeNormalized(AM.loadedTimeline.currentTime);
-    if (timeNorm < 0 or timeNorm > 1) then
-        -- the slider is offscreen
-        AM.TimeSlider:Hide();
-    else
-        AM.TimeSlider:Show();
-        local pos = timeNorm * groupBgH + 10;
-        AM.TimeSlider:ClearAllPoints();
-        AM.TimeSlider:SetPoint("CENTER", AM.timebarGroup, "LEFT", pos, 0);
     end
 end
 
