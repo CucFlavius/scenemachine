@@ -1,6 +1,7 @@
 local Math = SceneMachine.Math;
 local Vector3 = SceneMachine.Vector3;
 local SM = SceneMachine.Editor.SceneManager;
+local SH = SceneMachine.Editor.SceneHierarchy;
 
 SceneMachine.Actions.DestroyObject = {};
 
@@ -9,13 +10,14 @@ local DestroyObject = SceneMachine.Actions.DestroyObject;
 DestroyObject.__index = DestroyObject;
 setmetatable(DestroyObject, Action)
 
-function DestroyObject:New(objects)
+function DestroyObject:New(objects, hierarchyBefore)
 	local v = 
     {
         type = Action.Type.DestroyObject,
 		memorySize = 1,
 		memoryUsage = 0,
 		objects = {},
+		objectHierarchyBefore = hierarchyBefore,
     };
 
 	setmetatable(v, DestroyObject)
@@ -31,8 +33,8 @@ function DestroyObject:New(objects)
 	return v
 end
 
-function DestroyObject:Finish()
-
+function DestroyObject:Finish(objectHierarchyAfter)
+	self.objectHierarchyAfter = objectHierarchyAfter;
 end
 
 function DestroyObject:Undo()
@@ -40,6 +42,7 @@ function DestroyObject:Undo()
 		local obj = self.objects[i];
 		SM.UndeleteObject_internal(obj);
 	end
+	SH.SetHierarchy(self.objectHierarchyBefore);
 end
 
 function DestroyObject:Redo()
@@ -47,4 +50,5 @@ function DestroyObject:Redo()
 		local obj = self.objects[i];
 		SM.DeleteObject_internal(obj);
 	end
+	SH.SetHierarchy(self.objectHierarchyAfter);
 end

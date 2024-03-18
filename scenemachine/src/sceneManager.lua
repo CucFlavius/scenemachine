@@ -23,6 +23,7 @@ SM.SCENE_DATA_VERSION = 1;
 SM.loadedSceneIndex = -1;
 SM.loadedScene = nil;
 SM.selectedObjects = {};
+SM.objectIDMap = {};
 
 SM.selectedPosition = nil;
 SM.selectedRotation = nil;
@@ -193,6 +194,10 @@ function SM.LoadScene(index)
         scene.timelines = {};
     end
 
+    if (scene.objectHierarchy == nil) then
+        SM.RebuildObjectHierarchyFromScene(scene);
+    end
+
     if (scene.properties == nil) then
         local ar, ag, ab = Renderer.projectionFrame:GetLightAmbientColor();
         local dr, dg, db = Renderer.projectionFrame:GetLightDiffuseColor();
@@ -213,44 +218,56 @@ function SM.LoadScene(index)
     --SM.loadedScene.objects = {};
     --SM.loadedScene.name = scene.name;
 
-    if (#scene.objects > 0) then
-        for i in pairs(scene.objects) do
-            local type = scene.objects[i].type;
-
-            -- Create actor
-            local object;
-            local id = 0;
-            if (type == SceneMachine.GameObjects.Object.Type.Model) then
-                object = SceneMachine.GameObjects.Model:New();
-                object:ImportData(scene.objects[i]);
-                object:CreateMatrix();
-                id = object.fileID;
-            elseif(type == SceneMachine.GameObjects.Object.Type.Creature) then
-                object = SceneMachine.GameObjects.Creature:New();
-                object:ImportData(scene.objects[i]);
-                object:CreateMatrix();
-                id = object.displayID;
-            elseif(type == SceneMachine.GameObjects.Object.Type.Character) then
-                object = SceneMachine.GameObjects.Character:New();
-                object:ImportData(scene.objects[i]);
-                object:CreateMatrix();
-                id = -1;
-            elseif(type == SceneMachine.GameObjects.Object.Type.Camera) then
-                object = SceneMachine.GameObjects.Camera:New();
-                object:ImportData(scene.objects[i]);
-                object:CreateMatrix();
-            end
-            if (object:HasActor()) then
-                local actor = Renderer.AddActor(id, object.position.x, object.position.y, object.position.z, object.type);
-                object:SetActor(actor);
-
-                if (not object.visible) then
-                    actor:SetAlpha(0);
-                end
-            end
-            -- assigning the new object so that we have access to the class functions (which get stripped when exporting to savedata)
-            SM.loadedScene.objects[i] = object;
+    -- verify scene objects integrity
+    for i = #scene.objects, 1, -1 do
+        if (not scene.objects[i]) then
+            table.remove(scene.objects, i);
         end
+    end
+
+    for i = 1, #scene.objects, 1 do
+        local type = scene.objects[i].type;
+
+        -- Create actor
+        local object;
+        local id = 0;
+        if (type == SceneMachine.GameObjects.Object.Type.Model) then
+            object = SceneMachine.GameObjects.Model:New();
+            object:ImportData(scene.objects[i]);
+            object:CreateMatrix();
+            id = object.fileID;
+        elseif(type == SceneMachine.GameObjects.Object.Type.Creature) then
+            object = SceneMachine.GameObjects.Creature:New();
+            object:ImportData(scene.objects[i]);
+            object:CreateMatrix();
+            id = object.displayID;
+        elseif(type == SceneMachine.GameObjects.Object.Type.Character) then
+            object = SceneMachine.GameObjects.Character:New();
+            object:ImportData(scene.objects[i]);
+            object:CreateMatrix();
+            id = -1;
+        elseif(type == SceneMachine.GameObjects.Object.Type.Camera) then
+            object = SceneMachine.GameObjects.Camera:New();
+            object:ImportData(scene.objects[i]);
+            object:CreateMatrix();
+        end
+        if (object:HasActor()) then
+            local actor = Renderer.AddActor(id, object.position.x, object.position.y, object.position.z, object.type);
+            object:SetActor(actor);
+
+            if (not object.visible) then
+                actor:SetAlpha(0);
+            end
+        end
+        -- assigning the new object so that we have access to the class functions (which get stripped when exporting to savedata)
+        SM.loadedScene.objects[i] = object;
+    end
+
+
+    -- buld objectid map
+    SM.objectIDMap = {};
+    for i = 1, #scene.objects, 1 do
+        SM.objectIDMap[scene.objects[i].id] = scene.objects[i];
     end
 
     if (#scene.timelines == 0) then
@@ -311,6 +328,28 @@ function SM.LoadScene(index)
     SM.selectedObjects = {};
 end
 
+function SM.RebuildObjectHierarchyFromScene(scene)
+    scene.objectHierarchy = {};
+    for i = 1, #scene.objects, 1 do
+        table.insert(scene.objectHierarchy, { id = scene.objects[i].id, childObjects = {} });
+    end
+end
+
+function SM.GetObjectByID(id)
+    if (SM.objectIDMap[id]) then
+        return SM.objectIDMap[id];
+    end
+
+    for i = 1, #SM.loadedScene.objects, 1 do
+        if (SM.loadedScene.objects[i].id == id) then
+            SM.objectIDMap[SM.loadedScene.objects[i].id] = SM.loadedScene.objects[i];
+            return SM.objectIDMap[id];
+        end
+    end
+
+    return nil;
+end
+
 function SM.UnloadScene()
     for i = 1, #SM.selectedObjects, 1 do
         SM.selectedObjects[i]:Deselect();
@@ -368,6 +407,7 @@ function SM.CreateObject(_fileID, _name, _x, _y, _z)
     end
 
     -- Refresh
+    SH.AddNewObject(object.id);
     SH.RefreshHierarchy();
     OP.Refresh();
 
@@ -387,6 +427,7 @@ function SM.CreateCreature(_displayID, _name, _x, _y, _z)
     end
 
     -- Refresh
+    SH.AddNewObject(object.id);
     SH.RefreshHierarchy();
     OP.Refresh();
 
@@ -406,6 +447,7 @@ function SM.CreateCharacter(_x, _y, _z)
     end
 
     -- Refresh
+    SH.AddNewObject(object.id);
     SH.RefreshHierarchy();
     OP.Refresh();
 
@@ -435,6 +477,7 @@ function SM.CreateCamera()
     SM.SelectObject(object);
 
     -- Refresh
+    SH.AddNewObject(object.id);
     SH.RefreshHierarchy();
     OP.Refresh();
 
@@ -637,8 +680,10 @@ function SM.CloneObjects(objects, selectAfter)
             clones[i] = SM.CloneObject_internal(objects[i]);
         end
     end
-    Editor.StartAction(Actions.Action.Type.CreateObject, clones);
-    Editor.FinishAction();
+    local objectHierarchyBefore = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
+    Editor.StartAction(Actions.Action.Type.CreateObject, clones, objectHierarchyBefore);
+    local objectHierarchyAfter = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
+    Editor.FinishAction(objectHierarchyAfter);
 
     if (selectAfter) then
         SM.selectedObjects = clones;
@@ -720,13 +765,16 @@ function SM.DeleteObjects(objects)
         return;
     end
 
-    Editor.StartAction(Actions.Action.Type.DestroyObject, objects);
+    -- make a copy of the objectHierarchy, so it can be restored without too much complication
+    local objectHierarchyBefore = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
+    Editor.StartAction(Actions.Action.Type.DestroyObject, objects, objectHierarchyBefore);
     for i = 1, #objects, 1 do
         if (objects[i]) then
             SM.DeleteObject_internal(objects[i]);
         end
     end
-    Editor.FinishAction();
+    local objectHierarchyAfter = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
+    Editor.FinishAction(objectHierarchyAfter);
 end
 
 function SM.DeleteObject_internal(object)
@@ -756,6 +804,7 @@ function SM.DeleteObject_internal(object)
 	end
 
     -- refresh hierarchy
+    SH.RemoveIDFromHierarchy(object.id, SM.loadedScene.objectHierarchy);
     SH.RefreshHierarchy();
     OP.Refresh();
 end
@@ -790,7 +839,7 @@ function SM.UndeleteObject_internal(object)
 		end
 	end
     --]]
-    -- refresh hierarchy
+
     SH.RefreshHierarchy();
     OP.Refresh();
 end

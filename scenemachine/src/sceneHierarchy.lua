@@ -12,14 +12,16 @@ SH.inputState = {
 	dragging = false;
 	mousePosStartX = 0;
     mousePosStartY = 0;
-	startedMovingObject = nil;
+	startedmovingObject = nil;
 	movingObject = nil;
 	viewportXMin = 0;
 	viewportYMin = 0;
 	viewportXMax = 0;
 	viewportYMax = 0;
 	viewportScale = 1;
-	insertIndex = -1;
+	insertAboveIndex = -1;
+	insertBelowIndex = -1;
+	insertAsChildIndex = -1;
 	previousIndex = -1;
 };
 
@@ -43,7 +45,7 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 	SH.scrollList:SetFrameLevel(startLevel + 3);
 	SH.scrollList:SetItemTemplate(
 		{
-			height = 20,
+			height = 16,
 			buildItem = function(item)
 				-- main button --
 				item.components[1] = UI.Button:New(0, 0, 50, 18, item:GetFrame(), "CENTER", "CENTER", "");
@@ -53,67 +55,92 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 				item.components[1]:SetColor(UI.Button.State.Highlight, 0, 0, 0, 0);	-- disable button highlight
 
 				-- object name text --
-				item.components[2] = UI.Label:New(10, 0, 200, 18, item.components[1]:GetFrame(), "LEFT", "LEFT", "", 9);
+				item.components[2] = UI.Label:New(5, 0, 200, 18, item.components[1]:GetFrame(), "LEFT", "LEFT", "", 9);
 
 				-- visibility icon --
 				item.components[3] = UI.Button:New(-10, 0, 18, 18, item.components[1]:GetFrame(), "RIGHT", "RIGHT", nil, Resources.textures["EyeIcon"]);
 				item.components[3]:SetColor(UI.Button.State.Normal, 0, 0, 0, 0);
 				item.components[3]:SetAlpha(0.6);
+
+				-- open close button --
+				item.components[4] = UI.Button:New(0, 0, 16, 16, item:GetFrame(), "LEFT", "LEFT", "+");
 			end,
-			refreshItem = function(data, item, d)
-				if (data) then
-					-- main button --
-					item.dataIndex = d;
-					item.components[1]:SetScript("OnClick", function(self, button, down)
-						if (button == "LeftButton") then
-							SM.SelectObjectByIndex(d);
-							SM.ApplySelectionEffects();
-							if (down) then
-								SH.inputState.startedMovingObject = data;
-								SH.inputState.mousePosStartX = Input.mouseXRaw;
-								SH.inputState.mousePosStartY = Input.mouseYRaw;
+			refreshItem = function(hdata, item, d)
+				if (hdata) then
+					local data = SM.GetObjectByID(hdata.id);
+					local level = hdata.level;
+					if (data) then
+						if (#hdata.childObjects > 0) then
+							item.components[4]:Show();
+							item.components[4]:SetSinglePoint("LEFT", level * 16, 0);
+							item.components[4]:SetScript("OnClick", function(self, button, down)
+								hdata.open = not hdata.open;
+								SH.RefreshHierarchy();
+							end);
+						else
+							item.components[4]:Hide();
+						end
+
+						item.components[1]:ClearAllPoints();
+						item.components[1]:SetPoint("TOPLEFT", item:GetFrame(), "TOPLEFT", level * 16 + 16, 0);
+						item.components[1]:SetPoint("BOTTOMRIGHT", item:GetFrame(), "BOTTOMRIGHT", 0, 0);
+						--item.components[1]:SetWidth(200);
+
+						-- main button --
+						item.dataIndex = d;
+						item.components[1]:SetScript("OnClick", function(self, button, down)
+							if (button == "LeftButton") then
+								SH.SelectHierarchyObjectByID(hdata.id);
+								SM.ApplySelectionEffects();
+								if (down) then
+									SH.inputState.startedmovingObject = hdata;
+									SH.inputState.mousePosStartX = Input.mouseXRaw;
+									SH.inputState.mousePosStartY = Input.mouseYRaw;
+								end
+							elseif(button == "RightButton") then
+								SH.SelectHierarchyObjectByID(hdata.id);
+								SM.ApplySelectionEffects();
+								SH.OpenItemContextMenu(data);
 							end
-						elseif(button == "RightButton") then
-							SM.SelectObjectByIndex(d);
-							SM.ApplySelectionEffects();
-							SH.OpenItemContextMenu(data);
-						end
 
-						if (not down) then
-							SH.inputState.startedMovingObject = nil;
-							SH.OnFinishedDraggingItem();
-							SH.inputState.movingObject = nil;
-						end
-					end);
-					item.components[1]:SetColor(UI.Button.State.Normal, 0.1757, 0.1757, 0.1875, 1);
-					if (SH.inputState.dragging) then
-						item.components[1]:SetColor(UI.Button.State.Pressed, 0.1757, 0.1757, 0.1875, 1);	-- disable button pressed
-					else
-						item.components[1]:SetColor(UI.Button.State.Pressed, 0, 0.4765, 0.7968, 1);	-- enable button pressed
-						for i = 1, #SM.selectedObjects, 1 do
-							if (data == SM.selectedObjects[i]) then
-								item.components[1]:SetColor(UI.Button.State.Normal, 0, 0.4765, 0.7968, 1);
+							if (not down) then
+								SH.inputState.startedmovingObject = nil;
+								SH.OnFinishedDraggingItem();
+								SH.inputState.movingObject = nil;
+							end
+						end);
+						item.components[1]:SetColor(UI.Button.State.Normal, 0.1757, 0.1757, 0.1875, 1);
+						if (SH.inputState.dragging) then
+							item.components[1]:SetColor(UI.Button.State.Pressed, 0.1757, 0.1757, 0.1875, 1);	-- disable button pressed
+						else
+							item.components[1]:SetColor(UI.Button.State.Pressed, 0, 0.4765, 0.7968, 1);	-- enable button pressed
+							for i = 1, #SM.selectedObjects, 1 do
+								if (hdata.id == SM.selectedObjects[i].id) then
+									item.components[1]:SetColor(UI.Button.State.Normal, 0, 0.4765, 0.7968, 1);
+								end
 							end
 						end
-					end
 
-					-- frozen --
-					if (data.frozen) then
-						item.components[2]:SetTextColor(1, 1, 1, 0.5);
+						-- frozen --
+						if (data.frozen) then
+							item.components[2]:SetTextColor(1, 1, 1, 0.5);
+						else
+							item.components[2]:SetTextColor(1, 1, 1, 1);
+						end
+
+						-- object name text --
+						item.components[2]:SetText(data.name);
+
+						-- visibility icon --
+						if (data.visible) then
+							item.components[3]:SetTexCoords(SH.eyeIconVisibleTexCoord);
+						else
+							item.components[3]:SetTexCoords(SH.eyeIconInvisibleTexCoord);
+						end
+						item.components[3]:SetScript("OnClick", function(_, button, down) SM.ToggleObjectVisibility(data); end);
 					else
-						item.components[2]:SetTextColor(1, 1, 1, 1);
+						item.components[2]:SetText("<<corrupted data>>");
 					end
-
-					-- object name text --
-					item.components[2]:SetText(data.name);
-
-					-- visibility icon --
-					if (data.visible) then
-						item.components[3]:SetTexCoords(SH.eyeIconVisibleTexCoord);
-					else
-						item.components[3]:SetTexCoords(SH.eyeIconInvisibleTexCoord);
-					end
-					item.components[3]:SetScript("OnClick", function(_, button, down) SM.ToggleObjectVisibility(data); end);
 				end
 			end,
 		});
@@ -143,8 +170,25 @@ function SH.RefreshHierarchy()
     if (PM.currentProject == nil) then
         return
     end
+	
+	-- create linear tree from data
+	SH.linearData = {};
+	SH.GenerateLinearTree(SM.loadedScene.objectHierarchy, SH.linearData, 0, -1);
+	SH.scrollList:SetData(SH.linearData);
+end
 
-	SH.scrollList:SetData(SM.loadedScene.objects);
+function SH.GenerateLinearTree(objectBuffer, data, level, parentID)
+	for i = 1, #objectBuffer, 1 do
+		objectBuffer[i].level = level;
+		objectBuffer[i].parentID = parentID;
+		if (objectBuffer[i].open == nil) then
+			objectBuffer[i].open = false;
+		end
+		table.insert(data, objectBuffer[i]);
+		if (objectBuffer[i].open) then
+			SH.GenerateLinearTree(objectBuffer[i].childObjects, data, level + 1, objectBuffer[i].id);
+		end
+	end
 end
 
 function SH.OpenItemContextMenu(object)
@@ -186,14 +230,14 @@ function SH.OpenItemContextMenu(object)
 end
 
 function SH.Update(deltaTime)
-	if (SH.inputState.startedMovingObject) then
+	if (SH.inputState.startedmovingObject) then
 		-- determine if it moved enough for a drag
 		local moveDelta = math.max(math.abs(Input.mouseXRaw - SH.inputState.mousePosStartX), math.abs(Input.mouseYRaw - SH.inputState.mousePosStartY));
 
 		-- start dragging
 		if (moveDelta > 20) then
-			SH.inputState.movingObject = SH.inputState.startedMovingObject;
-			SH.inputState.startedMovingObject = nil;
+			SH.inputState.movingObject = SH.inputState.startedmovingObject;
+			SH.inputState.startedmovingObject = nil;
 			SH.OnStartedDraggingItem();
 		end
 	end
@@ -201,7 +245,7 @@ function SH.Update(deltaTime)
 	if (SH.inputState.movingObject) then
 		-- force check if finished dragging (can't rely on mouse up event)
         if (not Input.mouseState.LMB) then
-			SH.inputState.startedMovingObject = nil;
+			SH.inputState.startedmovingObject = nil;
 			SH.OnFinishedDraggingItem();
 			SH.inputState.movingObject = nil;
             return;
@@ -212,23 +256,49 @@ function SH.Update(deltaTime)
 	end
 end
 
-function SH.InsertSpacing(x, y, index)
+function SH.ShowInsert(x, y)
 	if (x and y) then
 		local h = SH.insertMarker:GetHeight();
 		SH.insertMarker:Show();
 		SH.insertMarker:SetSinglePoint("BOTTOMLEFT", x, y - (h/2));
-		SH.inputState.insertIndex = index;
-	else
-		SH.insertMarker:Hide();
-		SH.inputState.insertIndex = SH.inputState.previousIndex;
 	end
+end
+
+function SH.HideInsert()
+	SH.insertMarker:Hide();
+end
+
+function SH.InsertInLinearList(index, below)
+	if (below) then
+		SH.inputState.insertBelowIndex = index;
+		SH.inputState.insertAboveIndex = -1;
+	else
+		SH.inputState.insertAboveIndex = index;
+		SH.inputState.insertBelowIndex = -1;
+	end
+	SH.inputState.insertAsChildIndex = -1;
+end
+
+function SH.InsertChild(index)
+	SH.insertMarker:Hide();
+	SH.inputState.insertAboveIndex = -1;
+	SH.inputState.insertBelowIndex = -1;
+	SH.inputState.insertAsChildIndex = index;
+end
+
+function SH.InsertRestorePosition()
+	SH.insertMarker:Hide();
+	SH.inputState.insertAboveIndex = -1;
+	SH.inputState.insertBelowIndex = -1;
+	SH.inputState.insertAsChildIndex = -1;
 end
 
 function SH.OnStartedDraggingItem()
 	SH.inputState.dragging = true;
 	SH.draggableItem:SetWidth(SH.scrollList.viewport:GetWidth());
 	SH.draggableItem:Show();
-	SH.draggableItem.label:SetText(SH.inputState.movingObject:GetName());
+	local obj = SM.GetObjectByID(SH.inputState.movingObject.id);
+	SH.draggableItem.label:SetText(obj:GetName());
 
 	SH.insertMarker:SetWidth(SH.scrollList.viewport:GetWidth());
 
@@ -239,16 +309,127 @@ function SH.OnStartedDraggingItem()
 	SH.inputState.viewportXMax = SH.inputState.viewportXMin + (SH.scrollList.viewport:GetWidth() * SH.inputState.viewportScale);
 	SH.inputState.viewportYMax = SH.inputState.viewportYMin + (SH.scrollList.viewport:GetHeight() * SH.inputState.viewportScale);
 
-	-- exclude current item from data
-	for i = 1, #SM.loadedScene.objects, 1 do
-		if (SM.loadedScene.objects[i] == SH.inputState.movingObject) then
-			table.remove(SM.loadedScene.objects, i);
-			SH.inputState.previousIndex = i;
+	-- exclude current item from data, but remember the position in hierarchy
+	SH.inputState.savedHierarchyPosition = SH.GetIDParentAndIndexFromHierarchy(SH.inputState.movingObject.id, SM.loadedScene.objectHierarchy);
+	SH.RemoveIDFromHierarchy(SH.inputState.movingObject.id, SM.loadedScene.objectHierarchy);
+	SH.RefreshHierarchy();
+end
+
+function SH.CopyObjectHierarchy(hierarchy)
+	local copy = {};
+	for i = 1, #hierarchy, 1 do
+		local hobject = { id = hierarchy[i].id, childObjects = {}, open = hierarchy[i].open, parentID = hierarchy[i].parentID};
+		if (#hierarchy[i].childObjects > 0) then
+			hobject.childObjects = SH.CopyObjectHierarchy(hierarchy[i].childObjects);
+		end
+		table.insert(copy, hobject);
+	end
+	return copy;
+end
+
+function SH.SetHierarchy(hierarchy)
+	SM.loadedScene.objectHierarchy = hierarchy;
+end
+
+function SH.GetIDParentAndIndexFromHierarchy(id, parentList)
+	local parentID = -1;
+	local index = -1;
+	for i = 1, #parentList, 1 do
+		if (parentList[i].id == id) then
+			parentID = parentList[i].parentID;
+			index = i;
+			break;
+		end
+
+		local result = SH.GetIDParentAndIndexFromHierarchy(id, parentList[i].childObjects);
+		if (result.parentID ~= -1) then
+			parentID = result.parentID;
+			index = result.index;
 			break;
 		end
 	end
 
-	SH.RefreshHierarchy();
+	return { parentID = parentID, index = index };
+end
+
+function SH.RemoveIDFromHierarchy(id, currentList)
+	for i = 1, #currentList, 1 do
+		if (currentList[i].id == id) then
+			table.remove(currentList, i);
+			return;
+		end
+
+		SH.RemoveIDFromHierarchy(id, currentList[i].childObjects);
+	end
+end
+
+function SH.InsertIDChildInHierarchy(hobject, intoId, currentList)
+	for i = 1, #currentList, 1 do
+		if (currentList[i].id == intoId) then
+			table.insert(currentList[i].childObjects, hobject);
+			return;
+		end
+
+		SH.InsertIDChildInHierarchy(hobject, intoId, currentList[i].childObjects);
+	end
+end
+
+function SH.InsertIDAboveInHierarchy(hobject, aboveID, currentList)
+	for i = 1, #currentList, 1 do
+		if (currentList[i].id == aboveID) then
+			-- insert above current id in id's parent
+			table.insert(currentList, i, hobject);
+			return;
+		end
+
+		SH.InsertIDAboveInHierarchy(hobject, aboveID, currentList[i].childObjects);
+	end
+end
+
+function SH.InsertIDBelowInHierarchy(hobject, belowID, currentList)
+	for i = 1, #currentList, 1 do
+		if (currentList[i].id == belowID) then
+			-- if current has child objects
+			if (#currentList[i].childObjects > 0) then
+				-- if open
+				if (currentList[i].open) then
+					-- insert as first child
+					table.insert(currentList[i].childObjects, 1, hobject);
+				-- if closed
+				else
+					-- insert below current id in id's parent
+					table.insert(currentList, i + 1, hobject);
+				end
+			-- if current doesn't have child objects
+			else
+				-- insert below current id in id's parent
+				table.insert(currentList, i + 1, hobject);
+			end
+
+			return;
+		end
+
+		SH.InsertIDBelowInHierarchy(hobject, belowID, currentList[i].childObjects);
+	end
+end
+
+function SH.InsertBackIntoOriginalPlace(hierarchyInfo, hobject, currentList)
+	local parentID = hierarchyInfo.parentID;
+	local index = hierarchyInfo.index;
+
+	if (parentID == -1) then
+		table.insert(currentList, index, hobject);
+		return;
+	end
+
+	for i = 1, #currentList, 1 do
+		if (currentList[i].id == parentID) then
+			table.insert(currentList[i].childObjects, index, hobject);
+			return;
+		end
+
+		SH.InsertBackIntoOriginalPlace(hierarchyInfo, hobject, currentList[i].childObjects);
+	end
 end
 
 function SH.OnDraggingItem()
@@ -285,12 +466,14 @@ function SH.OnDraggingItem()
 		end
 
 		if (not mouseOverItem) then
-			-- use last visible, if mouse is blow it
+			-- use last visible, if mouse is below it
 			mouseOverItem = itemBuf;
 			local xmin = mouseOverItem:GetLeft() * scale;
 			local ymin = mouseOverItem:GetBottom() * scale;
 			if (Input.mouseYRaw < ymin) then
-				SH.InsertSpacing(xmin, ymin + SH.scrollList.template.height, mouseOverItem.dataIndex);
+				SH.ShowInsert(xmin, ymin + SH.scrollList.template.height);
+				SH.InsertInLinearList(#SH.linearData, true);
+				--SH.InsertSpacing(xmin, ymin + SH.scrollList.template.height, mouseOverItem.dataIndex);
 			end
 		else
 			if (mouseOverItem) then
@@ -299,16 +482,19 @@ function SH.OnDraggingItem()
 				local ymax = ymin + (mouseOverItem:GetHeight() * scale);
 
 				-- if closer to top edge
-				if (math.abs(Input.mouseYRaw - ymin) < 5) then
+				if (math.abs(Input.mouseYRaw - ymin) < 4) then
 					-- insert above
-					SH.InsertSpacing(xmin, ymin, mouseOverItem.dataIndex + 1);
+					SH.ShowInsert(xmin, ymin);
+					SH.InsertInLinearList(mouseOverItem.dataIndex, true);
 				-- if closer to bottom edge
-				elseif (math.abs(Input.mouseYRaw - ymax) < 5) then
+				elseif (math.abs(Input.mouseYRaw - ymax) < 4) then
 					-- insert below
-					SH.InsertSpacing(xmin, ymin + SH.scrollList.template.height, mouseOverItem.dataIndex);
+					SH.ShowInsert(xmin, ymin + SH.scrollList.template.height);
+					SH.InsertInLinearList(mouseOverItem.dataIndex, false);
 				-- if closer to center
 				else
-					SH.InsertSpacing();
+					SH.HideInsert();
+					SH.InsertChild(mouseOverItem.dataIndex);
 					mouseOverItem.components[1]:SetColor(UI.Button.State.Highlight, 0, 0.4765, 0.7968, 1);	-- enable button highlight
 				end
 			end
@@ -316,7 +502,8 @@ function SH.OnDraggingItem()
 	else
 		-- mouse not over viewport
 		SH.draggableItem:SetColor(0.1, 0.1, 0.1, 1);
-		SH.InsertSpacing();
+		SH.InsertRestorePosition();
+		SH.HideInsert();
 	end
 end
 
@@ -325,10 +512,48 @@ function SH.OnFinishedDraggingItem()
 	SH.draggableItem:Hide();
 	SH.insertMarker:Hide();
 
-	if (SH.inputState.insertIndex ~= -1 and SH.inputState.movingObject) then
-		table.insert(SM.loadedScene.objects, SH.inputState.insertIndex, SH.inputState.movingObject);
-		SH.inputState.insertIndex = -1;
+	if (SH.inputState.insertAboveIndex == -1 and SH.inputState.insertBelowIndex == -1 and SH.inputState.insertAsChildIndex == -1 and SH.inputState.movingObject) then
+		-- not over any item
+		SH.InsertBackIntoOriginalPlace(SH.inputState.savedHierarchyPosition, SH.inputState.movingObject, SM.loadedScene.objectHierarchy);
+	end
+
+	if (SH.inputState.insertAboveIndex ~= -1 and SH.inputState.movingObject) then
+		local hobject = SH.inputState.movingObject;
+		if (SH.inputState.insertAboveIndex <= #SH.linearData) then
+			local aboveLinearID = SH.linearData[SH.inputState.insertAboveIndex].id;
+
+			SH.InsertIDAboveInHierarchy(hobject, aboveLinearID, SM.loadedScene.objectHierarchy);
+		end
+		SH.inputState.insertAboveIndex = -1;
+	end
+
+	if (SH.inputState.insertBelowIndex ~= -1 and SH.inputState.movingObject) then
+		local hobject = SH.inputState.movingObject;
+		if (SH.inputState.insertBelowIndex <= #SH.linearData) then
+			local belowLinearID = SH.linearData[SH.inputState.insertBelowIndex].id;
+
+			SH.InsertIDBelowInHierarchy(hobject, belowLinearID, SM.loadedScene.objectHierarchy);
+		end
+		SH.inputState.insertBelowIndex = -1;
+	end
+
+	if (SH.inputState.insertAsChildIndex ~= -1 and SH.inputState.movingObject) then
+		local hobject = SH.inputState.movingObject;
+		local intoId = SH.linearData[SH.inputState.insertAsChildIndex].id;
+		SH.InsertIDChildInHierarchy(hobject, intoId, SM.loadedScene.objectHierarchy);
+		SH.inputState.insertAsChildIndex = -1;
 	end
 
 	SH.RefreshHierarchy();
+end
+
+function SH.SelectHierarchyObjectByID(ID)
+	local object = SM.GetObjectByID(ID);
+	if (object) then
+		SM.SelectObject(object);
+	end
+end
+
+function SH.AddNewObject(ID)
+	table.insert(SM.loadedScene.objectHierarchy, { id = ID, childObjects = {} });
 end

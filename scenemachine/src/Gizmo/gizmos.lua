@@ -824,7 +824,8 @@ end
 function Gizmos.OnLMBUp()
     Gizmos.isUsed = false;
     if (not Input.mouseState.isDraggingAssetFromUI and Gizmos.recordAction) then
-        Editor.FinishAction();
+        local objectHierarchyAfter = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
+        Editor.FinishAction(objectHierarchyAfter);
     end
 end
 

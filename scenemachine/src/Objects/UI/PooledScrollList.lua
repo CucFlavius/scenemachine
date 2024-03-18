@@ -71,7 +71,7 @@ function PooledScrollList:MakePool(viewportWidth, viewportHeight)
     end
 
     for i = #self.itemPool + 1, poolSize, 1 do
-        local item = UI.Rectangle:New(0, 0, 50, self.template.height, self.viewport:GetFrame(), "TOPLEFT", "TOPLEFT", 1, 1, 1, 1);
+        local item = UI.Rectangle:New(0, 0, 50, self.template.height, self.viewport:GetFrame(), "TOPLEFT", "TOPLEFT", 0, 0, 0, 1);
         item:SetSinglePoint("TOPLEFT", 0, -(i - 1) * itemHeight);
         item:SetWidth(viewportWidth);
         item.components = {};
