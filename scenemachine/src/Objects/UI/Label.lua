@@ -48,6 +48,10 @@ function Label:GetText()
     return self.text;
 end
 
+function Label:GetStringWidth()
+    return self.frame.text:GetStringWidth();
+end
+
 function Label:SetJustifyH(justifyH)
     self.frame.text:SetJustifyH(justifyH);
 end

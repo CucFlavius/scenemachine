@@ -33,15 +33,20 @@ function PooledScrollList:Build()
         --self:SetPosition(self.currentPos - (delta / #self.data));
     end);
     
-    self.viewport = UI.Rectangle:New(self.x, self.y, self.w - 16, self.h, self.frame:GetFrame(), "TOPLEFT", "TOPLEFT", 1, 0, 1, 0);
-    self.viewport:SetAllPoints(self.frame:GetFrame());
+    self.viewport = UI.Rectangle:New(self.x, self.y, self.w, self.h, self.frame:GetFrame(), "TOPLEFT", "TOPLEFT", 1, 0, 1, 0);
+    self.viewport:ClearAllPoints();
+    self.viewport:SetPoint("TOPLEFT", self.frame:GetFrame(), "TOPLEFT", 0, 0);
+    self.viewport:SetPoint("BOTTOMRIGHT", self.frame:GetFrame(), "BOTTOMRIGHT", -16, 0);
     self.viewport:SetClipsChildren(true);
     self.viewport:GetFrame():SetScript("OnSizeChanged",
     function(_, width, height)
-        --print(width .. " " .. height);
         self:MakePool(width - 16, height);
         self.viewportHeight = height;
         self.scrollbar:Resize(height, #self.data * self.template.height);
+        if (self.template.useHorizontalScrollbar) then
+            self.viewportWidth = width;
+            self.scrollbarH:Resize(width, self.maxWidth);
+        end
         self:SetPosition(self.currentPos);
         --self:Refresh(self.currentDif);
     end);
@@ -55,6 +60,16 @@ end
 
 function PooledScrollList:SetItemTemplate(template)
     self.template = template;
+
+    if (self.template.useHorizontalScrollbar) then
+        self.viewport:ClearAllPoints();
+        self.viewport:SetPoint("TOPLEFT", self.frame:GetFrame(), "TOPLEFT", 0, 0);
+        self.viewport:SetPoint("BOTTOMRIGHT", self.frame:GetFrame(), "BOTTOMRIGHT", -16, 16);
+
+        self.scrollbarH = UI.ScrollbarHorizontal:New(0, 0, self.w, 16, self.frame:GetFrame(), function(v) self:SetHorizontalPosition(v); end);
+        self.scrollbarH:SetPoint("BOTTOMRIGHT", self.frame:GetFrame(), "BOTTOMRIGHT", -16, 0);
+        self.scrollbarH:SetFrameLevel(self.viewport:GetFrameLevel() + 10);
+    end
 end
 
 function PooledScrollList:MakePool(viewportWidth, viewportHeight)
@@ -82,15 +97,15 @@ end
 
 function PooledScrollList:ScrollStep(value)
     self.dataStartIdx = self.dataStartIdx - value;
-    self.currentPos = math.min(1, self.dataStartIdx / (#self.data - (self.visibleElementCount - 2)));
+    self.currentPos = math.min(1, self.dataStartIdx / (#self.data - (self.visibleElementCount - 1)));
     self.scrollbar:SetValueWithoutAction(self.currentPos);
     self:Refresh(0);
 end
 
 function PooledScrollList:SetPosition(value)
-    if (value >= 1) then value = 0.999; end -- this fixes my bad logic which causes a pop when scrolling to the end
+    if (value >= 1) then value = 0.9999; end -- this fixes my bad logic which causes a pop when scrolling to the end
     self.currentPos = value;
-    local offs = (value * #self.data) - (value * (self.visibleElementCount - 2));
+    local offs = (value * #self.data) - (value * (self.visibleElementCount - 1));
     local roundedOffs = math.floor(offs);
     local dif = 0;
     if (offs ~= roundedOffs) then
@@ -98,6 +113,15 @@ function PooledScrollList:SetPosition(value)
     end
     self.dataStartIdx = math.ceil(offs);
     self:Refresh(dif);
+end
+
+function PooledScrollList:SetHorizontalPosition(value)
+    local maxOffset = self.maxWidth - self.viewportWidth
+    local offset = -value * maxOffset
+    for i = 1, #self.itemPool, 1 do
+        local gpointC, grelativeToC, grelativePointC, gxOfsC, gyOfsC = self.itemPool[i]:GetPoint(1);
+        self.itemPool[i]:SetSinglePoint("TOPLEFT", offset, gyOfsC);
+    end
 end
 
 function PooledScrollList:SetData(data)
@@ -108,6 +132,9 @@ end
 
 function PooledScrollList:Refresh(dif)
     self.currentDif = dif;
+    if (self.template.useHorizontalScrollbar) then
+        self.maxWidth = 0;
+    end
     self.dataEndIdx = self.dataStartIdx + self.visibleElementCount - 1;
 
     if (self.dataStartIdx + self.visibleElementCount - 3 > #self.data) then
@@ -129,6 +156,9 @@ function PooledScrollList:Refresh(dif)
         item:Show();
         item:SetSinglePoint("TOPLEFT", 0, -((pidx - 1) + dif) * self.template.height);
         self.template.refreshItem(self.data[d], item, d);
+        if (self.template.useHorizontalScrollbar) then
+            self.maxWidth = math.max(self.maxWidth, item.width);
+        end
         pidx = pidx + 1;
     end
 
@@ -136,6 +166,11 @@ function PooledScrollList:Refresh(dif)
         for p = pidx, #self.itemPool, 1 do
             self.itemPool[p]:Hide();
         end
+    end
+
+    if (self.template.useHorizontalScrollbar) then
+        self.scrollbarH:Resize(self.viewportWidth, self.maxWidth);
+        self.scrollbarH:SetValueWithoutAction(0);
     end
 end
 

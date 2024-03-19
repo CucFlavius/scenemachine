@@ -67,7 +67,6 @@ function ScrollbarHorizontal:Build()
     self.frameCenter:SetPoint("LEFT", self.frame.frame, "LEFT", h/2, 0);
     self.frameCenter:SetPoint("RIGHT", self.frame.frame, "RIGHT", -h/2, 0);
     self.frameCenter:SetVertexColor(0.18,0.18,0.18,1);
-    --self.frameCenter:SetFrameLevel(self.frame:GetFrameLevel() + 1);
     
     self.frameRight = UI.ImageBox:New(0, 0, h/2, h, self.frame.frame, "RIGHT", "RIGHT", Resources.textures["ScrollBar"], { 0.5, 1, 0, 1 });
     self.frameRight:SetVertexColor(0.18,0.18,0.18,1);
@@ -164,6 +163,17 @@ function ScrollbarHorizontal:Resize(viewportW, listW)
     self.scrollbarSlider:SetWidth(math.floor(newScrollbarHorizontalWidth));
     self:Update();
     self:SetValueWithoutAction(self.currentValue or 0);
+end
+
+function ScrollbarHorizontal:SetFrameLevel(level)
+    self.frame:SetFrameLevel(level);
+    self.frameLeft:SetFrameLevel(level + 1);
+    self.frameCenter:SetFrameLevel(level + 1);
+    self.frameRight:SetFrameLevel(level + 1);
+    self.scrollbarSlider:SetFrameLevel(level + 2);
+    self.scrollbarSliderCenter:SetFrameLevel(level + 2);
+    self.scrollbarSliderLeft:SetFrameLevel(level + 2);
+    self.scrollbarSliderRight:SetFrameLevel(level + 2);
 end
 
 function ScrollbarHorizontal:Disable()
