@@ -179,11 +179,14 @@ function CC.Update(deltaTime)
 		end
 
 		CC.position:Lerp(CC.Focus.startPos, CC.Focus.endPos, fractionOfJourney);
-		local rotQ = Quaternion:New();
-		rotQ:Lerp(CC.Focus.startRot, CC.Focus.endRot, fractionOfJourney)
-		Camera.eulerRotation:SetVector3(rotQ:ToEuler());
-		-- override direction
-		CC.Direction = math.deg(Camera.eulerRotation.z);
+
+		if (CC.Focus.gizmoType == Gizmos.Type.Camera) then
+			local rotQ = Quaternion:New();
+			rotQ:Lerp(CC.Focus.startRot, CC.Focus.endRot, fractionOfJourney)
+			Camera.eulerRotation:SetVector3(rotQ:ToEuler());
+			-- override direction
+			CC.Direction = math.deg(Camera.eulerRotation.z);
+		end
 
 		if (fractionOfJourney >= 1 or fractionOfJourney == 0) then
 			CC.FocusEnd(false);
@@ -243,9 +246,7 @@ function CC.FocusObject(object)
 	local objectRot = object:GetRotation();
 	local objectScale = object:GetScale();--Float
 	local vector = Vector3:New();
-	vector:SetVector3(Camera.eulerRotation);
-	vector:EulerToDirection();
-	vector:Normalize();
+	vector:SetVector3(Camera.forward);
 
 	local objectCenter;
 	CC.Focus.gizmoType = object:GetGizmoType();
@@ -253,11 +254,11 @@ function CC.FocusObject(object)
 		local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
 		objectCenter = Vector3:New( objectPos.x * objectScale, objectPos.y * objectScale, (objectPos.z + (zMax / 2)) * objectScale );
 		local radius = math.max(xMax, math.max(yMax, zMax));
-		local dist = radius / (math.sin(Camera.fov) * 0.5);
+		local dist = radius / (math.sin(Camera.fov) * 0.3);
 		vector:Scale(dist);
 		objectCenter:Subtract(vector);
 	elseif (CC.Focus.gizmoType == Gizmos.Type.Camera) then
-		objectCenter = Vector3:New( objectPos.x * objectScale, objectPos.y * objectScale, objectPos.z * objectScale );
+		objectCenter = Vector3:New( objectPos.x, objectPos.y, objectPos.z );
 		-- set camera properties that don't need animating
 		Camera.fov = object:GetFoV();
 		Camera.nearClip = object:GetNearClip();

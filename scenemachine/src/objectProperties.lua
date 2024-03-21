@@ -142,7 +142,9 @@ function OP.Refresh()
 
     OP.positionField:Set(OP.Truncate(pos.x, 3), OP.Truncate(pos.y, 3), OP.Truncate(pos.z, 3));
     OP.rotationField:Set(OP.Truncate(math.deg(rot.x), 3), OP.Truncate(math.deg(rot.y), 3), OP.Truncate(math.deg(rot.z), 3));
-    OP.scaleField:Set(OP.Truncate(scale, 3));
+    if (scale) then
+        OP.scaleField:Set(OP.Truncate(scale, 3));
+    end
     if (alpha) then
         OP.alphaField:Set(OP.Truncate(alpha, 3));
     end
