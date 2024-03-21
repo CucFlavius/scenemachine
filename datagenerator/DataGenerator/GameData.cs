@@ -321,21 +321,56 @@ namespace DataGenerator
 
                 var list = new List<(ushort, ushort, uint)>();
 
-                br.BaseStream.Position = 36;
-                uint nAnimations = br.ReadUInt32();
-                uint ofsAnimations = br.ReadUInt32() + 8;
+                long streamPos = 0;
 
-                br.BaseStream.Position = ofsAnimations;
-                for (int i = 0; i < nAnimations; i++)
+                while (streamPos < br.BaseStream.Length)
                 {
-                    ushort animID = br.ReadUInt16();
-                    ushort subAnimID = br.ReadUInt16();
-                    uint lengthMS = br.ReadUInt32();
+                    br.BaseStream.Position = streamPos;
+                    uint chunkID = br.ReadUInt32();
+                    uint chunkSize = br.ReadUInt32();
 
-                    // skip rest
-                    br.BaseStream.Position += 56;
+                    streamPos = br.BaseStream.Position + chunkSize;
 
-                    list.Add((animID, subAnimID, lengthMS));
+                    switch (chunkID)
+                    {
+                        case 0x3132444D:    // MD20
+                            {
+                                br.BaseStream.Position += 28;
+                                uint nAnimations = br.ReadUInt32();
+                                uint ofsAnimations = br.ReadUInt32() + 8;
+
+                                br.BaseStream.Position = ofsAnimations;
+                                for (int i = 0; i < nAnimations; i++)
+                                {
+                                    ushort animID = br.ReadUInt16();
+                                    ushort subAnimID = br.ReadUInt16();
+                                    uint lengthMS = br.ReadUInt32();
+
+                                    // skip rest
+                                    br.BaseStream.Position += 56;
+
+                                    list.Add((animID, subAnimID, lengthMS));
+                                }
+                            }
+                            break;
+                        case 0x44494B53:    // SKID
+                            {
+                                uint sFileID = br.ReadUInt32();
+                                ReadSkeleton(ref list, sFileID);
+                            }
+                            break;
+                        case 0x44494641:    // AFID
+                            {
+                                for (int i = 0; i < chunkSize / 8; i++)
+                                {
+                                    ushort animID = br.ReadUInt16();
+                                    ushort subAnimID = br.ReadUInt16();
+                                    uint animFileID = br.ReadUInt32();
+                                }
+                            }
+                            break;
+                    }
+
                 }
 
                 return list;
@@ -343,6 +378,59 @@ namespace DataGenerator
             catch
             {
                 return null;
+            }
+        }
+
+        private void ReadSkeleton(ref List<(ushort, ushort, uint)> list, uint fileID)
+        {
+            using Stream str = cascHandler.OpenFile((int)fileID);
+            using BinaryReader br = new BinaryReader(str);
+            long streamPos = 0;
+            while (streamPos < br.BaseStream.Length)
+            {
+                br.BaseStream.Position = streamPos;
+                uint chunkID = br.ReadUInt32();
+                uint chunkSize = br.ReadUInt32();
+
+                long md20position = br.BaseStream.Position;
+
+                streamPos = br.BaseStream.Position + chunkSize;
+
+                switch (chunkID)
+                {
+                    case 0x31534b53:    // SKS1
+                        {
+                            br.BaseStream.Position += 8;
+                            uint nAnimations = br.ReadUInt32();
+                            uint ofsAnimations = br.ReadUInt32();
+
+                            if (nAnimations > 0)
+                            {
+                                br.BaseStream.Position = ofsAnimations + md20position;
+                                for (int i = 0; i < nAnimations; i++)
+                                {
+                                    ushort animID = br.ReadUInt16();
+                                    ushort subAnimID = br.ReadUInt16();
+                                    uint lengthMS = br.ReadUInt32();
+
+                                    // skip rest
+                                    br.BaseStream.Position += 56;
+
+                                    list.Add((animID, subAnimID, lengthMS));
+                                }
+                            }
+                        }
+                        break;
+                    case 0x44504b53:    // SKPD
+                        {
+                            br.BaseStream.Position += 8;
+                            uint sFileID = br.ReadUInt32();
+                            br.BaseStream.Position += 4;
+
+                            ReadSkeleton(ref list, sFileID);
+                        }
+                        break;
+                }
             }
         }
     }
