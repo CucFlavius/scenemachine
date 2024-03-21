@@ -611,3 +611,31 @@ end
 function SH.AddNewObject(ID)
 	table.insert(SM.loadedScene.objectHierarchy, { id = ID, childObjects = {} });
 end
+
+function SH.GetHierarchyObject(objectBuffer, ID)
+	for i = 1, #objectBuffer, 1 do
+		if (objectBuffer[i].id == ID) then
+			return objectBuffer[i];
+		end
+		return SH.GetHierarchyObject(objectBuffer[i].childObjects, ID);
+	end
+
+	return nil;
+end
+
+function SH.GetChildObjects(ID)
+	local hobject = SH.GetHierarchyObject(SM.loadedScene.objectHierarchy, ID);
+	if (not hobject) then
+		return nil;
+	end
+	
+	local childObjects = {};
+	for i = 1, #hobject.childObjects, 1 do
+		local object = SM.GetObjectByID(hobject.childObjects[i].id);
+		if (object) then
+			table.insert(childObjects, object);
+		end
+	end
+	
+	return childObjects;
+end

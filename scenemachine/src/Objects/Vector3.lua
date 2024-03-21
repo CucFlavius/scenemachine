@@ -130,25 +130,6 @@ function Vector3.Interpolate(a, b, t)
     return output;
 end
 
-function Vector3:RotateAroundPivotByAxis(pivot, axis, angleIncrement)
-    -- Translate the object and pivot to the origin
-    local relativePosition = Vector3:New();
-    relativePosition:SetVector3(self);
-    relativePosition:Subtract(pivot);
-
-    -- Convert axis and angle increment to a quaternion rotation
-    local halfAngle = angleIncrement * 0.5;
-    local sinHalfAngle = math.sin(halfAngle);
-    local rotationQuat = SceneMachine.Quaternion:New(axis.x * sinHalfAngle, axis.y * sinHalfAngle, axis.z * sinHalfAngle, math.cos(halfAngle));
-
-    -- Apply rotation
-    local rotatedPosition = rotationQuat:MultiplyVector(relativePosition);
-
-    -- Translate the object back to its original position
-    rotatedPosition:Add(pivot);
-    self:SetVector3(rotatedPosition);
-end
-
 function Vector3:RotateAroundPivot(pivot, rotation)
     -- Translate the object and pivot to the origin
     self.x = self.x - pivot.x;
@@ -187,21 +168,38 @@ function Vector3:RotateAroundPivot(pivot, rotation)
     return self;
 end
 
+function Vector3.GetDirectionVectorBetweenVectors(a, b)
+    local direction = Vector3:New(b.x - a.x, b.y - a.y, b.z - a.z);
+    direction:Normalize();
+    return direction;
+end
+
+function Vector3:Invert()
+    self.x = -self.x;
+    self.y = -self.y;
+    self.z = -self.z;
+    return self;
+end
+
 function Vector3:EulerToDirection()
     -- Calculate direction vector components
-    local vx = math.cos(self.x) * math.cos(self.y)
-    local vy = math.sin(self.x)
-    local vz = math.cos(self.x) * math.sin(self.y)
 
-    --local vx = math.cos(self.x) * math.cos(self.y)
-    --local vy = math.sin(self.y)
-    --local vz = math.sin(self.x) * math.cos(self.y)
+    local vx = math.sin(self.y) * math.cos(self.x)
+    local vy = math.sin(self.x)
+    local vz = math.cos(self.y) * math.cos(self.x)
 
     self.x = vx;
     self.y = vy;
     self.z = vz;
 
     return self;
+end
+
+function Vector3.Distance(vecA, vecB)
+    local dx = vecB.x - vecA.x;
+    local dy = vecB.y - vecA.y;
+    local dz = vecB.z - vecA.z;
+    return math.sqrt(dx^2 + dy^2 + dz^2);
 end
 
 function Vector3:Length()

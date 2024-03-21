@@ -14,6 +14,7 @@ local Ray = SceneMachine.Ray;
 local UI = SceneMachine.UI;
 local Matrix = SceneMachine.Matrix;
 local Actions = SceneMachine.Actions;
+local SH = Editor.SceneHierarchy;
 
 Gizmos.isUsed = false;
 Gizmos.isHighlighted = false;
@@ -596,6 +597,7 @@ function Gizmos.ApplyRotationMotion(object, direction, mouseDiff)
 
     rotation:RotateAroundAxis(direction, mouseDiff);
     local rotationE = rotation:ToEuler();
+    --local degRotationE = Vector3:New(rotationE.x * 180 / math.pi, rotationE.y * 180 / math.pi, rotationE.z * 180 / math.pi);
 
     -- handle rotation that affects position
     local position = object:GetPosition();

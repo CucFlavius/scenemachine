@@ -184,6 +184,7 @@ function OP.SetPosX(value)
         SM.selectedObjects[i]:SetPosition(value, pos.y, pos.z);
     end
     Editor.FinishAction();
+    OP.Refresh();
 end
 
 function OP.SetPosY(value)
@@ -200,6 +201,7 @@ function OP.SetPosY(value)
         SM.selectedObjects[i]:SetPosition(pos.x, value, pos.z);
     end
     Editor.FinishAction();
+    OP.Refresh();
 end
 
 function OP.SetPosZ(value)
@@ -216,6 +218,7 @@ function OP.SetPosZ(value)
         SM.selectedObjects[i]:SetPosition(pos.x, pos.y, value);
     end
     Editor.FinishAction();
+    OP.Refresh();
 end
 
 function OP.SetRotX(value)
@@ -232,6 +235,7 @@ function OP.SetRotX(value)
         SM.selectedObjects[i]:SetRotation(rad(value), rot.y, rot.z);
     end
     Editor.FinishAction();
+    OP.Refresh();
 end
 
 function OP.SetRotY(value)
@@ -248,6 +252,7 @@ function OP.SetRotY(value)
         SM.selectedObjects[i]:SetRotation(rot.x, rad(value), rot.z);
     end
     Editor.FinishAction();
+    OP.Refresh();
 end
 
 function OP.SetRotZ(value)
@@ -264,6 +269,7 @@ function OP.SetRotZ(value)
         SM.selectedObjects[i]:SetRotation(rot.x, rot.y, rad(value));
     end
     Editor.FinishAction();
+    OP.Refresh();
 end
 
 function OP.SetScale(value)
@@ -279,6 +285,7 @@ function OP.SetScale(value)
         SM.selectedObjects[i]:SetScale(value);
     end
     Editor.FinishAction();
+    OP.Refresh();
 end
 
 function OP.SetAlpha(value)

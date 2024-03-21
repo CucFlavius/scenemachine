@@ -46,6 +46,12 @@ function Quaternion:Get()
     return self.x, self.y, self.z, self.w;
 end
 
+function Quaternion:ToDirectionVector(forward)
+    forward = forward or Vector3:New(0, 0, 1)
+    local rotatedForward = self:MultiplyVector(forward)
+    return rotatedForward:Normalize()
+end
+
 function Quaternion:ToEuler()
     local rx = math.atan2(2 * (self.w * self.x + self.y * self.z), 1 - 2 * (self.x^2 + self.y^2))
     local ry = math.asin(2 * (self.w * self.y - self.z * self.x))

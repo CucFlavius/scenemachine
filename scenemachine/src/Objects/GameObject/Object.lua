@@ -3,6 +3,7 @@ local Vector3 = SceneMachine.Vector3;
 local Matrix = SceneMachine.Matrix;
 local Quaternion = SceneMachine.Quaternion;
 local Gizmos = SceneMachine.Gizmos;
+local SH = SceneMachine.Editor.SceneHierarchy;
 
 SceneMachine.GameObjects.Object = {}
 local Object = SceneMachine.GameObjects.Object;
@@ -45,8 +46,50 @@ end
 function Object:GetGizmoType()
     return Gizmos.Type.Object;
 end
+--[[
+function Object:SetPosition(x, y, z)
+
+    self:CreateMatrix();
+    local childObjects = SH.GetChildObjects(self.id);
+    if (childObjects ~= nil) then
+        for i = 1, #childObjects do
+            childObjects[i]:CreateMatrix();
+            childObjects[i].matrix:Multiply(self:GetMatrix());
+            childObjects[i]:ApplyTransformation();
+        end
+    end
+    self.position.x = x;
+    self.position.y = y;
+    self.position.z = z;
+    
+    -- apply to actor
+    if (self.actor ~= nil) then
+        local s = self.scale;
+        self.actor:SetPosition(x / s, y / s, z / s);
+    end
+end
+--]]
 
 function Object:SetPosition(x, y, z)
+    -- apply to children
+    local oldPos = self:GetPosition();
+    local oldPosX, oldPosY, oldPosZ = oldPos.x, oldPos.y, oldPos.z;
+    self:SetPosition_internal(x, y, z);
+
+    local childObjects = SH.GetChildObjects(self.id);
+    if (childObjects ~= nil) then
+        local diffX = x - oldPosX;
+        local diffY = y - oldPosY;
+        local diffZ = z - oldPosZ;
+
+        for i = 1, #childObjects do
+            local cPos = childObjects[i]:GetPosition();
+            childObjects[i]:SetPosition(cPos.x + diffX, cPos.y + diffY, cPos.z + diffZ);
+        end
+    end
+end
+
+function Object:SetPosition_internal(x, y, z)
     self.position.x = x;
     self.position.y = y;
     self.position.z = z;
@@ -78,13 +121,17 @@ function Object:SetRotationQuaternion(rot)
 end
 
 function Object:GetPosition()
-    return self.position;
+    return Vector3:New(self.position.x, self.position.y, self.position.z);
 end
 
 function Object:SetRotation(x, y, z)
     x = math.max(-1000000, math.min(1000000, x));
     y = math.max(-1000000, math.min(1000000, y));
     z = math.max(-1000000, math.min(1000000, z));
+
+    local oldRotX = self.rotation.x;
+    local oldRotY = self.rotation.y;
+    local oldRotZ = self.rotation.z;
 
     self.rotation:Set(x, y, z);
 
@@ -94,10 +141,54 @@ function Object:SetRotation(x, y, z)
         self.actor:SetPitch(y);
         self.actor:SetYaw(z);
     end
+
+    -- apply to children
+    local childObjects = SH.GetChildObjects(self.id);
+    if (childObjects ~= nil) then
+
+        local rotationQ = self:GetQuaternionRotation();
+        local rotationQInv = self:GetQuaternionRotation();
+        rotationQInv:Invert();
+
+        local diffX = self.rotation.x - oldRotX;
+        local diffY = self.rotation.y - oldRotY;
+        local diffZ = self.rotation.z - oldRotZ;
+        local pivotCenter = self:GetPosition();
+
+        for i = 1, #childObjects, 1 do
+            -- Rotate
+            local cRotationQ = childObjects[i]:GetQuaternionRotation();
+            local newRotationQ = Quaternion:New();
+            newRotationQ:SetFromEuler(Vector3:New(diffX, diffY, diffZ));
+            cRotationQ:Multiply(rotationQInv);
+            cRotationQ:Multiply(newRotationQ);
+            cRotationQ:Multiply(rotationQ);
+            local cRotation = cRotationQ:ToEuler();
+            childObjects[i]:SetRotation(cRotation.x, cRotation.y, cRotation.z);
+            --childObjects[i]:SetRotationQuaternion(cRotationQ);
+
+            -- Move
+            local pivotOffset = childObjects[i]:GetPosition();
+            pivotOffset:Subtract(pivotCenter);
+            local distance = Vector3.Distance(Vector3.zero, pivotOffset);
+
+            --local forward = Vector3.GetDirectionVectorBetweenVectors(pivotCenter, childObjects[i]:GetPosition());
+            --print(forward);
+            local rotationQInv2 = Quaternion:New();
+            rotationQInv2:SetQuaternion(rotationQInv);
+            local direction = rotationQInv2:ToDirectionVector();  -- TODO: forward is an issue
+            local newDir = Vector3:New();
+            newDir:SetVector3(direction);
+            newDir:Scale(distance);
+
+            newDir:Add(pivotCenter);
+            childObjects[i]:SetPosition_internal(newDir.x, newDir.y, newDir.z);
+        end
+    end
 end
 
 function Object:GetRotation()
-    return self.rotation;
+    return Vector3:New(self.rotation.x, self.rotation.y, self.rotation.z);
 end
 
 function Object:SetScale(value)

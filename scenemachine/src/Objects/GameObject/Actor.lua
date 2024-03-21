@@ -80,6 +80,8 @@ function Actor:SetSpellVisualKitID(id, oneShot)
 end
 
 function Actor:ClearSpellVisualKits()
+    self:SetSpellVisualKitID(0);
+    --[[
     self:SetSpellVisualKitID(-1);
 
     if (self.type == Object.Type.Model) then
@@ -89,7 +91,7 @@ function Actor:ClearSpellVisualKits()
     elseif (self.type == Object.Type.Character) then
         self.actor:SetModelByUnit("player");
     end
-    
+    --]]
     self.spellVisualKitID = nil;
 end
 
