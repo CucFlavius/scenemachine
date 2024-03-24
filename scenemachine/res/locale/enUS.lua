@@ -170,6 +170,8 @@ L["AB_TOOLBAR_TT_REMOVE_COLLECTION"] = "Remove Collection";
 L["AB_TOOLBAR_TT_RENAME_COLLECTION"] = "Rename Collection";
 L["AB_TOOLBAR_TT_ADD_OBJECT"] = "Add Selected Object";
 L["AB_TOOLBAR_TT_REMOVE_OBJECT"] = "Remove Object";
+L["AB_TOOLBAR_TT_IMPORT_COLLECTION"] = "Import Collection";
+L["AB_TOOLBAR_TT_EXPORT_COLLECTION"] = "Export Collection";
 L["AB_RMB_FILE_INFO"] = "File Info";
 L["AB_RMB_ADD_TO_COLLECTION"] = "Add to Collection";
 L["AB_COLLECTION_NAME"] = "Collection Name";
@@ -228,5 +230,11 @@ L["COLP_B"] = "B";  -- Blue
 L["COLP_H"] = "H";  -- Hue
 L["COLP_S"] = "S";  -- Saturation
 L["COLP_L"] = "L";  -- Lightness
+
+-- Error Messages --
+L["DECODE_FAILED"] = "Failed to decode data.";
+L["DECOMPRESS_FAILED"] = "Failed to decompress data.";
+L["DESERIALIZE_FAILED"] = "Failed to deserialize data.";
+L["DATA_VERSION_TOO_NEW"] = "Newer data version detected, and is unsupported. Please update SceneMachine";
 
 SceneMachine.Editor.localization = AceLocale:GetLocale("SceneMachine", false);

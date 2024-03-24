@@ -27,6 +27,8 @@ AssetBrowser.selectedGridViewItem = nil;
 AssetBrowser.entryToAddToCollection = nil;
 local tabButtonHeight = 20;
 
+AssetBrowser.COLLECTION_DATA_VERSION = 1;
+
 function AssetBrowser.Create(parent, w, h, startLevel)
 
     AssetBrowser.tabGroup = UI.TabGroup:New(0, 0, 100, tabButtonHeight, parent, "TOPLEFT", "TOPLEFT", startLevel + 2, false);
@@ -759,6 +761,17 @@ function AssetBrowser.CreateToolbar(parent, y, w, startLevel)
                 tooltip = L["AB_TOOLBAR_TT_RENAME_COLLECTION"],
             },
             {
+                type = "Button", name = "ImportCollection", icon = AssetBrowser.toolbar:GetIcon("importcollection"),
+                action = function(self) AssetBrowser.Button_ImportCollection(); end,
+                tooltip = L["AB_TOOLBAR_TT_IMPORT_COLLECTION"],
+            },
+            {
+                type = "Button", name = "ExportCollection", icon = AssetBrowser.toolbar:GetIcon("exportcollection"),
+                action = function(self) AssetBrowser.Button_ExportCollection(AssetBrowser.selectedCollectionIndex); end,
+                tooltip = L["AB_TOOLBAR_TT_EXPORT_COLLECTION"],
+            },
+            { type = "Separator" },
+            {
                 type = "Button", name = "AddObject", icon = AssetBrowser.toolbar:GetIcon("addsceneobject"),
                 action = function(self) AssetBrowser.AddObjectsToCollection(SM.selectedObjects, AssetBrowser.selectedCollectionIndex); end,
                 tooltip = L["AB_TOOLBAR_TT_ADD_OBJECT"],
@@ -1454,4 +1467,86 @@ function AssetBrowser.SearchModelList(value)
         AssetBrowser.gridList:SetData(searchData);
     end
     AssetBrowser.RefreshBreadcrumb();
+end
+
+function AssetBrowser.Button_ExportCollection(collectionIndex)
+   
+    if (not scenemachine_collections[collectionIndex]) then
+        return;
+    end
+
+    local collection = scenemachine_collections[collectionIndex];
+    local collectionString = AssetBrowser.ExportCollectionForPrint(collection);
+
+    Editor.ShowImportExportWindow(nil, collectionString);
+end
+
+function AssetBrowser.ExportCollectionForPrint(collection)
+    local collectionData = AssetBrowser.ExportCollection(collection);
+    local serialized = SceneMachine.Libs.LibSerialize:Serialize(collectionData);
+    local compressed = SceneMachine.Libs.LibDeflate:CompressDeflate(serialized);
+    local chatEncoded = SceneMachine.Libs.LibDeflate:EncodeForPrint(compressed);
+    return chatEncoded;
+end
+
+function AssetBrowser.ExportCollection(collection)
+    local collectionData = {};
+
+    collectionData.version = AssetBrowser.COLLECTION_DATA_VERSION;
+    collectionData.name = collection.name;
+    collectionData.items = {};
+
+    -- transfer items --
+    if (#collection.items > 0) then
+        for i = 1, #collection.items, 1 do
+            collectionData.items[i] = {};
+            if (collection.items[i].displayID) then
+                collectionData.items[i].displayID = collection.items[i].displayID;
+            end
+            if (collection.items[i].fileID) then
+                collectionData.items[i].fileID = collection.items[i].fileID;
+            end
+        end
+    end
+
+    return collectionData;
+end
+
+function AssetBrowser.Button_ImportCollection()
+    Editor.ShowImportExportWindow(AssetBrowser.ImportCollectionFromPrint, "");
+end
+
+function AssetBrowser.ImportCollectionFromPrint(chatEncoded)
+    local decoded = SceneMachine.Libs.LibDeflate:DecodeForPrint(chatEncoded);
+    if (not decoded) then print(L["DECODE_FAILED"]); return end
+    local decompressed = SceneMachine.Libs.LibDeflate:DecompressDeflate(decoded);
+    if (not decompressed) then print(L["DECOMPRESS_FAILED"]); return end
+    local success, collectionData = SceneMachine.Libs.LibSerialize:Deserialize(decompressed);
+    if (not success) then print(L["DESERIALIZE_FAILED"]); return end
+
+    if(collectionData.version > AssetBrowser.COLLECTION_DATA_VERSION) then
+        -- handle newer version
+        print(L["DATA_VERSION_TOO_NEW"]);
+    else
+        -- handle known versions
+        if (collectionData.version == 1) then
+            AssetBrowser.ImportVersion1Collection(collectionData);
+        end
+    end
+end
+
+function AssetBrowser.ImportVersion1Collection(collectionData)
+    local index = AssetBrowser.NewCollection(collectionData.name);
+    local collection = scenemachine_collections[index];
+
+    if (#collectionData.items > 0) then
+        for i = 1, #collectionData.items, 1 do
+            if (collectionData.items[i].displayID) then
+                AssetBrowser.AddDisplayIDToCollection(collectionData.items[i].displayID, index);
+            end
+            if (collectionData.items[i].fileID) then
+                AssetBrowser.AddFileIDToCollection(collectionData.items[i].fileID, index);
+            end
+        end
+    end
 end

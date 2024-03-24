@@ -85,7 +85,7 @@ function Resources.Initialize(resourcePath)
         rows = 8,
         columns = 8,
         coords = {
-            { "uponefolder", "newcollection", "removecollection", "renamecollection", "addsceneobject", "removeobject", "", "" },
+            { "uponefolder", "newcollection", "removecollection", "renamecollection", "addsceneobject", "removeobject", "importcollection", "exportcollection" },
             { "", "", "", "", "", "", "", "" },
             { "", "", "", "", "", "", "", "" },
             { "", "", "", "", "", "", "", "" },

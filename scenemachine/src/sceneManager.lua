@@ -960,15 +960,15 @@ end
 
 function SM.ImportSceneFromPrint(chatEncoded)
     local decoded = SceneMachine.Libs.LibDeflate:DecodeForPrint(chatEncoded);
-    if (not decoded) then print("Decode failed."); return end
+    if (not decoded) then print(L["DECODE_FAILED"]); return end
     local decompressed = SceneMachine.Libs.LibDeflate:DecompressDeflate(decoded);
-    if (not decompressed) then print("Decompress failed."); return end
+    if (not decompressed) then print(L["DECOMPRESS_FAILED"]); return end
     local success, sceneData = SceneMachine.Libs.LibSerialize:Deserialize(decompressed);
-    if (not success) then print("Deserialize failed."); return end
+    if (not success) then print(L["DESERIALIZE_FAILED"]); return end
 
     if(sceneData.version > SM.SCENE_DATA_VERSION) then
         -- handle newer version
-        print("Newer scene version detected, and is unsupported. Please update SceneMachine");
+        print(L["DATA_VERSION_TOO_NEW"]);
     else
         -- handle known versions
         if (sceneData.version == 1) then
