@@ -72,4 +72,5 @@ Structures
 	<Script file="Action/TimelineProperties.lua" />
 	<Script file="Action/TrackAnimations.lua" />
 	<Script file="Action/TrackKeyframes.lua" />
+	<Script file="Action/HierarchyChange.lua" />
 </Ui>

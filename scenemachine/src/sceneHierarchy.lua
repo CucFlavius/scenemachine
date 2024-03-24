@@ -7,6 +7,7 @@ local Resources = SceneMachine.Resources;
 local L = Editor.localization;
 local Input = SceneMachine.Input;
 local OP = Editor.ObjectProperties;
+local Actions = SceneMachine.Actions;
 
 SH.inputState = {
 	dragging = false;
@@ -198,6 +199,10 @@ function SH.RefreshHierarchy()
 end
 
 function SH.GenerateLinearTree(objectBuffer, data, level, parentID)
+	if (not objectBuffer) then
+		return;
+	end
+	
 	for i = 1, #objectBuffer, 1 do
 		objectBuffer[i].level = level;
 		objectBuffer[i].parentID = parentID;
@@ -288,6 +293,7 @@ function SH.Update(deltaTime)
 
 		-- start dragging
 		if (moveDelta > 20) then
+			Editor.StartAction(Actions.Action.Type.HierarchyChange, SM.loadedScene.objectHierarchy);
 			SH.inputState.movingObjects = SH.GetSelectedHierarchyObjects(SM.loadedScene.objectHierarchy);
 			--for i = 1, #SH.inputState.startedmovingObjects, 1 do
 			--	table.insert(SH.inputState.movingObjects, SH.inputState.startedmovingObjects[i]);
@@ -633,6 +639,7 @@ function SH.OnFinishedDraggingItem()
 		SH.inputState.insertAsChildIndex = -1;
 	end
 
+	Editor.FinishAction(SM.loadedScene.objectHierarchy);
 	SH.RefreshHierarchy();
 	OP.Refresh();
 end

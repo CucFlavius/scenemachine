@@ -770,6 +770,8 @@ function Editor.StartAction(type, ...)
         SM.loadedScene.startedAction = Actions.TrackAnimations:New(...);
     elseif (type == Actions.Action.Type.TrackKeyframes) then
         SM.loadedScene.startedAction = Actions.TrackKeyframes:New(...);
+    elseif (type == Actions.Action.Type.HierarchyChange) then
+        SM.loadedScene.startedAction = Actions.HierarchyChange:New(...);
     else
         print ("NYI Editor.StartAction() type:" .. type);
     end
@@ -879,8 +881,8 @@ function Editor.PreprocessSavedVars()
     for ID in pairs(scenemachine_projects) do
         for s = 1, #scenemachine_projects[ID].scenes, 1 do
             local scene = scenemachine_projects[ID].scenes[s];
-            scene.actionPool = nil;
-            scene.actionPointer = nil;
+            --scene.actionPool = nil;
+            --scene.actionPointer = nil;
 
             if (scene.objects) then
                 for o = 1, #scene.objects, 1 do
