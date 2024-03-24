@@ -294,10 +294,8 @@ function SH.Update(deltaTime)
 		-- start dragging
 		if (moveDelta > 20) then
 			Editor.StartAction(Actions.Action.Type.HierarchyChange, SM.loadedScene.objectHierarchy);
+			SH.inputState.savedHierarchyPositions = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
 			SH.inputState.movingObjects = SH.GetSelectedHierarchyObjects(SM.loadedScene.objectHierarchy);
-			--for i = 1, #SH.inputState.startedmovingObjects, 1 do
-			--	table.insert(SH.inputState.movingObjects, SH.inputState.startedmovingObjects[i]);
-			--end
 			SH.inputState.startedmovingObjects = nil;
 			SH.OnStartedDraggingItem();
 		end
@@ -375,7 +373,6 @@ function SH.OnStartedDraggingItem()
 	SH.inputState.viewportYMax = SH.inputState.viewportYMin + (SH.scrollList.viewport:GetHeight() * SH.inputState.viewportScale);
 
 	-- exclude current item from data, but remember the position in hierarchy
-	SH.inputState.savedHierarchyPositions = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
 	SH.inputState.savedWorldPositions = {};
 	SH.inputState.savedWorldRotations = {};
 	SH.inputState.savedWorldScales = {};
@@ -623,8 +620,14 @@ function SH.OnFinishedDraggingItem()
 		if (SH.inputState.insertBelowIndex <= #SH.linearData) then
 			for i = 1, #SH.inputState.movingObjects, 1 do
 				local hobject = SH.inputState.movingObjects[i];
-				local belowLinearID = SH.linearData[SH.inputState.insertBelowIndex].id;
-				SH.InsertIDBelowInHierarchy(hobject, belowLinearID, SM.loadedScene.objectHierarchy);
+				if (SH.inputState.insertBelowIndex == 0) then
+					-- this is the only scene object
+					-- just place it back
+					SH.SetHierarchy(SH.inputState.savedHierarchyPositions);
+				else
+					local belowLinearID = SH.linearData[SH.inputState.insertBelowIndex].id;
+					SH.InsertIDBelowInHierarchy(hobject, belowLinearID, SM.loadedScene.objectHierarchy);
+				end
 			end
 		end
 		SH.inputState.insertBelowIndex = -1;
