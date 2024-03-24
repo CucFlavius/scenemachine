@@ -586,6 +586,11 @@ function Gizmos.ApplyPositionMotion(object, iPointDiff)
     end
 
     local position = object:GetPosition();
+    local parent = SH.GetParentObject(object.id);
+    if (parent) then
+        -- fix gizmo transformation offset if the object is in a hierarchy
+        iPointDiff:Scale(1 / parent:GetWorldScale());
+    end
     position:Add(iPointDiff);
     object:SetPosition(position.x, position.y, position.z);
 end
