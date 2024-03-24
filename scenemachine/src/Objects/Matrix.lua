@@ -159,15 +159,6 @@ function Matrix:Invert()
     return self;
 end
 
-function Matrix:Clone()
-    local clone = Matrix:New()
-    clone.m00, clone.m01, clone.m02, clone.m03 = self.m00, self.m01, self.m02, self.m03
-    clone.m10, clone.m11, clone.m12, clone.m13 = self.m10, self.m11, self.m12, self.m13
-    clone.m20, clone.m21, clone.m22, clone.m23 = self.m20, self.m21, self.m22, self.m23
-    clone.m30, clone.m31, clone.m32, clone.m33 = self.m30, self.m31, self.m32, self.m33
-    return clone
-end
-
 function Matrix:Decompose()
 
     local position = self:ExtractPosition();
@@ -186,94 +177,74 @@ function Matrix:ExtractPosition()
     return Vector3:New(tx, ty, tz);
 end
 
-function Matrix:NormalizeRows()
-    local len0 = math.sqrt(self.m00 ^ 2 + self.m01 ^ 2 + self.m02 ^ 2 + self.m03 ^ 2);
-    local len1 = math.sqrt(self.m10 ^ 2 + self.m11 ^ 2 + self.m12 ^ 2 + self.m13 ^ 2);
-    local len2 = math.sqrt(self.m20 ^ 2 + self.m21 ^ 2 + self.m22 ^ 2 + self.m23 ^ 2);
-    self.m00, self.m01, self.m02, self.m03 = self.m00 * len0, self.m01 * len0, self.m02 * len0, self.m03 * len0;
-    self.m10, self.m11, self.m12, self.m13 = self.m10 * len1, self.m11 * len1, self.m12 * len1, self.m13 * len1;
-    self.m20, self.m21, self.m22, self.m23 = self.m20 * len2, self.m21 * len2, self.m22 * len2, self.m23 * len2;
+function Matrix:GetNormalizedRows3x3()
+    local m00, m01, m02, m03 = self.m00, self.m01, self.m02, self.m03
+    local m10, m11, m12, m13 = self.m10, self.m11, self.m12, self.m13
+    local m20, m21, m22, m23 = self.m20, self.m21, self.m22, self.m23
+
+    local length = math.sqrt(m00 * m00 + m01 * m01 + m02 * m02 + m03 * m03)
+    m00 = m00 / length
+    m01 = m01 / length
+    m02 = m02 / length
+
+    length = math.sqrt(m10 * m10 + m11 * m11 + m12 * m12 + m13 * m13)
+    m10 = m10 / length
+    m11 = m11 / length
+    m12 = m12 / length
+
+    length = math.sqrt(m20 * m20 + m21 * m21 + m22 * m22 + m23 * m23)
+    m20 = m20 / length
+    m21 = m21 / length
+    m22 = m22 / length
+
+    return m00, m01, m02, m10, m11, m12, m20, m21, m22
 end
 
 function Matrix:ExtractRotation()
-    local q = Quaternion:New()
-    local trace = 0.25 * (self.m00 + self.m11 + self.m22 + 1.0)
+    local m00, m01, m02, m10, m11, m12, m20, m21, m22 = self:GetNormalizedRows3x3();
+
+    local q = Quaternion:New();
+    local trace = 0.25 * (m00 + m11 + m22 + 1.0);
 
     if trace > 0 then
-        local sq = math.sqrt(trace)
-        q.w = sq
-        sq = 1.0 / (4.0 * sq)
-        q.x = (self.m21 - self.m12) * sq
-        q.y = (self.m02 - self.m20) * sq
-        q.z = (self.m10 - self.m01) * sq
-    elseif self.m00 > self.m11 and self.m00 > self.m22 then
-        local sq = 2.0 * math.sqrt(1.0 + self.m00 - self.m11 - self.m22)
-        q.x = 0.25 * sq
-        sq = 1.0 / sq
-        q.w = (self.m21 - self.m12) * sq
-        q.y = (self.m01 + self.m10) * sq
-        q.z = (self.m02 + self.m20) * sq
-    elseif self.m11 > self.m22 then
-        local sq = 2.0 * math.sqrt(1.0 + self.m11 - self.m00 - self.m22)
-        q.y = 0.25 * sq
-        sq = 1.0 / sq
-        q.w = (self.m02 - self.m20) * sq
-        q.x = (self.m01 + self.m10) * sq
-        q.z = (self.m12 + self.m21) * sq
+        local sq = math.sqrt(trace);
+        q.w = sq;
+        sq = 1.0 / (4.0 * sq);
+        q.x = (m12 - m21) * sq;
+        q.y = (m20 - m02) * sq;
+        q.z = (m01 - m10) * sq;
+    elseif m00 > m11 and m00 > m22 then
+        local sq = 2.0 * math.sqrt(1.0 + m00 - m11 - m22);
+        q.x = 0.25 * sq;
+        sq = 1.0 / sq;
+        q.w = (m12 - m21) * sq;
+        q.y = (m10 + m01) * sq;
+        q.z = (m20 + m02) * sq;
+    elseif m11 > m22 then
+        local sq = 2.0 * math.sqrt(1.0 + m11 - m00 - m22);
+        q.y = 0.25 * sq;
+        sq = 1.0 / sq;
+        q.w = (m20 - m02) * sq;
+        q.x = (m10 + m01) * sq;
+        q.z = (m21 + m12) * sq;
     else
-        local sq = 2.0 * math.sqrt(1.0 + self.m22 - self.m00 - self.m11)
-        q.z = 0.25 * sq
-        sq = 1.0 / sq
-        q.w = (self.m10 - self.m01) * sq
-        q.x = (self.m02 + self.m20) * sq
-        q.y = (self.m12 + self.m21) * sq
+        local sq = 2.0 * math.sqrt(1.0 + m22 - m00 - m11);
+        q.z = 0.25 * sq;
+        sq = 1.0 / sq;
+        q.w = (m01 - m10) * sq;
+        q.x = (m20 + m02) * sq;
+        q.y = (m21 + m12) * sq;
     end
 
-    q:Normalize()
-    return q
+    q:Normalize();
+    return q;
 end
 
 function Matrix:ExtractScale()
-    return math.sqrt(self.m00 * self.m00 + self.m10 * self.m10 + self.m20 * self.m20);
-end
-
-function Matrix:ApplyRotation(diff, selectedAxis)
-    local angle = math.rad(diff) -- Convert the rotation difference to radians
-
-    local cosAngle = math.cos(angle)
-    local sinAngle = math.sin(angle)
-
-    local rotationMatrix = Matrix:New()
-    
-    -- Set the appropriate rotation element based on the selected axis
-    if selectedAxis == 1 then -- X-axis
-        rotationMatrix.m00 = 1
-        rotationMatrix.m11 = cosAngle
-        rotationMatrix.m12 = -sinAngle
-        rotationMatrix.m21 = sinAngle
-        rotationMatrix.m22 = cosAngle
-        rotationMatrix.m33 = 1
-    elseif selectedAxis == 2 then -- Y-axis
-        rotationMatrix.m00 = cosAngle
-        rotationMatrix.m02 = sinAngle
-        rotationMatrix.m11 = 1
-        rotationMatrix.m20 = -sinAngle
-        rotationMatrix.m22 = cosAngle
-        rotationMatrix.m33 = 1
-    elseif selectedAxis == 3 then -- Z-axis
-        rotationMatrix.m00 = cosAngle
-        rotationMatrix.m01 = -sinAngle
-        rotationMatrix.m10 = sinAngle
-        rotationMatrix.m11 = cosAngle
-        rotationMatrix.m22 = 1
-        rotationMatrix.m33 = 1
-    else
-        -- No rotation for invalid axis
-        return
-    end
-
-    -- Multiply the object's matrix by the rotation matrix
-    self:Multiply(rotationMatrix);
+    local sx = Vector3:New(self.m00, self.m10, self.m20):Length();
+    local sy = Vector3:New(self.m01, self.m11, self.m21):Length();
+    local sz = Vector3:New(self.m02, self.m12, self.m22):Length();
+    return (sx + sy + sz) / 3;
 end
 
 function Matrix:SetMatrix(m)
@@ -305,65 +276,13 @@ function Matrix:SetIdentity()
     self.m30, self.m31, self.m32, self.m33 = 0, 0, 0, 1
 end
 
--- Translate function to create a position matrix
-function Matrix:Translate(tx, ty, tz)
-    self.m30 = self.m30 + (tx or 0)
-    self.m31 = self.m31 + (ty or 0)
-    self.m32 = self.m32 + (tz or 0)
-end
-
--- <summary>
--- Build a rotation matrix from the specified axis/angle rotation.
--- </summary>
--- <param name="axis">The axis to rotate about.</param>
--- <param name="angle">Angle in radians to rotate counter-clockwise (looking in the direction of the given axis).</param>
--- <param name="result">A matrix instance.</param>
-function Matrix:CreateFromAxisAngle(axis, angle)
-
-    -- normalize and create a local copy of the vector.
-    axis:Normalize();
-    local axisX = axis.x;
-    local axisY = axis.y;
-    local axisZ = axis.z;
-
-    -- calculate angles
-    local cos = math.cos(-angle);
-    local sin = math.sin(-angle);
-    local t = 1.0 - cos;
-
-    -- do the conversion math once
-    local tXX = t * axisX * axisX;
-    local tXY = t * axisX * axisY;
-    local tXZ = t * axisX * axisZ;
-    local tYY = t * axisY * axisY;
-    local tYZ = t * axisY * axisZ;
-    local tZZ = t * axisZ * axisZ;
-
-    local sinX = sin * axisX;
-    local sinY = sin * axisY;
-    local sinZ = sin * axisZ;
-
-    self.m00 = tXX + cos;
-    self.m01 = tXY - sinZ;
-    self.m02 = tXZ + sinY;
-    self.m03 = 0;
-    self.m10 = tXY + sinZ;
-    self.m11 = tYY + cos;
-    self.m12 = tYZ - sinX;
-    self.m13 = 0;
-    self.m20 = tXZ - sinY;
-    self.m21 = tYZ + sinX;
-    self.m22 = tZZ + cos;
-    self.m23 = 0;
-    self.m30 = 0;
-    self.m31 = 0;
-    self.m32 = 0;
-    self.m33 = 1;
-
+function Matrix:Translate(position)
+    self.m30 = position.x
+    self.m31 = position.y
+    self.m32 = position.z
 end
 
 function Matrix:CreateFromQuaternion(q)
-
     -- Adapted from https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Quaternion-derived_rotation_matrix
     -- with the caviat that opentk uses row-major matrices so the matrix we create is transposed
     local sqx = q.x * q.x
@@ -403,65 +322,48 @@ function Matrix:CreateFromQuaternion(q)
     self.m33 = 1
 end
 
--- Rotate function to create a rotation matrix
-function Matrix:Rotate(angle, axisX, axisY, axisZ)
-    angle = math.rad(angle)
-    local c = math.cos(angle)
-    local s = math.sin(angle)
-    local omc = 1 - c
+function Matrix:RotateQuaternion(q)
+    local sqx = q.x * q.x
+    local sqy = q.y * q.y
+    local sqz = q.z * q.z
+    local sqw = q.w * q.w
 
-    -- Normalize axis
-    local length = math.sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ)
-    if length == 0 then
-        axisX = 1
-        axisY = 0
-        axisZ = 0
-    else
-        axisX = axisX / length
-        axisY = axisY / length
-        axisZ = axisZ / length
-    end
+    local xy = q.x * q.y
+    local xz = q.x * q.z
+    local xw = q.x * q.w
 
-    -- Calculate rotation matrix
-    local m11 = c + axisX * axisX * omc
-    local m12 = axisX * axisY * omc - axisZ * s
-    local m13 = axisX * axisZ * omc + axisY * s
-    local m21 = axisY * axisX * omc + axisZ * s
-    local m22 = c + axisY * axisY * omc
-    local m23 = axisY * axisZ * omc - axisX * s
-    local m31 = axisZ * axisX * omc - axisY * s
-    local m32 = axisZ * axisY * omc + axisX * s
-    local m33 = c + axisZ * axisZ * omc
+    local yz = q.y * q.z
+    local yw = q.y * q.w
 
-    self.m00, self.m01, self.m02, self.m03 = m11, m12, m13, 0
-    self.m10, self.m11, self.m12, self.m13 = m21, m22, m23, 0
-    self.m20, self.m21, self.m22, self.m23 = m31, m32, m33, 0
-end
+    local zw = q.z * q.w
 
-function Matrix:RotateEuler(x, y, z)
-    local cx, cy, cz = math.cos(x), math.cos(y), math.cos(z)
-    local sx, sy, sz = math.sin(x), math.sin(y), math.sin(z)
+    local s2 = 2 / (sqx + sqy + sqz + sqw)
 
-    -- Construct rotation matrix with the specified Euler angles
-    self.m00 = cy * cz
-    self.m01 = -cy * sz
-    self.m02 = sy
+    self.m00 = 1 - s2 * (sqy + sqz)
+    self.m01 = s2 * (xy + zw)
+    self.m02 = s2 * (xz - yw)
     self.m03 = 0
 
-    self.m10 = cx * sz + sx * sy * cz
-    self.m11 = cx * cz - sx * sy * sz
-    self.m12 = -sx * cy
+    self.m10 = s2 * (xy - zw)
+    self.m11 = 1 - s2 * (sqx + sqz)
+    self.m12 = s2 * (yz + xw)
     self.m13 = 0
 
-    self.m20 = sx * sz - cx * sy * cz
-    self.m21 = sx * cz + cx * sy * sz
-    self.m22 = cx * cy
+    self.m20 = s2 * (xz + yw)
+    self.m21 = s2 * (yz - xw)
+    self.m22 = 1 - s2 * (sqx + sqy)
     self.m23 = 0
 
     self.m30 = 0
     self.m31 = 0
     self.m32 = 0
     self.m33 = 1
+end
+
+function Matrix:Scale(scale)
+    self.m00 = scale.x;
+    self.m11 = scale.y;
+    self.m22 = scale.z;
 end
 
 function Matrix:Multiply(o)

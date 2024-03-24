@@ -231,9 +231,9 @@ function Gizmos.UpdateMarquee(mouseX, mouseY)
                         Gizmos.marqueeAABBSSPoints[idx].SSvertices = {};
                         Gizmos.marqueeAABBSSPoints[idx].object = object;
 
-                        local position = object:GetPosition();
-                        local rotation = object:GetRotation();
-                        local scale = object:GetScale();
+                        local position = object:GetWorldPosition();
+                        local rotation = object:GetWorldRotation();
+                        local scale = object:GetWorldScale();
 
                         local bbCenter;
                         if (object:HasActor()) then
@@ -545,6 +545,9 @@ function Gizmos.UpdateGizmoTransform()
     local position = SM.selectedPosition;
     local rotation = SM.selectedRotation;
     local scale = SM.selectedScale;
+    local worldPosition = SM.selectedWorldPosition;
+    local worldRotation = SM.selectedWorldRotation;
+    local worldScale = SM.selectedWorldScale;
     local centerH = 0;
 
     if (SM.selectedObjects[1]:GetGizmoType() == Gizmos.Type.Object) then
@@ -553,27 +556,27 @@ function Gizmos.UpdateGizmoTransform()
         local bbCenter = {(xMax - xMin) / 2, (yMax - yMin) / 2, (zMax - zMin) / 2};
         centerH = -(zMax - zMin) / 2 * scale;
         Gizmos.transformToAABB(SceneMachine.Gizmos.WireBox, bbCenter);
-        Gizmos.transformGizmo(SceneMachine.Gizmos.WireBox, position, rotation, scale, centerH, 1, 0);
+        Gizmos.transformGizmo(SceneMachine.Gizmos.WireBox, worldPosition, worldRotation, worldScale, centerH, 1, 0);
     elseif (SM.selectedObjects[1]:GetGizmoType() == Gizmos.Type.Camera) then
         local fov = SM.selectedObjects[1]:GetFoV();
         local aspect = 1 / Camera.aspectRatio;
         local near = 1;
         local far = 20;
         Gizmos.GenerateCameraFrustumVertices(fov, aspect, 1, 20);
-        Gizmos.transformGizmo(SceneMachine.Gizmos.CameraGizmo, SM.selectedObjects[1]:GetPosition(), SM.selectedObjects[1]:GetRotation(), 1, { 0, 0, 0 }, Gizmos.space, 0);
+        Gizmos.transformGizmo(SceneMachine.Gizmos.CameraGizmo, SM.selectedObjects[1]:GetWorldPosition(), SM.selectedObjects[1]:GetWorldRotation(), 1, { 0, 0, 0 }, Gizmos.space, 0);
     end
 
     if (Gizmos.activeTransformGizmo == 1) then
         -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
-        SceneMachine.Gizmos.MoveGizmo.scale = Vector3.ManhattanDistance(position, Camera.position) / 15;
-        Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, position, rotation, 1, centerH, Gizmos.space, Gizmos.pivot);
+        SceneMachine.Gizmos.MoveGizmo.scale = Vector3.ManhattanDistance(worldPosition, Camera.position) / 15;
+        Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, worldPosition, worldRotation, 1, centerH, Gizmos.space, Gizmos.pivot);
     elseif (Gizmos.activeTransformGizmo == 2) then
         -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
-        SceneMachine.Gizmos.RotateGizmo.scale = Vector3.ManhattanDistance(position, Camera.position) / 10;
-        Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmo, position, rotation, 1, centerH, Gizmos.space, Gizmos.pivot);
+        SceneMachine.Gizmos.RotateGizmo.scale = Vector3.ManhattanDistance(worldPosition, Camera.position) / 10;
+        Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmo, worldPosition, worldRotation, 1, centerH, Gizmos.space, Gizmos.pivot);
     elseif (Gizmos.activeTransformGizmo == 3) then
-        SceneMachine.Gizmos.ScaleGizmo.scale = Vector3.ManhattanDistance(position, Camera.position) / 15;
-        Gizmos.transformGizmo(SceneMachine.Gizmos.ScaleGizmo, position, rotation, 1, centerH, Gizmos.space, Gizmos.pivot);
+        SceneMachine.Gizmos.ScaleGizmo.scale = Vector3.ManhattanDistance(worldPosition, Camera.position) / 15;
+        Gizmos.transformGizmo(SceneMachine.Gizmos.ScaleGizmo, worldPosition, worldRotation, 1, centerH, Gizmos.space, Gizmos.pivot);
     end
 end
 

@@ -370,7 +370,17 @@ function SH.OnStartedDraggingItem()
 
 	-- exclude current item from data, but remember the position in hierarchy
 	SH.inputState.savedHierarchyPositions = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
+	SH.inputState.savedWorldPositions = {};
+	SH.inputState.savedWorldRotations = {};
+	SH.inputState.savedWorldScales = {};
 	for i = 1, #SH.inputState.movingObjects, 1 do
+		local object = SM.GetObjectByID(SH.inputState.movingObjects[i].id)
+		local wPosition = object:GetWorldPosition();
+		SH.inputState.savedWorldPositions[SH.inputState.movingObjects[i].id] = wPosition;
+		local wRotation = object:GetWorldRotation();
+		SH.inputState.savedWorldRotations[SH.inputState.movingObjects[i].id] = wRotation;
+		local wScale = object:GetWorldScale();
+		SH.inputState.savedWorldScales[SH.inputState.movingObjects[i].id] = wScale;
 		SH.RemoveIDFromHierarchy(SH.inputState.movingObjects[i].id, SM.loadedScene.objectHierarchy);
 	end
 	SH.RefreshHierarchy();
@@ -428,6 +438,14 @@ function SH.InsertIDChildInHierarchy(hobject, intoId, currentList)
 	for i = 1, #currentList, 1 do
 		if (currentList[i].id == intoId) then
 			table.insert(currentList[i].childObjects, hobject);
+			hobject.parentID = intoId;
+			local object = SM.GetObjectByID(hobject.id)
+			local wPosition = SH.inputState.savedWorldPositions[hobject.id];
+			local wRotation = SH.inputState.savedWorldRotations[hobject.id];
+			local wScale = SH.inputState.savedWorldScales[hobject.id];
+			object:SetWorldPosition(wPosition.x, wPosition.y, wPosition.z);
+			object:SetWorldRotation(wRotation.x, wRotation.y, wRotation.z);
+			object:SetWorldScale(wScale);
 			return;
 		end
 
@@ -440,6 +458,14 @@ function SH.InsertIDAboveInHierarchy(hobject, aboveID, currentList)
 		if (currentList[i].id == aboveID) then
 			-- insert above current id in id's parent
 			table.insert(currentList, i, hobject);
+			local object = SM.GetObjectByID(hobject.id)
+			local wPosition = SH.inputState.savedWorldPositions[hobject.id];
+			local wRotation = SH.inputState.savedWorldRotations[hobject.id];
+			local wScale = SH.inputState.savedWorldScales[hobject.id];
+			object:SetWorldPosition(wPosition.x, wPosition.y, wPosition.z);
+			object:SetWorldRotation(wRotation.x, wRotation.y, wRotation.z);
+			object:SetWorldScale(wScale);
+			hobject.parentID = aboveID;
 			return;
 		end
 
@@ -456,17 +482,26 @@ function SH.InsertIDBelowInHierarchy(hobject, belowID, currentList)
 				if (currentList[i].open) then
 					-- insert as first child
 					table.insert(currentList[i].childObjects, 1, hobject);
+					hobject.parentID = belowID;
 				-- if closed
 				else
 					-- insert below current id in id's parent
 					table.insert(currentList, i + 1, hobject);
+					hobject.parentID = currentList[i].parentID;
 				end
 			-- if current doesn't have child objects
 			else
 				-- insert below current id in id's parent
 				table.insert(currentList, i + 1, hobject);
+				hobject.parentID = currentList[i].parentID;
 			end
-
+			local object = SM.GetObjectByID(hobject.id)
+			local wPosition = SH.inputState.savedWorldPositions[hobject.id];
+			local wRotation = SH.inputState.savedWorldRotations[hobject.id];
+			local wScale = SH.inputState.savedWorldScales[hobject.id];
+			object:SetWorldPosition(wPosition.x, wPosition.y, wPosition.z);
+			object:SetWorldRotation(wRotation.x, wRotation.y, wRotation.z);
+			object:SetWorldScale(wScale);
 			return;
 		end
 
@@ -599,6 +634,7 @@ function SH.OnFinishedDraggingItem()
 	end
 
 	SH.RefreshHierarchy();
+	OP.Refresh();
 end
 
 function SH.SelectHierarchyObjectByID(ID)
@@ -613,14 +649,17 @@ function SH.AddNewObject(ID)
 end
 
 function SH.GetHierarchyObject(objectBuffer, ID)
-	for i = 1, #objectBuffer, 1 do
-		if (objectBuffer[i].id == ID) then
-			return objectBuffer[i];
-		end
-		return SH.GetHierarchyObject(objectBuffer[i].childObjects, ID);
-	end
-
-	return nil;
+    for i = 1, #objectBuffer do
+        if objectBuffer[i].id == ID then
+            return objectBuffer[i]
+        elseif objectBuffer[i].childObjects then
+            local result = SH.GetHierarchyObject(objectBuffer[i].childObjects, ID)
+            if result then
+                return result
+            end
+        end
+    end
+    return nil
 end
 
 function SH.GetChildObjects(ID)
@@ -638,4 +677,18 @@ function SH.GetChildObjects(ID)
 	end
 	
 	return childObjects;
+end
+
+function SH.GetParentObject(ID)
+	local hobject = SH.GetHierarchyObject(SM.loadedScene.objectHierarchy, ID);
+	if (not hobject) then
+		return nil;
+	end
+
+	if (hobject.parentID == -1) then
+		return nil;
+	end
+
+	local parentObject = SM.GetObjectByID(hobject.parentID);
+	return parentObject;
 end

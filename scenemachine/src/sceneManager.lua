@@ -234,23 +234,20 @@ function SM.LoadScene(index)
         if (type == SceneMachine.GameObjects.Object.Type.Model) then
             object = SceneMachine.GameObjects.Model:New();
             object:ImportData(scene.objects[i]);
-            object:CreateMatrix();
             id = object.fileID;
         elseif(type == SceneMachine.GameObjects.Object.Type.Creature) then
             object = SceneMachine.GameObjects.Creature:New();
             object:ImportData(scene.objects[i]);
-            object:CreateMatrix();
             id = object.displayID;
         elseif(type == SceneMachine.GameObjects.Object.Type.Character) then
             object = SceneMachine.GameObjects.Character:New();
             object:ImportData(scene.objects[i]);
-            object:CreateMatrix();
             id = -1;
         elseif(type == SceneMachine.GameObjects.Object.Type.Camera) then
             object = SceneMachine.GameObjects.Camera:New();
             object:ImportData(scene.objects[i]);
-            object:CreateMatrix();
         end
+
         if (object:HasActor()) then
             local actor = Renderer.AddActor(id, object.position.x, object.position.y, object.position.z, object.type);
             object:SetActor(actor);
@@ -259,6 +256,7 @@ function SM.LoadScene(index)
                 actor:SetAlpha(0);
             end
         end
+
         -- assigning the new object so that we have access to the class functions (which get stripped when exporting to savedata)
         SM.loadedScene.objects[i] = object;
     end
@@ -315,6 +313,12 @@ function SM.LoadScene(index)
         Camera.eulerRotation:Set(scene.lastCameraEuler[1], scene.lastCameraEuler[2], scene.lastCameraEuler[3]);
     end
     CameraController.Direction = math.deg(Camera.eulerRotation.z);
+
+    for i = 1, #SM.loadedScene.objects, 1 do
+        SM.loadedScene.objects[i]:RecalculateWorldMatrices();
+        SM.loadedScene.objects[i]:RecalculateActors();
+    end
+
 
     -- refresh the scene tabs
     SM.RefreshSceneTabs();
@@ -567,6 +571,9 @@ function SM.CalculateObjectsAverage()
         SM.selectedPosition = Vector3.zero;
         SM.selectedRotation = Vector3.zero;
         SM.selectedScale = 1.0;
+        SM.selectedWorldPosition = Vector3.zero;
+        SM.selectedWorldRotation = Vector3.zero;
+        SM.selectedWorldScale = 1.0;
         SM.selectedAlpha = 1.0;
         SM.selectedBounds = nil;
     elseif (#SM.selectedObjects == 1) then
@@ -574,6 +581,10 @@ function SM.CalculateObjectsAverage()
         SM.selectedRotation = SM.selectedObjects[1]:GetRotation();
         SM.selectedScale = SM.selectedObjects[1]:GetScale();
         SM.selectedAlpha = 1.0;
+
+        SM.selectedWorldPosition = SM.selectedObjects[1]:GetWorldPosition();
+        SM.selectedWorldRotation = SM.selectedObjects[1]:GetWorldRotation();
+        SM.selectedWorldScale = SM.selectedObjects[1]:GetWorldScale();
 
         if (SM.selectedObjects[1]:HasActor()) then
             local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObjects[1]:GetActiveBoundingBox();
@@ -629,8 +640,8 @@ function SM.CalculateObjectsAverage()
             end
 
             -- Get position of the object
-            local Pos = SM.selectedObjects[i]:GetPosition();
-            local Scale = SM.selectedObjects[i]:GetScale();
+            local Pos = SM.selectedObjects[i]:GetWorldPosition();
+            local Scale = SM.selectedObjects[i]:GetWorldScale();
 
             -- Update minimum bounds
             xMin = math.min(xMin, xmin * Scale + Pos.x);

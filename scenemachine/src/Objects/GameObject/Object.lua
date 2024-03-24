@@ -46,58 +46,36 @@ end
 function Object:GetGizmoType()
     return Gizmos.Type.Object;
 end
---[[
-function Object:SetPosition(x, y, z)
 
-    self:CreateMatrix();
-    local childObjects = SH.GetChildObjects(self.id);
-    if (childObjects ~= nil) then
-        for i = 1, #childObjects do
-            childObjects[i]:CreateMatrix();
-            childObjects[i].matrix:Multiply(self:GetMatrix());
-            childObjects[i]:ApplyTransformation();
-        end
-    end
-    self.position.x = x;
-    self.position.y = y;
-    self.position.z = z;
-    
+function Object:RecalculateActors()
     -- apply to actor
     if (self.actor ~= nil) then
-        local s = self.scale;
-        self.actor:SetPosition(x / s, y / s, z / s);
-    end
-end
---]]
+        local wPos, rot, scale = self.matrix:Decompose();
 
-function Object:SetPosition(x, y, z)
-    -- apply to children
-    local oldPos = self:GetPosition();
-    local oldPosX, oldPosY, oldPosZ = oldPos.x, oldPos.y, oldPos.z;
-    self:SetPosition_internal(x, y, z);
+        self.actor:SetPosition(wPos.x / scale, wPos.y / scale, wPos.z / scale);
+        local rotE = rot:ToEuler();
+        self.actor:SetRoll(rotE.x);
+        self.actor:SetPitch(rotE.y);
+        self.actor:SetYaw(rotE.z);
+        self.actor:SetScale(scale);
+    end
 
     local childObjects = SH.GetChildObjects(self.id);
     if (childObjects ~= nil) then
-        local diffX = x - oldPosX;
-        local diffY = y - oldPosY;
-        local diffZ = z - oldPosZ;
-
         for i = 1, #childObjects do
-            local cPos = childObjects[i]:GetPosition();
-            childObjects[i]:SetPosition(cPos.x + diffX, cPos.y + diffY, cPos.z + diffZ);
+            childObjects[i]:RecalculateActors();
         end
     end
 end
 
-function Object:SetPosition_internal(x, y, z)
-    self.position.x = x;
-    self.position.y = y;
-    self.position.z = z;
-    
-    -- apply to actor
-    if (self.actor ~= nil) then
-        local s = self.scale;
-        self.actor:SetPosition(x / s, y / s, z / s);
+function Object:RecalculateWorldMatrices()
+    self.matrix = self:CreateWorldMatrix();
+
+    local childObjects = SH.GetChildObjects(self.id);
+    if (childObjects ~= nil) then
+        for i = 1, #childObjects, 1 do
+            childObjects[i]:RecalculateWorldMatrices();
+        end
     end
 end
 
@@ -105,18 +83,27 @@ function Object:SetPositionVector3(pos)
     self:SetPosition(pos.x, pos.y, pos.z);
 end
 
-function Object:SetRotationQuaternion(rot)
-    self.rotation = rot:ToEuler();
+function Object:SetPosition(x, y, z)
+    self.position:Set(x, y, z);
 
-    self.rotation.x = math.max(-1000000, math.min(1000000, self.rotation.x));
-    self.rotation.y = math.max(-1000000, math.min(1000000, self.rotation.y));
-    self.rotation.z = math.max(-1000000, math.min(1000000, self.rotation.z));
+    self:RecalculateWorldMatrices();
+    self:RecalculateActors();
+end
 
-    -- apply to actor
-    if (self.actor ~= nil) then
-        self.actor:SetRoll(self.rotation.x);
-        self.actor:SetPitch(self.rotation.y);
-        self.actor:SetYaw(self.rotation.z);
+function Object:SetWorldPosition(x, y, z)
+    local parent = SH.GetParentObject(self.id);
+    if (not parent) then
+        self:SetPosition(x, y, z);
+    else
+        local parentMatrix = parent:CreateWorldMatrix();
+        parentMatrix:Invert();
+        local pos = Vector3:New(x, y, z);
+        local transMatrix = Matrix:New();
+        transMatrix:SetIdentity();
+        transMatrix:Translate(pos);
+        transMatrix:Multiply(parentMatrix);
+        local localPos = transMatrix:ExtractPosition();
+        self:SetPosition(localPos.x, localPos.y, localPos.z);
     end
 end
 
@@ -124,66 +111,37 @@ function Object:GetPosition()
     return Vector3:New(self.position.x, self.position.y, self.position.z);
 end
 
+function Object:GetWorldPosition()
+    return self.matrix:ExtractPosition();
+end
+
 function Object:SetRotation(x, y, z)
     x = math.max(-1000000, math.min(1000000, x));
     y = math.max(-1000000, math.min(1000000, y));
     z = math.max(-1000000, math.min(1000000, z));
 
-    local oldRotX = self.rotation.x;
-    local oldRotY = self.rotation.y;
-    local oldRotZ = self.rotation.z;
-
     self.rotation:Set(x, y, z);
 
-    -- apply to actor
-    if (self.actor ~= nil) then
-        self.actor:SetRoll(x);
-        self.actor:SetPitch(y);
-        self.actor:SetYaw(z);
-    end
+    self:RecalculateWorldMatrices();
+    self:RecalculateActors();
+end
 
-    -- apply to children
-    local childObjects = SH.GetChildObjects(self.id);
-    if (childObjects ~= nil) then
-
-        local rotationQ = self:GetQuaternionRotation();
-        local rotationQInv = self:GetQuaternionRotation();
-        rotationQInv:Invert();
-
-        local diffX = self.rotation.x - oldRotX;
-        local diffY = self.rotation.y - oldRotY;
-        local diffZ = self.rotation.z - oldRotZ;
-        local pivotCenter = self:GetPosition();
-
-        for i = 1, #childObjects, 1 do
-            -- Rotate
-            local cRotationQ = childObjects[i]:GetQuaternionRotation();
-            local newRotationQ = Quaternion:New();
-            newRotationQ:SetFromEuler(Vector3:New(diffX, diffY, diffZ));
-            cRotationQ:Multiply(rotationQInv);
-            cRotationQ:Multiply(newRotationQ);
-            cRotationQ:Multiply(rotationQ);
-            local cRotation = cRotationQ:ToEuler();
-            childObjects[i]:SetRotation(cRotation.x, cRotation.y, cRotation.z);
-            --childObjects[i]:SetRotationQuaternion(cRotationQ);
-
-            -- Move
-            local pivotOffset = childObjects[i]:GetPosition();
-            pivotOffset:Subtract(pivotCenter);
-            local distance = Vector3.Distance(Vector3.zero, pivotOffset);
-
-            --local forward = Vector3.GetDirectionVectorBetweenVectors(pivotCenter, childObjects[i]:GetPosition());
-            --print(forward);
-            local rotationQInv2 = Quaternion:New();
-            rotationQInv2:SetQuaternion(rotationQInv);
-            local direction = rotationQInv2:ToDirectionVector();  -- TODO: forward is an issue
-            local newDir = Vector3:New();
-            newDir:SetVector3(direction);
-            newDir:Scale(distance);
-
-            newDir:Add(pivotCenter);
-            childObjects[i]:SetPosition_internal(newDir.x, newDir.y, newDir.z);
-        end
+function Object:SetWorldRotation(x, y, z)
+    local parent = SH.GetParentObject(self.id);
+    if (not parent) then
+        self:SetRotation(x, y, z);
+    else
+        local parentMatrix = parent:CreateWorldMatrix();
+        parentMatrix:Invert();
+        local rot = Quaternion:New();
+        rot:SetFromEuler(Vector3:New(x, y, z));
+        local rotMatrix = Matrix:New();
+        rotMatrix:SetIdentity();
+        rotMatrix:RotateQuaternion(rot);
+        rotMatrix:Multiply(parentMatrix);
+        local localRotQ = rotMatrix:ExtractRotation();
+        local localRot = localRotQ:ToEuler();
+        self:SetRotation(localRot.x, localRot.y, localRot.z);
     end
 end
 
@@ -191,18 +149,39 @@ function Object:GetRotation()
     return Vector3:New(self.rotation.x, self.rotation.y, self.rotation.z);
 end
 
+function Object:GetWorldRotation()
+    return self.matrix:ExtractRotation();
+end
+
 function Object:SetScale(value)
     self.scale = value;
 
-    -- apply to actor
-    if (self.actor ~= nil) then
-        self.actor:SetPosition(self.position.x / value, self.position.y / value, self.position.z / value);
-        self.actor:SetScale(value);
+    self:RecalculateWorldMatrices();
+    self:RecalculateActors();
+end
+
+function Object:SetWorldScale(value)
+    local parent = SH.GetParentObject(self.id);
+    if (not parent) then
+        self:SetScale(value);
+    else
+        local parentMatrix = parent:CreateWorldMatrix();
+        parentMatrix:Invert();
+        local scaleMatrix = Matrix:New();
+        scaleMatrix:SetIdentity();
+        scaleMatrix:Scale(Vector3:New(value, value, value));
+        scaleMatrix:Multiply(parentMatrix);
+        local localScale = scaleMatrix:ExtractScale();
+        self:SetScale(localScale);
     end
 end
 
 function Object:GetScale()
     return self.scale;
+end
+
+function Object:GetWorldScale()
+    return self.matrix:ExtractScale();
 end
 
 function Object:GetVector3Scale()
@@ -216,28 +195,36 @@ function Object:GetQuaternionRotation()
     return qRotation;
 end
 
-function Object:CreateMatrix()
-    if (not self.matrix) then
-        self.matrix = Matrix:New();
+function Object:CreateWorldMatrix()
+    local localMatrix = Matrix:New();
+    localMatrix:SetIdentity();
+
+    local scaleMatrix = Matrix:New();
+    scaleMatrix:SetIdentity();
+    scaleMatrix:Scale(self:GetVector3Scale());
+
+    local rotationMatrix = Matrix:New();
+    rotationMatrix:SetIdentity();
+    rotationMatrix:RotateQuaternion(self:GetQuaternionRotation());
+
+    local translationMatrix = Matrix:New();
+    translationMatrix:SetIdentity();
+    translationMatrix:Translate(self:GetPosition());
+
+    localMatrix:Multiply(scaleMatrix);
+    localMatrix:Multiply(rotationMatrix);
+    localMatrix:Multiply(translationMatrix);
+    --currentMatrix:TRS(self:GetPosition(), self:GetQuaternionRotation(), self:GetVector3Scale());
+    local worldMatrix = Matrix:New();
+    worldMatrix:SetMatrix(localMatrix);
+    
+    local parent = SH.GetParentObject(self.id);
+    if (parent) then
+        local parentMatrix = parent:CreateWorldMatrix();
+        worldMatrix:Multiply(parentMatrix);
     end
-    self.matrix:TRS(self:GetPosition(), self:GetQuaternionRotation(), self:GetVector3Scale());
-end
 
-function Object:GetMatrix()
-    if (not self.matrix) then
-        self:CreateMatrix();
-    end
-
-    return self.matrix;
-end
-
-function Object:ApplyTransformation()
-    local pos, rot, scale = self.matrix:Decompose();
-    local rotE = rot:ToEuler();
-
-    self:SetPosition(pos.x, pos.y, pos.z);
-    self:SetRotation(rotE.x, rotE.y, rotE.z);
-    self:SetScale(scale);
+    return worldMatrix;
 end
 
 function Object:ToggleVisibility()

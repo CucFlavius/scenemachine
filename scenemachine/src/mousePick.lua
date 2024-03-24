@@ -46,7 +46,7 @@ function MousePick.Pick(x, y)
             local bb = BoundingBox:New();
             bb:SetFromMinMaxAABB(xMin, yMin, zMin, xMax, yMax, zMax);
 
-            local tNear, tFar = ray:IntersectsBoundingBox(bb, object:GetPosition(), object:GetRotation(), object:GetScale())
+            local tNear, tFar = ray:IntersectsBoundingBox(bb, object:GetWorldPosition(), object:GetWorldRotation(), object:GetWorldScale())
             
             if (tNear <= tFar) then
                 MousePick.selectionList[idx] = {};
