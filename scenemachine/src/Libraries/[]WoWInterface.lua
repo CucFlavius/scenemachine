@@ -3,6 +3,8 @@
 -- Not compiled by wow
 -- Don't ship with the addon, waste of space
 
+---@meta WoWInterface
+
 --------------------
 -- Bit operations --
 --------------------
@@ -65,7 +67,12 @@ function abs(num) end
 function floor(num) end
 function sqrt(num) end
 function clamp(num) end
-function mod(value,modulus) end
+
+--- Performs a modulo operation on the given value.
+---@param value number The value to be divided.
+---@param modulus number The modulus to divide the value by.
+---@return number remainder The remainder of the division.
+function mod(value, modulus) end
 
 --------------------
 --       ui       --

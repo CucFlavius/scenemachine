@@ -2,6 +2,17 @@
 Structures
 -->
 
+<!--
+This XML file contains a list of scripts used in the application. It defines various game objects, UI objects, packet objects, and action objects.
+
+- Game Objects: These scripts define different types of game objects such as actors, models, creatures, characters, groups, and cameras.
+- UI Objects: These scripts define various UI elements such as labels, buttons, scrollbars, text boxes, images, dropdowns, etc.
+- Packet Objects: These scripts define different types of packets used for communication between scenemachine clients.
+- Action Objects: These scripts define various actions that can be performed in the application, such as transforming objects, creating/deleting objects, modifying timelines, etc. and are used for performing undo / redo operations.
+
+Note: This documentation comment is for illustrative purposes only and may not reflect the actual functionality of the scripts.
+-->
+
 <Ui>
 	<Script file="Color.lua" />
 	<Script file="Vector2.lua" />

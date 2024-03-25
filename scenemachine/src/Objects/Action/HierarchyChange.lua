@@ -4,18 +4,24 @@ local OP = SceneMachine.Editor.ObjectProperties;
 SceneMachine.Actions.HierarchyChange = {};
 
 local Action = SceneMachine.Actions.Action;
+
+--- @class HierarchyChange : Action
 local HierarchyChange = SceneMachine.Actions.HierarchyChange;
+
 HierarchyChange.__index = HierarchyChange;
 setmetatable(HierarchyChange, Action)
 
+--- Creates a new instance of the HierarchyChange action.
+--- @param hierarchy table The object hierarchy to be changed.
+--- @return HierarchyChange v The newly created HierarchyChange action.
 function HierarchyChange:New(hierarchy)
 	local v = 
-    {
-        type = Action.Type.HierarchyChange,
+	{
+		type = Action.Type.HierarchyChange,
 		memorySize = 4,
 		memoryUsage = 0,
 		startHierarchy = SH.CopyObjectHierarchy(hierarchy);
-    };
+	};
 
 	setmetatable(v, HierarchyChange)
 
@@ -26,6 +32,10 @@ function HierarchyChange:New(hierarchy)
 	return v
 end
 
+--- Calculates the size of a hierarchy of objects.
+--- @param hobject table The root object of the hierarchy.
+--- @param currentSize? number The current size of the hierarchy (optional).
+--- @return number size The size of the hierarchy.
 function HierarchyChange:CalculateSize(hobject, currentSize)
 	if (currentSize == nil) then
 		currentSize = 1;
@@ -38,15 +48,19 @@ function HierarchyChange:CalculateSize(hobject, currentSize)
 	return currentSize;
 end
 
+--- Finishes the hierarchy change action by copying the object hierarchy.
+--- @param hierarchy table The object hierarchy to be copied.
 function HierarchyChange:Finish(hierarchy)
 	self.endHierarchy = SH.CopyObjectHierarchy(hierarchy);
 end
 
+--- Undoes the hierarchy change by setting the hierarchy back to its initial state and refreshing it.
 function HierarchyChange:Undo()
 	SH.SetHierarchy(self.startHierarchy);
 	SH.RefreshHierarchy();
 end
 
+--- Redo the hierarchy change action.
 function HierarchyChange:Redo()
 	SH.SetHierarchy(self.endHierarchy);
 	SH.RefreshHierarchy();

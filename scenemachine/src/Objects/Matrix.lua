@@ -10,15 +10,18 @@ SceneMachine.Matrix =
     m30 = 0, m31 = 0, m32 = 0, m33 = 0
 }
 
+--- @class Matrix
 local Matrix = SceneMachine.Matrix;
 
 setmetatable(Matrix, Matrix)
 
 local fields = {}
 
+--- Creates a new Matrix object.
 -- (c) Keanu Reeves
+---@return Matrix v The newly created Matrix object.
 function Matrix:New()
-	local v = 
+    local v = 
     {
         m00 = 0; m01 = 0; m02 = 0; m03 = 0;
         m10 = 0; m11 = 0; m12 = 0; m13 = 0;
@@ -26,18 +29,25 @@ function Matrix:New()
         m30 = 0; m31 = 0; m32 = 0; m33 = 0;
     };
 
-	setmetatable(v, Matrix)
-	return v
+    setmetatable(v, Matrix)
+    return v
 end
 
--- https://registry.khronos.org/OpenGL-Refpages/gl2.1/xhtml/gluPerspective.xml
+--- Creates a perspective field of view matrix.
+--- https://registry.khronos.org/OpenGL-Refpages/gl2.1/xhtml/gluPerspective.xml
+--- @param fov number The field of view angle in --radians--.
+--- @param aspectRatio number The aspect ratio of the viewport.
+--- @param depthNear number The distance to the near clipping plane.
+--- @param depthFar number The distance to the far clipping plane.
+--- @return Matrix matrix The created perspective field of view matrix.
 function Matrix:CreatePerspectiveFieldOfView(fov, aspectRatio, depthNear, depthFar)
-
+    -- Calculate the scale factors
     local D2R = math.pi / 180.0;
     local yScale = 1.0 / math.tan(D2R * math.deg(fov) / 2);
     local xScale = yScale / aspectRatio;
     local nearmfar = depthNear - depthFar;
 
+    -- Set the matrix elements
     self.m00 = xScale;
     self.m01 = 0;
     self.m02 = 0;
@@ -58,6 +68,10 @@ function Matrix:CreatePerspectiveFieldOfView(fov, aspectRatio, depthNear, depthF
     return self;
 end
 
+--- Applies a transformation, rotation, and scaling to the matrix.
+--- @param t Vector3 The translation vector.
+--- @param r Quaternion The rotation quaternion.
+--- @param s Vector3 The scaling vector.
 function Matrix:TRS(t, r, s)
     self.m00 = (1.0-2.0*(r.y*r.y+r.z*r.z))*s.x;
     self.m01 = (r.x*r.y-r.z*r.w)*s.y*2.0;
@@ -80,6 +94,11 @@ function Matrix:TRS(t, r, s)
     self.m33 = 1.0;
 end
 
+--- Sets the matrix to a look-at transformation.
+--- @param eye Vector3 The position of the camera.
+--- @param target Vector3 The position to look at.
+--- @param up Vector3 The up direction.
+--- @return Matrix matrix The modified matrix.
 function Matrix:LookAt(eye, target, up)
     local z = Vector3:New();
     z:SetVector3(eye);
@@ -119,23 +138,30 @@ function Matrix:LookAt(eye, target, up)
     return self;
 end
 
+--- Inverts the matrix.
+--- @return Matrix? matrix The inverted matrix, or nil if the matrix is not invertible.
 function Matrix:Invert()
+    -- Extract matrix elements for easier access
     local m00, m01, m02, m03 = self.m00, self.m01, self.m02, self.m03
     local m10, m11, m12, m13 = self.m10, self.m11, self.m12, self.m13
     local m20, m21, m22, m23 = self.m20, self.m21, self.m22, self.m23
     local m30, m31, m32, m33 = self.m30, self.m31, self.m32, self.m33
 
+    -- Calculate the determinant of the matrix
     local det = m00 * (m11 * (m22 * m33 - m32 * m23) - m12 * (m21 * m33 - m31 * m23) + m13 * (m21 * m32 - m31 * m22)) -
                 m01 * (m10 * (m22 * m33 - m32 * m23) - m12 * (m20 * m33 - m30 * m23) + m13 * (m20 * m32 - m30 * m22)) +
                 m02 * (m10 * (m21 * m33 - m31 * m23) - m11 * (m20 * m33 - m30 * m23) + m13 * (m20 * m31 - m30 * m21)) -
                 m03 * (m10 * (m21 * m32 - m31 * m22) - m11 * (m20 * m32 - m30 * m22) + m12 * (m20 * m31 - m30 * m21))
 
+    -- Check if the matrix is invertible
     if det == 0 then
         return nil -- Matrix is not invertible
     end
 
+    -- Calculate the inverse determinant
     local invDet = 1 / det
 
+    -- Calculate the inverted matrix elements
     self.m00 = (m11 * (m22 * m33 - m32 * m23) - m12 * (m21 * m33 - m31 * m23) + m13 * (m21 * m32 - m31 * m22)) * invDet
     self.m01 = -(m01 * (m22 * m33 - m32 * m23) - m02 * (m21 * m33 - m31 * m23) + m03 * (m21 * m32 - m31 * m22)) * invDet
     self.m02 = (m01 * (m12 * m33 - m32 * m13) - m02 * (m11 * m33 - m31 * m13) + m03 * (m11 * m32 - m31 * m12)) * invDet
@@ -159,8 +185,9 @@ function Matrix:Invert()
     return self;
 end
 
+--- Decomposes the matrix into its position, rotation, and scale components.
+--- @return Vector3 position, Quaternion qRotation, number scale The position, rotation, scale component of the matrix.
 function Matrix:Decompose()
-
     local position = self:ExtractPosition();
     local qRotation = self:ExtractRotation();
     local scale = self:ExtractScale();
@@ -168,6 +195,8 @@ function Matrix:Decompose()
     return position, qRotation, scale;
 end
 
+--- Extracts the position from the matrix.
+--- @return Vector3 position The extracted position as a Vector3.
 function Matrix:ExtractPosition()
     -- Extract translation
     local tx = self.m30
@@ -177,6 +206,9 @@ function Matrix:ExtractPosition()
     return Vector3:New(tx, ty, tz);
 end
 
+--- Returns the normalized rows of a 3x3 matrix.
+--- Each row is normalized by dividing its elements by the length of the row.
+--- @return number m00, number m01, number m02, number m10, number m11, number m12, number m20, number m21, number m22 The normalized rows of the matrix.
 function Matrix:GetNormalizedRows3x3()
     local m00, m01, m02, m03 = self.m00, self.m01, self.m02, self.m03
     local m10, m11, m12, m13 = self.m10, self.m11, self.m12, self.m13
@@ -200,6 +232,8 @@ function Matrix:GetNormalizedRows3x3()
     return m00, m01, m02, m10, m11, m12, m20, m21, m22
 end
 
+--- Extracts the rotation component from the matrix and returns it as a quaternion.
+--- @return Quaternion rotation The extracted rotation as a quaternion.
 function Matrix:ExtractRotation()
     local m00, m01, m02, m10, m11, m12, m20, m21, m22 = self:GetNormalizedRows3x3();
 
@@ -240,6 +274,8 @@ function Matrix:ExtractRotation()
     return q;
 end
 
+--- Extracts the scale from the matrix.
+--- @return number scale The average scale value.
 function Matrix:ExtractScale()
     local sx = Vector3:New(self.m00, self.m10, self.m20):Length();
     local sy = Vector3:New(self.m01, self.m11, self.m21):Length();
@@ -247,6 +283,8 @@ function Matrix:ExtractScale()
     return (sx + sy + sz) / 3;
 end
 
+--- Sets the values of the matrix using another matrix.
+---@param m Matrix The matrix to set the values from.
 function Matrix:SetMatrix(m)
     self.m00 = m.m00;
     self.m01 = m.m01;
@@ -269,6 +307,7 @@ function Matrix:SetMatrix(m)
     self.m33 = m.m33;
 end
 
+--- Sets the matrix to the identity matrix.
 function Matrix:SetIdentity()
     self.m00, self.m01, self.m02, self.m03 = 1, 0, 0, 0
     self.m10, self.m11, self.m12, self.m13 = 0, 1, 0, 0
@@ -276,52 +315,17 @@ function Matrix:SetIdentity()
     self.m30, self.m31, self.m32, self.m33 = 0, 0, 0, 1
 end
 
+--- Translates the matrix by the specified position.
+--- @param position Vector3 The position to translate the matrix by.
 function Matrix:Translate(position)
     self.m30 = position.x
     self.m31 = position.y
     self.m32 = position.z
 end
 
-function Matrix:CreateFromQuaternion(q)
-    -- Adapted from https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Quaternion-derived_rotation_matrix
-    -- with the caviat that opentk uses row-major matrices so the matrix we create is transposed
-    local sqx = q.x * q.x
-    local sqy = q.y * q.y
-    local sqz = q.z * q.z
-    local sqw = q.w * q.w
-
-    local xy = q.x * q.y
-    local xz = q.x * q.z
-    local xw = q.x * q.w
-
-    local yz = q.y * q.z
-    local yw = q.y * q.w
-
-    local zw = q.z * q.w
-
-    local s2 = 2 / (sqx + sqy + sqz + sqw)
-
-    self.m00 = 1 - s2 * (sqy + sqz)
-    self.m10 = s2 * (xy + zw)
-    self.m20 = s2 * (xz - yw)
-    self.m30 = 0
-
-    self.m01 = s2 * (xy - zw)
-    self.m11 = 1 - s2 * (sqx + sqz)
-    self.m21 = s2 * (yz + xw)
-    self.m31 = 0
-
-    self.m02 = s2 * (xz + yw)
-    self.m12 = s2 * (yz - xw)
-    self.m22 = 1 - s2 * (sqx + sqy)
-    self.m32 = 0
-
-    self.m03 = 0
-    self.m13 = 0
-    self.m23 = 0
-    self.m33 = 1
-end
-
+--- Rotates the matrix using a quaternion.
+--- Adapted from https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Quaternion-derived_rotation_matrix
+---@param q table The quaternion to rotate the matrix with.
 function Matrix:RotateQuaternion(q)
     local sqx = q.x * q.x
     local sqy = q.y * q.y
@@ -360,12 +364,16 @@ function Matrix:RotateQuaternion(q)
     self.m33 = 1
 end
 
+--- Scales the matrix by the specified scale vector.
+--- @param scale Vector3 The scale vector.
 function Matrix:Scale(scale)
     self.m00 = scale.x;
     self.m11 = scale.y;
     self.m22 = scale.z;
 end
 
+--- Multiplies the current matrix with another matrix.
+--- @param o Matrix The other matrix to multiply with.
 function Matrix:Multiply(o)
     local m = self
 
@@ -395,6 +403,8 @@ function Matrix:Multiply(o)
     m.m30, m.m31, m.m32, m.m33 = m30, m31, m32, m33
 end
 
+-- This function is used as the __index metamethod for the Matrix table.
+-- It is called when a key is not found in the Matrix table.
 Matrix.__index = function(t,k)
 	local var = rawget(Matrix, k)
 		

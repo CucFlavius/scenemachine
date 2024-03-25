@@ -1,39 +1,45 @@
 SceneMachine.Actions.Action = {};
 
-local Actions = SceneMachine.Actions;
+--- @class Action
 local Action = SceneMachine.Actions.Action;
 
-Action.Type = {};
-Action.Type.None = 0;
-Action.Type.TransformObject = 1;
-Action.Type.DestroyObject = 2;
-Action.Type.CreateObject = 3;
-Action.Type.CreateTrack = 4;
-Action.Type.DestroyTrack = 5;
-Action.Type.SceneProperties = 6;
-Action.Type.CreateTimeline = 7;
-Action.Type.DestroyTimeline = 8;
-Action.Type.TimelineProperties = 9;
-Action.Type.TrackAnimations = 10;
-Action.Type.TrackKeyframes = 11;
-Action.Type.HierarchyChange = 12;
+--- @enum Action.Type
+Action.Type = {
+	None = 0,
+	TransformObject = 1,
+	DestroyObject = 2,
+	CreateObject = 3,
+	CreateTrack = 4,
+	DestroyTrack = 5,
+	SceneProperties = 6,
+	CreateTimeline = 7,
+	DestroyTimeline = 8,
+	TimelineProperties = 9,
+	TrackAnimations = 10,
+	TrackKeyframes = 11,
+	HierarchyChange = 12,
+};
 
 setmetatable(Action, Action)
 
 local fields = {}
 
+--- Creates a new instance of the Action class.
+--- @return Action v The new Action instance.
 function Action:New()
 	local v = 
-    {
-        type = Action.Type.None,
+	{
+		type = Action.Type.None,
 		memorySize = 0,
 		memoryUsage = 0,
-    };
+	};
 
 	setmetatable(v, Action)
 	return v
 end
 
+-- This function is used as the __index metamethod for the Action table.
+-- It is called when a key is not found in the Action table.
 Action.__index = function(t,k)
 	local var = rawget(Action, k)
 		

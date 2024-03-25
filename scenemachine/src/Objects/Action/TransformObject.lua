@@ -4,14 +4,20 @@ local Vector3 = SceneMachine.Vector3;
 SceneMachine.Actions.TransformObject = {};
 
 local Action = SceneMachine.Actions.Action;
+
+--- @class TransformObject : Action
 local TransformObject = SceneMachine.Actions.TransformObject;
+
 TransformObject.__index = TransformObject;
 setmetatable(TransformObject, Action)
 
+--- Creates a new TransformObject instance.
+--- @param objects table A table containing the objects to transform.
+--- @return TransformObject v The newly created TransformObject instance.
 function TransformObject:New(objects)
 	local v = 
-    {
-        type = Action.Type.TransformObject,
+	{
+		type = Action.Type.TransformObject,
 		memorySize = 8,
 		memoryUsage = 0,
 		objects = {},
@@ -19,7 +25,7 @@ function TransformObject:New(objects)
 		startRot = {},
 		startScale = {},
 		startAlpha = {},
-    };
+	};
 
 	setmetatable(v, TransformObject)
 
@@ -38,6 +44,7 @@ function TransformObject:New(objects)
 	return v
 end
 
+--- Finish function to save object states
 function TransformObject:Finish()
 	self.endPos = {};
 	self.endRot = {};
@@ -53,6 +60,7 @@ function TransformObject:Finish()
 	end
 end
 
+--- Undoes the transformation applied to the objects.
 function TransformObject:Undo()
 	for i = 1, #self.objects, 1 do
 		local obj = self.objects[i];
@@ -63,6 +71,7 @@ function TransformObject:Undo()
 	end
 end
 
+--- Applies the transformation changes to the objects.
 function TransformObject:Redo()
 	for i = 1, #self.objects, 1 do
 		local obj = self.objects[i];

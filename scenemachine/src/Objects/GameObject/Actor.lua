@@ -2,15 +2,21 @@
 SceneMachine.GameObjects.Actor = {};
 
 local Object = SceneMachine.GameObjects.Object;
+
+--- @class Actor : Object
 local Actor = SceneMachine.GameObjects.Actor;
 
 Actor.__index = Actor;
 setmetatable(Actor, Object)
 
+--- Retrieves the fileID of the actor.
+--- @return number fileID The fileID of the actor.
 function Actor:GetFileID()
     return self.fileID;
 end
 
+--- Sets the actor for the GameObject.
+--- @param actor table The actor to set.
 function Actor:SetActor(actor)
     self.actor = actor;
 
@@ -29,14 +35,20 @@ function Actor:SetActor(actor)
     self.actor:SetScale(s);
 end
 
+--- Retrieves the actor associated with this game object.
+--- @return table actor The actor associated with this game object.
 function Actor:GetActor()
     return self.actor;
 end
 
+--- Checks if the object has an actor.
+--- @return boolean: True if the object has an actor, false otherwise.
 function Actor:HasActor()
     return true;
 end
 
+--- Returns the active bounding box of the actor.
+--- If the active bounding box is not available, a default bounding box of (-1, -1, -1, 1, 1, 1) is returned.
 function Actor:GetActiveBoundingBox()
     local xMin, yMin, zMin, xMax, yMax, zMax = self.actor:GetActiveBoundingBox();
 
@@ -47,54 +59,62 @@ function Actor:GetActiveBoundingBox()
     return xMin, yMin, zMin, xMax, yMax, zMax;
 end
 
+--- Sets the alpha value of the actor.
+--- @param alpha number The new alpha value.
 function Actor:SetAlpha(alpha)
     self.alpha = alpha;
     self.actor:SetAlpha(alpha);
 end
 
+--- Gets the alpha value of the actor.
+--- @return number alpha The alpha value of the actor.
 function Actor:GetAlpha()
     return self.alpha;
 end
 
+--- Sets the desaturation value for the actor.
+--- Desaturation is a value between 0 and 1.
+--- 0 means colored, 1 means grayscale.
+--- @param desaturation number The desaturation value to set.
 function Actor:SetDesaturation(desaturation)
     self.desaturation = desaturation;
     self.actor:SetDesaturation(desaturation);
 end
 
+--- Retrieves the desaturation value of the actor.
+--- @return number desaturation The desaturation value.
 function Actor:GetDesaturation()
     return self.desaturation;
 end
 
-
+--- Plays the animation with the specified ID and variation.
+--- @param id number The ID of the animation to play.
+--- @param variation? number (optional) The variation of the animation to play.
 function Actor:PlayAnimID(id, variation)
     self.actor:SetAnimation(id, variation);
 end
 
+--- Plays an animation kit with the specified ID.
+--- @param id number The ID of the animation kit to play.
 function Actor:PlayAnimKitID(id)
     self.actor:PlayAnimationKit(id);
 end
 
+--- Sets the Spell Visual Kit ID for the actor.
+--- @param id number The ID of the Spell Visual Kit.
+--- @param oneShot boolean? (optional) Whether the Spell Visual Kit should be played as a one-shot effect.
 function Actor:SetSpellVisualKitID(id, oneShot)
     self.actor:SetSpellVisualKit(id, oneShot);
     self.spellVisualKitID = id;
 end
 
+--- Clears the spell visual kits for the actor.
 function Actor:ClearSpellVisualKits()
     self:SetSpellVisualKitID(0);
-    --[[
-    self:SetSpellVisualKitID(-1);
-
-    if (self.type == Object.Type.Model) then
-        self.actor:SetModelByFileID(self.fileID);
-    elseif (self.type == Object.Type.Creature) then
-        self.actor:SetModelByCreatureDisplayID(self.displayID);
-    elseif (self.type == Object.Type.Character) then
-        self.actor:SetModelByUnit("player");
-    end
-    --]]
     self.spellVisualKitID = nil;
 end
 
+--- Selects the actor.
 function Actor:Select()
     if (not self.selected) then
         self:SetSpellVisualKitID(70682);
@@ -102,6 +122,7 @@ function Actor:Select()
     end
 end
 
+--- Deselects the actor.
 function Actor:Deselect()
     if (self.selected) then
         self:ClearSpellVisualKits();
@@ -109,10 +130,17 @@ function Actor:Deselect()
     end
 end
 
+--- Retrieves the file name associated with the given fileID.
+--- @param fileID number The ID of the file.
+--- @return string? The file name.
 function Actor:GetFileName(fileID)
     return self:GetFileNameRecursive(fileID, SceneMachine.modelData[1]);
 end
 
+--- Retrieves the file name recursively from the given directory structure.
+--- @param value number The fileID to search for.
+--- @param dir table The directory structure to search in.
+--- @return string? fileName The file name if found, nil otherwise.
 function Actor:GetFileNameRecursive(value, dir)
     -- File Scan
     if (not dir) then return nil; end

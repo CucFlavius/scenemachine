@@ -31,9 +31,11 @@ Gizmos.marqueeVisible = false;
 Gizmos.marqueeStartPoint = nil;
 Gizmos.marqueeAABBSSPoints = nil;
 
-Gizmos.Space = {};
-Gizmos.Space.World = 0;
-Gizmos.Space.Local = 1;
+--- @enum Gizmos.Space
+Gizmos.Space = {
+    World = 0,
+    Local = 1,
+};
 
 Gizmos.space = Gizmos.Space.Local;
 
@@ -41,13 +43,16 @@ Gizmos.forward = Vector3:New(1, 0, 0);
 Gizmos.right = Vector3:New(0, 1, 0);
 Gizmos.up = Vector3:New(0, 0, 1);
 
-Gizmos.Axis = {}
-Gizmos.Axis.X = 1;
-Gizmos.Axis.Y = 2;
-Gizmos.Axis.Z = 3;
-Gizmos.Axis.XY = 4;
-Gizmos.Axis.XZ = 5;
-Gizmos.Axis.YZ = 6;
+--- @enum Gizmos.Axis
+Gizmos.Axis = {
+    None = 0,
+    X = 1,
+    Y = 2,
+    Z = 3,
+    XY = 4,
+    XZ = 5,
+    YZ = 6,
+};
 
 Gizmos.selectedAxis = Gizmos.Axis.X;
 
@@ -61,10 +66,12 @@ Gizmos.axisToDirectionVector =
     [Gizmos.Axis.YZ] = Gizmos.forward,
 };
 
-Gizmos.Type = {};
-Gizmos.Type.None = 0;
-Gizmos.Type.Object = 1;
-Gizmos.Type.Camera = 2;
+--- @enum Gizmos.Type
+Gizmos.Type = {
+    None = 0,
+    Object = 1,
+    Camera = 2,
+};
 
 function Gizmos.Create()
     Gizmos.CreateSelectionGizmo();

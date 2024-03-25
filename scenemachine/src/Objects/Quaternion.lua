@@ -9,14 +9,21 @@ SceneMachine.Quaternion =
     w = 1
 }
 
+--- @class Quaternion
 local Quaternion = SceneMachine.Quaternion;
 
 setmetatable(Quaternion, Quaternion)
 
 local fields = {}
 
+--- Creates a new Quaternion object.
+--- @param x? number (optional) The x component of the quaternion. Defaults to 0 if not provided.
+--- @param y? number (optional) The y component of the quaternion. Defaults to 0 if not provided.
+--- @param z? number (optional) The z component of the quaternion. Defaults to 0 if not provided.
+--- @param w? number (optional) The w component of the quaternion. Defaults to 1 if not provided.
+--- @return Quaternion v The new Quaternion object.
 function Quaternion:New(x, y, z, w)
-	local v = 
+    local v = 
     {
         x = x or 0,
         y = y or 0,
@@ -24,10 +31,15 @@ function Quaternion:New(x, y, z, w)
         w = w or 1
     };
 
-	setmetatable(v, Quaternion)
-	return v
+    setmetatable(v, Quaternion)
+    return v
 end
 
+--- Sets the values of the quaternion.
+--- @param x? number The x component of the quaternion. Defaults to 0 if not provided.
+--- @param y? number The y component of the quaternion. Defaults to 0 if not provided.
+--- @param z? number The z component of the quaternion. Defaults to 0 if not provided.
+--- @param w? number The w component of the quaternion. Defaults to 1 if not provided.
 function Quaternion:Set(x, y, z, w)
     self.x = x or 0;
     self.y = y or 0;
@@ -35,23 +47,33 @@ function Quaternion:Set(x, y, z, w)
     self.w = w or 1;
 end
 
-function Quaternion:SetQuaternion(v)
-    self.x = v.x;
-    self.y = v.y;
-    self.z = v.z;
-    self.w = v.w;
+--- Sets the quaternion values based on the provided vector.
+--- @param quaternion Quaternion The vector or quaternion containing the x, y, z, and w values.
+function Quaternion:SetQuaternion(quaternion)
+    self.x = quaternion.x;
+    self.y = quaternion.y;
+    self.z = quaternion.z;
+    self.w = quaternion.w;
 end
 
+--- Get the components of the quaternion.
+--- @return number x, number y, number z, number w The x, y, z, and w components of the quaternion.
 function Quaternion:Get()
     return self.x, self.y, self.z, self.w;
 end
 
+--- Converts a quaternion to a direction vector.
+--- If no forward vector is provided, the default forward vector is (0, 0, 1).
+--- @param forward? Vector3 (optional) The forward vector to rotate.
+--- @return Vector3 rotatedVector The rotated forward vector, normalized.
 function Quaternion:ToDirectionVector(forward)
     forward = forward or Vector3:New(0, 0, 1)
     local rotatedForward = self:MultiplyVector(forward)
     return rotatedForward:Normalize()
 end
 
+--- Converts the quaternion to Euler angles.
+--- @return Vector3 rotation The Euler angles representation of the quaternion.
 function Quaternion:ToEuler()
     local rx = math.atan2(2 * (self.w * self.x + self.y * self.z), 1 - 2 * (self.x^2 + self.y^2))
     local ry = math.asin(2 * (self.w * self.y - self.z * self.x))
@@ -60,6 +82,8 @@ function Quaternion:ToEuler()
     return Vector3:New(rx, ry, rz);
 end
 
+--- Sets the quaternion from Euler angles.
+--- @param euler Vector3 The Euler angles as a Vector3 with x, y, and z components.
 function Quaternion:SetFromEuler(euler)
     local sx = math.sin(euler.x / 2.0);
     local sy = math.sin(euler.y / 2.0);
@@ -74,6 +98,10 @@ function Quaternion:SetFromEuler(euler)
     self.z = cx * cy * sz - sx * sy * cz;
 end
 
+--- Linearly interpolates between two quaternions.
+--- @param a Quaternion: The starting quaternion.
+--- @param b Quaternion: The ending quaternion.
+--- @param t number: The interpolation factor (between 0 and 1).
 function Quaternion:Lerp(a, b, t)
     self.x = a.x * (1 - t) + b.x * t;
     self.y = a.y * (1 - t) + b.y * t;
@@ -81,6 +109,7 @@ function Quaternion:Lerp(a, b, t)
     self.w = a.w * (1 - t) + b.w * t;
 end
 
+--- Inverts the quaternion.
 function Quaternion:Invert()
     -- Calculate the norm squared
     local norm_squared = self.w^2 + self.x^2 + self.y^2 + self.z^2
@@ -97,6 +126,8 @@ function Quaternion:Invert()
     self.z = -self.z / norm_squared;
 end
 
+--- Multiplies the current quaternion with another quaternion.
+--- @param q2 Quaternion The quaternion to multiply with.
 function Quaternion:Multiply(q2)
     local w = self.w * q2.w - self.x * q2.x - self.y * q2.y - self.z * q2.z;
     local x = self.w * q2.x + self.x * q2.w - self.y * q2.z + self.z * q2.y;
@@ -109,6 +140,7 @@ function Quaternion:Multiply(q2)
     self.w = w;
 end
 
+--- Normalizes the quaternion.
 function Quaternion:Normalize()
     local magnitude = math.sqrt(self.x ^ 2 + self.y ^ 2 + self.z ^ 2 + self.w ^ 2);
     self.x = self.x / magnitude;
@@ -117,6 +149,9 @@ function Quaternion:Normalize()
     self.w = self.w / magnitude;
 end
 
+--- Rotate the quaternion around a specified axis by a given angle.
+--- @param axis Vector3 The axis to rotate around (a Vector3).
+--- @param angle number The angle of rotation in radians (a number).
 function Quaternion:RotateAroundAxis(axis, angle)
 
     -- Calculate half angle
@@ -131,13 +166,18 @@ function Quaternion:RotateAroundAxis(axis, angle)
     self:Multiply(rotationQuat);
 end
 
+--- Returns the conjugate of the quaternion.
+---@return Quaternion conjugated The conjugate of the quaternion.
 function Quaternion:Conjugate()
     return Quaternion:New(-self.x, -self.y, -self.z, self.w)
 end
 
-function Quaternion:MultiplyVector(v)
-    -- Quat * V * Quat^-1
-    local u = Quaternion:New(v.x, v.y, v.z, 0);
+--- Multiplies the quaternion with a vector.
+--- This operation is equivalent to Quat * V * Quat^-1.
+--- @param vector Vector3 The vector to be multiplied.
+--- @return Vector3 multipliedVector The resulting vector.
+function Quaternion:MultiplyVector(vector)
+    local u = Quaternion:New(vector.x, vector.y, vector.z, 0);
     local conjugate = self:Conjugate();
     u:Multiply(conjugate);
     local result = Quaternion:New();
@@ -146,8 +186,13 @@ function Quaternion:MultiplyVector(v)
     return Vector3:New(result.x, result.y, result.z);
 end
 
+--- Interpolates between two quaternions.
+--- http://jsperf.com/quaternion-slerp-implementations
+--- @param a Quaternion The starting quaternion.
+--- @param b Quaternion The ending quaternion.
+--- @param t number The interpolation factor (between 0 and 1).
+--- @return Quaternion The interpolated quaternion.
 function Quaternion.Interpolate(a, b, t)
-    -- http://jsperf.com/quaternion-slerp-implementations
     local output = Quaternion:New();
     local ax = a.x;
     local ay = a.y;
@@ -194,14 +239,22 @@ function Quaternion.Interpolate(a, b, t)
     return output;
 end
 
+--- Converts the Quaternion object to a string representation.
+--- @return string string The string representation of the Quaternion object.
 Quaternion.__tostring = function(self)
-	return string.format("Quaternion( %.3f, %.3f, %.3f, %.3f )", self.x, self.y, self.z, self.w);
+    return string.format("Quaternion( %.3f, %.3f, %.3f, %.3f )", self.x, self.y, self.z, self.w);
 end
 
+--- Checks if two Quaternions are equal.
+--- @param a Quaternion The first Quaternion.
+--- @param b Quaternion The second Quaternion.
+--- @return boolean True if the Quaternions are equal, false otherwise.
 Quaternion.__eq = function(a,b)
     return a.x == b.x and a.y == b.x and a.z == b.z and a.w == b.w;
 end
 
+-- This function is used as the __index metamethod for the Quaternion table.
+-- It is called when a key is not found in the Quaternion table.
 Quaternion.__index = function(t,k)
 	local var = rawget(Quaternion, k)
 		
@@ -216,4 +269,5 @@ Quaternion.__index = function(t,k)
 	return var
 end
 
+--- Identity Quaternion (0, 0, 0, 1)
 Quaternion.identity = Quaternion:New(0, 0, 0, 1);
