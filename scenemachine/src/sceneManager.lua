@@ -42,8 +42,7 @@ function SM.Create(x, y, w, h, parent, startLevel)
     SM.viewportButton = UI.Button:New(0, 0, 100, 20, SceneMachine.Renderer.projectionFrame, "TOPLEFT", "TOPLEFT", L["SM_EXIT_CAMERA"]);
     SM.viewportButton:SetFrameLevel(SceneMachine.Renderer.projectionFrame:GetFrameLevel() + 100);
     SM.viewportButton:SetScript("OnClick", function()
-        CC.ControllingCameraObject = nil;
-        SM.viewportButton:Hide();
+        SM.StopControllingCamera();
         Camera.fov = math.rad(70);
     end);
     SM.viewportButton:Hide();
@@ -361,6 +360,10 @@ function SM.UnloadScene()
     
     SM.selectedObjects = {};
     Renderer.Clear();
+    SM.StopControllingCamera();
+end
+
+function SM.StopControllingCamera()
     SM.viewportButton:Hide();
     CC.ControllingCameraObject = nil;
 end
@@ -517,6 +520,7 @@ function SM.SelectObjects(objects)
         end
     end
 
+    SM.StopControllingCamera();
     SH.RefreshHierarchy();
 	OP.Refresh();
 
@@ -552,6 +556,7 @@ function SM.SelectObject(object)
 		else
 			SM.selectedObjects = { object };
 		end
+        SM.StopControllingCamera();
 	end
 
     SH.RefreshHierarchy();

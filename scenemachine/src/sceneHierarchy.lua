@@ -8,6 +8,7 @@ local L = Editor.localization;
 local Input = SceneMachine.Input;
 local OP = Editor.ObjectProperties;
 local Actions = SceneMachine.Actions;
+local CC = SceneMachine.CameraController;
 
 SH.inputState = {
 	dragging = false;
@@ -254,6 +255,8 @@ function SH.OpenItemContextMenu(object)
 
 	local renameAction = function(text) object:Rename(text); SH.RefreshHierarchy(); end
 	table.insert(menuOptions, { ["Name"] = L["CM_RENAME"], ["Action"] = function() Editor.OpenQuickTextbox(renameAction, object:GetName(), L["CM_RENAME"]); end });
+
+	table.insert(menuOptions, { ["Name"] = L["CM_FOCUS"], ["Action"] = function() CC.FocusObjects({object}); end });
 
 	local scale = SceneMachine.mainWindow:GetEffectiveScale();
 	local rx = Input.mouseXRaw / scale - SceneMachine.mainWindow:GetLeft();

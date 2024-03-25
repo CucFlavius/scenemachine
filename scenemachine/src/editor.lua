@@ -647,6 +647,7 @@ function Editor.OpenContextMenu(x, y)
                 OP.Refresh();
             end
         end },
+        { ["Name"] = L["CM_FOCUS"], ["Action"] = function() CC.FocusObjects(SM.selectedObjects); end },
 	};
 
     local scale =  SceneMachine.mainWindow:GetEffectiveScale();

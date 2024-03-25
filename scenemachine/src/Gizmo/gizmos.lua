@@ -563,7 +563,7 @@ function Gizmos.UpdateGizmoTransform()
         local bbCenter = {(xMax - xMin) / 2, (yMax - yMin) / 2, (zMax - zMin) / 2};
         centerH = -(zMax - zMin) / 2 * scale;
         Gizmos.transformToAABB(SceneMachine.Gizmos.WireBox, bbCenter);
-        Gizmos.transformGizmo(SceneMachine.Gizmos.WireBox, worldPosition, worldRotation, worldScale, centerH, 1, 0);
+        Gizmos.transformGizmo(SceneMachine.Gizmos.WireBox, worldPosition, rotation, worldScale, centerH, 1, 0);
     elseif (SM.selectedObjects[1]:GetGizmoType() == Gizmos.Type.Camera) then
         local fov = SM.selectedObjects[1]:GetFoV();
         local aspect = 1 / Camera.aspectRatio;

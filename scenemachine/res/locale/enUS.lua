@@ -86,6 +86,7 @@ L["CM_FREEZE_UNFREEZE"] = "Freeze/Unfreeze";
 L["CM_FREEZE"] = "Freeze";
 L["CM_UNFREEZE"] = "Unfreeze";
 L["CM_RENAME"] = "Rename";
+L["CM_FOCUS"] = "Focus";
 
 -- Animation Manager --
 L["AM_ANIMATION_LIST_WINDOW_TITLE"] = "Animation List";

@@ -242,20 +242,21 @@ function CC.FocusObject(object)
 	CC.Focus.startPos:SetVector3(Camera.position);
 	CC.Focus.startRot:SetFromEuler(Camera.eulerRotation);
 
-	local objectPos = object:GetPosition();--Vector3
-	local objectRot = object:GetRotation();
-	local objectScale = object:GetScale();--Float
+	local objectPos = object:GetWorldPosition();--Vector3
+	local objectRot = object:GetWorldRotation();
+	local objectScale = object:GetWorldScale();--Float
 	local vector = Vector3:New();
 	vector:SetVector3(Camera.forward);
 
 	local objectCenter;
 	CC.Focus.gizmoType = object:GetGizmoType();
 	if (CC.Focus.gizmoType == Gizmos.Type.Object) then
+		SM.StopControllingCamera();	-- ensuring the camera is not controlled during focus by mistake
 		local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
-		objectCenter = Vector3:New( objectPos.x * objectScale, objectPos.y * objectScale, (objectPos.z + (zMax / 2)) * objectScale );
+		objectCenter = Vector3:New( objectPos.x, objectPos.y, (objectPos.z + (zMax * objectScale / 2)) );
 		local radius = math.max(xMax, math.max(yMax, zMax));
 		local dist = radius / (math.sin(Camera.fov) * 0.3);
-		vector:Scale(dist);
+		vector:Scale(dist * objectScale);
 		objectCenter:Subtract(vector);
 	elseif (CC.Focus.gizmoType == Gizmos.Type.Camera) then
 		objectCenter = Vector3:New( objectPos.x, objectPos.y, objectPos.z );
