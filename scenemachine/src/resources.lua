@@ -26,7 +26,6 @@ function Resources.Initialize(resourcePath)
     Resources.textures["CropBar"] = Resources.texturesPath .. "\\cropBar.png";
     Resources.textures["FolderIcon"] = Resources.texturesPath .. "\\folderIcon.png";
     Resources.textures["Icon32"] = Resources.texturesPath .. "\\icon32.png";
-    Resources.textures["EyeIcon"] = Resources.texturesPath .. "\\eyeIcon.png";
     Resources.textures["ScrollBar"] = Resources.texturesPath .. "\\scrollBar.png";
     Resources.textures["Toolbar"] = Resources.texturesPath .. "\\toolbar.png";
     Resources.textures["ToolbarAnimation"] = Resources.texturesPath .. "\\toolbarAnimation.png";
@@ -44,7 +43,7 @@ function Resources.Initialize(resourcePath)
     Resources.textures["ToolbarAssetExplorer"] = Resources.texturesPath .. "\\toolbarAssetExplorer.png";
     Resources.textures["Dropshadow"] = Resources.texturesPath .. "\\dropshadow.png";
     Resources.textures["SceneSprites"] = Resources.texturesPath .. "\\sceneSprites.png";
-    Resources.textures["LinearHighlight"] = Resources.texturesPath .. "\\linearHighlight.png";
+    Resources.textures["Hierarchy"] = Resources.texturesPath .. "\\hierarchy.png";
     Resources.textures["TimeNeedle"] = Resources.texturesPath .. "\\timeNeedle.png";
 
     -- Icons --

@@ -38,8 +38,10 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
     groupContent:SetPoint("BOTTOMRIGHT", groupBG:GetFrame(), "BOTTOMRIGHT", 0, 0);
 	groupContent:SetFrameLevel(startLevel + 2);
 
-	SH.eyeIconVisibleTexCoord = { 0, 1, 0, 0.5 };
-	SH.eyeIconInvisibleTexCoord = { 0, 1, 0.5, 1 };
+	SH.eyeIconVisibleTexCoord = { 0, 0.25, 0, 0.25 };
+	SH.eyeIconInvisibleTexCoord = { 0, 0.25, 0.25, 0.5 };
+	SH.openIconTexCoord = { 0.25, 0.5, 0, 0.25 };
+	SH.closeIconTexCoord = { 0.25, 0.5, 0.25, 0.5 };
 
 	SH.scrollList = UI.PooledScrollList:New(1, -1, w - 12, h - 22, groupContent:GetFrame(), "TOPLEFT", "TOPLEFT");
 	SH.scrollList:SetPoint("BOTTOMRIGHT", groupContent:GetFrame(), "BOTTOMRIGHT", 0, 0);
@@ -60,15 +62,15 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 				item.components[1]:SetColor(UI.Button.State.Highlight, 0, 0, 0, 0);	-- disable button highlight
 
 				-- object name text --
-				item.components[2] = UI.Label:New(5, 0, 200, 18, item.components[1]:GetFrame(), "LEFT", "LEFT", "", 9);
+				item.components[2] = UI.Label:New(0, 0, 200, 18, item.components[1]:GetFrame(), "LEFT", "LEFT", "", 9);
 
 				-- visibility icon --
-				item.components[3] = UI.Button:New(16, 0, 16, 16, item.components[1]:GetFrame(), "RIGHT", "RIGHT", nil, Resources.textures["EyeIcon"]);
+				item.components[3] = UI.Button:New(16, 0, 16, 16, item.components[1]:GetFrame(), "RIGHT", "RIGHT", nil, Resources.textures["Hierarchy"]);
 				item.components[3]:SetColor(UI.Button.State.Normal, 0, 0, 0, 0);
 				item.components[3]:SetAlpha(0.4);
 
 				-- open close button --
-				item.components[4] = UI.Button:New(0, 0, 16, 16, item:GetFrame(), "LEFT", "LEFT", "+");
+				item.components[4] = UI.Button:New(0, 0, 16, 16, item:GetFrame(), "LEFT", "LEFT", nil, Resources.textures["Hierarchy"]);
 				item.components[4]:SetColor(UI.Button.State.Normal, 0, 0, 0, 0);
 			end,
 			refreshItem = function(hdata, item, d)
@@ -148,7 +150,7 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 
 						-- object name text --
 						item.components[2]:SetText(data.name);
-						local w = (item.components[2]:GetStringWidth() + 10)
+						local w = (item.components[2]:GetStringWidth())
 						item.components[1]:SetWidth(w);
 						item.width = w + ((level * 16) + 16) + 16;
 
@@ -159,6 +161,12 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 							item.components[3]:SetTexCoords(SH.eyeIconInvisibleTexCoord);
 						end
 						item.components[3]:SetScript("OnClick", function(_, button, down) SM.ToggleObjectVisibility(data); end);
+
+						if (hdata.open) then
+							item.components[4]:SetTexCoords(SH.closeIconTexCoord);
+						else
+							item.components[4]:SetTexCoords(SH.openIconTexCoord);
+						end
 					else
 						item.components[2]:SetText("<<corrupted data>>");
 					end
@@ -174,7 +182,7 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 	SH.draggableItem:SetFrameStrata(Editor.MESSAGE_BOX_FRAME_STRATA);
 	SH.draggableItem:Hide();
 
-	SH.insertMarker = UI.ImageBox:New(0, 0, 50, 40, nil, "TOPLEFT", "TOPLEFT", Resources.textures["LinearHighlight"]);
+	SH.insertMarker = UI.ImageBox:New(0, 0, 50, 40, nil, "TOPLEFT", "TOPLEFT", Resources.textures["Hierarchy"], { 0.75, 1, 0.5, 1 });
 	SH.insertMarker:SetVertexColor(0, 0.4765, 0.7968, 1);
 	SH.insertMarker:SetWidth(SH.scrollList.viewport:GetWidth());
 	SH.insertMarker:SetFrameLevel(SH.scrollList.viewport:GetFrameLevel() + 99);
