@@ -15,7 +15,7 @@ setmetatable(Camera, Object)
 --- @param name string? (optional) The name of the camera.
 --- @param position Vector3? (optional) The position of the camera.
 --- @param rotation Vector3? (optional) The rotation of the camera.
---- @param fov number The field of view of the camera.
+--- @param fov number The field of view of the camera in raidans.
 --- @param nearClip number The near clipping plane of the camera.
 --- @param farClip number The far clipping plane of the camera.
 --- @return Camera v The newly created Camera object.
@@ -37,6 +37,62 @@ function Camera:New(name, position, rotation, fov, nearClip, farClip)
 
     setmetatable(v, Camera)
     return v
+end
+
+function Camera:ExportPacked()
+    local name = nil;
+    if (self.isRenamed) then
+        name = self.name;
+    end
+
+    return {
+        self.type,
+        self.id,
+        name,
+        self.position.x, self.position.y, self.position.z,
+        self.rotation.x, self.rotation.y, self.rotation.z,
+        self.visible,
+        self.frozen,
+        self.fov,
+        self.nearClip,
+        self.farClip,
+    }
+end
+
+function Camera:ImportPacked(data)
+    if (data == nil) then
+        print("Camera:ImportPacked() data was nil.");
+        return;
+    end
+
+    -- verifying all elements upon import because sometimes the saved variables get corrupted --
+    self.type = data[1] or Object.Type.Camera;
+    self.id = data[2] or math.random(99999999);
+    self.name = data[3] or ("NewCamera");
+
+    if (data[4] ~= nil and data[5] ~= nil and data[6] ~= nil) then
+        self.position = Vector3:New(data[4], data[5], data[6]);
+    end
+
+    if (data[7] ~= nil and data[8] ~= nil and data[9] ~= nil) then
+        self.rotation = Vector3:New(data[7], data[8], data[9]);
+    end
+
+    if (data[10] ~= nil) then
+        self.visible = data[10];
+    else
+        self.visible = true;
+    end
+    
+    if (data[11] ~= nil) then
+        self.frozen = data[11];
+    else
+        self.frozen = false;
+    end
+
+    self.fov = data[12] or math.rad(60);
+    self.nearClip = data[13] or 0.1;
+    self.farClip = data[14] or 1000;
 end
 
 --- Returns the type of gizmo for the camera.

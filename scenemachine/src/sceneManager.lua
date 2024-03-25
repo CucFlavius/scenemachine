@@ -18,7 +18,7 @@ local CC = SceneMachine.CameraController;
 local tabButtonHeight = 20;
 local tabPool = {};
 
-SM.SCENE_DATA_VERSION = 1;
+SM.SCENE_DATA_VERSION = 2;
 
 SM.loadedSceneIndex = -1;
 SM.loadedScene = nil;
@@ -904,6 +904,7 @@ end
 function SM.ExportScene(scene)
     local sceneData = {};
     sceneData.objects = {};
+    sceneData.hierarchy = {};
     sceneData.timelines = {};
     sceneData.properties = {};
     
@@ -916,6 +917,9 @@ function SM.ExportScene(scene)
             sceneData.objects[i] = scene.objects[i]:ExportPacked(scene.objects[i]);
         end
     end
+
+    -- transfer hierarchy --
+    sceneData.hierarchy = SH.CopyObjectHierarchy(scene.objectHierarchy);
 
     -- transfer timelines --
     if (#scene.timelines > 0) then
@@ -984,6 +988,8 @@ function SM.ImportSceneFromPrint(chatEncoded)
         -- handle known versions
         if (sceneData.version == 1) then
             SM.ImportVersion1Scene(sceneData);
+        elseif (sceneData.version == 2) then
+            SM.ImportVersion2Scene(sceneData);
         end
     end
 end
@@ -1004,7 +1010,7 @@ function SM.ImportVersion1Scene(sceneData)
             end
 
             if (object) then
-                object:ImportPacked(sceneData.objects[i]);
+                object:ImportPackedV1(sceneData.objects[i]);
                 scene.objects[i] = object;
             end
         end
@@ -1036,14 +1042,72 @@ function SM.ImportVersion1Scene(sceneData)
 
     -- the camera position and rotation
     scene.lastCameraPosition = sceneData.lastCameraPosition;
-    scene.lastCameraEuler = sceneData.lastCameraEuler
+    scene.lastCameraEuler = sceneData.lastCameraEuler;
 
     PM.currentProject.scenes[#PM.currentProject.scenes + 1] = scene;
     SM.LoadScene(#PM.currentProject.scenes);
 end
 
 function SM.ImportVersion2Scene(sceneData)
+    local scene = SM.CreateScene(sceneData.name);
 
+    if (#sceneData.objects > 0) then
+        for i = 1, #sceneData.objects, 1 do
+            local type = sceneData.objects[i][1];
+            local object;
+            if (type == SceneMachine.GameObjects.Object.Type.Model) then
+                object = SceneMachine.GameObjects.Model:New();
+            elseif(type == SceneMachine.GameObjects.Object.Type.Creature) then
+                object = SceneMachine.GameObjects.Creature:New();
+            elseif(type == SceneMachine.GameObjects.Object.Type.Character) then
+                object = SceneMachine.GameObjects.Character:New();
+            elseif(type == SceneMachine.GameObjects.Object.Type.Camera) then
+                object = SceneMachine.GameObjects.Camera:New();
+            elseif(type == SceneMachine.GameObjects.Object.Type.Group) then
+                object = SceneMachine.GameObjects.Group:New();
+            end
+
+            if (object) then
+                object:ImportPacked(sceneData.objects[i]);
+                scene.objects[i] = object;
+            end
+        end
+    end
+
+    if (sceneData.hierarchy) then
+        scene.objectHierarchy = sceneData.hierarchy;
+    end
+
+    if (#sceneData.timelines > 0) then
+        for i = 1, #sceneData.timelines, 1 do
+            local timelineData = sceneData.timelines[i];
+            local timeline = {};
+            timeline.tracks = {};
+            if (timelineData.tracks) then
+                if (#timelineData.tracks > 0) then
+                    for j = 1, #timelineData.tracks, 1 do
+                        local track = SceneMachine.Track:New();
+                        track:ImportData(timelineData.tracks[j]);
+                        timeline.tracks[j] = track;
+                    end
+                end
+            end
+            timeline.name = timelineData.name;
+            timeline.duration = timelineData.duration;
+            timeline.currentTime = timelineData.currentTime;
+            scene.timelines[i] = timeline;
+        end
+    end
+
+    -- scene properties
+    scene.properties = sceneData.properties;
+
+    -- the camera position and rotation
+    scene.lastCameraPosition = sceneData.lastCameraPosition;
+    scene.lastCameraEuler = sceneData.lastCameraEuler;
+
+    PM.currentProject.scenes[#PM.currentProject.scenes + 1] = scene;
+    SM.LoadScene(#PM.currentProject.scenes);
 end
 
 function SM.ImportNetworkScene(sceneData)

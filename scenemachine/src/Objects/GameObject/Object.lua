@@ -143,6 +143,10 @@ end
 --- Retrieves the world space position of the object.
 --- @return Vector3 worldPosition The world position of the object.
 function Object:GetWorldPosition()
+    if (not self.matrix) then
+        self.matrix = self:CreateWorldMatrix();
+    end
+
     return self.matrix:ExtractPosition();
 end
 
@@ -196,6 +200,10 @@ end
 --- Retrieves the world space rotation of the object.
 --- @return Quaternion worldRotation The world rotation of the object.
 function Object:GetWorldRotation()
+    if (not self.matrix) then
+        self.matrix = self:CreateWorldMatrix();
+    end
+
     return self.matrix:ExtractRotation();
 end
 
@@ -237,6 +245,10 @@ end
 --- Retrieves the world space scale of the object.
 --- @return number worldScale The world scale of the object.
 function Object:GetWorldScale()
+    if (not self.matrix) then
+        self.matrix = self:CreateWorldMatrix();
+    end
+    
     return self.matrix:ExtractScale();
 end
 
@@ -391,18 +403,15 @@ function Object:ExportPacked()
         name = self.name;
     end
 
-    --local pRotX, pRotY, pRotZ = self:PackRotation(self.rotation);
-
     return {
+        self.type,
+        self.id,
         self.fileID,
         self.displayID,
-        self.type,
         name,
         self.position.x, self.position.y, self.position.z,
         self.rotation.x, self.rotation.y, self.rotation.z,
-        --pRotX, pRotY, pRotZ,
         self.scale,
-        self.id,
         self.visible,
         self.frozen,
         self.alpha,
@@ -443,8 +452,9 @@ function Object:GetFileName(_)
 end
 
 --- Imports packed data into the Object instance.
+--- Imports version 1 data, for backwards compatibility.
 --- @param data table The packed data to import.
-function Object:ImportPacked(data)
+function Object:ImportPackedV1(data)
     if (data == nil) then
         print("Object:ImportPacked() data was nil.");
         return;
@@ -503,6 +513,79 @@ function Object:ImportPacked(data)
     end
     
     self.id = data[12] or math.random(99999999);
+
+    if (data[13] ~= nil) then
+        self.visible = data[13];
+    else
+        self.visible = true;
+    end
+    
+    if (data[14] ~= nil) then
+        self.frozen = data[14];
+    else
+        self.frozen = false;
+    end
+
+    if(data[15] ~= nil) then
+        self.alpha = data[15];
+    else
+        self.alpha = 1.0;
+    end
+
+    if(data[16] ~= nil) then
+        self.desaturation = data[16];
+    else
+        self.desaturation = 0.0;
+    end
+end
+
+--- Imports packed data into the Object instance.
+--- Imports the current version data
+--- @param data table The packed data to import.
+function Object:ImportPacked(data)
+    if (data == nil) then
+        print("Object:ImportPacked() data was nil.");
+        return;
+    end
+
+    -- verifying all elements upon import because sometimes the saved variables get corrupted --
+    self.type = data[1] or Object.Type.Model;
+    self.id = data[2] or math.random(99999999);
+    self.fileID = data[3] or 0;
+    self.displayID = data[4] or 0;
+
+    if (data[5] ~= nil and data[5] ~= "") then
+        self.name = data[5];
+        self.isRenamed = true;
+    else
+        -- fetch name from displayID
+        if (self.type == Object.Type.Creature and self.displayID ~= 0) then
+            local found = false;
+            for creatureID, displayID in pairs(SceneMachine.creatureToDisplayID) do
+                if (displayID == self.displayID) then
+                    self.name = SceneMachine.creatureData[creatureID];
+                end
+            end
+        end
+
+        -- fetch name from fileID
+        if (self.type == Object.Type.Model and self.fileID ~= 0) then
+            self.name = self:GetFileName(self.fileID);
+        end
+
+        self.isRenamed = false;
+    end
+
+    if (data[6] ~= nil and data[7] ~= nil and data[8] ~= nil) then
+        self.position = Vector3:New(data[6], data[7], data[8]);
+    end
+
+    if (data[9] ~= nil and data[10] ~= nil and data[11] ~= nil) then
+        --self.rotation = Vector3:New(self:UnpackRotation(data[8], data[9], data[10]));
+        self.rotation = Vector3:New(data[9], data[10], data[11]);
+    end
+
+    self.scale = data[12] or 1;
 
     if (data[13] ~= nil) then
         self.visible = data[13];
