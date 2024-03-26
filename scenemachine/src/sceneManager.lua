@@ -575,7 +575,6 @@ end
 
 function SM.CalculateObjectsAverage()
 
-    print(#SM.selectedObjects)
     if (#SM.selectedObjects == 0) then
         SM.selectedPosition = Vector3.zero;
         SM.selectedRotation = Vector3.zero;
@@ -650,19 +649,33 @@ function SM.CalculateObjectsAverage()
                 zmax = 0;
             end
 
-            -- Get position of the object
             local Pos = SM.selectedObjects[i]:GetWorldPosition();
+            local Rot = SM.selectedObjects[i]:GetWorldRotation();
             local Scale = SM.selectedObjects[i]:GetWorldScale();
 
-            -- Update minimum bounds
-            xMin = math.min(xMin, xmin * Scale + Pos.x);
-            yMin = math.min(yMin, ymin * Scale + Pos.y);
-            zMin = math.min(zMin, zmin * Scale + Pos.z);
-            
-            -- Update maximum bounds
-            xMax = math.max(xMax, xmax * Scale + Pos.x);
-            yMax = math.max(yMax, ymax * Scale + Pos.y);
-            zMax = math.max(zMax, zmax * Scale + Pos.z);
+            local corners = {
+                Vector3:New(xmin, ymin, zmin),
+                Vector3:New(xmin, ymin, zmax),
+                Vector3:New(xmin, ymax, zmin),
+                Vector3:New(xmin, ymax, zmax),
+                Vector3:New(xmax, ymin, zmin),
+                Vector3:New(xmax, ymin, zmax),
+                Vector3:New(xmax, ymax, zmin),
+                Vector3:New(xmax, ymax, zmax)
+            }
+
+            for _, corner in ipairs(corners) do
+                corner:RotateAroundPivot(Vector3.zero, Rot);
+                -- Update minimum bounds
+                xMin = math.min(xMin, corner.x * Scale + Pos.x);
+                yMin = math.min(yMin, corner.y * Scale + Pos.y);
+                zMin = math.min(zMin, corner.z * Scale + Pos.z);
+                
+                -- Update maximum bounds
+                xMax = math.max(xMax, corner.x * Scale + Pos.x);
+                yMax = math.max(yMax, corner.y * Scale + Pos.y);
+                zMax = math.max(zMax, corner.z * Scale + Pos.z);
+            end
         end
 
         SM.selectedBounds = { xMin, yMin, zMin, xMax, yMax, zMax };
