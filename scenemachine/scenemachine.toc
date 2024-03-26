@@ -1,5 +1,5 @@
-## Interface: 90001
-## Title: scenemachine
+## Interface: 100206
+## Title: Scene Machine
 ## Notes:  WoW addon frontend for ModelScene API
 ## Author: Zee (Songzee/Songzhu - Argent Dawn EU)
 ## DefaultState: enabled
@@ -8,6 +8,7 @@
 ## X-eMail: cucflavius@gmail.com
 ## X-Website: none
 ## X-License: MIT
-## Version: 0.7.2 Beta
+## IconTexture: Interface\AddOns\scenemachine\res\textures\icon32.png
+## Version: 0.8 Beta
 
 src\code.xml
