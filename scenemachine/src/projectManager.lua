@@ -128,6 +128,12 @@ function PM.LoadProject(ID)
 
     SceneMachine.mainWindow:SetTitle(string.format(L["EDITOR_MAIN_WINDOW_TITLE"], Editor.version, PM.currentProject.name));
 
+    if (#PM.currentProject.scenes == 0) then
+        -- current project has no scenes, create a default one
+        SM.CreateDefaultScene();
+        SM.RefreshSceneTabs();
+    end
+
     -- Load last scene
     if (PM.currentProject.lastOpenScene ~= nil) then
         SM.LoadScene(PM.currentProject.lastOpenScene);

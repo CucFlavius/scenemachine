@@ -184,17 +184,12 @@ function SM.LoadScene(index)
     SM.tabGroup.selectedIndex = index;
     --SM.loadedScene = {};
 
-    if (#PM.currentProject.scenes == 0) then
-        -- current project has no scenes, create a default one
-        SM.CreateDefaultScene();
-        SM.RefreshSceneTabs();
-    end
-
     -- unload current --
     SM.UnloadScene();
 
     -- load new --
     local scene = PM.currentProject.scenes[index];
+
     SM.loadedScene = scene;
 
     scene.actionPool = scene.actionPool or {};
