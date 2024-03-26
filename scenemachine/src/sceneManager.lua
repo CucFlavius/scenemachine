@@ -373,8 +373,12 @@ function SM.GetObjectByID(id)
 end
 
 function SM.UnloadScene()
-    for i = 1, #SM.selectedObjects, 1 do
-        SM.selectedObjects[i]:Deselect();
+    if (SM.loadedScene == nil) then
+        return;
+    end
+    
+    for i = 1, #SM.loadedScene.objects, 1 do
+        SM.loadedScene.objects[i]:Deselect();
     end
     
     SM.selectedObjects = {};
