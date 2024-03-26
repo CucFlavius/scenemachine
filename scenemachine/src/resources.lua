@@ -56,7 +56,7 @@ function Resources.Initialize(resourcePath)
         coords = {
             { "select", "move", "rotate", "scale", "worldpivot", "localpivot", "centerpivot", "basepivot" },
             { "projects", "together", "individual", "undo", "undooff", "redo", "redooff", "addcamera" },
-            { "", "", "", "", "", "", "", "" },
+            { "", "", "", "", "", "", "", "addcharacter" },
             { "", "", "", "", "", "", "", "" },
             { "", "", "", "", "", "", "", "" },
             { "", "", "", "", "", "", "", "" },

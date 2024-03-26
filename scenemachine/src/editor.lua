@@ -235,11 +235,14 @@ function Editor.CreateToolbar()
                 action = function(self, on) if (on) then Editor.SetMultiTransformMode(0); else Editor.SetMultiTransformMode(1); end end,
                 default = true, tooltips = { L["EDITOR_TOOLBAR_TT_MULTITRANSFORM_TOGETHER"], L["EDITOR_TOOLBAR_TT_MULTITRANSFORM_INDIVIDUAL"] },
             },
-            { type = "Separator" },
             { type = "DragHandle" },
             {
                 type = "Button", name = "AddCamera", icon = toolbar:GetIcon("addcamera"), action = function(self) SM.CreateCamera(); end,
                 tooltip = L["EDITOR_TOOLBAR_TT_CREATE_CAMERA"],
+            },
+            {
+                type = "Button", name = "AddCharacter", icon = toolbar:GetIcon("addcharacter"), action = function(self) SM.CreateCharacter(0, 0, 0); end,
+                tooltip = L["EDITOR_TOOLBAR_TT_CREATE_CHARACTER"],
             },
         }
     );
