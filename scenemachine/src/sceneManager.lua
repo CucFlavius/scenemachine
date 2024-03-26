@@ -379,6 +379,8 @@ function SM.UnloadScene()
     SM.selectedObjects = {};
     Renderer.Clear();
     SM.StopControllingCamera();
+    SM.loadedScene = nil;
+    SM.loadedSceneIndex = -1;
 end
 
 function SM.StopControllingCamera()
@@ -398,6 +400,11 @@ end
 function SM.DeleteScene(index)
     -- switch to a different scene because the currently loaded is being deleted
     -- load first that isn't this one
+    if (SM.loadedScene == PM.currentProject.scenes[index]) then
+        SM.UnloadScene();
+        SH.RefreshHierarchy();
+    end
+
     for i in pairs(PM.currentProject.scenes) do
         local scene = PM.currentProject.scenes[i];
         if (i ~= index) then
@@ -410,9 +417,8 @@ function SM.DeleteScene(index)
     table.remove(PM.currentProject.scenes, index);
 
     -- if this was the only scene then create a new default one
-    if (#PM.currentProject.scenes == 1) then
+    if (#PM.currentProject.scenes == 0) then
         SM.CreateDefaultScene();
-        SM.LoadScene(1);
     end
 
     -- refresh ui

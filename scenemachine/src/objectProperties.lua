@@ -80,6 +80,10 @@ function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
 end
 
 function OP.Refresh()
+    if (not SM.loadedScene) then
+        return;
+    end
+
     -- TODO: MOVE THIS outside of here, and call every time selection changes
     SM.CalculateObjectsAverage();
     

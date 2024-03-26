@@ -24,6 +24,10 @@ function MousePick.Pick(x, y)
         return;
     end
 
+    if (not SM.loadedScene) then
+        return;
+    end
+
     -- x, y are relative coordinates to the viewport
     local idx = 1;
     MousePick.selectionList = {};

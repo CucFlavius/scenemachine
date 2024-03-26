@@ -227,7 +227,9 @@ function SH.RefreshHierarchy()
 	
 	-- create linear tree from data
 	SH.linearData = {};
-	SH.GenerateLinearTree(SM.loadedScene.objectHierarchy, SH.linearData, 0, -1);
+	if (SM.loadedScene) then
+		SH.GenerateLinearTree(SM.loadedScene.objectHierarchy, SH.linearData, 0, -1);
+	end
 	SH.scrollList:SetData(SH.linearData);
 end
 
