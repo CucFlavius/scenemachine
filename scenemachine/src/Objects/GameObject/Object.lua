@@ -203,7 +203,8 @@ function Object:GetWorldRotation()
         self.matrix = self:CreateWorldMatrix();
     end
 
-    return self.matrix:ExtractRotation();
+    local qRot = self.matrix:ExtractRotation();
+    return qRot:ToEuler();
 end
 
 --- Sets the scale of the object.
@@ -438,6 +439,12 @@ function Object:Export()
         fov = self.fov,
         nearClip = self.nearClip,
         farClip = self.farClip,
+        minX = self.minX,
+        minY = self.minY,
+        minZ = self.minZ,
+        maxX = self.maxX,
+        maxY = self.maxY,
+        maxZ = self.maxZ,
     };
 
     return data;
@@ -706,6 +713,30 @@ function Object:ImportData(data)
     -- Import farClip if it exists in the data.
     if (data.farClip ~= nil) then
         self.farClip = data.farClip;
+    end
+
+    if (data.minX ~= nil) then
+        self.minX = data.minX;
+    end
+
+    if (data.minY ~= nil) then
+        self.minY = data.minY;
+    end
+
+    if (data.minZ ~= nil) then
+        self.minZ = data.minZ;
+    end
+
+    if (data.maxX ~= nil) then
+        self.maxX = data.maxX;
+    end
+
+    if (data.maxY ~= nil) then
+        self.maxY = data.maxY;
+    end
+
+    if (data.maxZ ~= nil) then
+        self.maxZ = data.maxZ;
     end
 
     -- Generate a random id if data.id is nil.

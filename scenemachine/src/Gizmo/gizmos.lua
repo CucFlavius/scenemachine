@@ -561,29 +561,30 @@ function Gizmos.UpdateGizmoTransform()
         local bb = SM.selectedBounds;
         local xMin, yMin, zMin, xMax, yMax, zMax = bb[1], bb[2], bb[3], bb[4], bb[5], bb[6];
         local bbCenter = {(xMax - xMin) / 2, (yMax - yMin) / 2, (zMax - zMin) / 2};
-        centerH = -(zMax - zMin) / 2 * scale;
+        centerH = -(zMax - zMin) / 2 * worldScale;
         Gizmos.transformToAABB(SceneMachine.Gizmos.WireBox, bbCenter);
-        Gizmos.transformGizmo(SceneMachine.Gizmos.WireBox, position, rotation, worldScale, centerH, 1, 0);
+        --Gizmos.transformGizmo(SceneMachine.Gizmos.WireBox, position, rotation, worldScale, centerH, 1, 0);
+        Gizmos.transformGizmo(SceneMachine.Gizmos.WireBox, worldPosition, worldRotation, worldScale, 0, 1, 1);
     elseif (SM.selectedObjects[1]:GetGizmoType() == Gizmos.Type.Camera) then
         local fov = SM.selectedObjects[1]:GetFoV();
         local aspect = 1 / Camera.aspectRatio;
         local near = 1;
         local far = 20;
         Gizmos.GenerateCameraFrustumVertices(fov, aspect, near, far);
-        Gizmos.transformGizmo(SceneMachine.Gizmos.CameraGizmo, SM.selectedObjects[1]:GetWorldPosition(), rotation, 1, 0, Gizmos.space, 0);
+        Gizmos.transformGizmo(SceneMachine.Gizmos.CameraGizmo, worldPosition, worldRotation, 1, 0, Gizmos.space, 0);
     end
 
     if (Gizmos.activeTransformGizmo == 1) then
         -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
-        SceneMachine.Gizmos.MoveGizmo.scale = Vector3.ManhattanDistance(position, Camera.position) / 15;
-        Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, position, rotation, 1, centerH, Gizmos.space, Gizmos.pivot);
+        SceneMachine.Gizmos.MoveGizmo.scale = Vector3.ManhattanDistance(worldPosition, Camera.position) / 15;
+        Gizmos.transformGizmo(SceneMachine.Gizmos.MoveGizmo, worldPosition, worldRotation, 1, centerH, Gizmos.space, Gizmos.pivot);
     elseif (Gizmos.activeTransformGizmo == 2) then
         -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
-        SceneMachine.Gizmos.RotateGizmo.scale = Vector3.ManhattanDistance(position, Camera.position) / 10;
-        Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmo, position, rotation, 1, centerH, Gizmos.space, Gizmos.pivot);
+        SceneMachine.Gizmos.RotateGizmo.scale = Vector3.ManhattanDistance(worldPosition, Camera.position) / 10;
+        Gizmos.transformGizmo(SceneMachine.Gizmos.RotateGizmo, worldPosition, worldRotation, 1, centerH, Gizmos.space, Gizmos.pivot);
     elseif (Gizmos.activeTransformGizmo == 3) then
-        SceneMachine.Gizmos.ScaleGizmo.scale = Vector3.ManhattanDistance(position, Camera.position) / 15;
-        Gizmos.transformGizmo(SceneMachine.Gizmos.ScaleGizmo, position, rotation, 1, centerH, Gizmos.space, Gizmos.pivot);
+        SceneMachine.Gizmos.ScaleGizmo.scale = Vector3.ManhattanDistance(worldPosition, Camera.position) / 15;
+        Gizmos.transformGizmo(SceneMachine.Gizmos.ScaleGizmo, worldPosition, worldRotation, 1, centerH, Gizmos.space, Gizmos.pivot);
     end
 end
 

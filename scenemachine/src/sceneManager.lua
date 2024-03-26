@@ -575,6 +575,7 @@ end
 
 function SM.CalculateObjectsAverage()
 
+    print(#SM.selectedObjects)
     if (#SM.selectedObjects == 0) then
         SM.selectedPosition = Vector3.zero;
         SM.selectedRotation = Vector3.zero;
@@ -614,9 +615,11 @@ function SM.CalculateObjectsAverage()
 
         -- Rotation (set to 0?)
         SM.selectedRotation = Vector3:New(0, 0, 0);
+        SM.selectedWorldRotation = Vector3:New(0, 0, 0);
 
         -- Scale (set to 1?)
         SM.selectedScale = 1.0;
+        SM.selectedWorldScale = 1.0;
 
         -- Alpha (set to 1?)
         SM.selectedAlpha = 1.0;
@@ -627,7 +630,7 @@ function SM.CalculateObjectsAverage()
         -- Iterate through the rest of the objects in the array
         for i = 1, #SM.selectedObjects do
             local xmin, ymin, zmin, xmax, ymax, zmax = 0, 0, 0, 0, 0, 0;
-            if (SM.selectedObjects[1]:GetGizmoType() == Gizmos.Type.Object) then
+            if (SM.selectedObjects[i]:GetGizmoType() == Gizmos.Type.Object) then
                 xmin, ymin, zmin, xmax, ymax, zmax = SM.selectedObjects[i]:GetActiveBoundingBox();
                 xmin = xmin or 0; ymin = ymin or 0; zmin = zmin or 0;
                 xmax = xmax or 0; ymax = ymax or 0; zmax = zmax or 0;
@@ -638,7 +641,7 @@ function SM.CalculateObjectsAverage()
                 xmax = bbCenter[1];
                 ymax = bbCenter[2];
                 zmax = bbCenter[3];
-            elseif (SM.selectedObjects[1]:GetGizmoType() == Gizmos.Type.Camera) then
+            elseif (SM.selectedObjects[i]:GetGizmoType() == Gizmos.Type.Camera) then
                 xmin = 0;
                 ymin = 0;
                 zmin = 0;
@@ -664,6 +667,7 @@ function SM.CalculateObjectsAverage()
 
         SM.selectedBounds = { xMin, yMin, zMin, xMax, yMax, zMax };
         SM.selectedPosition = Vector3:New(xMin + (xMax - xMin) / 2, yMin + (yMax - yMin) / 2, zMin + (zMax - zMin) / 2);
+        SM.selectedWorldPosition = Vector3:New(xMin + (xMax - xMin) / 2, yMin + (yMax - yMin) / 2, zMin + (zMax - zMin) / 2);
     end
 
 end
@@ -843,11 +847,15 @@ function SM.UndeleteObject_internal(object)
         actor = Renderer.AddActor(object.displayID, pos.x, pos.y, pos.z, object.type);
     elseif (object.type == SceneMachine.GameObjects.Object.Type.Character) then
         actor = Renderer.AddActor(-1, pos.x, pos.y, pos.z, object.type);
+    elseif (object.type == SceneMachine.GameObjects.Object.Type.Group) then
+        actor = nil;
     else
         print("SM.UndeleteObject_internal(object) Unsupported obj.type : " .. object.type);
         return;
     end
-    object:SetActor(actor);
+    if (object:HasActor()) then
+        object:SetActor(actor);
+    end
     -- todo: restore timeline track
     --[[
     if (AM.loadedTimeline) then
@@ -1315,13 +1323,44 @@ function SM.GroupObjects(objects)
     end
 
     local group = SceneMachine.GameObjects.Group:New("Group");
-    local scene = SM.loadedScene;
-    scene.objects[#scene.objects + 1] = group;
+    group:FitObjects(objects);
 
-    SM.selectedObjects = { group };
+    local scene = SM.loadedScene;
+    
+    local objectHierarchyBefore = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
+    Editor.StartAction(Actions.Action.Type.CreateObject, { group }, objectHierarchyBefore);
+    
+    scene.objects[#scene.objects + 1] = group;
+    SH.AddNewObject(group.id);
+
+	-- exclude current item from data, but remember the position in hierarchy
+	SH.inputState.savedWorldPositions = {};
+	SH.inputState.savedWorldRotations = {};
+	SH.inputState.savedWorldScales = {};
+
+    for i = 1, #objects, 1 do
+
+		local object = objects[i];
+        local hobject = SH.GetHierarchyObject(SM.loadedScene.objectHierarchy, object.id);
+
+		local wPosition = object:GetWorldPosition();
+		SH.inputState.savedWorldPositions[object.id] = wPosition;
+		local wRotation = object:GetWorldRotation();
+		SH.inputState.savedWorldRotations[object.id] = wRotation;
+		local wScale = object:GetWorldScale();
+		SH.inputState.savedWorldScales[object.id] = wScale;
+		SH.RemoveIDFromHierarchy(object.id, SM.loadedScene.objectHierarchy);
+
+        local intoId = group.id;
+        SH.InsertIDChildInHierarchy(hobject, intoId, SM.loadedScene.objectHierarchy);
+    end
+
+    local objectHierarchyAfter = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
+    Editor.FinishAction(objectHierarchyAfter);
+
+    SM.SelectObject(group);
 
     -- Refresh
-    SH.AddNewObject(group.id);
     SH.RefreshHierarchy();
     OP.Refresh();
 end

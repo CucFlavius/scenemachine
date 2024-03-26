@@ -451,6 +451,7 @@ end
 function SH.InsertIDChildInHierarchy(hobject, intoId, currentList)
 	for i = 1, #currentList, 1 do
 		if (currentList[i].id == intoId) then
+			--print(hobject.id .. " inserted into " .. intoId)
 			table.insert(currentList[i].childObjects, hobject);
 			hobject.parentID = intoId;
 			local object = SM.GetObjectByID(hobject.id)
