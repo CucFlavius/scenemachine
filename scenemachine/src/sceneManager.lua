@@ -739,6 +739,7 @@ function SM.CloneObjects(objects, selectAfter)
     end
     local objectHierarchyBefore = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
     Editor.StartAction(Actions.Action.Type.CreateObject, clones, objectHierarchyBefore);
+
     local objectHierarchyAfter = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
     Editor.FinishAction(objectHierarchyAfter);
 
@@ -758,6 +759,9 @@ function SM.CloneObject_internal(object, selectAfter)
     local pos = object:GetPosition();
     local rot = object:GetRotation();
     local scale = object:GetScale();
+
+    --------------------------------
+
     local clone = nil;
     if (object:GetType() == SceneMachine.GameObjects.Object.Type.Model) then
         clone = SM.CreateObject(object:GetFileID(), object:GetName(), pos.x, pos.y, pos.z);
@@ -773,8 +777,25 @@ function SM.CloneObject_internal(object, selectAfter)
         clone:SetDesaturation(object:GetDesaturation());
     end
     if (clone) then
-        clone:SetRotation(rot.x, rot.y, rot.z);
-        clone:SetScale(scale);
+
+        local hobject = SH.GetHierarchyObject(SM.loadedScene.objectHierarchy, clone.id);
+
+        SH.inputState.savedWorldPositions = {};
+        SH.inputState.savedWorldRotations = {};
+        SH.inputState.savedWorldScales = {};
+
+        local wPosition = object:GetWorldPosition();
+        SH.inputState.savedWorldPositions[hobject.id] = wPosition;
+        local wRotation = object:GetWorldRotation();
+        SH.inputState.savedWorldRotations[hobject.id] = wRotation;
+        local wScale = object:GetWorldScale();
+        SH.inputState.savedWorldScales[hobject.id] = wScale;
+    
+        SH.RemoveIDFromHierarchy(clone.id, SM.loadedScene.objectHierarchy);
+
+        local parentObj = SH.GetParentObject(object.id);
+        local intoId = parentObj.id;
+        SH.InsertIDChildInHierarchy(hobject, intoId, SM.loadedScene.objectHierarchy);
 
         if (selectAfter) then
             SM.selectedObjects = { clone };
