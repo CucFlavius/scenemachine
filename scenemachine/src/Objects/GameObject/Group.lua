@@ -133,3 +133,51 @@ function Group:FitObjects(objects)
         self.rotation = Vector3:New(0, 0, 0);
     end
 end
+
+--- Shows the group.
+function Group:Show()
+    self.visible = true;
+    local objects = SH.GetChildObjectsRecursive(self.id);
+    if (objects) then
+        for i = 1, #objects, 1 do
+            objects[i]:Show();
+        end
+    end
+end
+
+--- Hides the group.
+function Group:Hide()
+    self.visible = false;
+    local objects = SH.GetChildObjectsRecursive(self.id);
+    if (objects) then
+        for i = 1, #objects, 1 do
+            objects[i]:Hide();
+        end
+    end
+end
+
+--- Freezes the group.
+--- Makes it unselectable in the scene viewport.
+function Group:Freeze()
+    self.frozen = true;
+    local objects = SH.GetChildObjectsRecursive(self.id);
+    if (objects) then
+        for i = 1, #objects, 1 do
+            objects[i]:Freeze();
+        end
+    end
+    SH.RefreshHierarchy();
+end
+
+--- Unfreezes the group.
+--- Makes it selectable in the scene viewport.
+function Group:Unfreeze()
+    self.frozen = false;
+    local objects = SH.GetChildObjectsRecursive(self.id);
+    if (objects) then
+        for i = 1, #objects, 1 do
+            objects[i]:Unfreeze();
+        end
+    end
+    SH.RefreshHierarchy();
+end

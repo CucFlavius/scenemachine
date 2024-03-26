@@ -730,6 +730,29 @@ function SH.GetChildObjects(ID)
 	return childObjects;
 end
 
+function SH.GetChildObjectsRecursive(ID)
+	local hobject = SH.GetHierarchyObject(SM.loadedScene.objectHierarchy, ID);
+	if (not hobject) then
+		return nil;
+	end
+	
+	local childObjects = {};
+	for i = 1, #hobject.childObjects, 1 do
+		local object = SM.GetObjectByID(hobject.childObjects[i].id);
+		if (object) then
+			table.insert(childObjects, object);
+			local childChildObjects = SH.GetChildObjectsRecursive(hobject.childObjects[i].id);
+			if (childChildObjects) then
+				for j = 1, #childChildObjects, 1 do
+					table.insert(childObjects, childChildObjects[j]);
+				end
+			end
+		end
+	end
+	
+	return childObjects;
+end
+
 function SH.GetParentObject(ID)
 	local hobject = SH.GetHierarchyObject(SM.loadedScene.objectHierarchy, ID);
 	if (not hobject) then
