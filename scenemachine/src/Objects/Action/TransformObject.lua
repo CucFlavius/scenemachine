@@ -36,7 +36,9 @@ function TransformObject:New(objects)
 		v.startPos[i] = Vector3:New(obj.position.x, obj.position.y, obj.position.z);
 		v.startRot[i] = Vector3:New(obj.rotation.x, obj.rotation.y, obj.rotation.z);
 		v.startScale[i] = obj:GetScale();
-		v.startAlpha[i] = obj:GetAlpha();
+		if (obj:HasActor()) then
+			v.startAlpha[i] = obj:GetAlpha();
+		end
 	end
 
 	v.memoryUsage = #objects * v.memorySize;
@@ -56,7 +58,9 @@ function TransformObject:Finish()
 		self.endPos[i] = Vector3:New(obj.position.x, obj.position.y, obj.position.z);
 		self.endRot[i] = Vector3:New(obj.rotation.x, obj.rotation.y, obj.rotation.z);
 		self.endScale[i] = obj:GetScale();
-		self.endAlpha[i] = obj:GetAlpha();
+		if (obj:HasActor()) then
+			self.endAlpha[i] = obj:GetAlpha();
+		end
 	end
 end
 
@@ -67,7 +71,9 @@ function TransformObject:Undo()
 		obj:SetPositionVector3(self.startPos[i]);
 		obj:SetRotation(self.startRot[i].x, self.startRot[i].y, self.startRot[i].z);
 		obj:SetScale(self.startScale[i]);
-		obj:SetAlpha(self.startAlpha[i]);
+		if (obj:HasActor()) then
+			obj:SetAlpha(self.startAlpha[i]);
+		end
 	end
 end
 
@@ -78,6 +84,8 @@ function TransformObject:Redo()
 		obj:SetPositionVector3(self.endPos[i]);
 		obj:SetRotation(self.endRot[i].x, self.endRot[i].y, self.endRot[i].z);
 		obj:SetScale(self.endScale[i]);
-		obj:SetAlpha(self.endAlpha[i]);
+		if (obj:HasActor()) then
+			obj:SetAlpha(self.endAlpha[i]);
+		end
 	end
 end

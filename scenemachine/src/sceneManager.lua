@@ -245,6 +245,9 @@ function SM.LoadScene(index)
         elseif(type == SceneMachine.GameObjects.Object.Type.Camera) then
             object = SceneMachine.GameObjects.Camera:New();
             object:ImportData(scene.objects[i]);
+        elseif(type == SceneMachine.GameObjects.Object.Type.Group) then
+            object = SceneMachine.GameObjects.Group:New();
+            object:ImportData(scene.objects[i]);
         end
 
         if (object:HasActor()) then
@@ -591,7 +594,7 @@ function SM.CalculateObjectsAverage()
         SM.selectedWorldRotation = SM.selectedObjects[1]:GetWorldRotation();
         SM.selectedWorldScale = SM.selectedObjects[1]:GetWorldScale();
 
-        if (SM.selectedObjects[1]:HasActor()) then
+        if (SM.selectedObjects[1]:HasActor() or SM.selectedObjects[1]:GetType() == SceneMachine.GameObjects.Object.Type.Group) then
             local xMin, yMin, zMin, xMax, yMax, zMax = SM.selectedObjects[1]:GetActiveBoundingBox();
             SM.selectedBounds = { xMin, yMin, zMin, xMax, yMax, zMax };
         else
@@ -1304,4 +1307,21 @@ function SM.LoadNetworkScene(scene)
     OP.Refresh();
 
     SM.selectedObjects = {};
+end
+
+function SM.GroupObjects(objects)
+    if (not objects) then
+        return;
+    end
+
+    local group = SceneMachine.GameObjects.Group:New("Group");
+    local scene = SM.loadedScene;
+    scene.objects[#scene.objects + 1] = group;
+
+    SM.selectedObjects = { group };
+
+    -- Refresh
+    SH.AddNewObject(group.id);
+    SH.RefreshHierarchy();
+    OP.Refresh();
 end

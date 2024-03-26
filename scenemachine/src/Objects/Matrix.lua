@@ -214,27 +214,31 @@ function Matrix:GetNormalizedRows3x3()
     local m10, m11, m12, m13 = self.m10, self.m11, self.m12, self.m13
     local m20, m21, m22, m23 = self.m20, self.m21, self.m22, self.m23
 
-    local length = math.sqrt(m00 * m00 + m01 * m01 + m02 * m02 + m03 * m03)
-    m00 = m00 / length
-    m01 = m01 / length
-    m02 = m02 / length
-
-    length = math.sqrt(m10 * m10 + m11 * m11 + m12 * m12 + m13 * m13)
-    m10 = m10 / length
-    m11 = m11 / length
-    m12 = m12 / length
-
-    length = math.sqrt(m20 * m20 + m21 * m21 + m22 * m22 + m23 * m23)
-    m20 = m20 / length
-    m21 = m21 / length
-    m22 = m22 / length
-
+    local length = math.sqrt(m00 * m00 + m01 * m01 + m02 * m02 + m03 * m03);
+    if(length ~= 0) then
+        m00 = m00 / length
+        m01 = m01 / length
+        m02 = m02 / length
+    end
+    length = math.sqrt(m10 * m10 + m11 * m11 + m12 * m12 + m13 * m13);
+    if(length ~= 0) then
+        m10 = m10 / length
+        m11 = m11 / length
+        m12 = m12 / length
+    end
+    length = math.sqrt(m20 * m20 + m21 * m21 + m22 * m22 + m23 * m23);
+    if(length ~= 0) then
+        m20 = m20 / length
+        m21 = m21 / length
+        m22 = m22 / length
+    end
     return m00, m01, m02, m10, m11, m12, m20, m21, m22
 end
 
 --- Extracts the rotation component from the matrix and returns it as a quaternion.
 --- @return Quaternion rotation The extracted rotation as a quaternion.
 function Matrix:ExtractRotation()
+
     local m00, m01, m02, m10, m11, m12, m20, m21, m22 = self:GetNormalizedRows3x3();
 
     local q = Quaternion:New();

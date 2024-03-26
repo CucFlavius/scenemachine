@@ -257,7 +257,7 @@ function SH.OpenItemContextMenu(object)
 	table.insert(menuOptions, { ["Name"] = L["CM_RENAME"], ["Action"] = function() Editor.OpenQuickTextbox(renameAction, object:GetName(), L["CM_RENAME"]); end });
 
 	table.insert(menuOptions, { ["Name"] = L["CM_FOCUS"], ["Action"] = function() CC.FocusObjects({object}); end });
-
+	table.insert(menuOptions, { ["Name"] = L["CM_GROUP"], ["Action"] = function() SM.GroupObjects(SM.selectedObjects); end });
 	local scale = SceneMachine.mainWindow:GetEffectiveScale();
 	local rx = Input.mouseXRaw / scale - SceneMachine.mainWindow:GetLeft();
 	local ry = Input.mouseYRaw / scale - SceneMachine.mainWindow:GetTop();

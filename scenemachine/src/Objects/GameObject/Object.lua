@@ -1,4 +1,3 @@
-local Math = SceneMachine.Math;
 local Vector3 = SceneMachine.Vector3;
 local Matrix = SceneMachine.Matrix;
 local Quaternion = SceneMachine.Quaternion;

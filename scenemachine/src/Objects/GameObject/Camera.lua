@@ -26,6 +26,7 @@ function Camera:New(name, position, rotation, fov, nearClip, farClip)
         name = name or "NewCamera",
         position = position or Vector3:New(),
         rotation = rotation or Vector3:New(),
+        scale = 1,
         id = math.random(99999999),
         visible = true,
         frozen = false,

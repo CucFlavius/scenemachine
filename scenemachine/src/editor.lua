@@ -648,6 +648,7 @@ function Editor.OpenContextMenu(x, y)
             end
         end },
         { ["Name"] = L["CM_FOCUS"], ["Action"] = function() CC.FocusObjects(SM.selectedObjects); end },
+        { ["Name"] = L["CM_GROUP"], ["Action"] = function() SM.GroupObjects(SM.selectedObjects); end },
 	};
 
     local scale =  SceneMachine.mainWindow:GetEffectiveScale();
