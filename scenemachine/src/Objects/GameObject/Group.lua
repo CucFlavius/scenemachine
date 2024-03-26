@@ -4,6 +4,7 @@ SceneMachine.GameObjects.Group = {};
 local Vector3 = SceneMachine.Vector3;
 local Gizmos = SceneMachine.Gizmos;
 local Object = SceneMachine.GameObjects.Object;
+local SH = SceneMachine.Editor.SceneHierarchy;
 
 --- @class Group : Object
 local Group = SceneMachine.GameObjects.Group;
@@ -42,6 +43,9 @@ end
 function Group:Select()
     if (not self.selected) then
         self.selected = true;
+        -- TODO: This isn't doing anything for some reason
+        --local objects = SH.GetChildObjects(self.id);
+        --Group:FitObjects(objects);
     end
 end
 
@@ -63,7 +67,7 @@ function Group:GetGizmoType()
 end
 
 function Group:FitObjects(objects)
-    if (#objects == 0) then
+    if (not objects or #objects == 0) then
         self.minX, self.minY, self.minZ, self.maxX, self.maxY, self.maxZ = -0.5, -0.5, -0.5, 0.5, 0.5, 0.5;
     elseif (#objects == 1) then
         self.minX, self.minY, self.minZ, self.maxX, self.maxY, self.maxZ = objects[1]:GetActiveBoundingBox();
@@ -94,21 +98,35 @@ function Group:FitObjects(objects)
                 zmax = 0;
             end
 
-            -- Get position of the object
             local Pos = object:GetWorldPosition();
+            local Rot = object:GetWorldRotation();
             local Scale = object:GetWorldScale();
 
-            -- Update minimum bounds
-            xMin = math.min(xMin, xmin * Scale + Pos.x);
-            yMin = math.min(yMin, ymin * Scale + Pos.y);
-            zMin = math.min(zMin, zmin * Scale + Pos.z);
-            
-            -- Update maximum bounds
-            xMax = math.max(xMax, xmax * Scale + Pos.x);
-            yMax = math.max(yMax, ymax * Scale + Pos.y);
-            zMax = math.max(zMax, zmax * Scale + Pos.z);
-        end
+            local corners = {
+                Vector3:New(xmin, ymin, zmin),
+                Vector3:New(xmin, ymin, zmax),
+                Vector3:New(xmin, ymax, zmin),
+                Vector3:New(xmin, ymax, zmax),
+                Vector3:New(xmax, ymin, zmin),
+                Vector3:New(xmax, ymin, zmax),
+                Vector3:New(xmax, ymax, zmin),
+                Vector3:New(xmax, ymax, zmax)
+            }
 
+            for _, corner in ipairs(corners) do
+                corner:RotateAroundPivot(Vector3.zero, Rot);
+                -- Update minimum bounds
+                xMin = math.min(xMin, corner.x * Scale + Pos.x);
+                yMin = math.min(yMin, corner.y * Scale + Pos.y);
+                zMin = math.min(zMin, corner.z * Scale + Pos.z);
+                
+                -- Update maximum bounds
+                xMax = math.max(xMax, corner.x * Scale + Pos.x);
+                yMax = math.max(yMax, corner.y * Scale + Pos.y);
+                zMax = math.max(zMax, corner.z * Scale + Pos.z);
+            end
+        end
+        
         self.minX, self.minY, self.minZ, self.maxX, self.maxY, self.maxZ = xMin, yMin, zMin, xMax, yMax, zMax;
 
         self.position = Vector3:New(xMin + (xMax - xMin) / 2, yMin + (yMax - yMin) / 2, zMin + (zMax - zMin) / 2);

@@ -231,7 +231,7 @@ function Gizmos.UpdateMarquee(mouseX, mouseY)
                     local object = SM.loadedScene.objects[i];
             
                     -- Can't select invisible/frozen, only in the hierarchy
-                    if (object.visible) and (not object.frozen) then
+                    if (object.visible) and (not object.frozen) and (object:GetType() ~= SceneMachine.GameObjects.Object.Type.Group) then
 
                         Gizmos.marqueeAABBSSPoints[idx] = {};
                         local vertices = {};

@@ -34,7 +34,8 @@ function MousePick.Pick(x, y)
         local gizmoType = object:GetGizmoType();
 
         -- Can't select invisible/frozen, only in the hierarchy
-        if (object.visible) and (not object.frozen) and (gizmoType == Gizmos.Type.Object) then
+        if (object.visible) and (not object.frozen) and (gizmoType == Gizmos.Type.Object) and
+            (object:GetType() ~= SceneMachine.GameObjects.Object.Type.Group) then
 
             local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
             
