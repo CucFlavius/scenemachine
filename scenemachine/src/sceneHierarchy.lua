@@ -29,14 +29,14 @@ SH.inputState = {
 
 function SH.CreatePanel(w, h, leftPanel, startLevel)
     --local group = Editor.CreateGroup("Hierarchy", h, leftPanel:GetFrame());
-	local groupBG = UI.Rectangle:New(6, -6, w, h, leftPanel:GetFrame(), "TOPLEFT", "TOPLEFT",  0.1757, 0.1757, 0.1875, 1);
-    groupBG:SetPoint("BOTTOMRIGHT", Editor.horizontalSeparatorL:GetFrame(), "BOTTOMRIGHT", -6, 6);
-	groupBG:SetFrameLevel(startLevel);
-    local groupTitleText = UI.Label:New(0, 0, w - 30, 20, groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", "   " .. L["SH_TITLE"], 9);
-    groupTitleText:SetPoint("TOPRIGHT", groupBG:GetFrame(), "TOPRIGHT", 0, 0);
-	groupTitleText:SetFrameLevel(startLevel + 1);
-    local groupContent = UI.Rectangle:New(0, -20, w - 12, h - 20, groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", 0.1445, 0.1445, 0.1445, 1);
-    groupContent:SetPoint("BOTTOMRIGHT", groupBG:GetFrame(), "BOTTOMRIGHT", 0, 0);
+	SH.groupBG = UI.Rectangle:New(6, -6, w, h, leftPanel:GetFrame(), "TOPLEFT", "TOPLEFT",  0.1757, 0.1757, 0.1875, 1);
+    SH.groupBG:SetPoint("BOTTOMRIGHT", Editor.horizontalSeparatorL:GetFrame(), "BOTTOMRIGHT", -6, 6);
+	SH.groupBG:SetFrameLevel(startLevel);
+    SH.groupTitleText = UI.Label:New(0, 0, w - 30, 20, SH.groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", "   " .. L["SH_TITLE"], 9);
+    SH.groupTitleText:SetPoint("TOPRIGHT", SH.groupBG:GetFrame(), "TOPRIGHT", 0, 0);
+	SH.groupTitleText:SetFrameLevel(startLevel + 1);
+    local groupContent = UI.Rectangle:New(0, -20, w - 12, h - 20, SH.groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", 0.1445, 0.1445, 0.1445, 1);
+    groupContent:SetPoint("BOTTOMRIGHT", SH.groupBG:GetFrame(), "BOTTOMRIGHT", 0, 0);
 	groupContent:SetFrameLevel(startLevel + 2);
 
 	SH.eyeIconVisibleTexCoord = { 0, 0.25, 0, 0.25 };
@@ -402,14 +402,14 @@ function SH.OnStartedDraggingItem()
 		SH.draggableItem.label:SetText(#SH.inputState.movingObjects .. " Objects");
 	end
 
-	SH.insertMarker:SetWidth(SH.scrollList.viewport:GetWidth());
+	SH.inputState.viewportScale = SH.scrollList.viewport:GetEffectiveScale();
+	SH.insertMarker:SetWidth(SH.scrollList.viewport:GetWidth() * SH.inputState.viewportScale);
 
 	-- calculate viewport location in relation to the mouse
-	SH.inputState.viewportScale = SH.scrollList.viewport:GetEffectiveScale();
 	SH.inputState.viewportXMin = SH.scrollList.viewport:GetLeft() * SH.inputState.viewportScale;
 	SH.inputState.viewportYMin = SH.scrollList.viewport:GetBottom() * SH.inputState.viewportScale;
-	SH.inputState.viewportXMax = SH.inputState.viewportXMin + (SH.scrollList.viewport:GetWidth() * SH.inputState.viewportScale);
-	SH.inputState.viewportYMax = SH.inputState.viewportYMin + (SH.scrollList.viewport:GetHeight() * SH.inputState.viewportScale);
+	SH.inputState.viewportXMax = SH.scrollList.viewport:GetRight() * SH.inputState.viewportScale;
+	SH.inputState.viewportYMax = SH.scrollList.viewport:GetTop() * SH.inputState.viewportScale;
 
 	-- exclude current item from data, but remember the position in hierarchy
 	SH.inputState.savedWorldPositions = {};
@@ -553,22 +553,23 @@ function SH.InsertIDBelowInHierarchy(hobject, belowID, currentList)
 end
 
 function SH.OnDraggingItem(deltaTime)
+	
+	local mx, my = Input.mouseXRaw, Input.mouseYRaw;
+
 	-- move the item to the mouse cursor
-	SH.draggableItem:SetSinglePoint("BOTTOMLEFT", Input.mouseXRaw, Input.mouseYRaw);
+	SH.draggableItem:SetSinglePoint("BOTTOMLEFT", mx, my);
 
 	-- determine if the mouse is over the viewport
-	if (Input.mouseXRaw > SH.inputState.viewportXMin and
-	Input.mouseXRaw < SH.inputState.viewportXMax and
-	Input.mouseYRaw > SH.inputState.viewportYMin and
-	Input.mouseYRaw < SH.inputState.viewportYMax) then
+	--if (MouseIsOver(SH.scrollList.viewport:GetFrame())) then
+	if (mx > SH.inputState.viewportXMin and mx < SH.inputState.viewportXMax and my > SH.inputState.viewportYMin and my < SH.inputState.viewportYMax) then
 		-- mouse over viewport
 		SH.draggableItem:SetColor(0.1757, 0.1757, 0.1875, 1);
 
 		-- determine if we should scroll the list
-		local scrollIncrement = (SH.scrollList.template.height / #SH.linearData) * deltaTime;
-		if (Input.mouseYRaw > SH.inputState.viewportYMax - 20) then
+		local scrollIncrement = deltaTime;
+		if (my > SH.inputState.viewportYMax - 20) then
 			SH.scrollList.scrollbar:SetValue(max(0, SH.scrollList.currentPos - scrollIncrement));
-		elseif (Input.mouseYRaw < SH.inputState.viewportYMin + 20) then
+		elseif (my < SH.inputState.viewportYMin + 20) then
 			SH.scrollList.scrollbar:SetValue(min(1, SH.scrollList.currentPos + scrollIncrement));
 		end
 
@@ -585,7 +586,7 @@ function SH.OnDraggingItem(deltaTime)
 				local ymax = ymin + (itemBuf:GetHeight() * scale);
 				itemBuf.components[1]:SetColor(UI.Button.State.Highlight, 0, 0, 0, 0);	-- disable button highlight
 				
-				if (Input.mouseXRaw > xmin and Input.mouseXRaw < xmax and Input.mouseYRaw > ymin and Input.mouseYRaw < ymax) then
+				if (mx > xmin and mx < xmax and my > ymin and my < ymax) then
 					mouseOverItem = itemBuf;
 				end
 			else
@@ -598,8 +599,8 @@ function SH.OnDraggingItem(deltaTime)
 			mouseOverItem = itemBuf;
 			local xmin = mouseOverItem:GetLeft() * scale;
 			local ymin = mouseOverItem:GetBottom() * scale;
-			if (Input.mouseYRaw < ymin) then
-				SH.ShowInsert(xmin, ymin + SH.scrollList.template.height);
+			if (my < ymin) then
+				SH.ShowInsert(xmin, ymin + SH.scrollList.template.height * SH.inputState.viewportScale);
 				SH.InsertInLinearList(#SH.linearData, true);
 				--SH.InsertSpacing(xmin, ymin + SH.scrollList.template.height, mouseOverItem.dataIndex);
 			end
@@ -610,14 +611,14 @@ function SH.OnDraggingItem(deltaTime)
 				local ymax = ymin + (mouseOverItem:GetHeight() * scale);
 
 				-- if closer to top edge
-				if (math.abs(Input.mouseYRaw - ymin) < 4) then
+				if (math.abs(my - ymin) < 4) then
 					-- insert above
 					SH.ShowInsert(xmin, ymin);
 					SH.InsertInLinearList(mouseOverItem.dataIndex, true);
 				-- if closer to bottom edge
-				elseif (math.abs(Input.mouseYRaw - ymax) < 4) then
+				elseif (math.abs(my - ymax) < 4) then
 					-- insert below
-					SH.ShowInsert(xmin, ymin + SH.scrollList.template.height);
+					SH.ShowInsert(xmin, ymin + SH.scrollList.template.height* SH.inputState.viewportScale);
 					SH.InsertInLinearList(mouseOverItem.dataIndex, false);
 				-- if closer to center
 				else
