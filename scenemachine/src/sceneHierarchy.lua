@@ -118,8 +118,10 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 									SH.inputState.mousePosStartY = Input.mouseYRaw;
 								end
 							elseif(button == "RightButton") then
-								SH.SelectHierarchyObjectByID(hdata.id);
-								SM.ApplySelectionEffects();
+								if (not SM.IsObjectSelected(data)) then
+									SH.SelectHierarchyObjectByID(hdata.id);
+									SM.ApplySelectionEffects();
+								end
 								SH.OpenItemContextMenu(data);
 							end
 
@@ -253,9 +255,11 @@ function SH.OpenItemContextMenu(object)
 		end });
 	end
 
-	local renameAction = function(text) object:Rename(text); SH.RefreshHierarchy(); end
-	table.insert(menuOptions, { ["Name"] = L["CM_RENAME"], ["Action"] = function() Editor.OpenQuickTextbox(renameAction, object:GetName(), L["CM_RENAME"]); end });
-
+	if (#SM.selectedObjects == 1) then
+		local renameAction = function(text) object:Rename(text); SH.RefreshHierarchy(); end
+		table.insert(menuOptions, { ["Name"] = L["CM_RENAME"], ["Action"] = function() Editor.OpenQuickTextbox(renameAction, object:GetName(), L["CM_RENAME"]); end });
+	end
+	
 	table.insert(menuOptions, { ["Name"] = L["CM_FOCUS"], ["Action"] = function() CC.FocusObjects({object}); end });
 	table.insert(menuOptions, { ["Name"] = L["CM_GROUP"], ["Action"] = function() SM.GroupObjects(SM.selectedObjects); end });
 	local scale = SceneMachine.mainWindow:GetEffectiveScale();
