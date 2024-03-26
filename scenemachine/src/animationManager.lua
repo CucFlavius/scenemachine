@@ -2836,7 +2836,11 @@ function AM.AddFullKey(track)
     local timeMS = AM.loadedTimeline.currentTime;
     local obj = AM.GetObjectOfTrack(track);
     if (obj) then
-        track:AddFullKeyframe(timeMS, obj:GetPosition(), obj:GetRotation(), obj:GetScale(), obj:GetAlpha(), AM.currentInterpolationIn, AM.currentInterpolationOut);
+        local alpha = 1;
+        if (obj:HasActor()) then
+            alpha = obj:GetAlpha();
+        end
+        track:AddFullKeyframe(timeMS, obj:GetPosition(), obj:GetRotation(), obj:GetScale(), alpha, AM.currentInterpolationIn, AM.currentInterpolationOut);
     end
 
     Editor.FinishAction();

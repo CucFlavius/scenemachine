@@ -196,6 +196,7 @@ function CC.Update(deltaTime)
 	if (CC.ControllingCameraObject ~= nil) then
 		CC.ControllingCameraObject:SetPositionVector3(SceneMachine.Camera.position);
 		CC.ControllingCameraObject:SetRotation(Camera.eulerRotation.x, Camera.eulerRotation.y, Camera.eulerRotation.z);
+		SM.CalculateObjectsAverage();
 	end
 end
 
