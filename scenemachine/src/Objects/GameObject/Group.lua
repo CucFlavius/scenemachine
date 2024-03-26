@@ -166,7 +166,6 @@ function Group:Freeze()
             objects[i]:Freeze();
         end
     end
-    SH.RefreshHierarchy();
 end
 
 --- Unfreezes the group.
@@ -179,5 +178,4 @@ function Group:Unfreeze()
             objects[i]:Unfreeze();
         end
     end
-    SH.RefreshHierarchy();
 end

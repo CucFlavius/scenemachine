@@ -258,24 +258,51 @@ function SH.OpenItemContextMenu(object)
 	table.insert(menuOptions, { ["Name"] = L["CM_DELETE"], ["Action"] = function() SM.DeleteObjects(object); end });
 
 	if (object:IsVisible()) then
-		table.insert(menuOptions, { ["Name"] = L["CM_HIDE"], ["Action"] = function() object:Hide(); end });
+		table.insert(menuOptions, { ["Name"] = L["CM_HIDE"], ["Action"] = function()
+			if (#SM.selectedObjects == 1) then
+				object:Hide();
+			elseif (#SM.selectedObjects > 1) then
+				for i = 1, #SM.selectedObjects, 1 do
+					SM.selectedObjects[i]:Hide();
+				end
+			end
+			SH.RefreshHierarchy();
+		end });
 	else
-		table.insert(menuOptions, { ["Name"] = L["CM_SHOW"], ["Action"] = function() object:Show(); end });
+		table.insert(menuOptions, { ["Name"] = L["CM_SHOW"], ["Action"] = function()
+			if (#SM.selectedObjects == 1) then
+				object:Show();
+			elseif (#SM.selectedObjects > 1) then
+				for i = 1, #SM.selectedObjects, 1 do
+					SM.selectedObjects[i]:Show();
+				end
+			end
+			SH.RefreshHierarchy();
+		end });
 	end
 
 	if (object:IsFrozen()) then
-		table.insert(menuOptions, { ["Name"] = L["CM_UNFREEZE"], ["Action"] = function() object:Unfreeze(); end });
+		table.insert(menuOptions, { ["Name"] = L["CM_UNFREEZE"], ["Action"] = function()
+			if (#SM.selectedObjects == 1) then
+				object:Unfreeze();
+			elseif (#SM.selectedObjects > 1) then
+				for i = 1, #SM.selectedObjects, 1 do
+					SM.selectedObjects[i]:Unfreeze();
+				end
+			end
+			SH.RefreshHierarchy();
+		end });
 	else
 		table.insert(menuOptions, { ["Name"] = L["CM_FREEZE"], ["Action"] = function() object:Freeze();
-			if (#SM.selectedObjects > 0) then
-				for i= #SM.selectedObjects, 1, -1 do
-					if (SM.selectedObjects[i].frozen) then
-						table.remove(SM.selectedObjects, i);
-					end
+			if (#SM.selectedObjects == 1) then
+				object:Freeze();
+			elseif (#SM.selectedObjects > 1) then
+				for i = 1, #SM.selectedObjects, 1 do
+					SM.selectedObjects[i]:Freeze();
 				end
-				SH.RefreshHierarchy();
-				OP.Refresh();
 			end
+			SM.SelectObject(nil);
+			SH.RefreshHierarchy();
 		end });
 	end
 
