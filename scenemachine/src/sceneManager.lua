@@ -99,11 +99,19 @@ function SM.RefreshSceneTabs()
 end
 
 function SM.CreateDefaultScene()
-    return SM.CreateScene();
+    SM.AddScene("My First Scene");
 end
 
 function SM.AddScene(text)
-    PM.currentProject.scenes[#PM.currentProject.scenes + 1] = SM.CreateScene(text);
+    local index = #PM.currentProject.scenes + 1;
+    PM.currentProject.scenes[index] = SM.CreateScene(text);
+    SM.LoadScene(index);
+
+    -- load default cube. No! sphere
+    --SM.CreateObject(167145, "Default Cube", 0, 0, 0);
+    local sphere = SM.CreateObject(3088290, "Default Sphere", 0, 0, 0);
+    sphere:SetScale(0.05);
+
     SM.RefreshSceneTabs();
 end
 
@@ -156,6 +164,14 @@ function SM.CreateScene(sceneName)
         name = sceneName,
         objects = {},
         timelines = {},
+        properties = {
+            ambientColor = { 181/255, 194/255, 203/255, 1 },
+            diffuseColor = { 217/255, 217/255, 190/255, 1 },
+            backgroundColor = { 0.554, 0.554, 0.554, 1 },
+            enableLighting = true,
+        },
+        lastCameraPosition = {8.8, -8.8, 6.5},
+        lastCameraEuler = {0, math.rad(27), math.rad(135)},
     }
 end
 
@@ -170,7 +186,7 @@ function SM.LoadScene(index)
 
     if (#PM.currentProject.scenes == 0) then
         -- current project has no scenes, create a default one
-        PM.currentProject.scenes[1] = SM.CreateDefaultScene();
+        SM.CreateDefaultScene();
         SM.RefreshSceneTabs();
     end
 
@@ -292,9 +308,9 @@ function SM.LoadScene(index)
     end
 
     if (scene.properties) then
-        OP.SetAmbientColor(scene.properties.ambientColor[1], scene.properties.ambientColor[2], scene.properties.ambientColor[2], 1);
-        OP.SetDiffuseColor(scene.properties.diffuseColor[1], scene.properties.diffuseColor[2], scene.properties.diffuseColor[2], 1);
-        OP.SetBackgroundColor(scene.properties.backgroundColor[1], scene.properties.backgroundColor[2], scene.properties.backgroundColor[2], 1);
+        OP.SetAmbientColor(scene.properties.ambientColor[1], scene.properties.ambientColor[2], scene.properties.ambientColor[3], 1);
+        OP.SetDiffuseColor(scene.properties.diffuseColor[1], scene.properties.diffuseColor[2], scene.properties.diffuseColor[3], 1);
+        OP.SetBackgroundColor(scene.properties.backgroundColor[1], scene.properties.backgroundColor[2], scene.properties.backgroundColor[3], 1);
         OP.ToggleLighting(scene.properties.enableLighting);
     end
 
@@ -1201,7 +1217,7 @@ function SM.LoadNetworkScene(scene)
     Editor.SetMode(Editor.MODE_NETWORK);
     --if (#PM.currentProject.scenes == 0) then
     --    -- current project has no scenes, create a default one
-    --    PM.currentProject.scenes[1] = SM.CreateDefaultScene();
+    --    SM.CreateDefaultScene();
     --    SM.RefreshSceneTabs();
     --end
 
@@ -1296,9 +1312,9 @@ function SM.LoadNetworkScene(scene)
     end
 
     if (scene.properties) then
-        OP.SetAmbientColor(scene.properties.ambientColor[1], scene.properties.ambientColor[2], scene.properties.ambientColor[2], 1);
-        OP.SetDiffuseColor(scene.properties.diffuseColor[1], scene.properties.diffuseColor[2], scene.properties.diffuseColor[2], 1);
-        OP.SetBackgroundColor(scene.properties.backgroundColor[1], scene.properties.backgroundColor[2], scene.properties.backgroundColor[2], 1);
+        OP.SetAmbientColor(scene.properties.ambientColor[1], scene.properties.ambientColor[2], scene.properties.ambientColor[3], 1);
+        OP.SetDiffuseColor(scene.properties.diffuseColor[1], scene.properties.diffuseColor[2], scene.properties.diffuseColor[3], 1);
+        OP.SetBackgroundColor(scene.properties.backgroundColor[1], scene.properties.backgroundColor[2], scene.properties.backgroundColor[3], 1);
         OP.ToggleLighting(scene.properties.enableLighting);
     end
 
