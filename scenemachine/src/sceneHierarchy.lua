@@ -43,6 +43,12 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 	SH.eyeIconInvisibleTexCoord = { 0, 0.25, 0.25, 0.5 };
 	SH.openIconTexCoord = { 0.25, 0.5, 0, 0.25 };
 	SH.closeIconTexCoord = { 0.25, 0.5, 0.25, 0.5 };
+	SH.modelIconTexCoord = { 0, 0.25, 0.5, 0.75 };
+	SH.groupIconTexCoord = { 0.25, 0.5, 0.5, 0.75 };
+	SH.creatureIconTexCoord = { 0, 0.25, 0.75, 1 };
+	SH.characterIconTexCoord = { 0.25, 0.5, 0.75, 1 };
+	SH.cameraIconTexCoord = { 0.5, 0.75, 0.5, 0.75 };
+	SH.lightIconTexCoord = { 0.5, 0.75, 0.75, 1 };
 
 	SH.scrollList = UI.PooledScrollList:New(1, -1, w - 12, h - 22, groupContent:GetFrame(), "TOPLEFT", "TOPLEFT");
 	SH.scrollList:SetPoint("BOTTOMRIGHT", groupContent:GetFrame(), "BOTTOMRIGHT", 0, 0);
@@ -65,10 +71,10 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 				-- object name text --
 				item.components[2] = UI.Label:New(0, 0, 200, 18, item.components[1]:GetFrame(), "LEFT", "LEFT", "", 9);
 
-				-- visibility icon --
-				item.components[3] = UI.Button:New(16, 0, 16, 16, item.components[1]:GetFrame(), "RIGHT", "RIGHT", nil, Resources.textures["Hierarchy"]);
+				-- object icon --
+				item.components[3] = UI.Button:New(-16, 0, 16, 16, item.components[1]:GetFrame(), "LEFT", "LEFT", nil, Resources.textures["Hierarchy"]);
 				item.components[3]:SetColor(UI.Button.State.Normal, 0, 0, 0, 0);
-				item.components[3]:SetAlpha(0.4);
+				item.components[3]:SetAlpha(0.7);
 
 				-- open close button --
 				item.components[4] = UI.Button:New(0, 0, 16, 16, item:GetFrame(), "LEFT", "LEFT", nil, Resources.textures["Hierarchy"]);
@@ -91,7 +97,7 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 						end
 
 						item.components[1]:ClearAllPoints();
-						item.components[1]:SetPoint("TOPLEFT", item:GetFrame(), "TOPLEFT", level * 16 + 16, 0);
+						item.components[1]:SetPoint("TOPLEFT", item:GetFrame(), "TOPLEFT", level * 16 + 32, 0);
 						item.components[1]:SetHeight(16);
 						--item.components[1]:SetPoint("BOTTOMRIGHT", item:GetFrame(), "BOTTOMRIGHT", 0, 0);
 						--item.components[1]:SetWidth(200);
@@ -158,10 +164,26 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 						item.width = w + ((level * 16) + 16) + 16;
 
 						-- visibility icon --
+						local objectType = data:GetType();
+						if (objectType == SceneMachine.GameObjects.Object.Type.Model) then
+							item.components[3]:SetTexCoords(SH.modelIconTexCoord);
+						elseif (objectType == SceneMachine.GameObjects.Object.Type.Group) then
+							item.components[3]:SetTexCoords(SH.groupIconTexCoord);
+						elseif (objectType == SceneMachine.GameObjects.Object.Type.Creature) then
+							item.components[3]:SetTexCoords(SH.creatureIconTexCoord);
+						elseif (objectType == SceneMachine.GameObjects.Object.Type.Character) then
+							item.components[3]:SetTexCoords(SH.characterIconTexCoord);
+						elseif (objectType == SceneMachine.GameObjects.Object.Type.Camera) then
+							item.components[3]:SetTexCoords(SH.cameraIconTexCoord);
+						--elseif (data:GetType() == SceneMachine.GameObjects.Object.Type.Light) then
+						--	item.components[3]:SetTexCoords(SH.lightIconTexCoord);
+						end
 						if (data.visible) then
-							item.components[3]:SetTexCoords(SH.eyeIconVisibleTexCoord);
+							item.components[3]:SetAlpha(0.7);
+							--item.components[3]:SetTexCoords(SH.eyeIconVisibleTexCoord);
 						else
-							item.components[3]:SetTexCoords(SH.eyeIconInvisibleTexCoord);
+							item.components[3]:SetAlpha(0.3);
+							--item.components[3]:SetTexCoords(SH.eyeIconInvisibleTexCoord);
 						end
 						item.components[3]:SetScript("OnClick", function(_, button, down) SM.ToggleObjectVisibility(data); end);
 
@@ -259,7 +281,7 @@ function SH.OpenItemContextMenu(object)
 		local renameAction = function(text) object:Rename(text); SH.RefreshHierarchy(); end
 		table.insert(menuOptions, { ["Name"] = L["CM_RENAME"], ["Action"] = function() Editor.OpenQuickTextbox(renameAction, object:GetName(), L["CM_RENAME"]); end });
 	end
-	
+
 	table.insert(menuOptions, { ["Name"] = L["CM_FOCUS"], ["Action"] = function() CC.FocusObjects({object}); end });
 	table.insert(menuOptions, { ["Name"] = L["CM_GROUP"], ["Action"] = function() SM.GroupObjects(SM.selectedObjects); end });
 	local scale = SceneMachine.mainWindow:GetEffectiveScale();
