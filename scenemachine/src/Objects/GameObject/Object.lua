@@ -317,7 +317,7 @@ function Object:Show()
     --self.actor:Show();
     self.visible = true;
     if (self:HasActor()) then
-        self.actor:SetAlpha(1);
+        self.actor:SetAlpha(self.alpha or 1);
     end
 end
 

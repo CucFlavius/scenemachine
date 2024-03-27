@@ -3250,6 +3250,10 @@ function AM.Play()
             local obj = AM.GetObjectOfTrack(track);
             if (obj and obj:GetType() == SceneMachine.GameObjects.Object.Type.Camera) then
                 CC.ControllingCameraObject = obj;
+                -- set camera properties that don't need animating
+                Camera.fov = obj:GetFoV();
+                Camera.nearClip = obj:GetNearClip();
+                Camera.farClip = obj:GetFarClip();
                 SM.viewportButton:Show();
                 break;
             end
