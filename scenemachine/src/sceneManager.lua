@@ -371,6 +371,9 @@ function SM.UnloadScene()
     
     for i = 1, #SM.loadedScene.objects, 1 do
         SM.loadedScene.objects[i]:Deselect();
+        if (SM.loadedScene.objects[i]:HasActor()) then
+            SM.loadedScene.objects[i]:ClearSpellVisualKits();
+        end
     end
     
     SM.selectedObjects = {};
