@@ -846,12 +846,26 @@ function SM.DeleteObjects(objects)
 
     -- make a copy of the objectHierarchy, so it can be restored without too much complication
     local objectHierarchyBefore = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
-    Editor.StartAction(Actions.Action.Type.DestroyObject, objects, objectHierarchyBefore);
+
+    -- collect child objects
+    local allObjects = {};
     for i = 1, #objects, 1 do
-        if (objects[i]) then
-            SM.DeleteObject_internal(objects[i]);
+        table.insert(allObjects, objects[i]);
+        local childObjects = SH.GetChildObjectsRecursive(objects[i].id);
+        if (childObjects) then
+            for j = 1, #childObjects, 1 do
+                table.insert(allObjects, childObjects[j])
+            end
         end
     end
+
+    Editor.StartAction(Actions.Action.Type.DestroyObject, allObjects, objectHierarchyBefore);
+    for i = 1, #allObjects, 1 do
+        if (allObjects[i]) then
+            SM.DeleteObject_internal(allObjects[i]);
+        end
+    end
+    SH.RefreshHierarchy();
     local objectHierarchyAfter = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
     Editor.FinishAction(objectHierarchyAfter);
 end
@@ -911,6 +925,7 @@ function SM.UndeleteObject_internal(object)
     end
     if (object:HasActor()) then
         object:SetActor(actor);
+        object:RecalculateActors();
     end
     -- todo: restore timeline track
     --[[

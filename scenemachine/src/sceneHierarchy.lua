@@ -468,7 +468,7 @@ function SH.CopyObjectHierarchy(hierarchy)
 end
 
 function SH.SetHierarchy(hierarchy)
-	SM.loadedScene.objectHierarchy = hierarchy;
+	SM.loadedScene.objectHierarchy = SH.CopyObjectHierarchy(hierarchy);
 end
 
 function SH.GetIDParentAndIndexFromHierarchy(id, parentList)
@@ -795,12 +795,18 @@ function SH.GetParentObject(ID)
 end
 
 function SH.VerifyIntegrityRecursive(objectBuffer)
-	for i = 1, #objectBuffer, 1 do
-		local object = SM.GetObjectByID(objectBuffer[i].id);
-		if (not object) then
-			table.remove(objectBuffer, i);
-			i = i - 1;
+	if (objectBuffer) then
+		for i = 1, #objectBuffer, 1 do
+			if (objectBuffer[i]) then
+				local object = SM.GetObjectByID(objectBuffer[i].id);
+				if (not object) then
+					table.remove(objectBuffer, i);
+					i = i - 1;
+				end
+				if (i > 0) then
+					SH.VerifyIntegrityRecursive(objectBuffer[i].childObjects);
+				end
+			end
 		end
-		SH.VerifyIntegrityRecursive(objectBuffer[i].childObjects);
 	end
 end

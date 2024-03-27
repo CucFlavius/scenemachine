@@ -1,7 +1,6 @@
-local Math = SceneMachine.Math;
-local Vector3 = SceneMachine.Vector3;
 local SM = SceneMachine.Editor.SceneManager;
 local SH = SceneMachine.Editor.SceneHierarchy;
+local OP = SceneMachine.Editor.ObjectProperties;
 
 SceneMachine.Actions.DestroyObject = {};
 
@@ -60,7 +59,6 @@ function DestroyObject:Redo()
 	-- Loop through each object in the list
 	for i = 1, #self.objects, 1 do
 		local obj = self.objects[i];
-		-- Delete the object using the internal function
 		SM.DeleteObject_internal(obj);
 	end
 	-- Set the object hierarchy after the destruction
