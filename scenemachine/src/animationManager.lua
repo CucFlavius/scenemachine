@@ -1091,6 +1091,10 @@ function AM.CreateToolbar(x, y, w, h, parent, startLevel)
             type = "Toggle", name = "Loop", iconOn = toolbar:GetIcon("loop"), iconOff = toolbar:GetIcon("loopoff"), action = function(self, on) AM.LoopToggle_OnClick(on); end,
             default = true, tooltip = L["AM_TOOLBAR_TT_LOOP"],
         },
+        {
+            type = "Toggle", name = "Loop", iconOn = toolbar:GetIcon("cameraplayon"), iconOff = toolbar:GetIcon("cameraplayoff"), action = function(self, on) AM.CameraToggle_OnClick(on); end,
+            default = false, tooltip = L["AM_TOOLBAR_TT_PLAYCAMERA"],
+        },
         { type = "Separator", name = "Separator6" },
     });
     mainGroup:SetFrameLevel(startLevel + 1);
@@ -3238,6 +3242,19 @@ function AM.Play()
             AM.lastKeyedTime = AM.loadedTimeline.duration;
         end
     end
+
+    if (AM.cameraPlay) then
+        -- find a suitable camera from tracks
+        for t = 1, #AM.loadedTimeline.tracks, 1 do
+            local track = AM.loadedTimeline.tracks[t];
+            local obj = AM.GetObjectOfTrack(track);
+            if (obj and obj:GetType() == SceneMachine.GameObjects.Object.Type.Camera) then
+                CC.ControllingCameraObject = obj;
+                SM.viewportButton:Show();
+                break;
+            end
+        end
+    end
 end
 
 function AM.Pause()
@@ -3245,6 +3262,11 @@ function AM.Pause()
 
     if (AM.loadedTimeline) then
         AM.SetTime(AM.loadedTimeline.currentTime, false);
+    end
+
+    if (AM.cameraPlay) then
+        CC.ControllingCameraObject = nil;
+        SM.viewportButton:Hide();
     end
 end
 
@@ -3288,6 +3310,10 @@ end
 
 function AM.LoopToggle_OnClick(on)
     AM.loopPlay = on;
+end
+
+function AM.CameraToggle_OnClick(on)
+    AM.cameraPlay = on;
 end
 
 function AM.Dropdown_SetUIMode(index)

@@ -74,7 +74,7 @@ function Resources.Initialize(resourcePath)
             { "addkey", "removekey", "addanim", "removeanim", "addobj", "removeobj" },
             { "loop", "loopoff", "timesettings", "ismooth", "ilinear", "istep" },
             { "addposkey", "addrotkey", "addscalekey", "osmooth", "olinear", "ostep" },
-            { "islow", "ifast", "", "", "", ""},
+            { "islow", "ifast", "cameraplayon", "cameraplayoff", "", ""},
             { "oslow", "ofast", "", "", "", "" },
         };
     }

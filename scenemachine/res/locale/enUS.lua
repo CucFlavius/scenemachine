@@ -153,6 +153,7 @@ L["AM_TOOLBAR_TT_PLAY_PAUSE"] = "Play / Pause";
 L["AM_TOOLBAR_TT_SKIP_FRAME_FORWARD"] = "Jump to next frame";
 L["AM_TOOLBAR_TT_SEEK_TO_END"] = "Seek to End";
 L["AM_TOOLBAR_TT_LOOP"] = "Loop Playback on/off";
+L["AM_TOOLBAR_TT_PLAYCAMERA"] = "Camera Playback on/off";
 L["AM_TT_LIST"] = "Select Timeline";
 L["AM_TT_ADDTIMELINE"] = "Add Timeline";
 L["AM_RMB_CHANGE_ANIM"] = "Change Animation";
