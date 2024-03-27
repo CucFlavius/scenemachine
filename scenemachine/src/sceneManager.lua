@@ -182,7 +182,6 @@ function SM.LoadScene(index)
 
     SM.loadedSceneIndex = index;
     SM.tabGroup.selectedIndex = index;
-    --SM.loadedScene = {};
 
     -- unload current --
     SM.UnloadScene();
@@ -224,16 +223,15 @@ function SM.LoadScene(index)
         scene.properties.enableLighting = true;
     end
 
-    -- create loaded scene (so that objects get loaded from data not referenced) --
-    --SM.loadedScene.objects = {};
-    --SM.loadedScene.name = scene.name;
-
     -- verify scene objects integrity
     for i = #scene.objects, 1, -1 do
         if (not scene.objects[i]) then
             table.remove(scene.objects, i);
         end
     end
+
+    -- verify hierarchy integrity
+    SH.VerifyIntegrityRecursive(scene.objectHierarchy);
 
     for i = 1, #scene.objects, 1 do
         local type = scene.objects[i].type;
@@ -273,7 +271,6 @@ function SM.LoadScene(index)
         -- assigning the new object so that we have access to the class functions (which get stripped when exporting to savedata)
         SM.loadedScene.objects[i] = object;
     end
-
 
     -- buld objectid map
     SM.objectIDMap = {};
@@ -777,25 +774,29 @@ function SM.CloneObject_internal(object, selectAfter)
         clone:SetDesaturation(object:GetDesaturation());
     end
     if (clone) then
-
         local hobject = SH.GetHierarchyObject(SM.loadedScene.objectHierarchy, clone.id);
-
-        SH.inputState.savedWorldPositions = {};
-        SH.inputState.savedWorldRotations = {};
-        SH.inputState.savedWorldScales = {};
-
-        local wPosition = object:GetWorldPosition();
-        SH.inputState.savedWorldPositions[hobject.id] = wPosition;
-        local wRotation = object:GetWorldRotation();
-        SH.inputState.savedWorldRotations[hobject.id] = wRotation;
-        local wScale = object:GetWorldScale();
-        SH.inputState.savedWorldScales[hobject.id] = wScale;
-    
-        SH.RemoveIDFromHierarchy(clone.id, SM.loadedScene.objectHierarchy);
-
+        
         local parentObj = SH.GetParentObject(object.id);
-        local intoId = parentObj.id;
-        SH.InsertIDChildInHierarchy(hobject, intoId, SM.loadedScene.objectHierarchy);
+        if (parentObj) then
+            SH.inputState.savedWorldPositions = {};
+            SH.inputState.savedWorldRotations = {};
+            SH.inputState.savedWorldScales = {};
+
+            local wPosition = object:GetWorldPosition();
+            SH.inputState.savedWorldPositions[hobject.id] = wPosition;
+            local wRotation = object:GetWorldRotation();
+            SH.inputState.savedWorldRotations[hobject.id] = wRotation;
+            local wScale = object:GetWorldScale();
+            SH.inputState.savedWorldScales[hobject.id] = wScale;
+        
+            SH.RemoveIDFromHierarchy(clone.id, SM.loadedScene.objectHierarchy);
+
+            local intoId = parentObj.id;
+            SH.InsertIDChildInHierarchy(hobject, intoId, SM.loadedScene.objectHierarchy);
+        end
+
+        clone:SetRotation(rot.x, rot.y, rot.z);
+        clone:SetScale(scale);
 
         if (selectAfter) then
             SM.selectedObjects = { clone };

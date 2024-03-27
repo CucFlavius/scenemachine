@@ -793,3 +793,14 @@ function SH.GetParentObject(ID)
 	local parentObject = SM.GetObjectByID(hobject.parentID);
 	return parentObject;
 end
+
+function SH.VerifyIntegrityRecursive(objectBuffer)
+	for i = 1, #objectBuffer, 1 do
+		local object = SM.GetObjectByID(objectBuffer[i].id);
+		if (not object) then
+			table.remove(objectBuffer, i);
+			i = i - 1;
+		end
+		SH.VerifyIntegrityRecursive(objectBuffer[i].childObjects);
+	end
+end

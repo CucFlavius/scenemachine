@@ -157,7 +157,7 @@ function PooledScrollList:Refresh(dif)
         item:SetSinglePoint("TOPLEFT", 0, -((pidx - 1) + dif) * self.template.height);
         self.template.refreshItem(self.data[d], item, d);
         if (self.template.useHorizontalScrollbar) then
-            self.maxWidth = math.max(self.maxWidth, item.width);
+            self.maxWidth = math.max(self.maxWidth, item.width or 0);
         end
         pidx = pidx + 1;
     end
