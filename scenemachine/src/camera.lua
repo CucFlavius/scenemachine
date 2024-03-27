@@ -34,10 +34,23 @@ Camera.farClip = 1000.0;
 Camera.projectionMatrix = Matrix:New();
 Camera.viewMatrix = Matrix:New();
 
+local function isNaN( v ) return type( v ) == "number" and v ~= v end
+
 function Camera.Update()
     if (Renderer.projectionFrame == nil) then return end
     Renderer.projectionFrame:SetCameraPosition(Camera.position:Get());
     local roll, pitch, yaw = Camera.eulerRotation:Get();
+
+    if (isNaN(roll)) then
+        roll = 0;
+    end
+    if (isNaN(pitch)) then
+        pitch = 0;
+    end
+    if (isNaN(yaw)) then
+        yaw = 0;
+    end
+    
     Renderer.projectionFrame:SetCameraOrientationByYawPitchRoll(yaw, pitch, roll);
     Renderer.projectionFrame:SetCameraFieldOfView(Camera.fov);
     Renderer.projectionFrame:SetCameraFarClip(Camera.farClip)
