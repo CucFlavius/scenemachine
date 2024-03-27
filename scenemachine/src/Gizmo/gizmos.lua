@@ -593,14 +593,16 @@ function Gizmos.ApplyPositionMotion(object, iPointDiff)
         return;
     end
 
-    local position = object:GetPosition();
-    local parent = SH.GetParentObject(object.id);
-    if (parent) then
+    local position = object:GetWorldPosition();
+    --print(position);
+    --local parent = SH.GetParentObject(object.id);
+    --if (parent) then
         -- fix gizmo transformation offset if the object is in a hierarchy
-        iPointDiff:Scale(1 / parent:GetWorldScale());
-    end
+        --iPointDiff:Scale(1 / parent:GetWorldScale());
+    --end
+    
     position:Add(iPointDiff);
-    object:SetPosition(position.x, position.y, position.z);
+    object:SetWorldPosition(position.x, position.y, position.z);
 end
 
 function Gizmos.ApplyRotationMotion(object, direction, mouseDiff)
@@ -721,10 +723,11 @@ function Gizmos.MotionToTransform()
         local mouseRay = Camera.GetMouseRay();
 
         local iPoint;
+        local position = SM.selectedWorldPosition;
         if (Gizmos.selectedAxis == 1 or Gizmos.selectedAxis == 2 or Gizmos.selectedAxis == 3) then
-            iPoint = mouseRay:LineIntersection(SM.selectedPosition, direction);
+            iPoint = mouseRay:LineIntersection(position, direction);
         elseif (Gizmos.selectedAxis == 4 or Gizmos.selectedAxis == 5 or Gizmos.selectedAxis == 6) then
-            iPoint = mouseRay:PlaneIntersection(SM.selectedPosition, direction);
+            iPoint = mouseRay:PlaneIntersection(position, direction);
         end
 
         if (iPoint) then
@@ -794,23 +797,22 @@ function Gizmos.OnLMBDown(x, y, recordAction)
             local h = (SM.selectedBounds[6] - SM.selectedBounds[3]) / 2
             Gizmos.center = { SM.selectedPosition.x, SM.selectedPosition.y, SM.selectedPosition.z - h };
         end
-        local rotation = SM.selectedRotation;
-        local rx, ry, rz = rotation.x, rotation.y, rotation.z;
+        local rotation = SM.selectedWorldRotation;
 
         if (Gizmos.space == Gizmos.Space.World) then
             Gizmos.forward:Set(1, 0, 0);
             Gizmos.right:Set(0, 1, 0);
             Gizmos.up:Set(0, 0, 1);
         elseif(Gizmos.space == Gizmos.Space.Local) then
-            local forward = Math.normalize(Math.rotateVector(rx, ry, rz, 1, 0, 0));
-            local right = Math.normalize(Math.rotateVector(rx, ry, rz, 0, 1, 0));
-            local up = Math.normalize(Math.rotateVector(rx, ry, rz, 0, 0, 1));
+            local forward = Math.normalize(Math.rotateVector(rotation.x, rotation.y, rotation.z, 1, 0, 0));
+            local right = Math.normalize(Math.rotateVector(rotation.x, rotation.y, rotation.z, 0, 1, 0));
+            local up = Math.normalize(Math.rotateVector(rotation.x, rotation.y, rotation.z, 0, 0, 1));
             Gizmos.forward:Set(forward[1], forward[2], forward[3]);
             Gizmos.right:Set(right[1], right[2], right[3]);
             Gizmos.up:Set(up[1], up[2], up[3]);
         end
 
-        Gizmos.previousRotation:Set(rx, ry, rz);
+        Gizmos.previousRotation:Set(rotation.x, rotation.y, rotation.z);
     else
         Gizmos.forward:Set(1, 0, 0);
         Gizmos.right:Set(0, 1, 0);
@@ -819,14 +821,14 @@ function Gizmos.OnLMBDown(x, y, recordAction)
     end
 
     -- store initial ray intersection
-    local position = SM.selectedPosition;
+    local position = SM.selectedWorldPosition;
     local mouseRay = Camera.GetMouseRay();
     if (Gizmos.activeTransformGizmo == 1) then
         local direction = Gizmos.axisToDirectionVector[Gizmos.selectedAxis];
         if (Gizmos.selectedAxis == 1 or Gizmos.selectedAxis == 2 or Gizmos.selectedAxis == 3) then
-            Gizmos.previousIPoint = mouseRay:LineIntersection(SM.selectedPosition, direction);
+            Gizmos.previousIPoint = mouseRay:LineIntersection(position, direction);
         elseif (Gizmos.selectedAxis == 4 or Gizmos.selectedAxis == 5 or Gizmos.selectedAxis == 6) then
-            Gizmos.previousIPoint = mouseRay:PlaneIntersection(SM.selectedPosition, direction);
+            Gizmos.previousIPoint = mouseRay:PlaneIntersection(position, direction);
         end
     end
 

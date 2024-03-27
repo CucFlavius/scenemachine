@@ -67,7 +67,6 @@ end
 --- @param forward? Vector3 (optional) The forward vector to rotate.
 --- @return Vector3 rotatedVector The rotated forward vector, normalized.
 function Quaternion:ToDirectionVector(forward)
-    forward = forward or Vector3:New(0, 0, 1)
     local rotatedForward = self:MultiplyVector(forward)
     return rotatedForward:Normalize()
 end
