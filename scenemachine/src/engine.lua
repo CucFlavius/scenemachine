@@ -24,7 +24,6 @@ function SceneMachine.Start()
 	SceneMachine.Resources.Initialize("Interface\\AddOns\\scenemachine\\res");
     SceneMachine.Editor.Initialize();
     CameraController.Initialize();
-    SceneMachine.CreateStatsFrame();
 	Gizmos.Create();
 	SceneMachine.Network.Initialize();
 	if (Debug) then Debug.Init(); end
@@ -63,47 +62,14 @@ f:SetScript("OnEvent", onevent);
 ------------------------
 -------- UPDATE --------
 ------------------------
-local qty = 0;
-local currentAvgFPS = 0;
-local resetAvgFPS = 0;
-local fps = 0;
-function UpdateCumulativeMovingAverageFPS(newFPS)
-	-- delay by 5 seconds so we don't get wrong value at start
-	if (SceneMachine.time > 5) then
-		qty = qty + 1;
-		currentAvgFPS = currentAvgFPS + (newFPS - currentAvgFPS)/qty;
-	end
-	-- reset the average calculation buffer every 5 seconds
-	if (SceneMachine.time > resetAvgFPS) then
-		resetAvgFPS = SceneMachine.time + 5;
-		qty = 0;
-		currentAvgFPS = 0;
-	end
-end
-
 local function SG_UpdateLoop ()
     Renderer.active = true;
-	if (SceneMachine.StatsFrame ~= nil and SceneMachine.StatsFrame.text ~= nil)
-	then
-		fps = GetFramerate();
-		UpdateCumulativeMovingAverageFPS(fps);
-		--[[
-		SceneMachine.StatsFrame.text:SetText(
-			--"FrameBuffer : " .. SceneMachine.UsedFrames .. "/" .. SceneMachine.Renderer.FrameBufferSize .. ", Culled : " .. SceneMachine.CulledFrames .. "\n" ..
-			"FPS : " .. floor(fps) .. " Avg. " .. floor(currentAvgFPS) .. "\n"
-			--"Time : " .. floor(SceneMachine.time) .. "\n" ..
-			--"Renderer : " .. tostring(Renderer.active)
-		);
-		--]]
-	end
 	
 	if SceneMachine.preRenderUpdateAction ~= nil then
 		SceneMachine.preRenderUpdateAction();
 	end
 
 	if (Editor.isOpen) then
-		--SceneMachine.deltaTime = 1.0 / GetFramerate();
-		--print(GetFramerate())
 		Editor.Update();
 		Camera.Update();
 		CameraController.Update(SceneMachine.deltaTime);

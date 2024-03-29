@@ -2,6 +2,7 @@ local Net = SceneMachine.Network;
 local Packet = Net.Packets.Packet;
 local SM = SceneMachine.Editor.SceneManager;
 local Renderer = SceneMachine.Renderer;
+local Scene = SceneMachine.Scene;
 
 Net.myName = nil;
 Net.myRealm = nil;
@@ -181,7 +182,7 @@ function Net.HandleInvitationAccepted(sender, data)
 
             -- step 4: begin sending scene data
             --local sceneData = SM.ExportSceneForMessage(SM.loadedScene);
-            local sceneData = SM.ExportScene(SM.loadedScene);
+            local sceneData = SM.loadedScene:ExportPacked();
 
             local packet = Net.Packets.SceneData:New(sceneData);
             packet:Send(sender);
@@ -197,7 +198,8 @@ end
 
 function Net.HandleSceneData(sender, data)
     SceneMachine.Editor.Show();
-    local scene = SM.ImportNetworkScene(data.sceneData);
+    local scene = Scene:New();
+    scene:ImportNetworkScene(data.sceneData);
     SM.LoadNetworkScene(scene);
 
     Net.working = true;

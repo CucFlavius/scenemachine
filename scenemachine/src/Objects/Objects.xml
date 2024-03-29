@@ -22,7 +22,11 @@ Note: This documentation comment is for illustrative purposes only and may not r
 	<Script file="Matrix.lua" />
 	<Script file="Ray.lua" />
 	<Script file="BoundingBox.lua" />
+	<Script file="Keyframe.lua" />
+	<Script file="AnimationClip.lua" />
 	<Script file="Track.lua" />
+	<Script file="Timeline.lua" />
+	<Script file="Scene.lua" />
 
 	<!-- Game Objects -->
 	<Script file="GameObject/Object.lua" />

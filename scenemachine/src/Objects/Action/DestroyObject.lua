@@ -1,6 +1,4 @@
 local SM = SceneMachine.Editor.SceneManager;
-local SH = SceneMachine.Editor.SceneHierarchy;
-local OP = SceneMachine.Editor.ObjectProperties;
 
 SceneMachine.Actions.DestroyObject = {};
 
@@ -17,6 +15,7 @@ setmetatable(DestroyObject, Action)
 --- @param hierarchyBefore table The hierarchy of the objects before destruction.
 --- @return DestroyObject v The newly created DestroyObject action.
 function DestroyObject:New(objects, hierarchyBefore)
+	--- @class DestroyObject : Action
 	local v = 
 	{
 		type = Action.Type.DestroyObject,
@@ -51,7 +50,7 @@ function DestroyObject:Undo()
 		local obj = self.objects[i];
 		SM.UndeleteObject_internal(obj);
 	end
-	SH.SetHierarchy(self.objectHierarchyBefore);
+	SM.loadedScene:SetObjectHierarchy(self.objectHierarchyBefore);
 end
 
 -- Redo the destruction of objects.
@@ -62,5 +61,5 @@ function DestroyObject:Redo()
 		SM.DeleteObject_internal(obj);
 	end
 	-- Set the object hierarchy after the destruction
-	SH.SetHierarchy(self.objectHierarchyAfter);
+	SM.loadedScene:SetObjectHierarchy(self.objectHierarchyAfter);
 end

@@ -264,8 +264,8 @@ function Renderer.RenderSprites()
         return;
     end
 
-    for i = 1, #SM.loadedScene.objects, 1 do
-        local object = SM.loadedScene.objects[i];
+    for i = 1, SM.loadedScene:GetObjectCount(), 1 do
+        local object = SM.loadedScene:GetObject(i);
         if (object) then
             if (object:GetGizmoType() == Gizmos.Type.Camera) then
                 if (object:IsVisible()) then

@@ -2,7 +2,6 @@ local Vector3 = SceneMachine.Vector3;
 local Matrix = SceneMachine.Matrix;
 local Quaternion = SceneMachine.Quaternion;
 local Gizmos = SceneMachine.Gizmos;
-local SH = SceneMachine.Editor.SceneHierarchy;
 
 SceneMachine.GameObjects.Object = {}
 
@@ -42,6 +41,12 @@ function Object:GetTypeName()
     return Object.TypeNames[self.type];
 end
 
+--- Retrieves the ID of the object.
+--- @return number: The ID of the object.
+function Object:GetID()
+    return self.id;
+end
+
 --- Gets the name of the object.
 ---@return string name The name of the object.
 function Object:GetName()
@@ -75,7 +80,7 @@ function Object:RecalculateActors()
         self.actor:SetScale(scale);
     end
 
-    local childObjects = SH.GetChildObjects(self.id);
+    local childObjects = self.scene:GetChildObjects(self.id);
     if (childObjects ~= nil) then
         for i = 1, #childObjects do
             childObjects[i]:RecalculateActors();
@@ -87,7 +92,7 @@ end
 function Object:RecalculateWorldMatrices()
     self.matrix = self:CreateWorldMatrix();
 
-    local childObjects = SH.GetChildObjects(self.id);
+    local childObjects = self.scene:GetChildObjects(self.id);
     if (childObjects ~= nil) then
         for i = 1, #childObjects, 1 do
             childObjects[i]:RecalculateWorldMatrices();
@@ -117,7 +122,7 @@ end
 --- @param y number The y-coordinate of the position.
 --- @param z number The z-coordinate of the position.
 function Object:SetWorldPosition(x, y, z)
-    local parent = SH.GetParentObject(self.id);
+    local parent = self.scene:GetParentObject(self.id);
     if (not parent) then
         self:SetPosition(x, y, z);
     else
@@ -172,7 +177,7 @@ end
 --- @param y number: The rotation around the y-axis in degrees.
 --- @param z number: The rotation around the z-axis in degrees.
 function Object:SetWorldRotation(x, y, z)
-    local parent = SH.GetParentObject(self.id);
+    local parent = self.scene:GetParentObject(self.id);
     if (not parent) then
         self:SetRotation(x, y, z);
     else
@@ -221,7 +226,7 @@ end
 --- If the object does not have a parent, the scale is applied directly to the object in local space.
 --- @param value number The scale value to set.
 function Object:SetWorldScale(value)
-    local parent = SH.GetParentObject(self.id);
+    local parent = self.scene:GetParentObject(self.id);
     if (not parent) then
         self:SetScale(value);
     else
@@ -293,7 +298,7 @@ function Object:CreateWorldMatrix()
     local worldMatrix = Matrix:New();
     worldMatrix:SetMatrix(localMatrix);
     
-    local parent = SH.GetParentObject(self.id);
+    local parent = self.scene:GetParentObject(self.id);
     if (parent) then
         local parentMatrix = parent:CreateWorldMatrix();
         worldMatrix:Multiply(parentMatrix);
@@ -751,6 +756,13 @@ end
 --- Deselects the object.
 function Object:Deselect()
     print("Deselect() not implemented for type " .. self:GetTypeName());
+end
+
+--- Clears the runtime data of the object.
+--- Is called right before saving the variables to file.
+function Object:ClearRuntimeData()
+    self.scene = nil;
+    self.matrix = nil;
 end
 
 --- Returns a string representation of the Object.

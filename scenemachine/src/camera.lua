@@ -96,14 +96,8 @@ function Camera.Update()
 
     -- remember current camera settings --
     if (SM.loadedSceneIndex ~= -1 and SM.loadedScene ~= nil) then
-        if (SM.loadedScene.lastCameraPosition == nil) then
-            SM.loadedScene.lastCameraPosition = {};
-        end
-        SM.loadedScene.lastCameraPosition[1],SM.loadedScene.lastCameraPosition[2],SM.loadedScene.lastCameraPosition[3]  = Camera.position:Get();
-        if (SM.loadedScene.lastCameraEuler == nil) then
-            SM.loadedScene.lastCameraEuler = {};
-        end
-        SM.loadedScene.lastCameraEuler[1], SM.loadedScene.lastCameraEuler[2], SM.loadedScene.lastCameraEuler[3] = Camera.eulerRotation:Get();
+        SM.loadedScene:SaveCameraPosition(Camera.position:Get());
+        SM.loadedScene:SaveCameraRotation(Camera.eulerRotation:Get());
     end
 end
 

@@ -1,29 +1,10 @@
-SceneMachine.Track = 
-{
-    objectID = nil, -- keeping a reference for when loading saved data
-    name = "New Track",
-    animations = {},
-    keysPx = {},
-    keysPy = {},
-    keysPz = {},
-    keysRx = {},
-    keysRy = {},
-    keysRz = {},
-    keysS = {},
-    keysA = {},
-}
+SceneMachine.Track = {}
 
 --- @class Track
 local Track = SceneMachine.Track;
 
---- @enum Track.Interpolation
-Track.Interpolation = {
-    Bezier = 1,
-    Linear = 2,
-    Step = 3,
-    Slow = 4,
-    Fast = 5,
-}
+local Keyframe = SceneMachine.Keyframe;
+local AnimationClip = SceneMachine.AnimationClip;
 
 setmetatable(Track, Track)
 
@@ -33,25 +14,36 @@ local fields = {}
 --- @param object? Object The object to associate with the track.
 --- @return Track v The newly created Track object.
 function Track:New(object)
+    --- @class Track
     local v = 
     {
-        animations = {},
-        keysPx = {},
-        keysPy = {},
-        keysPz = {},
-        keysRx = {},
-        keysRy = {},
-        keysRz = {},
-        keysS = {},
-        keysA = {},
+        --- @type AnimationClip[]?
+        animations = {};
+        --- @type Keyframe[]?
+        keysPx = {};
+        --- @type Keyframe[]?
+        keysPy = {};
+        --- @type Keyframe[]?
+        keysPz = {};
+        --- @type Keyframe[]?
+        keysRx = {};
+        --- @type Keyframe[]?
+        keysRy = {};
+        --- @type Keyframe[]?
+        keysRz = {};
+        --- @type Keyframe[]?
+        keysS = {};
+        --- @type Keyframe[]?
+        keysA = {};
     };
-    
+
+    setmetatable(v, Track)
+
     if (object) then
         v.objectID = object.id;
         v.name = object.name;
     end
 
-    setmetatable(v, Track)
     return v
 end
 
@@ -84,119 +76,41 @@ function Track:ImportData(data)
     end
 
     -- verifying all elements upon import because sometimes the saved variables get corrupted --
-    if (data.objectID ~= nil) then
-        self.objectID = data.objectID;
-    end
+    self.objectID = data.objectID or nil;
+    self.name = data.name or nil;
+   
 
-    if (data.name ~= nil) then
-        self.name = data.name;
-    end
+    self:ImportAnimationData(data);
 
-    if (data.animations ~= nil) then
-        self.animations = data.animations;
-    end
+    self:ImportKeyframeArray("keysPx", data.keysPx);
+    self:ImportKeyframeArray("keysPy", data.keysPy);
+    self:ImportKeyframeArray("keysPz", data.keysPz);
+    self:ImportKeyframeArray("keysRx", data.keysRx);
+    self:ImportKeyframeArray("keysRy", data.keysRy);
+    self:ImportKeyframeArray("keysRz", data.keysRz);
+    self:ImportKeyframeArray("keysS", data.keysS);
+    self:ImportKeyframeArray("keysA", data.keysA);
+end
 
-    if (data.keysPx) then
-        self.keysPx = {};
-        for k in pairs(data.keysPx) do
-            local key = data.keysPx[k];
-            self.keysPx[k] = {
-                time = key.time,
-                value = key.value,
-                interpolationIn = key.interpolationIn,
-                interpolationOut = key.interpolationOut,
-            };
+function Track:ImportAnimationData(data)
+    if (data and data.animations) then
+        self.animations = {};
+        for k in pairs(data.animations) do
+            self.animations[k] = AnimationClip:New();
+            self.animations[k]:ImportData(data.animations[k]);
         end
     end
+end
 
-    if (data.keysPy) then
-        self.keysPy = {};
-        for k in pairs(data.keysPy) do
-            local key = data.keysPy[k];
-            self.keysPy[k] = {
-                time = key.time,
-                value = key.value,
-                interpolationIn = key.interpolationIn,
-                interpolationOut = key.interpolationOut,
-            };
-        end
-    end
-
-    if (data.keysPz) then
-        self.keysPz = {};
-        for k in pairs(data.keysPz) do
-            local key = data.keysPz[k];
-            self.keysPz[k] = {
-                time = key.time,
-                value = key.value,
-                interpolationIn = key.interpolationIn,
-                interpolationOut = key.interpolationOut,
-            };
-        end
-    end
-
-    if (data.keysRx) then
-        self.keysRx = {};
-        for k in pairs(data.keysRx) do
-            local key = data.keysRx[k];
-            self.keysRx[k] = {
-                time = key.time,
-                value = key.value,
-                interpolationIn = key.interpolationIn,
-                interpolationOut = key.interpolationOut,
-            };
-        end
-    end
-
-    if (data.keysRy) then
-        self.keysRy = {};
-        for k in pairs(data.keysRy) do
-            local key = data.keysRy[k];
-            self.keysRy[k] = {
-                time = key.time,
-                value = key.value,
-                interpolationIn = key.interpolationIn,
-                interpolationOut = key.interpolationOut,
-            };
-        end
-    end
-
-    if (data.keysRz) then
-        self.keysRz = {};
-        for k in pairs(data.keysRz) do
-            local key = data.keysRz[k];
-            self.keysRz[k] = {
-                time = key.time,
-                value = key.value,
-                interpolationIn = key.interpolationIn,
-                interpolationOut = key.interpolationOut,
-            };
-        end
-    end
-
-    if (data.keysS) then
-        self.keysS = {};
-        for k in pairs(data.keysS) do
-            local key = data.keysS[k];
-            self.keysS[k] = {
-                time = key.time,
-                value = key.value,
-                interpolationIn = key.interpolationIn,
-                interpolationOut = key.interpolationOut,
-            };
-        end
-    end
-
-    if (data.keysA) then
-        self.keysA = {};
-        for k in pairs(data.keysA) do
-            local key = data.keysA[k];
-            self.keysA[k] = {
-                time = key.time,
-                value = key.value,
-                interpolationIn = key.interpolationIn,
-                interpolationOut = key.interpolationOut,
-            }
+--- Imports an array of keyframes for a given type.
+--- @param typeName string The type name of the keyframe array, eg. "keysPx".
+--- @param data table The data containing the keyframes to import.
+function Track:ImportKeyframeArray(typeName, data)
+    if (data) then
+        self[typeName] = {};
+        for k in pairs(data) do
+            self[typeName][k] = Keyframe:New();
+            self[typeName][k]:ImportData(data[k]);
         end
     end
 end
@@ -209,15 +123,10 @@ function Track:SampleAnimation(timeMS)
     if (self.animations) then
         for a in pairs(self.animations) do
             local animation = self.animations[a];
-    ----{ id, variation, animLength, startT, endT, colorId, name }
-            if (animation.startT <= timeMS and animation.endT > timeMS) then
-        ---- anim is in range
-                local animSpeed = animation.speed or 1;
-                local animMS = mod((timeMS - animation.startT) * animSpeed, animation.animLength);
-                local animID = animation.id;
-                local variationID = animation.variation;
-
-                return animID, variationID, animMS, animSpeed;
+            ----{ id, variation, animLength, startT, endT, colorId, name }
+            if (animation:TimeIsInRange(timeMS)) then
+                ---- anim is in range
+                return animation:Sample(timeMS);
             end
         end
     end
@@ -228,23 +137,20 @@ end
 --- Adds a keyframe to the track.
 --- @param time number The time of the keyframe.
 --- @param value number The value of the keyframe.
---- @param keyframes? table (optional) The array of existing keyframes. If not provided, a new array will be created.
---- @param interpolationIn? Track.Interpolation (optional) The interpolation type for the incoming tangent of the keyframe. Defaults to Track.Interpolation.Bezier.
---- @param interpolationOut? Track.Interpolation (optional) The interpolation type for the outgoing tangent of the keyframe. Defaults to Track.Interpolation.Bezier.
+--- @param keyframes? Keyframe[] (optional) The array of existing keyframes. If not provided, a new array will be created.
+--- @param interpolationIn? Keyframe.Interpolation (optional) The interpolation type for the incoming tangent of the keyframe. Defaults to Keyframe.Interpolation.Bezier.
+--- @param interpolationOut? Keyframe.Interpolation (optional) The interpolation type for the outgoing tangent of the keyframe. Defaults to Keyframe.Interpolation.Bezier.
 function Track:AddKeyframe(time, value, keyframes, interpolationIn, interpolationOut)
     if (not keyframes) then keyframes = {}; end
 
-    interpolationIn = interpolationIn or Track.Interpolation.Bezier;
-    interpolationOut = interpolationOut or Track.Interpolation.Bezier;
-    
     for i = 1, #keyframes, 1 do
-        if (keyframes[i].time == time) then
-            keyframes[i].value = value;
+        if (keyframes[i]:CompareTime(time)) then
+            keyframes[i]:SetValue(value);
             return;
         end
     end
 
-    keyframes[#keyframes + 1] = { time = time, value = value, interpolationIn = interpolationIn, interpolationOut = interpolationOut};
+    keyframes[#keyframes + 1] = Keyframe:New(time, value, interpolationIn, interpolationOut);
 end
 
 --- Adds a full keyframe to the track.
@@ -253,8 +159,8 @@ end
 --- @param rotation Vector3 The rotation of the keyframe.
 --- @param scale number The scale of the keyframe.
 --- @param alpha number The alpha value of the keyframe.
---- @param interpolationIn? Track.Interpolation (optional) The interpolation type for the keyframe's incoming tangent.
---- @param interpolationOut? Track.Interpolation (optional) The interpolation type for the keyframe's outgoing tangent.
+--- @param interpolationIn? Keyframe.Interpolation (optional) The interpolation type for the keyframe's incoming tangent.
+--- @param interpolationOut? Keyframe.Interpolation (optional) The interpolation type for the keyframe's outgoing tangent.
 function Track:AddFullKeyframe(time, position, rotation, scale, alpha, interpolationIn, interpolationOut)
     self:AddPositionKeyframe(time, position, interpolationIn, interpolationOut);
     self:AddRotationKeyframe(time, rotation, interpolationIn, interpolationOut);
@@ -265,8 +171,8 @@ end
 --- Adds a position keyframe to the track.
 --- @param time number The time at which the keyframe occurs.
 --- @param position Vector3 The position value of the keyframe.
---- @param interpolationIn? Track.Interpolation (optional) The interpolation type for the keyframe's incoming tangent.
---- @param interpolationOut? Track.Interpolation (optional) The interpolation type for the keyframe's tangent.
+--- @param interpolationIn? Keyframe.Interpolation (optional) The interpolation type for the keyframe's incoming tangent.
+--- @param interpolationOut? Keyframe.Interpolation (optional) The interpolation type for the keyframe's tangent.
 function Track:AddPositionKeyframe(time, position, interpolationIn, interpolationOut)
     self:AddKeyframe(time, position.x, self.keysPx, interpolationIn, interpolationOut);
     self:AddKeyframe(time, position.y, self.keysPy, interpolationIn, interpolationOut);
@@ -277,8 +183,8 @@ end
 --- Adds a rotation keyframe to the track.
 --- @param time number The time at which the keyframe occurs.
 --- @param rotation Vector3 The rotation values for the keyframe.
---- @param interpolationIn? Track.Interpolation (optional) The interpolation type for the keyframe's incoming tangent.
---- @param interpolationOut? Track.Interpolation (optional) The interpolation type for the keyframe's outgoing tangent.
+--- @param interpolationIn? Keyframe.Interpolation (optional) The interpolation type for the keyframe's incoming tangent.
+--- @param interpolationOut? Keyframe.Interpolation (optional) The interpolation type for the keyframe's outgoing tangent.
 function Track:AddRotationKeyframe(time, rotation, interpolationIn, interpolationOut)
     self:AddKeyframe(time, rotation.x, self.keysRx, interpolationIn, interpolationOut);
     self:AddKeyframe(time, rotation.y, self.keysRy, interpolationIn, interpolationOut);
@@ -289,8 +195,8 @@ end
 --- Adds a scale keyframe to the track.
 --- @param time number The time of the keyframe.
 --- @param scale number The scale value of the keyframe.
---- @param interpolationIn? Track.Interpolation (optional) The interpolation type for the keyframe's incoming tangent.
---- @param interpolationOut? Track.Interpolation (optional) The interpolation type for the keyframe's outgoing tangent.
+--- @param interpolationIn? Keyframe.Interpolation (optional) The interpolation type for the keyframe's incoming tangent.
+--- @param interpolationOut? Keyframe.Interpolation (optional) The interpolation type for the keyframe's outgoing tangent.
 function Track:AddScaleKeyframe(time, scale, interpolationIn, interpolationOut)
     self:AddKeyframe(time, scale, self.keysS, interpolationIn, interpolationOut);
     self:SortScaleKeyframes();
@@ -299,58 +205,47 @@ end
 --- Adds an alpha keyframe to the track.
 --- @param time number The time of the keyframe.
 --- @param alpha number The alpha value of the keyframe.
---- @param interpolationIn? Track.Interpolation (optional) The interpolation type for the keyframe's incoming tangent.
---- @param interpolationOut? Track.Interpolation (optional) The interpolation type for the keyframe's outgoing tangent.
+--- @param interpolationIn? Keyframe.Interpolation (optional) The interpolation type for the keyframe's incoming tangent.
+--- @param interpolationOut? Keyframe.Interpolation (optional) The interpolation type for the keyframe's outgoing tangent.
 function Track:AddAlphaKeyframe(time, alpha, interpolationIn, interpolationOut)
     self:AddKeyframe(time, alpha, self.keysA, interpolationIn, interpolationOut);
     self:SortAlphaKeyframes();
 end
 
+--- Sorts the keyframes of a specific type in the track.
+--- @param typeName string The type of keyframes to sort.
+function Track:SortKeyframes(typeName)
+    if (self[typeName]) then
+        table.sort(self[typeName], function(a,b) return a.time < b.time end)
+    end
+end
+
 --- Sorts the position keyframes of the track based on their time.
 function Track:SortPositionKeyframes()
-    if (self.keysPx) then
-        table.sort(self.keysPx, function(a,b) return a.time < b.time end)
-    end
-    if (self.keysPy) then
-        table.sort(self.keysPy, function(a,b) return a.time < b.time end)
-    end
-    if (self.keysPz) then
-        table.sort(self.keysPz, function(a,b) return a.time < b.time end)
-    end
+    self:SortKeyframes("keysPx");
+    self:SortKeyframes("keysPy");
+    self:SortKeyframes("keysPz");
 end
 
 -- Sorts the rotation keyframes of the track.
 function Track:SortRotationKeyframes()
-    -- Sort the x-axis rotation keyframes if they exist
-    if (self.keysRx) then
-        table.sort(self.keysRx, function(a,b) return a.time < b.time end)
-    end
-    -- Sort the y-axis rotation keyframes if they exist
-    if (self.keysRy) then
-        table.sort(self.keysRy, function(a,b) return a.time < b.time end)
-    end
-    -- Sort the z-axis rotation keyframes if they exist
-    if (self.keysRz) then
-        table.sort(self.keysRz, function(a,b) return a.time < b.time end)
-    end
+    self:SortKeyframes("keysRx");
+    self:SortKeyframes("keysRy");
+    self:SortKeyframes("keysRz");
 end
 
 --- Sorts the scale keyframes of the track based on their time.
 function Track:SortScaleKeyframes()
-    if (self.keysS) then
-        table.sort(self.keysS, function(a,b) return a.time < b.time end)
-    end
+    self:SortKeyframes("keysS");
 end
 
 --- Sorts the alpha keyframes of the track based on their time.
 function Track:SortAlphaKeyframes()
-    if (self.keysA) then
-        table.sort(self.keysA, function(a,b) return a.time < b.time end)
-    end
+    self:SortKeyframes("keysA");
 end
 
 --- Sorts all the keyframes of the track.
-function Track:SortKeyframes()
+function Track:SortAllKeyframes()
     self:SortPositionKeyframes();
     self:SortRotationKeyframes();
     self:SortScaleKeyframes();
@@ -360,14 +255,14 @@ end
 --- SampleKey function is used to sample a value from a set of keys based on a given time.
 --- This function assumes that the keys are sorted in ascending order based on time.
 --- @param timeMS number The time in milliseconds at which to sample the value.
---- @param keys table The array of keys containing time, value, and interpolation information.
+--- @param keys Keyframe[] The array of keys containing time, value, and interpolation information.
 --- @return number? The sampled value at the given time, or nil if no value is found.:
 function Track:SampleKey(timeMS, keys)
     if (not keys) then return nil; end
     if (#keys == 0) then return nil; end
 
     if (#keys == 1) then
-        if (keys[1].time == timeMS) then
+        if (keys[1]:CompareTime(timeMS)) then
             return keys[1].value;
         else
             return nil;
@@ -379,7 +274,7 @@ function Track:SampleKey(timeMS, keys)
 
     for i = 1, numTimes, 1 do
         if (i + 1 <= numTimes) then
-            if (timeMS >= keys[i].time and timeMS < keys[i + 1].time) then
+            if (timeMS >= keys[i]:GetTime() and timeMS < keys[i + 1]:GetTime()) then
                 idx = i;
                 break;
             end
@@ -387,7 +282,7 @@ function Track:SampleKey(timeMS, keys)
         if (i == numTimes) then
             return keys[#keys].value;
         end
-        if (i == 1 and timeMS < keys[1].time) then
+        if (i == 1 and timeMS < keys[1]:GetTime()) then
             return keys[1].value;
         end
     end
@@ -400,41 +295,41 @@ function Track:SampleKey(timeMS, keys)
 
     local r = 0;
     if (i1 == i2) then
-        if (i1 == Track.Interpolation.Bezier) then
+        if (i1 == Keyframe.Interpolation.Bezier) then
             r = Track:InterpolateBezierAuto(t1, t2, timeMS);
-        elseif (i1 == Track.Interpolation.Linear) then
+        elseif (i1 == Keyframe.Interpolation.Linear) then
             r = Track:InterpolateLinear(t1, t2, timeMS);
-        elseif (i1 == Track.Interpolation.Step) then
+        elseif (i1 == Keyframe.Interpolation.Step) then
             r = Track:InterpolateStep(t1, t2, timeMS);
-        elseif (i1 == Track.Interpolation.Slow) then
+        elseif (i1 == Keyframe.Interpolation.Slow) then
             r = Track:InterpolateBezierSlow(t1, t2, timeMS);
-        elseif (i1 == Track.Interpolation.Fast) then
+        elseif (i1 == Keyframe.Interpolation.Fast) then
             r = Track:InterpolateBezierFast(t1, t2, timeMS);
         end
     else
-        if (i1 == Track.Interpolation.Step or i2 == Track.Interpolation.Step) then
+        if (i1 == Keyframe.Interpolation.Step or i2 == Keyframe.Interpolation.Step) then
             r = Track:InterpolateStep(t1, t2, timeMS);
         else
             local alpha = Track:InterpolateLinear(t1, t2, timeMS);
             local A = 0;
             local B = 0;
-            if (i1 == Track.Interpolation.Bezier) then
+            if (i1 == Keyframe.Interpolation.Bezier) then
                 A = Track:InterpolateBezierAuto(t1, t2, timeMS);
-            elseif (i1 == Track.Interpolation.Linear) then
+            elseif (i1 == Keyframe.Interpolation.Linear) then
                 A = Track:InterpolateLinear(t1, t2, timeMS);
-            elseif (i1 == Track.Interpolation.Slow) then
+            elseif (i1 == Keyframe.Interpolation.Slow) then
                 A = Track:InterpolateBezier(t1, t2, timeMS, 0, 1, 0, 2);
-            elseif (i1 == Track.Interpolation.Fast) then
+            elseif (i1 == Keyframe.Interpolation.Fast) then
                 A = Track:InterpolateBezier(t1, t2, timeMS, 0, 1, 2, 0);
             end
 
-            if (i2 == Track.Interpolation.Bezier) then
+            if (i2 == Keyframe.Interpolation.Bezier) then
                 B = Track:InterpolateBezierAuto(t1, t2, timeMS);
-            elseif (i2 == Track.Interpolation.Linear) then
+            elseif (i2 == Keyframe.Interpolation.Linear) then
                 B = Track:InterpolateLinear(t1, t2, timeMS);
-            elseif (i2 == Track.Interpolation.Slow) then
+            elseif (i2 == Keyframe.Interpolation.Slow) then
                 B = Track:InterpolateBezier(t1, t2, timeMS, 0, 1, 2, 0);
-            elseif (i2 == Track.Interpolation.Fast) then
+            elseif (i2 == Keyframe.Interpolation.Fast) then
                 B = Track:InterpolateBezier(t1, t2, timeMS, 0, 1, 0, 2);
             end
 
@@ -589,7 +484,6 @@ function Track:InterpolateStep(t1, t2, timeMS)
 
     return 0;
 end
-
 
 --- Returns a string representation of the Track object.
 --- @return string The string representation of the Track object.

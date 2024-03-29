@@ -14,6 +14,7 @@ local searchData = {};
 local L = Editor.localization;
 local Net = SceneMachine.Network;
 local Actions = SceneMachine.Actions;
+local Scene = SceneMachine.Scene;
 
 local c1 = { 0.1757, 0.1757, 0.1875 };
 local c2 = { 0.242, 0.242, 0.25 };
@@ -465,7 +466,9 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         end
         local val = tonumber(valText);
         if (val ~= nil) then
-            SM.CreateObject(val, "Model", 0, 0, 0);
+            SM.loadedScene:CreateObject(val, "Model", 0, 0, 0);
+            SH.RefreshHierarchy();
+            OP.Refresh();
         end
         self1:ClearFocus();
         Editor.ui.focused = false;
@@ -481,7 +484,9 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         end
         local val = tonumber(valText);
         if (val ~= nil) then
-            SM.CreateCreature(val, "Creature", 0, 0, 0);
+            SM.loadedScene:CreateCreature(val, "Creature", 0, 0, 0);
+            SH.RefreshHierarchy();
+            OP.Refresh();
         end
         self1:ClearFocus();
         Editor.ui.focused = false;
@@ -499,7 +504,9 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         if (val ~= nil) then
             local creatureDisplayID = SceneMachine.creatureToDisplayID[val];
             if (creatureDisplayID) then
-                SM.CreateCreature(creatureDisplayID, "Creature", 0, 0, 0);
+                SM.loadedScene:CreateCreature(creatureDisplayID, "Creature", 0, 0, 0);
+                SH.RefreshHierarchy();
+                OP.Refresh();
             end
         end
         self1:ClearFocus();
@@ -544,7 +551,9 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
     
     local characterButton = UI.Button:New(0, -113, 100, 20, parent, "TOPLEFT", "TOPLEFT", "Create Character");
     characterButton:SetScript("OnClick", function(_, button, up)
-        SM.CreateCharacter(0, 0, 0);
+        SM.loadedScene:CreateCharacter(0, 0, 0);
+        SH.RefreshHierarchy();
+        OP.Refresh();
     end);
 
     local undressButton = UI.Button:New(0, -133, 100, 20, parent, "TOPLEFT", "TOPLEFT", "Undress");
@@ -567,10 +576,10 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
     local dalaranIDs = { 1486995, 1486996, 1486997, 1486998, 1486999, 1487000, 1487001, 1487002, 1487010, 1487011, 1487012 };
     dalaranButton:SetScript("OnClick", function(_, button, up)
         local toDelete = {};
-        for i = 1, #SM.loadedScene.objects, 1 do
+        for i = 1, SM.loadedScene:GetObjectCount(), 1 do
             for j = 1, #dalaranIDs, 1 do
-                if (SM.loadedScene.objects[i].fileID == dalaranIDs[j]) then
-                    toDelete[#toDelete + 1] = SM.loadedScene.objects[i];
+                if (SM.loadedScene:GetObject(i).fileID == dalaranIDs[j]) then
+                    toDelete[#toDelete + 1] = SM.loadedScene:GetObject(i);
                 end
             end
         end
@@ -580,7 +589,9 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
         end
 
         for i = 1, #dalaranIDs, 1 do
-            local obj = SM.CreateObject(dalaranIDs[i], "Dalaran_" .. i, 0, 0, 0);
+            local obj = SM.loadedScene:CreateObject(dalaranIDs[i], "Dalaran_" .. i, 0, 0, 0);
+            SH.RefreshHierarchy();
+            OP.Refresh();
             local xMin, yMin, zMin, xMax, yMax, zMax = obj:GetActiveBoundingBox();
             obj:SetPosition((xMin + xMax) / 2, (yMin + yMax) / 2, (zMin + zMax) / 2);
         end
@@ -653,7 +664,7 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
             --SM.selectedObjects[1].actor:SetFrontEndLobbyModelFromDefaultCharacterDisplay(1);
             SM.selectedObjects[1].actor:SetPlayerModelFromGlues();
         end
-        --SM.ExportSceneForPrint(SM.loadedScene);
+        --SM.loadedScene:ExportSceneForPrint();
     end);
     
 --[[
@@ -665,29 +676,6 @@ function AssetBrowser.CreateDebugTab(parent, w, h)
     local testButtonB = UI.Button:New(101, -193, 100, 20, parent, "TOPLEFT", "TOPLEFT", "Disconnect");
     testButtonB:SetScript("OnClick", function(_, button, up)
         Net.Disconnect();
-    end);
---]]
-
---[[
-    local testButtonb = UI.Button:New(0, -193, 100, 20, parent, "TOPLEFT", "TOPLEFT", "BIG TEST");
-    testButtonb:SetScript("OnClick", function(_, button, up)
-        for x = 0, 100, 1 do
-            for y = 0, 100, 1 do
-                local obj = SM.CreateObject(5019440, "Test", x, y, 0);
-            end
-        end
-    end);
-
-    local testButtonb = UI.Button:New(0, -213, 100, 20, parent, "TOPLEFT", "TOPLEFT", "BIG CLEAR");
-    testButtonb:SetScript("OnClick", function(_, button, up)
-        local toDelete = {};
-        for i = 1, #SM.loadedScene.objects, 1 do
-            toDelete[#toDelete + 1] = SM.loadedScene.objects[i];
-        end
-
-        for i = 1, #toDelete, 1 do
-            SM.DeleteObject_internal(toDelete[i]);
-        end
     end);
 --]]
 
@@ -1138,14 +1126,14 @@ function AssetBrowser.OnThumbnailDoubleClick(ID, name)
                 local fileID = searchData[i].fileID;
                 if (fileID == ID) then
                     local fileName = searchData[i].N;
-                    local objectHierarchyBefore = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
-                    local object = SM.CreateObject(fileID, fileName, 0, 0, 0);
+                    local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
+                    local object = SM.loadedScene:CreateObject(fileID, fileName, 0, 0, 0);
                     Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
                     SM.selectedObjects = { object };
-                    Editor.lastSelectedType = "obj";
+                    Editor.lastSelectedType = Editor.SelectionType.Object;
                     SH.RefreshHierarchy();
                     OP.Refresh();
-                    local objectHierarchyAfter = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
+                    local objectHierarchyAfter = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
                     Editor.FinishAction(objectHierarchyAfter);
                     return;
                 end
@@ -1153,7 +1141,7 @@ function AssetBrowser.OnThumbnailDoubleClick(ID, name)
         else
             -- Directory scan
             if (AssetBrowser.currentDirectory["D"] ~= nil) then
-                local directoryCount = table.getn(AssetBrowser.currentDirectory["D"]);
+                local directoryCount = #AssetBrowser.currentDirectory["D"]
                 for i = 1, directoryCount, 1 do
                     local dirName = AssetBrowser.currentDirectory["D"][i]["N"];
                     if (dirName == name) then
@@ -1170,19 +1158,19 @@ function AssetBrowser.OnThumbnailDoubleClick(ID, name)
 
             -- File Scan
             if (AssetBrowser.currentDirectory["FN"] ~= nil) then
-                local fileCount = table.getn(AssetBrowser.currentDirectory["FN"]);
+                local fileCount = #AssetBrowser.currentDirectory["FN"];
                 for i = 1, fileCount, 1 do
                     local fileID = AssetBrowser.currentDirectory["FI"][i];
                     if (fileID == ID) then
                         local fileName = AssetBrowser.currentDirectory["FN"][i];
-                        local objectHierarchyBefore = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
-                        local object = SM.CreateObject(fileID, fileName, 0, 0, 0);
+                        local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
+                        local object = SM.loadedScene:CreateObject(fileID, fileName, 0, 0, 0);
                         Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
                         SM.selectedObjects = { object };
-                        Editor.lastSelectedType = "obj";
+                        Editor.lastSelectedType = Editor.SelectionType.Object;
                         SH.RefreshHierarchy();
                         OP.Refresh();
-                        local objectHierarchyAfter = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
+                        local objectHierarchyAfter = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
                         Editor.FinishAction(objectHierarchyAfter);
                         return;
                     end
@@ -1200,14 +1188,14 @@ function AssetBrowser.OnThumbnailDoubleClick(ID, name)
                 local displayID = SceneMachine.creatureToDisplayID[creatureID];
                 local name = SceneMachine.creatureData[creatureID];
                 if (ID == creatureID) then
-                    local objectHierarchyBefore = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
-                    local object = SM.CreateCreature(displayID, name or "Creature", 0, 0, 0);
+                    local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
+                    local object = SM.loadedScene:CreateCreature(displayID, name or "Creature", 0, 0, 0);
                     Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
                     SM.selectedObjects = { object };
-                    Editor.lastSelectedType = "obj";
+                    Editor.lastSelectedType = Editor.SelectionType.Object;
                     SH.RefreshHierarchy();
                     OP.Refresh();
-                    local objectHierarchyAfter = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
+                    local objectHierarchyAfter = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
                     Editor.FinishAction(objectHierarchyAfter);
                     return;
                 end
@@ -1218,14 +1206,14 @@ function AssetBrowser.OnThumbnailDoubleClick(ID, name)
                 local displayID = SceneMachine.creatureToDisplayID[creatureID];
                 local name = SceneMachine.creatureData[creatureID];
                 if (ID == creatureID) then
-                    local objectHierarchyBefore = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
-                    local object = SM.CreateCreature(displayID, name or "Creature", 0, 0, 0);
+                    local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
+                    local object = SM.loadedScene:CreateCreature(displayID, name or "Creature", 0, 0, 0);
                     Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
                     SM.selectedObjects = { object };
-                    Editor.lastSelectedType = "obj";
+                    Editor.lastSelectedType = Editor.SelectionType.Object;
                     SH.RefreshHierarchy();
                     OP.Refresh();
-                    local objectHierarchyAfter = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
+                    local objectHierarchyAfter = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
                     Editor.FinishAction(objectHierarchyAfter);
                     return;
                 end
@@ -1245,26 +1233,26 @@ function AssetBrowser.OnThumbnailDoubleClick(ID, name)
                             name = SceneMachine.creatureData[creatureID];
                         end
                     end
-                    local objectHierarchyBefore = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
-                    local object = SM.CreateCreature(item.displayID, name or "Creature", 0, 0, 0);
+                    local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
+                    local object = SM.loadedScene:CreateCreature(item.displayID, name or "Creature", 0, 0, 0);
                     Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
                     SM.selectedObjects = { object };
-                    Editor.lastSelectedType = "obj";
+                    Editor.lastSelectedType = Editor.SelectionType.Object;
                     SH.RefreshHierarchy();
                     OP.Refresh();
-                    local objectHierarchyAfter = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
+                    local objectHierarchyAfter = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
                     Editor.FinishAction(objectHierarchyAfter);
                     return;
                 elseif (item.fileID == ID) then
                     local name = AssetBrowser.GetFileName(item.fileID);
-                    local objectHierarchyBefore = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
-                    local object = SM.CreateObject(item.fileID, name or "Model", 0, 0, 0);
+                    local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
+                    local object = SM.loadedScene:CreateObject(item.fileID, name or "Model", 0, 0, 0);
                     Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
                     SM.selectedObjects = { object };
-                    Editor.lastSelectedType = "obj";
+                    Editor.lastSelectedType = Editor.SelectionType.Object;
                     SH.RefreshHierarchy();
                     OP.Refresh();
-                    local objectHierarchyAfter = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
+                    local objectHierarchyAfter = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
                     Editor.FinishAction(objectHierarchyAfter);
                 end
             end
@@ -1283,13 +1271,13 @@ function AssetBrowser.OnThumbnailDrag(ID)
                     local fileName = searchData[i].N;
                     local mouseRay = Camera.GetMouseRay();
                     local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
-                    local objectHierarchyBefore = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
-                    local object = SM.CreateObject(fileID, fileName, initialPosition.x, initialPosition.y, initialPosition.z);
+                    local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
+                    local object = SM.loadedScene:CreateObject(fileID, fileName, initialPosition.x, initialPosition.y, initialPosition.z);
                     Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
                     local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
                     object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
                     SM.selectedObjects = { object };
-                    Editor.lastSelectedType = "obj";
+                    Editor.lastSelectedType = Editor.SelectionType.Object;
                     SH.RefreshHierarchy();
                     OP.Refresh();
                     Input.mouseState.LMB = true;
@@ -1304,20 +1292,20 @@ function AssetBrowser.OnThumbnailDrag(ID)
         else
             -- File Scan
             if (AssetBrowser.currentDirectory["FN"] ~= nil) then
-                local fileCount = table.getn(AssetBrowser.currentDirectory["FN"]);
+                local fileCount = #AssetBrowser.currentDirectory["FN"];
                 for i = 1, fileCount, 1 do
                     local fileID = AssetBrowser.currentDirectory["FI"][i];
                     if fileID == ID then
                         local fileName = AssetBrowser.currentDirectory["FN"][i];
                         local mouseRay = Camera.GetMouseRay();
                         local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
-                        local objectHierarchyBefore = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
-                        local object = SM.CreateObject(fileID, fileName, initialPosition.x, initialPosition.y, initialPosition.z);
+                        local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
+                        local object = SM.loadedScene:CreateObject(fileID, fileName, initialPosition.x, initialPosition.y, initialPosition.z);
                         Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
                         local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
                         object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
                         SM.selectedObjects = { object };
-                        Editor.lastSelectedType = "obj";
+                        Editor.lastSelectedType = Editor.SelectionType.Object;
                         SH.RefreshHierarchy();
                         OP.Refresh();
                         Input.mouseState.LMB = true;
@@ -1342,16 +1330,15 @@ function AssetBrowser.OnThumbnailDrag(ID)
                 if (creatureID == ID) then
                     local name = searchData[i].N;
                     local displayID = SceneMachine.creatureToDisplayID[creatureID];
-                    local objectHierarchyBefore = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
-                    local object = SM.CreateCreature(displayID, name or "Creature", 0, 0, 0);
+                    local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
+                    local object = SM.loadedScene:CreateCreature(displayID, name or "Creature", 0, 0, 0);
                     Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
-                    --local object = SM.CreateObject(fileID, fileName, initialPosition.x, initialPosition.y, initialPosition.z);
                     local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
                     local mouseRay = Camera.GetMouseRay();
                     local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
                     object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
                     SM.selectedObjects = { object };
-                    Editor.lastSelectedType = "obj";
+                    Editor.lastSelectedType = Editor.SelectionType.Object;
                     SH.RefreshHierarchy();
                     OP.Refresh();
                     Input.mouseState.LMB = true;
@@ -1370,15 +1357,15 @@ function AssetBrowser.OnThumbnailDrag(ID)
                 local displayID = SceneMachine.creatureToDisplayID[creatureID];
                 local name = SceneMachine.creatureData[creatureID];
                 if (ID == creatureID) then
-                    local objectHierarchyBefore = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
-                    local object = SM.CreateCreature(displayID, name or "Creature", 0, 0, 0);
+                    local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
+                    local object = SM.loadedScene:CreateCreature(displayID, name or "Creature", 0, 0, 0);
                     Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
                     local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
                     local mouseRay = Camera.GetMouseRay();
                     local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
                     object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
                     SM.selectedObjects = { object };
-                    Editor.lastSelectedType = "obj";
+                    Editor.lastSelectedType = Editor.SelectionType.Object;
                     SH.RefreshHierarchy();
                     OP.Refresh();
                     Input.mouseState.LMB = true;
@@ -1404,15 +1391,15 @@ function AssetBrowser.OnThumbnailDrag(ID)
                             name = SceneMachine.creatureData[creatureID];
                         end
                     end
-                    local objectHierarchyBefore = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
-                    local object = SM.CreateCreature(item.displayID, name or "Creature", 0, 0, 0);
+                    local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
+                    local object = SM.loadedScene:CreateCreature(item.displayID, name or "Creature", 0, 0, 0);
                     Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
                     local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
                     local mouseRay = Camera.GetMouseRay();
                     local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
                     object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
                     SM.selectedObjects = { object };
-                    Editor.lastSelectedType = "obj";
+                    Editor.lastSelectedType = Editor.SelectionType.Object;
                     SH.RefreshHierarchy();
                     OP.Refresh();
                     Input.mouseState.LMB = true;
@@ -1426,13 +1413,13 @@ function AssetBrowser.OnThumbnailDrag(ID)
                     local name = AssetBrowser.GetFileName(item.fileID);
                     local mouseRay = Camera.GetMouseRay();
                     local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
-                    local objectHierarchyBefore = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
-                    local object = SM.CreateObject(item.fileID, name, initialPosition.x, initialPosition.y, initialPosition.z);
+                    local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
+                    local object = SM.loadedScene:CreateObject(item.fileID, name, initialPosition.x, initialPosition.y, initialPosition.z);
                     Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
                     local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
                     object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
                     SM.selectedObjects = { object };
-                    Editor.lastSelectedType = "obj";
+                    Editor.lastSelectedType = Editor.SelectionType.Object;
                     SH.RefreshHierarchy();
                     OP.Refresh();
                     Input.mouseState.LMB = true;

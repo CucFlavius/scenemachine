@@ -1,7 +1,4 @@
-local Math = SceneMachine.Math;
-local Vector3 = SceneMachine.Vector3;
 local SM = SceneMachine.Editor.SceneManager;
-local SH = SceneMachine.Editor.SceneHierarchy;
 
 SceneMachine.Actions.CreateObject = {};
 
@@ -18,6 +15,7 @@ setmetatable(CreateObject, Action)
 --- @param hierarchyBefore table The hierarchy of objects before the creation.
 --- @return CreateObject v The newly created instance of the CreateObject action.
 function CreateObject:New(objects, hierarchyBefore)
+	--- @class CreateObject : Action
 	local v =
 	{
 		type = Action.Type.CreateObject,
@@ -52,7 +50,7 @@ function CreateObject:Undo()
 		local obj = self.objects[i];
 		SM.DeleteObject_internal(obj);
 	end
-	SH.SetHierarchy(self.objectHierarchyBefore);
+	SM.loadedScene:SetObjectHierarchy(self.objectHierarchyBefore);
 end
 
 --- Redo the creation of objects.
@@ -64,5 +62,5 @@ function CreateObject:Redo()
 		SM.UndeleteObject_internal(obj);
 	end
 	-- Set the object hierarchy to the updated hierarchy
-	SH.SetHierarchy(self.objectHierarchyAfter);
+	SM.loadedScene:SetObjectHierarchy(self.objectHierarchyAfter);
 end

@@ -15,6 +15,7 @@ local Resources = SceneMachine.Resources;
 local ColorPicker = Editor.ColorPicker;
 local L = Editor.localization;
 local Actions = SceneMachine.Actions;
+local Camera = SceneMachine.Camera;
 
 Editor.MODE_LOCAL = 1;
 Editor.MODE_NETWORK = 2;
@@ -37,6 +38,13 @@ local c4 = { 0.1171, 0.1171, 0.1171 };
 Editor.MAIN_FRAME_STRATA = "HIGH";              -- Main window
 Editor.SUB_FRAME_STRATA = "DIALOG";             -- Child windows like "Project Manager"
 Editor.MESSAGE_BOX_FRAME_STRATA = "FULLSCREEN"; -- Dialogs like "Are you sure you wanna?""
+
+Editor.SelectionType = {
+    Object = 1,
+    Track = 2,
+    Anim = 3,
+    Key = 4,
+};
 
 function Editor.Initialize()
     Editor.version = GetAddOnMetadata("scenemachine", "Version");
@@ -237,11 +245,18 @@ function Editor.CreateToolbar()
             },
             { type = "DragHandle" },
             {
-                type = "Button", name = "AddCamera", icon = toolbar:GetIcon("addcamera"), action = function(self) SM.CreateCamera(); end,
+                type = "Button", name = "AddCamera", icon = toolbar:GetIcon("addcamera"),
+                action = function(self)
+                    local camera = SM.loadedScene:CreateCamera(Camera.fov, Camera.nearClip, Camera.farClip,
+                        Camera.position.x, Camera.position.y, Camera.position.z,
+                        Camera.eulerRotation.x, Camera.eulerRotation.y, Camera.eulerRotation.z);
+                    SM.SelectObject(camera); SH.RefreshHierarchy(); OP.Refresh();
+                end,
                 tooltip = L["EDITOR_TOOLBAR_TT_CREATE_CAMERA"],
             },
             {
-                type = "Button", name = "AddCharacter", icon = toolbar:GetIcon("addcharacter"), action = function(self) SM.CreateCharacter(0, 0, 0); end,
+                type = "Button", name = "AddCharacter", icon = toolbar:GetIcon("addcharacter"),
+                action = function(self) SM.loadedScene:CreateCharacter(0, 0, 0); SH.RefreshHierarchy(); OP.Refresh(); end,
                 tooltip = L["EDITOR_TOOLBAR_TT_CREATE_CHARACTER"],
             },
         }
@@ -308,7 +323,7 @@ function Editor.Toggle()
 end
 
 function Editor.DeleteLastSelected()
-    if (Editor.lastSelectedType == "obj") then
+    if (Editor.lastSelectedType == Editor.SelectionType.Object) then
         local complexObject = false;
         for i = 1, #SM.selectedObjects, 1 do
             if (SM.ObjectHasTrack(SM.selectedObjects[i])) then
@@ -323,7 +338,7 @@ function Editor.DeleteLastSelected()
             SM.DeleteObjects(SM.selectedObjects);
         end
 
-    elseif (Editor.lastSelectedType == "track") then
+    elseif (Editor.lastSelectedType == Editor.SelectionType.Track) then
         local hasAnims = AM.TrackHasAnims(AM.selectedTrack);
         local hasKeyframes = AM.TrackHasKeyframes(AM.selectedTrack);
         local msgTitle = L["EDITOR_MSG_DELETE_TRACK_TITLE"];
@@ -348,9 +363,9 @@ function Editor.DeleteLastSelected()
             AM.RemoveTracks({ AM.selectedTrack });
             SM.SelectObject(obj);
         end
-    elseif (Editor.lastSelectedType == "anim") then
+    elseif (Editor.lastSelectedType == Editor.SelectionType.Anim) then
         AM.RemoveAnim(AM.selectedTrack, AM.selectedAnim);
-    elseif (Editor.lastSelectedType == "key") then
+    elseif (Editor.lastSelectedType == Editor.SelectionType.Key) then
         AM.RemoveKeys(AM.selectedTrack, AM.selectedKeys);
     end
 end
@@ -508,20 +523,6 @@ function Editor.CreateGroup(name, groupHeight, groupParent, startLevel)
     groupContent:SetPoint("BOTTOMRIGHT", groupBG:GetFrame(), "BOTTOMRIGHT", 0, 0);
     groupContent:SetFrameLevel(startLevel + 2);
     return groupContent:GetFrame();
-end
-
-function SceneMachine.CreateStatsFrame()
-	SceneMachine.StatsFrame = CreateFrame("Frame", nil, Renderer.projectionFrame);
-	SceneMachine.StatsFrame:SetPoint("TOPRIGHT", Renderer.projectionFrame, "TOPRIGHT", 0, 0);
-	SceneMachine.StatsFrame:SetWidth(200);
-	SceneMachine.StatsFrame:SetHeight(200);
-	SceneMachine.StatsFrame.text = SceneMachine.StatsFrame:CreateFontString(nil, "BACKGROUND", "GameTooltipText");
-	SceneMachine.StatsFrame.text:SetFont(Resources.defaultFont, 9, "NORMAL");
-
-	SceneMachine.StatsFrame.text:SetPoint("TOPRIGHT",-5,-5);
-	SceneMachine.StatsFrame.text:SetJustifyV("TOP");
-	SceneMachine.StatsFrame.text:SetJustifyH("LEFT");
-	SceneMachine.StatsFrame:Show();
 end
 
 function Editor.Save()
@@ -716,13 +717,7 @@ function Editor.Undo()
         return;
     end
     
-    if (SM.loadedScene.actionPointer < 1) then
-        return;
-    end
-
-    SM.loadedScene.actionPool[SM.loadedScene.actionPointer]:Undo();
-    SM.loadedScene.actionPointer = SM.loadedScene.actionPointer - 1;
-    SM.loadedScene.actionPointer = max(0, SM.loadedScene.actionPointer);
+    SM.loadedScene:Undo();
 
     Editor.RefreshActionToolbar();
     SH.RefreshHierarchy();
@@ -734,13 +729,7 @@ function Editor.Redo()
         return;
     end
 
-    if (SM.loadedScene.actionPointer >= #SM.loadedScene.actionPool) then
-        return;
-    end
-
-    SM.loadedScene.actionPointer = SM.loadedScene.actionPointer + 1;
-    SM.loadedScene.actionPointer = min(#SM.loadedScene.actionPool, SM.loadedScene.actionPointer);
-    SM.loadedScene.actionPool[SM.loadedScene.actionPointer]:Redo();
+    SM.loadedScene:Redo();
 
     Editor.RefreshActionToolbar();
     SH.RefreshHierarchy();
@@ -751,35 +740,8 @@ function Editor.StartAction(type, ...)
     if (not SM.loadedScene) then
         return;
     end
-    --print("Start Action " .. type);
 
-    if (type == Actions.Action.Type.TransformObject) then
-        SM.loadedScene.startedAction = Actions.TransformObject:New(...);
-    elseif (type == Actions.Action.Type.DestroyObject) then
-        SM.loadedScene.startedAction = Actions.DestroyObject:New(...);
-    elseif (type == Actions.Action.Type.CreateObject) then
-        SM.loadedScene.startedAction = Actions.CreateObject:New(...);
-    elseif (type == Actions.Action.Type.DestroyTrack) then
-        SM.loadedScene.startedAction = Actions.DestroyTrack:New(...);
-    elseif (type == Actions.Action.Type.CreateTrack) then
-        SM.loadedScene.startedAction = Actions.CreateTrack:New(...);
-    elseif (type == Actions.Action.Type.SceneProperties) then
-        SM.loadedScene.startedAction = Actions.SceneProperties:New(...);
-    elseif (type == Actions.Action.Type.DestroyTimeline) then
-        SM.loadedScene.startedAction = Actions.DestroyTimeline:New(...);
-    elseif (type == Actions.Action.Type.CreateTimeline) then
-        SM.loadedScene.startedAction = Actions.CreateTimeline:New(...);
-    elseif (type == Actions.Action.Type.TimelineProperties) then
-        SM.loadedScene.startedAction = Actions.TimelineProperties:New(...);
-    elseif (type == Actions.Action.Type.TrackAnimations) then
-        SM.loadedScene.startedAction = Actions.TrackAnimations:New(...);
-    elseif (type == Actions.Action.Type.TrackKeyframes) then
-        SM.loadedScene.startedAction = Actions.TrackKeyframes:New(...);
-    elseif (type == Actions.Action.Type.HierarchyChange) then
-        SM.loadedScene.startedAction = Actions.HierarchyChange:New(...);
-    else
-        print ("NYI Editor.StartAction() type:" .. type);
-    end
+    SM.loadedScene:StartAction(type, ...);
 end
 
 function Editor.CancelAction()
@@ -787,7 +749,7 @@ function Editor.CancelAction()
         return;
     end
 
-    SM.loadedScene.startedAction = nil;
+    SM.loadedScene:CancelAction();
 end
 
 function Editor.FinishAction(...)
@@ -795,22 +757,7 @@ function Editor.FinishAction(...)
         return;
     end
 
-    if (not SM.loadedScene.startedAction) then
-        return;
-    end
-
-    --print("Finish Action " .. SM.loadedScene.startedAction.type);
-
-    SM.loadedScene.actionPointer = SM.loadedScene.actionPointer + 1;
-    SM.loadedScene.startedAction:Finish(...);
-    SM.loadedScene.actionPool[SM.loadedScene.actionPointer] = SM.loadedScene.startedAction;
-    SM.loadedScene.startedAction = nil;
-
-    -- performing an action has to clear the actionPool after the current action pointer
-    for i = #SM.loadedScene.actionPool, SM.loadedScene.actionPointer + 1, -1 do
-        table.remove(SM.loadedScene.actionPool, i);
-    end
-
+    SM.loadedScene:FinishAction(...);
     Editor.RefreshActionToolbar();
 end
 
@@ -822,16 +769,16 @@ function Editor.RefreshActionToolbar()
     local undoVisible = true;
     local redoVisible = true;
 
-    if (#SM.loadedScene.actionPool == 0) then
+    if (SM.loadedScene:GetActionCount() == 0) then
         undoVisible = false;
         redoVisible = false;
     end
 
-    if (SM.loadedScene.actionPointer < 1) then
+    if (SM.loadedScene:GetActionPointer() < 1) then
         undoVisible = false;
     end
 
-    if (SM.loadedScene.actionPointer >= #SM.loadedScene.actionPool) then
+    if (SM.loadedScene:GetActionPointer() >= SM.loadedScene:GetActionCount()) then
         redoVisible = false;
     end
 
@@ -867,13 +814,7 @@ function Editor.ClearActions()
         return;
     end
     
-    for i = 1, #SM.loadedScene.actionPool, 1 do
-        SM.loadedScene.actionPool[i] = nil;
-    end
-
-    SM.loadedScene.actionPool = {};
-    SM.loadedScene.startedAction = nil;
-    SM.loadedScene.actionPointer = 0;
+    SM.loadedScene:ClearActions();
     Editor.RefreshActionToolbar();
 end
 
@@ -886,13 +827,9 @@ function Editor.PreprocessSavedVars()
     for ID in pairs(scenemachine_projects) do
         for s = 1, #scenemachine_projects[ID].scenes, 1 do
             local scene = scenemachine_projects[ID].scenes[s];
-            scene.actionPool = nil;
-            scene.actionPointer = nil;
-
-            if (scene.objects) then
-                for o = 1, #scene.objects, 1 do
-                    scene.objects[o].matrix = nil;
-                end
+            -- only clear if loaded, otherwise this function isn't available
+            if (scene.loaded) then
+                scene:ClearRuntimeData();
             end
         end
     end

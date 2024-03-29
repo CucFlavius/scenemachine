@@ -32,8 +32,8 @@ function MousePick.Pick(x, y)
     local idx = 1;
     MousePick.selectionList = {};
 
-    for i in pairs(SM.loadedScene.objects) do
-        local object = SM.loadedScene.objects[i];
+    for i = 1, SM.loadedScene:GetObjectCount(), 1 do
+        local object = SM.loadedScene:GetObject(i);
 
         local gizmoType = object:GetGizmoType();
 
@@ -125,7 +125,7 @@ function MousePick.Pick(x, y)
 	-- only select a track if a one single object is selected, no multi-track selection support needed
     if (#SM.selectedObjects == 1) then
         AM.SelectTrackOfObject(SM.selectedObjects[1]);
-		Editor.lastSelectedType = "obj";
+		Editor.lastSelectedType = Editor.SelectionType.Object;
 	else
         AM.SelectTrack(-1);
     end

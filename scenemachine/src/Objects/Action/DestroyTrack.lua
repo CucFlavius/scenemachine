@@ -16,6 +16,7 @@ setmetatable(DestroyTrack, Action)
 --- @param timeline table The timeline object associated with the tracks.
 --- @return DestroyTrack v The newly created DestroyTrack object.
 function DestroyTrack:New(tracks, timeline)
+	--- @class DestroyTrack : Action
 	local v = 
 	{
 		type = Action.Type.DestroyTrack,

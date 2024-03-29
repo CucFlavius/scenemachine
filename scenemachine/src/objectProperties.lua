@@ -63,8 +63,8 @@ function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
     OP.alphaField = UI.PropertyFieldFloat:New(-5, 20, OP.actorPropertyGroup.panel:GetFrame(), L["ALPHA"], 1, OP.SetAlpha);
     OP.saturationField = UI.PropertyFieldFloat:New(-27, 20, OP.actorPropertyGroup.panel:GetFrame(), L["DESATURATION"], 0, OP.SetDesaturation);
 
-    local onPropertyColorStartAction = function() Editor.StartAction(Actions.Action.Type.SceneProperties, SM.loadedScene.properties); end
-    local onPropertyColorFinishAction = function() Editor.FinishAction(SM.loadedScene.properties); end
+    local onPropertyColorStartAction = function() Editor.StartAction(Actions.Action.Type.SceneProperties, SM.loadedScene:GetProperties()); end
+    local onPropertyColorFinishAction = function() Editor.FinishAction(SM.loadedScene:GetProperties()); end
     OP.scenePropertyGroup = OP.collapseList.bars[3];
     OP.ambientColorField = UI.PropertyFieldColor:New(-5, 20, OP.scenePropertyGroup.panel:GetFrame(), L["OP_AMBIENT_COLOR"], 0, 0, 0, 1, OP.SetAmbientColor, onPropertyColorStartAction, onPropertyColorFinishAction);
     OP.diffuseColorField = UI.PropertyFieldColor:New(-27, 20, OP.scenePropertyGroup.panel:GetFrame(), L["OP_DIFFUSE_COLOR"], 0, 0, 0, 1, OP.SetDiffuseColor, onPropertyColorStartAction, onPropertyColorFinishAction);
@@ -156,15 +156,13 @@ function OP.Refresh()
         OP.saturationField:Set(OP.Truncate(desaturation, 3));
     end
     if (Renderer.projectionFrame) then
-        --local r, g, b = Renderer.projectionFrame:GetLightAmbientColor();
-        local amb = SM.loadedScene.properties.ambientColor;
+        local amb = SM.loadedScene:GetAmbientColor();
         OP.ambientColorField:Set(amb[1], amb[2], amb[3], 1);
-        --local r, g, b = Renderer.projectionFrame:GetLightDiffuseColor();
-        local dif = SM.loadedScene.properties.diffuseColor;
+        local dif = SM.loadedScene:GetDiffuseColor();
         OP.diffuseColorField:Set(dif[1], dif[2], dif[3], 1);
-        local bg = SM.loadedScene.properties.backgroundColor;
+        local bg = SM.loadedScene:GetBackgroundColor();
         OP.backgroundColorField:Set(bg[1], bg[2], bg[3], 1);
-        local enableLighting = SM.loadedScene.properties.enableLighting;
+        local enableLighting = SM.loadedScene:IsLightingEnabled();
         OP.enableLightingField:Set(enableLighting);
     end
 end
@@ -330,23 +328,19 @@ function OP.Truncate(num, digits)
 end
 
 function OP.SetAmbientColor(R, G, B, A)
-    Renderer.projectionFrame:SetLightAmbientColor(R, G, B);
-    SM.loadedScene.properties.ambientColor = { R, G, B, A };
+    SM.loadedScene:SetAmbientColor(R, G, B, A);
 end
 
 function OP.SetDiffuseColor(R, G, B, A)
-    Renderer.projectionFrame:SetLightDiffuseColor(R, G, B);
-    SM.loadedScene.properties.diffuseColor = { R, G, B, A };
+    SM.loadedScene:SetDiffuseColor(R, G, B, A);
 end
 
 function OP.SetBackgroundColor(R, G, B, A)
-    Renderer.backgroundFrame.texture:SetColorTexture(R, G, B, 1);
-    SM.loadedScene.properties.backgroundColor = { R, G, B, A };
+    SM.loadedScene:SetBackgroundColor(R, G, B, A);
 end
 
 function OP.ToggleLighting(on)
-    Renderer.projectionFrame:SetLightVisible(on);
-    SM.loadedScene.properties.enableLighting = on;
+    SM.loadedScene:SetLightingEnabled(on);
     if (on) then
         --Renderer.projectionFrame:SetLightType(0);
     else

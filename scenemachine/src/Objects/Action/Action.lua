@@ -38,6 +38,8 @@ function Action:New()
 	return v
 end
 
+function Action:Finish(_) end
+
 -- This function is used as the __index metamethod for the Action table.
 -- It is called when a key is not found in the Action table.
 Action.__index = function(t,k)

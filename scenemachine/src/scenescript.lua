@@ -2,11 +2,6 @@ local Editor = SceneMachine.Editor;
 local SM = Editor.SceneManager;
 
 function SceneMachine.ImportScenescript(s)
-    -- first clear currently opened scene
-    if (s == "" or s == nil) then
-        SM.Clear();
-    end
-
     -- perform some changes to convert globals to SceneMachine locals
     s = string.gsub(s, "SceneTimelineAddFileData", "SceneMachine.SceneTimelineAddFileData");
     s = string.gsub(s, "cid", "SceneMachine.cid");
@@ -61,12 +56,12 @@ function SceneMachine.SceneTimelineAddFileData(scriptFile, sceneData)
             local fileDataID = appearance.fileDataID;
             
             if (fileDataID ~= 0) then
-                object = SM.CreateObject(fileDataID, actorName, 0, 0, 0);
+                object = SM.loadedScene:CreateObject(fileDataID, actorName, 0, 0, 0);
             elseif (creatureDisplayInfoID ~= 0) then
-                object = SM.CreateCreature(creatureDisplayInfoID, actorName, 0, 0, 0);
+                object = SM.loadedScene:CreateCreature(creatureDisplayInfoID, actorName, 0, 0, 0);
             elseif (creatureID ~= 0) then
                 creatureDisplayInfoID = SceneMachine.creatureToDisplayID[creatureID];
-                object = SM.CreateCreature(creatureDisplayInfoID, actorName, 0, 0, 0);
+                object = SM.loadedScene:CreateCreature(creatureDisplayInfoID, actorName, 0, 0, 0);
             else
                 print("Unsupported actor type");
             end

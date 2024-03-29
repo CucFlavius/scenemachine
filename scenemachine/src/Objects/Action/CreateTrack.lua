@@ -16,7 +16,8 @@ setmetatable(CreateTrack, Action)
 --- @param timeline table The timeline to which the tracks will be added.
 --- @return CreateTrack v The newly created CreateTrack object.
 function CreateTrack:New(tracks, timeline)
-	local v = 
+	--- @class CreateTrack : Action
+	local v =
 	{
 		type = Action.Type.CreateTrack,
 		memorySize = 1,

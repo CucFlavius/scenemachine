@@ -15,6 +15,7 @@ local UI = SceneMachine.UI;
 local Matrix = SceneMachine.Matrix;
 local Actions = SceneMachine.Actions;
 local SH = Editor.SceneHierarchy;
+local Scene = SceneMachine.Scene;
 
 Gizmos.isUsed = false;
 Gizmos.isHighlighted = false;
@@ -227,8 +228,8 @@ function Gizmos.UpdateMarquee(mouseX, mouseY)
                 Gizmos.marqueeAABBSSPoints = {};
                 local idx = 1;
                 
-                for i = 1, #SM.loadedScene.objects, 1 do
-                    local object = SM.loadedScene.objects[i];
+                for i = 1, SM.loadedScene:GetObjectCount(), 1 do
+                    local object = SM.loadedScene:GetObject(i);
             
                     -- Can't select invisible/frozen, only in the hierarchy
                     if (object.visible) and (not object.frozen) and (object:GetType() ~= SceneMachine.GameObjects.Object.Type.Group) then
@@ -594,13 +595,6 @@ function Gizmos.ApplyPositionMotion(object, iPointDiff)
     end
 
     local position = object:GetWorldPosition();
-    --print(position);
-    --local parent = SH.GetParentObject(object.id);
-    --if (parent) then
-        -- fix gizmo transformation offset if the object is in a hierarchy
-        --iPointDiff:Scale(1 / parent:GetWorldScale());
-    --end
-    
     position:Add(iPointDiff);
     object:SetWorldPosition(position.x, position.y, position.z);
 end
@@ -844,7 +838,7 @@ end
 function Gizmos.OnLMBUp()
     Gizmos.isUsed = false;
     if (not Input.mouseState.isDraggingAssetFromUI and Gizmos.recordAction) then
-        local objectHierarchyAfter = SH.CopyObjectHierarchy(SM.loadedScene.objectHierarchy);
+        local objectHierarchyAfter = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
         Editor.FinishAction(objectHierarchyAfter);
     end
 end

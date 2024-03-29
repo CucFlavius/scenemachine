@@ -12,6 +12,9 @@ local L = Editor.localization;
 local Actions = SceneMachine.Actions;
 local CC = SceneMachine.CameraController;
 local Camera = SceneMachine.Camera;
+local Keyframe = SceneMachine.Keyframe;
+local AnimationClip = SceneMachine.AnimationClip;
+local Timeline = SceneMachine.Timeline;
 
 local tabButtonHeight = 20;
 local tabPool = {};
@@ -36,6 +39,7 @@ AM.inputState = {
     movingAnim = -1;
     movingAnimHandleL = -1;
     movingAnimHandleR = -1;
+    workspaceRefreshed = false;
 };
 AM.loadedTimelineIndex = 1;
 AM.loadedTimeline = nil;
@@ -79,28 +83,11 @@ AM.keyAddMode = AM.KeyAddMode.All;
 AM.CurvePoolSize = 30;
 AM.usedCurveLines = 0;
 
-AM.colors = {
-    {242, 240, 161},
-    {252, 174, 187},
-    {241, 178, 220},
-    {191, 155, 222},
-    {116, 209, 234},
-    {157, 231, 215},
-    {158, 151, 142},
-    {0, 154, 206},
-    {68, 214, 44},
-    {255, 233, 0},
-    {255, 170, 77},
-    {255, 114, 118},
-    {255, 62, 181},
-    {234, 39, 194}
-}
-
 AM.playing = false;
 AM.loopPlay = true;
 AM.lastKeyedTime = 0;
-AM.currentInterpolationIn = Track.Interpolation.Bezier;
-AM.currentInterpolationOut = Track.Interpolation.Bezier;
+AM.currentInterpolationIn = Keyframe.Interpolation.Bezier;
+AM.currentInterpolationOut = Keyframe.Interpolation.Bezier;
 
 local c1 = { 0.1757, 0.1757, 0.1875 };
 local c2 = { 0.242, 0.242, 0.25 };
@@ -114,16 +101,18 @@ local squashIndex = -1;
 
 function AM.Update(deltaTime)
     isSquashing = false;
+    AM.inputState.workspaceRefreshed = false;
 
     if (AM.loadedTimeline) then
         if (AM.playing) then
             local deltaTimeMS = math.floor(deltaTime * 1000);
-            local nextTime = AM.loadedTimeline.currentTime + deltaTimeMS;
+            local nextTime = AM.loadedTimeline:GetTime() + deltaTimeMS;
 
             if (not AM.loopPlay) then
                 -- if stop at the end
-                if (nextTime >= AM.loadedTimeline.duration) then
-                    AM.SetTime(AM.loadedTimeline.duration);
+                local duration = AM.loadedTimeline:GetDuration();
+                if (nextTime >= duration) then
+                    AM.SetTime(duration);
                     AM.playing = false;
                     return;
                 end
@@ -146,7 +135,7 @@ function AM.Update(deltaTime)
 
         -- Scroll the items list --
         local newPointNormalized = newPoint / groupBgH;
-        local totalTimeMS = AM.loadedTimeline.duration;
+        local totalTimeMS = AM.loadedTimeline:GetDuration();
         local startMS = AM.currentCrop.min * totalTimeMS;
         local endMS = AM.currentCrop.max * totalTimeMS;
         local lengthMS = endMS - startMS;
@@ -172,7 +161,7 @@ function AM.Update(deltaTime)
 
         -- Scroll the items list --
         local newPointNormalized = newPoint / groupBgH;
-        local totalTimeMS = AM.loadedTimeline.duration;
+        local totalTimeMS = AM.loadedTimeline:GetDuration();
         local startMS = AM.currentCrop.min * totalTimeMS;
         local endMS = AM.currentCrop.max * totalTimeMS;
         local lengthMS = endMS - startMS;
@@ -217,7 +206,7 @@ function AM.Update(deltaTime)
         end
 
         for k = 1, #AM.selectedKeys, 1 do
-            AM.selectedKeys[k].time = timeMS;
+            AM.selectedKeys[k]:SetTime(timeMS);
             AM.selectedKeyGroup = timeMS;
         end
 
@@ -232,10 +221,9 @@ function AM.Update(deltaTime)
 
         -- Scroll the items list --
         local newPointNormalized = newPoint / groupBgH;
-        local totalTimeMS = AM.loadedTimeline.duration;
+        local totalTimeMS = AM.loadedTimeline:GetDuration();
         local startMS = AM.currentCrop.min * totalTimeMS;
         local endMS = AM.currentCrop.max * totalTimeMS;
-        --print(startMS .. " " .. endMS);
         local lengthMS = endMS - startMS;
 
         local diffTimeMS = (newPointNormalized * lengthMS);
@@ -243,38 +231,28 @@ function AM.Update(deltaTime)
         if (diffTimeMS ~= 0) then
 
             local animElement = AM.AnimationPool[AM.inputState.movingAnim];
-            local trackElement = animElement.trackIdx;
-            local track = AM.loadedTimeline.tracks[animElement.trackIdx];
+
+            local track = AM.loadedTimeline:GetTrack(animElement.trackIdx);
             local anim = track.animations[animElement.animIdx];
-            local desiredStartT = math.floor(anim.startT + diffTimeMS);
-            local desiredEndT = math.floor(anim.endT + diffTimeMS);
+            local desiredStartT = math.floor(anim:GetStartTime() + diffTimeMS);
+            local desiredEndT = math.floor(anim:GetEndTime() + diffTimeMS);
 
             -- check each side
             local animL = track.animations[animElement.animIdx - 1];
             local animR = track.animations[animElement.animIdx + 1];
 
-            local length = anim.endT - anim.startT;
+            local length = anim:GetDuration();
 
             local savePrevMouse = AM.inputState.mousePosStartX;
 
             if (animL and not animR) then
-                if (desiredStartT > animL.endT) then
-                    anim.startT = desiredStartT;
-                    anim.endT = desiredEndT;
+                if (desiredStartT > animL:GetEndTime()) then
+                    anim:SetStartTime(desiredStartT);
+                    anim:SetEndTime(desiredEndT);
                     AM.inputState.mousePosStartX = Input.mouseXRaw;
                 else
-                    -- check if mouse past whole of animL, and swap them
-                    -- sL     eL s          e
-                    -- sL          eL s     e
-                    if (desiredStartT < animL.startT) then
-                        -- swap
-                        local startT = anim.startT;
-                        local endT = anim.endT;
-                        local lStartT = animL.startT;
-                        local lEndT = animL.endT;
-                        animL.endT = lStartT + (endT - startT);
-                        anim.startT = animL.endT;
-                        AM.SwapAnimData(anim, animL);
+                    if (desiredStartT < animL:GetStartTime()) then
+                        AnimationClip.SwapLeft(anim, animL);
                         -- select the other
                         AM.inputState.movingAnim = AM.inputState.movingAnim - 1;
                         AM.SelectAnimation(AM.inputState.movingAnim);
@@ -282,31 +260,22 @@ function AM.Update(deltaTime)
                         isSquashing = false;
                         squashIndex = AM.inputState.movingAnim + 1;
                     else
-                        anim.startT = animL.endT;
-                        anim.endT = anim.startT + length;
+                        anim:SetStartTime(animL:GetEndTime());
+                        anim:SetEndTime(anim:GetStartTime() + length);
                         squash = (AM.inputState.mousePosStartX - Input.mouseXRaw) * squashStrength;
                         isSquashing = true;
                         squashIndex = AM.inputState.movingAnim - 1;
                     end
                 end
             elseif (animR and not animL) then
-                if (desiredEndT < animR.startT) then
-                    anim.startT = desiredStartT;
-                    anim.endT = desiredEndT;
+                if (desiredEndT < animR:GetStartTime()) then
+                    anim:SetStartTime(desiredStartT);
+                    anim:SetEndTime(desiredEndT);
                     AM.inputState.mousePosStartX = Input.mouseXRaw;
                 else
                     -- check if mouse past whole of animR, and swap them
-                    -- s     e sR          eR
-                    -- s          e sR     eR
-                    if (desiredEndT > animR.endT) then
-                        -- swap
-                        local startT = anim.startT;
-                        local endT = anim.endT;
-                        local rStartT = animR.startT;
-                        local rEndT = animR.endT;
-                        anim.endT = startT + (rEndT - rStartT);
-                        animR.startT = anim.endT;
-                        AM.SwapAnimData(anim, animR);
+                    if (desiredEndT > animR:GetEndTime()) then
+                        AnimationClip.SwapRight(anim, animR);
                         -- select the other
                         AM.inputState.movingAnim = AM.inputState.movingAnim + 1;
                         AM.SelectAnimation(AM.inputState.movingAnim);
@@ -314,32 +283,23 @@ function AM.Update(deltaTime)
                         isSquashing = false;
                         squashIndex = AM.inputState.movingAnim - 1;
                     else
-                        anim.endT = animR.startT;
-                        anim.startT = anim.endT - length;
+                        anim:SetEndTime(animR:GetStartTime());
+                        anim:SetStartTime(anim:GetEndTime() - length);
                         squash = -(AM.inputState.mousePosStartX - Input.mouseXRaw) * squashStrength;
                         isSquashing = true;
                         squashIndex = AM.inputState.movingAnim + 1;
                     end
                 end
             elseif (animL and animR) then
-                if (desiredStartT > animL.endT) and (desiredEndT < animR.startT) then
-                    anim.startT = desiredStartT;
-                    anim.endT = desiredEndT;
+                if (desiredStartT > animL:GetEndTime()) and (desiredEndT < animR:GetStartTime()) then
+                    anim:SetStartTime(desiredStartT);
+                    anim:SetEndTime(desiredEndT);
                     AM.inputState.mousePosStartX = Input.mouseXRaw;
                 else
-                    if (desiredStartT <= animL.endT) then
+                    if (desiredStartT <= animL:GetEndTime()) then
                         -- check if mouse past whole of animR, and swap them
-                        -- sL     eL s          e
-                        -- sL          eL s     e
-                        if (desiredStartT < animL.startT) then
-                            -- swap
-                            local startT = anim.startT;
-                            local endT = anim.endT;
-                            local lStartT = animL.startT;
-                            local lEndT = animL.endT;
-                            animL.endT = lStartT + (endT - startT);
-                            anim.startT = animL.endT;
-                            AM.SwapAnimData(anim, animL);
+                        if (desiredStartT < animL:GetStartTime()) then
+                            AnimationClip.SwapLeft(anim, animL);
                             -- select the other
                             AM.inputState.movingAnim = AM.inputState.movingAnim - 1;
                             AM.SelectAnimation(AM.inputState.movingAnim);
@@ -347,25 +307,16 @@ function AM.Update(deltaTime)
                             isSquashing = false;
                             squashIndex = AM.inputState.movingAnim + 1;
                         else
-                            anim.startT = animL.endT;
-                            anim.endT = anim.startT + length;
+                            anim:SetStartTime(animL:GetEndTime());
+                            anim:SetEndTime(anim:GetStartTime() + length);
                             squash = (AM.inputState.mousePosStartX - Input.mouseXRaw) * squashStrength;
                             isSquashing = true;
                             squashIndex = AM.inputState.movingAnim - 1;
                         end
-                    elseif (desiredEndT >= animR.startT) then
+                    elseif (desiredEndT >= animR:GetStartTime()) then
                         -- check if mouse past whole of animR, and swap them
-                        -- s     e sR          eR
-                        -- s          e sR     eR
-                        if (desiredEndT > animR.endT) then
-                            -- swap
-                            local startT = anim.startT;
-                            local endT = anim.endT;
-                            local rStartT = animR.startT;
-                            local rEndT = animR.endT;
-                            anim.endT = startT + (rEndT - rStartT);
-                            animR.startT = anim.endT;
-                            AM.SwapAnimData(anim, animR);
+                        if (desiredEndT > animR:GetEndTime()) then
+                            AnimationClip.SwapRight(anim, animR);
                             -- select the other
                             AM.inputState.movingAnim = AM.inputState.movingAnim + 1;
                             AM.SelectAnimation(AM.inputState.movingAnim);
@@ -373,8 +324,8 @@ function AM.Update(deltaTime)
                             isSquashing = false;
                             squashIndex = AM.inputState.movingAnim - 1;
                         else
-                            anim.endT = animR.startT;
-                            anim.startT = anim.endT - length;
+                            anim:SetEndTime(animR:GetStartTime());
+                            anim:SetStartTime(anim:GetEndTime() - length);
                             squash = -(AM.inputState.mousePosStartX - Input.mouseXRaw) * squashStrength;
                             isSquashing = true;
                             squashIndex = AM.inputState.movingAnim + 1;
@@ -382,22 +333,22 @@ function AM.Update(deltaTime)
                     end
                 end
             elseif (not animL and not animR) then
-                anim.startT = desiredStartT;
-                anim.endT = desiredEndT;
+                anim:SetStartTime(desiredStartT);
+                anim:SetEndTime(desiredEndT);
                 AM.inputState.mousePosStartX = Input.mouseXRaw;
             end
 
-            if (anim.startT < 0) then
-                anim.startT = 0;
-                anim.endT = anim.startT + length;
+            if (anim:GetStartTime() < 0) then
+                anim:SetStartTime(0);
+                anim:SetEndTime(anim:GetStartTime() + length);
                 AM.inputState.mousePosStartX = savePrevMouse;
-            elseif(anim.endT > totalTimeMS) then
-                anim.endT = totalTimeMS;
-                anim.startT = anim.endT - length;
+            elseif(anim:GetEndTime() > totalTimeMS) then
+                anim:SetEndTime(totalTimeMS);
+                anim:SetStartTime(anim:GetEndTime() - length);
                 AM.inputState.mousePosStartX = savePrevMouse;
             end
 
-            AM.SetTime(AM.loadedTimeline.currentTime, false);
+            AM.SetTime(AM.loadedTimeline:GetTime(), false);
             AM.RefreshWorkspace();
         end
     end
@@ -409,7 +360,7 @@ function AM.Update(deltaTime)
 
         -- Scroll the items list --
         local newPointNormalized = newPoint / groupBgH;
-        local totalTimeMS = AM.loadedTimeline.duration;
+        local totalTimeMS = AM.loadedTimeline:GetDuration();
         local startMS = AM.currentCrop.min * totalTimeMS;
         local endMS = AM.currentCrop.max * totalTimeMS;
         local lengthMS = endMS - startMS;
@@ -419,43 +370,43 @@ function AM.Update(deltaTime)
         if (diffTimeMS ~= 0) then
             local animElement = AM.AnimationPool[AM.inputState.movingAnimHandleL];
             local trackElement = animElement.trackIdx;
-            local track = AM.loadedTimeline.tracks[animElement.trackIdx];
+            local track = AM.loadedTimeline:GetTrack(animElement.trackIdx);
             local anim = track.animations[animElement.animIdx];
-            local desiredStartT = math.floor(anim.startT + diffTimeMS);
+            local desiredStartT = math.floor(anim:GetStartTime() + diffTimeMS);
 
             -- check left
             local animL = track.animations[animElement.animIdx - 1];
-            local length = anim.endT - anim.startT;
+            local length = anim:GetDuration();
             local savePrevMouse = AM.inputState.mousePosStartX;
 
             if (animL) then
-                if (desiredStartT > animL.endT) then
-                    anim.startT = desiredStartT;
+                if (desiredStartT > animL:GetEndTime()) then
+                    anim:SetStartTime(desiredStartT);
                     AM.inputState.mousePosStartX = Input.mouseXRaw;
                 else
-                    anim.startT = animL.endT;
+                    anim:SetStartTime(animL:GetEndTime());
                 end
             else
-                anim.startT = desiredStartT;
+                anim:SetStartTime(desiredStartT);
                 AM.inputState.mousePosStartX = Input.mouseXRaw;
             end
 
             -- limit anim to start and end of track
-            if (anim.startT < 0) then
-                anim.startT = 0;
+            if (anim:GetStartTime() < 0) then
+                anim:SetStartTime(0);
                 AM.inputState.mousePosStartX = savePrevMouse;
-            elseif(anim.endT > totalTimeMS) then
-                anim.startT = totalTimeMS - length;
+            elseif(anim:GetEndTime() > totalTimeMS) then
+                anim:SetStartTime(totalTimeMS - length);
                 AM.inputState.mousePosStartX = savePrevMouse;
             end
 
             -- limit anim min size to 100 miliseconds
-            if (anim.startT > anim.endT - 100) then
-                anim.startT = anim.endT - 100;
+            if (anim:GetStartTime() > anim:GetEndTime() - 100) then
+                anim:SetStartTime(anim:GetEndTime() - 100);
                 AM.inputState.mousePosStartX = savePrevMouse;
             end
 
-            AM.SetTime(AM.loadedTimeline.currentTime, false);
+            AM.SetTime(AM.loadedTimeline:GetTime(), false);
             AM.RefreshWorkspace();
         end
     end
@@ -467,7 +418,7 @@ function AM.Update(deltaTime)
 
         -- Scroll the items list --
         local newPointNormalized = newPoint / groupBgH;
-        local totalTimeMS = AM.loadedTimeline.duration;
+        local totalTimeMS = AM.loadedTimeline:GetDuration();
         local startMS = AM.currentCrop.min * totalTimeMS;
         local endMS = AM.currentCrop.max * totalTimeMS;
         local lengthMS = endMS - startMS;
@@ -477,43 +428,43 @@ function AM.Update(deltaTime)
         if (diffTimeMS ~= 0) then
             local animElement = AM.AnimationPool[AM.inputState.movingAnimHandleR];
             local trackElement = animElement.trackIdx;
-            local track = AM.loadedTimeline.tracks[animElement.trackIdx];
+            local track = AM.loadedTimeline:GetTrack(animElement.trackIdx);
             local anim = track.animations[animElement.animIdx];
-            local desiredEndT = math.floor(anim.endT + diffTimeMS);
+            local desiredEndT = math.floor(anim:GetEndTime() + diffTimeMS);
 
             -- check right
             local animR = track.animations[animElement.animIdx + 1];
-            local length = anim.endT - anim.startT;
+            local length = anim:GetEndTime() - anim:GetStartTime();
             local savePrevMouse = AM.inputState.mousePosStartX;
 
             if (animR) then
-                if (desiredEndT < animR.startT) then
-                    anim.endT = desiredEndT;
+                if (desiredEndT < animR:GetStartTime()) then
+                    anim:SetEndTime(desiredEndT);
                     AM.inputState.mousePosStartX = Input.mouseXRaw;
                 else
-                    anim.endT = animR.startT;
+                    anim:SetEndTime(animR:GetStartTime());
                 end
             else
-                anim.endT = desiredEndT;
+                anim:SetEndTime(desiredEndT);
                 AM.inputState.mousePosStartX = Input.mouseXRaw;
             end
 
             -- limit anim to start and end of track
-            if (anim.startT < 0) then
-                anim.endT = length;
+            if (anim:GetStartTime() < 0) then
+                anim:SetEndTime(length);
                 AM.inputState.mousePosStartX = savePrevMouse;
-            elseif(anim.endT > totalTimeMS) then
-                anim.endT = totalTimeMS;
+            elseif(anim:GetEndTime() > totalTimeMS) then
+                anim:SetEndTime(totalTimeMS);
                 AM.inputState.mousePosStartX = savePrevMouse;
             end
 
             -- limit anim min size to 100 miliseconds
-            if (anim.startT > anim.endT - 100) then
-                anim.endT = anim.startT + 100;
+            if (anim:GetStartTime() > anim:GetEndTime() - 100) then
+                anim:SetEndTime(anim:GetStartTime() + 100);
                 AM.inputState.mousePosStartX = savePrevMouse;
             end
 
-            AM.SetTime(AM.loadedTimeline.currentTime, false);
+            AM.SetTime(AM.loadedTimeline:GetTime(), false);
             AM.RefreshWorkspace();
         end
     end
@@ -540,27 +491,6 @@ function AM.Update(deltaTime)
         --local gpointL, grelativeToL, grelativePointL, gxOfsL, gyOfsL = animElement:GetPoint(1);
         --animElement:SetPoint("TOPLEFT", grelativeToL, "TOPLEFT", gxOfsL, gyOfsL + squash * AM.trackElementH);
     end
-end
-
-function AM.SwapAnimData(A, B)
-    local id = A.id;
-    local name = A.name;
-    local colorId = A.colorId;
-    local variation = A.variation;
-    local animLength = A.animLength
-
-    A.id = B.id;
-    A.name = B.name;
-    A.colorId = B.colorId;
-    A.variation = B.variation;
-    A.animLength = B.animLength;
-
-
-    B.id = id;
-    B.name = name;
-    B.colorId = colorId;
-    B.variation = variation;
-    B.animLength = animLength;
 end
 
 function AM.Round(num, dp)
@@ -766,7 +696,7 @@ function AM.CreateAnimationSelectWindow(x, y, w, h)
             AM.ReplaceAnim(AM.selectedTrack, AM.animScrollList.replaceAnim, AM.selectedAnimID, AM.selectedAnimVariant);
         end
         AM.animSelectWindow:Hide();
-        AM.SetTime(AM.loadedTimeline.currentTime);
+        AM.SetTime(AM.loadedTimeline:GetTime());
     end);
     AM.animSelectWindow.filterBox = UI.TextBox:New(80, 5, 100, 20, AM.animSelectWindow:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "", 9);
     AM.animSelectWindow.filterBox:SetPoint("BOTTOMRIGHT", AM.animSelectWindow:GetFrame(), "BOTTOMRIGHT", -5, 0);
@@ -864,7 +794,7 @@ function AM.GenerateKeyframeElement(index, x, y, w, h, parent, R, G, B, A)
     element:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
     element:SetScript("OnMouseDown", function(self, button)
         if (button == "LeftButton") then
-            local track = AM.loadedTimeline.tracks[self.trackIdx];
+            local track = AM.loadedTimeline:GetTrack(self.trackIdx);
             Editor.StartAction(Actions.Action.Type.TrackKeyframes, track, AM.loadedTimeline);
             if (SceneMachine.Input.ShiftModifier) then
                 -- clone keys
@@ -895,12 +825,7 @@ function AM.CloneSelectedKeys()
     AM.clonedKeys = {};
     for i = 1, #AM.selectedKeys, 1 do
         local key = AM.selectedKeys[i];
-        local newKey = {
-            time = key.time,
-            value = key.value,
-            interpolationIn = key.interpolationIn,
-            interpolationOut = key.interpolationOut,
-        }
+        local newKey = Keyframe:NewClone(key);
 
         if (AM.keyframeGroups[AM.selectedKeyGroup].px == key) then
             if (AM.selectedTrack.keysPx) then
@@ -923,12 +848,6 @@ function AM.CloneSelectedKeys()
         
         if (AM.keyframeGroups[AM.selectedKeyGroup].rx == key) then
             if (AM.selectedTrack.keysRx) then
-                local newKey = {
-                    time = key.time,
-                    value = key.value,
-                    interpolationIn = key.interpolationIn,
-                    interpolationOut = key.interpolationOut,
-                }
                 AM.selectedTrack.keysRx[#AM.selectedTrack.keysRx + 1] = newKey;
                 AM.clonedKeys[i] = newKey;
             end
@@ -961,7 +880,7 @@ function AM.CloneSelectedKeys()
         end
     end
     
-    AM.selectedTrack:SortKeyframes();
+    AM.selectedTrack:SortAllKeyframes();
 end
 
 function AM.GetAvailableKeyframeElement()
@@ -1106,12 +1025,12 @@ function AM.CreateToolbar(x, y, w, h, parent, startLevel)
     AM.timerTextBox:SetFont(Resources.fonts["Digital"], 16);
     AM.timerTextBox:SetFrameLevel(startLevel + 2);
     AM.timerTextBox:SetScript("OnClick", function()
-        local currentDuration = AM.loadedTimeline.duration;
+        local currentDuration = AM.loadedTimeline:GetDuration();
         -- convert from miliseconds to seconds
         local action = function(text)
             local value = tonumber(text);
             if (value) then
-                AM.loadedTimeline.duration = value * 1000;
+                AM.loadedTimeline:SetDuration(value * 1000);
                 AM.RefreshWorkspace();
                 AM.RefreshTimebar();
             end
@@ -1378,12 +1297,12 @@ function AM.GenerateAnimationElement(index, x, y, w, h, parent, R, G, B, A)
     element.ntex:SetTexture(Resources.textures["Animation"]);
     element.ntex:SetTexCoord(0, 0.5, 0, 0.5);    -- (left,right,top,bottom)
     element.ntex:SetAllPoints();
-    element.ntex:SetVertexColor(AM.colors[colIdx][1] / 255, AM.colors[colIdx][2] / 255, AM.colors[colIdx][3] / 255,1);
+    element.ntex:SetVertexColor(0, 0, 0, 1);
     element:SetNormalTexture(element.ntex);
     element:RegisterForClicks("LeftButtonUp", "LeftButtonDown", "RightButtonDown");
     element:SetScript("OnMouseDown", function(self, button, down)
         if (button == "LeftButton") then
-            local track = AM.loadedTimeline.tracks[self.trackIdx];
+            local track = AM.loadedTimeline:GetTrack(self.trackIdx);
             Editor.StartAction(Actions.Action.Type.TrackAnimations, track, AM.loadedTimeline);
             AM.inputState.movingAnim = index;
             AM.inputState.mousePosStartX = Input.mouseXRaw;
@@ -1433,7 +1352,7 @@ function AM.GenerateAnimationElement(index, x, y, w, h, parent, R, G, B, A)
     element.handleL:SetScript("OnMouseDown", function(self, button)
         if (button == "LeftButton") then
             local animElement = AM.AnimationPool[index];
-            local track = AM.loadedTimeline.tracks[animElement.trackIdx];
+            local track = AM.loadedTimeline:GetTrack(animElement.trackIdx);
             Editor.StartAction(Actions.Action.Type.TrackAnimations, track, AM.loadedTimeline);
             AM.inputState.movingAnimHandleL = index;
             AM.inputState.mousePosStartX = Input.mouseXRaw;
@@ -1466,7 +1385,7 @@ function AM.GenerateAnimationElement(index, x, y, w, h, parent, R, G, B, A)
     element.handleR:SetScript("OnMouseDown", function(self, button)
         if (button == "LeftButton") then
             local animElement = AM.AnimationPool[index];
-            local track = AM.loadedTimeline.tracks[animElement.trackIdx];
+            local track = AM.loadedTimeline:GetTrack(animElement.trackIdx);
             Editor.StartAction(Actions.Action.Type.TrackAnimations, track, AM.loadedTimeline);
             AM.inputState.movingAnimHandleR = index;
             AM.inputState.mousePosStartX = Input.mouseXRaw;
@@ -1512,7 +1431,7 @@ end
 function AM.RenameTimeline(text, index)
     if (text ~= nil and text ~= "") then
         -- rename existing scene
-        local timeline = SM.loadedScene.timelines[index];
+        local timeline = SM.loadedScene:GetTimeline(index);
         Editor.StartAction(Actions.Action.Type.TimelineProperties, timeline);
         timeline.name = text;
         Editor.FinishAction(timeline);
@@ -1530,7 +1449,7 @@ end
 
 function AM.CreateTimeline(timelineName)
     if (timelineName == nil) then
-        timelineName = "Timeline " .. #SM.loadedScene.timelines;
+        timelineName = "Timeline " .. SM.loadedScene:GetTimelineCount();
     end
 
     local timeline = AM.CreateTimeline_internal(timelineName);
@@ -1542,14 +1461,8 @@ function AM.CreateTimeline(timelineName)
 end
 
 function AM.CreateTimeline_internal(timelineName)
-    local timeline = {
-        name = timelineName,
-        currentTime = 0,
-        duration = 30000, -- 30000 miliseconds, 30 seconds
-        tracks = {},
-    }
-
-    SM.loadedScene.timelines[#SM.loadedScene.timelines + 1] = timeline;
+    local timeline = Timeline:New(timelineName);
+    SM.loadedScene:AddTimeline(timeline);
     AM.RefreshTimelineTabs();
     AM.RefreshWorkspace();
 
@@ -1559,14 +1472,14 @@ end
 function AM.DeleteTimeline(index)
     -- switch to a different timeline because the currently loaded is being deleted
     -- load first that isn't this one
-    for i in pairs(SM.loadedScene.timelines) do
+    for i = 1, SM.loadedScene:GetTimelineCount(), 1 do
         if (i ~= index) then
             AM.LoadTimeline(i);
             break;
         end
     end
 
-    local timeline = SM.loadedScene.timelines[index];
+    local timeline = SM.loadedScene:GetTimeline(index);
 
     -- delete it
     AM.DeleteTimeline_internal(timeline);
@@ -1575,21 +1488,14 @@ function AM.DeleteTimeline(index)
     Editor.FinishAction();
 
     -- if this was the only timeline then create a new default one
-    if (#SM.loadedScene.timelines == 0) then
-        SM.loadedScene.timelines[1] = AM.CreateDefaultTimeline();
+    if (SM.loadedScene:GetTimelineCount() == 0) then
+        SM.loadedScene:AddTimeline(AM.CreateDefaultTimeline());
         AM.LoadTimeline(1);
     end
 end
 
 function AM.DeleteTimeline_internal(timeline)
-    for i = 1, #SM.loadedScene.timelines, 1 do
-        local t = SM.loadedScene.timelines[i];
-        if (t == timeline) then
-            table.remove(SM.loadedScene.timelines, i);
-            break;
-        end
-    end
-
+    SM.loadedScene:DeleteTimeline(timeline);
     
     AM.selectedTrack = nil;
     AM.selectedKeys = nil;
@@ -1600,7 +1506,7 @@ function AM.DeleteTimeline_internal(timeline)
 end
 
 function AM.UndeleteTimeline_internal(timeline)
-    SM.loadedScene.timelines[#SM.loadedScene.timelines + 1] = timeline;
+    SM.loadedScene:UndeleteTimeline(timeline);
 
     -- refresh ui
     AM.RefreshTimelineTabs();
@@ -1632,10 +1538,6 @@ function AM.AddTrack_internal(object)
         return;
     end
 
-    if (not AM.loadedTimeline.tracks) then
-        AM.loadedTimeline.tracks = {};
-    end
-
     -- even simpler, when adding a track the selected object would have current track selected anyway
     if (AM.selectedTrack) then
         if (AM.selectedTrack.objectID == object.id) then
@@ -1644,9 +1546,9 @@ function AM.AddTrack_internal(object)
     end
 
     local track = Track:New(object);
-    AM.loadedTimeline.tracks[#AM.loadedTimeline.tracks + 1] = track;
+    local index = AM.loadedTimeline:AddTrack(track);
 
-    AM.SelectTrack(#AM.loadedTimeline.tracks);
+    AM.SelectTrack(index);
     AM.RefreshWorkspace();
 
     return track;
@@ -1671,15 +1573,7 @@ function AM.RemoveTrack_internal(track, timeline)
         AM.selectedTrack = nil;
     end
 
-    if (#timeline.tracks > 0) then
-        for i in pairs(timeline.tracks) do
-            if (timeline.tracks[i] == track) then
-                table.remove(timeline.tracks, i);
-            end
-        end
-    end
-
-    --AM.SelectTrack(#timeline.tracks);
+    timeline:RemoveTrack(track);
     AM.RefreshWorkspace();
 end
 
@@ -1688,7 +1582,7 @@ function AM.UnremoveTrack_internal(track, timeline)
         return;
     end
 
-    timeline.tracks[#timeline.tracks + 1] = track;
+    timeline:AddTrack(track);
     AM.RefreshWorkspace();
 end
 
@@ -1700,17 +1594,17 @@ function AM.SelectTrack(index)
         return;
     end
 
-    if (not AM.loadedTimeline.tracks[index]) then
+    if (not AM.loadedTimeline:GetTrack(index)) then
         return;
     end
 
-    if (AM.loadedTimeline.tracks[index] ~= AM.selectedTrack) then
+    if (AM.loadedTimeline:GetTrack(index) ~= AM.selectedTrack) then
         AM.SelectKeyAtIndex(-1);
     end
 
-    AM.selectedTrack = AM.loadedTimeline.tracks[index];
+    AM.selectedTrack = AM.loadedTimeline:GetTrack(index);
 
-    Editor.lastSelectedType = "track";
+    Editor.lastSelectedType = Editor.SelectionType.Track;
 
     -- also select object
     local obj = AM.GetObjectOfTrack(AM.selectedTrack);
@@ -1730,9 +1624,9 @@ function AM.LoadTimeline(index)
     AM.loadedTimelineIndex = index;
     AM.tabGroup.selectedIndex = index;
 
-    if (#SM.loadedScene.timelines == 0) then
+    if (SM.loadedScene:GetTimelineCount() == 0) then
         -- current project has no timelines, create a default one
-        SM.loadedScene.timelines[1] = AM.CreateDefaultTimeline();
+        SM.loadedScene:AddTimeline(AM.CreateDefaultTimeline());
         AM.RefreshTimelineTabs();
     end
 
@@ -1740,7 +1634,7 @@ function AM.LoadTimeline(index)
     AM.UnloadTimeline();
 
     -- load new --
-    local timeline = SM.loadedScene.timelines[index];
+    local timeline = SM.loadedScene:GetTimeline(index);
     AM.loadedTimeline = timeline;
 
     -- refresh the ui
@@ -1791,7 +1685,7 @@ end
 
 function AM.RefreshTimelineTabs()
     if (SM.loadedScene ~= nil) then
-        AM.tabGroup:SetData(SM.loadedScene.timelines);
+        AM.tabGroup:SetData(SM.loadedScene:GetTimelines());
     end
 end
 
@@ -1805,7 +1699,7 @@ function AM.RefreshTimebar()
     end
 
     local timeBarW = AM.timebarGroup:GetWidth();
-    local totalTimeMs = AM.loadedTimeline.duration or 0;
+    local totalTimeMs = AM.loadedTimeline:GetDuration() or 0;
 
     local startTimeMs = math.floor(AM.currentCrop.min * totalTimeMs);
     local startTimeS = startTimeMs / 1000;
@@ -1876,6 +1770,11 @@ function AM.RefreshTimebar()
 end
 
 function AM.RefreshWorkspace()
+    -- limiting to once per frame (for performance reasons)
+    --if (AM.inputState.workspaceRefreshed) then
+    --    return;
+    --end
+
     if (not AM.workAreaCreated) then
         return;
     end
@@ -1888,284 +1787,280 @@ function AM.RefreshWorkspace()
     AM.trackSelectionBox:Hide();
 
     if (AM.uiMode == AM.Mode.Tracks) then
-        -- load tracks
-        local usedTracks = 0;
-        local usedAnimations = 0;
-        local usedKeys = 0;
-        if (AM.loadedTimeline) then
-            if (not AM.loadedTimeline.tracks) then
-                AM.loadedTimeline.tracks = {};
-            end
+        AM.RefreshUIModeTracks();
 
-            -- tracks
-            if (AM.loadedTimeline.tracks) then
-                usedTracks = #AM.loadedTimeline.tracks;
-                for t = 1, #AM.loadedTimeline.tracks, 1 do
-                    local track = AM.loadedTimeline.tracks[t];
-                    local trackElement = AM.GetAvailableTrackElement();
-                    local trackElementW = trackElement:GetWidth();
-                    trackElement.name:SetText(track.name);
-                    trackElement:Show();
-
-                    -- animations
-                    if (track.animations) then
-                        for a = 1, #track.animations, 1 do
-                            local animElement = AM.GetAvailableAnimationElement();
-                            usedAnimations = usedAnimations + 1;
-                            local startMS = AM.currentCrop.min * AM.loadedTimeline.duration;
-                            local endMS = AM.currentCrop.max * AM.loadedTimeline.duration;
-                            local xMS = track.animations[a].startT or 0;
-                            local yMS = track.animations[a].endT or 3000;
-                            local colorID = track.animations[a].colorId;
-                            
-                            -- check if on screen or cropped out
-                            -- check if any of the points are on screen, or if both points are larger than screen else hide
-                            if (xMS >= startMS and xMS <= endMS) or (yMS >= startMS and yMS <= endMS) or (xMS <= startMS and yMS >= endMS ) then
-                                local xNorm = (xMS - startMS) / (endMS - startMS);
-                                local yNorm = (yMS - startMS) / (endMS - startMS);
-                                xNorm = max(0, xNorm);
-                                yNorm = min(1, yNorm);
-                
-                                local startP = math.floor(trackElementW * xNorm);
-                                local endP = math.floor(trackElementW * yNorm);
-                                local width = endP - startP;
-                
-                                animElement:ClearAllPoints();
-                                animElement:SetPoint("TOPLEFT", trackElement, "TOPLEFT", startP, 0);
-                                animElement:SetSize(width, AM.trackElementH);
-
-                                -- use alpha to desaturate the animation bars
-                                -- so that they don't draw more attention than the scene
-                                -- calculate an alpha value based on percieved R,G,B
-                                local R = AM.colors[colorID][1] / 255;
-                                local G = AM.colors[colorID][2] / 255;
-                                local B = AM.colors[colorID][3] / 255;
-                                local alpha = 1.0 - ((R + G + (B / 2)) / 3);
-                                alpha = max(0, min(1, alpha));
-
-                                animElement.ntex:SetVertexColor(R, G, B, alpha);
-                                animElement:Show();
-                
-                                animElement.name:SetText(track.animations[a].name);
-
-                                -- store some information for lookup
-                                animElement.animIdx = a;
-                                animElement.trackIdx = t;
-
-                                if (track.animations[a] == AM.selectedAnim) then
-                                    AM.animationSelectionBox.lineTop:SetTexCoord(0, width / 20, 0, 1);
-                                    AM.animationSelectionBox.lineBottom:SetTexCoord(0, width / 20, 0, 1);
-                                    local alphaH = max(0, min(1, alpha + 0.3));
-                                    animElement.ntex:SetVertexColor(R, G, B, alphaH);
-                                end
-                            else
-                                animElement:Hide();
-                            end
-                        end
-                    end
-
-                    -- animations: hide unused
-                    for i = usedAnimations + 1, #AM.AnimationPool, 1 do
-                        if (AM.AnimationPool[i]) then
-                            AM.AnimationPool[i]:Hide();
-                        end
-                    end
-
-                    -- keyframes: hide unused
-                    for i = usedKeys + 1, #AM.KeyframePool, 1 do
-                        if (AM.KeyframePool[i]) then
-                            AM.KeyframePool[i]:Hide();
-                        end
-                    end
-
-                    if (track == AM.selectedTrack) then
-                        -- keyframes
-                        local startMS = AM.currentCrop.min * AM.loadedTimeline.duration;
-                        local endMS = AM.currentCrop.max * AM.loadedTimeline.duration;
-                        local barWidth = AM.keyframeBars[1]:GetWidth();
-                        usedKeys = usedKeys + AM.RefreshGroupKeyframes(track, startMS, endMS, barWidth, t);
-
-                        -- Show track selection box on the left
-                        AM.trackSelectionBox:Show();
-                        AM.trackSelectionBox:SetSinglePoint("TOPLEFT", 0, (t - 1) * -(AM.trackElementH + Editor.pmult));
-                    end
-                end
-
-                -- if no tracks, hide keyframes
-                if (usedTracks == 0) then
-                    for i = 1, #AM.KeyframePool, 1 do
-                        if (AM.KeyframePool[i]) then
-                            AM.KeyframePool[i]:Hide();
-                        end
-                    end
-                end
-
-                -- tracks: hide unused
-                for i = usedTracks + 1, #AM.TrackPool, 1 do
-                    if (AM.TrackPool[i]) then
-                        AM.TrackPool[i]:Hide();
-                    end
-                end
-            end
-        end
-        
-        -- make list fit elements
-        local workAreaListHeight = usedTracks * (AM.trackElementH + Editor.pmult);
-        AM.workAreaList:SetHeight(workAreaListHeight);
-        
         -- resize scrollbar
-        AM.workAreaScrollbar:Resize(AM.groupBG:GetHeight() - 106, workAreaListHeight);
-
+        AM.workAreaScrollbar:Resize(AM.groupBG:GetHeight() - 106, AM.workAreaList:GetHeight());
     elseif (AM.uiMode == AM.Mode.Keyframes) then
-        -- load tracks
-        local usedKeys = 0;
-        if (AM.loadedTimeline) then
-            if (not AM.loadedTimeline.tracks) then
-                AM.loadedTimeline.tracks = {};
-            end
-
-            -- tracks
-            if (AM.loadedTimeline.tracks) then
-                for t = 1, #AM.loadedTimeline.tracks, 1 do
-                    local track = AM.loadedTimeline.tracks[t];
-
-                    if (AM.selectedTrack == track) then
-                        local startMS = AM.currentCrop.min * AM.loadedTimeline.duration;
-                        local endMS = AM.currentCrop.max * AM.loadedTimeline.duration;
-                        local barWidth = AM.keyframeBars[1]:GetWidth();
-
-                        -- keyframes
-                        usedKeys = usedKeys + AM.RefreshKeyframes(track.keysPx, startMS, endMS, barWidth, t, 1);
-                        usedKeys = usedKeys + AM.RefreshKeyframes(track.keysPy, startMS, endMS, barWidth, t, 2);
-                        usedKeys = usedKeys + AM.RefreshKeyframes(track.keysPz, startMS, endMS, barWidth, t, 3);
-
-                        usedKeys = usedKeys + AM.RefreshKeyframes(track.keysRx, startMS, endMS, barWidth, t, 4);
-                        usedKeys = usedKeys + AM.RefreshKeyframes(track.keysRy, startMS, endMS, barWidth, t, 5);
-                        usedKeys = usedKeys + AM.RefreshKeyframes(track.keysRz, startMS, endMS, barWidth, t, 6);
-
-                        usedKeys = usedKeys + AM.RefreshKeyframes(track.keysS, startMS, endMS, barWidth, t, 7);
-
-                        usedKeys = usedKeys + AM.RefreshKeyframes(track.keysA, startMS, endMS, barWidth, t, 8);
-
-                        usedKeys = usedKeys + AM.RefreshGroupKeyframes(track, startMS, endMS, barWidth, t);
-                    end
-                end
-            end
-        end
-        
-        -- keyframes: hide unused
-        --print (usedKeys .. " " .. #AM.KeyframePool)
-        for i = usedKeys + 1, #AM.KeyframePool, 1 do
-            if (AM.KeyframePool[i]) then
-                AM.KeyframePool[i]:Hide();
-            end
-        end
+        AM.RefreshUIModeKeyframes();
 
         -- resize scrollbar
         if (AM.keyframeAreaList) then
             AM.workAreaScrollbar:Resize(AM.keyframeViewport:GetHeight(), AM.keyframeAreaList:GetHeight());
         end
     elseif (AM.uiMode == AM.Mode.Curves) then
-        local usedLines = 0;
-        local viewScale = 20;
-        if (AM.loadedTimeline and AM.selectedTrack) then
-            local track = AM.selectedTrack;
-            --local trackElement = AM.GetAvailableTrackElement();
-            --local trackElementW = trackElement:GetWidth() - 6;
-            local trackElementW = AM.workAreaList:GetWidth() - 6;
-            --[[
-            if (track.keyframes) then
-                local linePreviousX = nil;
-                local linePreviousY = nil;
-                local linePreviousZ = nil;
-                for k = 1, #track.keyframes - 1, 1 do
-                    local startMS = AM.currentCrop.min * AM.loadedTimeline.duration;
-                    local endMS = AM.currentCrop.max * AM.loadedTimeline.duration;
-
-                    local time1MS = track.keyframes[k].time;
-                    local time2MS = track.keyframes[k + 1].time;
-
-                    local x1Norm = (time1MS - startMS) / (endMS - startMS);
-                    local x2Norm = (time2MS - startMS) / (endMS - startMS);
-
-                    local startX = math.floor(trackElementW * x1Norm);
-                    local endX = math.floor(trackElementW * x2Norm);
-
-                    local lineCount = 20;
-
-                    for l = 1, lineCount, 1 do
-                        local t = (l / lineCount);
-                        local timeMS = time1MS * (1 - t) + time2MS * t;
-                        local pos = track:SamplePositionKey(timeMS);
-
-                        -- pos X
-                        local lineX = AM.GetAvailableCurvePoolLineElement();
-                        local x = startX * (1 - t) + endX * t;
-                        local y = pos.x * viewScale;
-                        lineX:SetVertexColor(1,0,0,1);
-                        lineX:ClearAllPoints();
-                        lineX:SetStartPoint("LEFT", AM.curveViewBG:GetFrame(), x, y);
-                        if (linePreviousX) then
-                            local relativePoint, relativeTo, offsetX, offsetY = linePreviousX:GetStartPoint();
-                            lineX:SetEndPoint(relativePoint, relativeTo, offsetX, offsetY);
-                        else
-                            lineX:SetEndPoint("LEFT", AM.curveViewBG:GetFrame(), 0, 0);
-                        end
-                        lineX:Show();
-                        usedLines = usedLines + 1;
-                        linePreviousX = lineX;
-
-                        -- pos Y
-                        local lineY = AM.GetAvailableCurvePoolLineElement();
-                        local x = startX * (1 - t) + endX * t;
-                        local y = pos.y * viewScale;
-                        lineY:SetVertexColor(0,1,0,1);
-                        lineY:ClearAllPoints();
-                        lineY:SetStartPoint("LEFT", AM.curveViewBG:GetFrame(), x, y);
-                        if (linePreviousY) then
-                            local relativePoint, relativeTo, offsetX, offsetY = linePreviousY:GetStartPoint();
-                            lineY:SetEndPoint(relativePoint, relativeTo, offsetX, offsetY);
-                        else
-                            lineY:SetEndPoint("LEFT", AM.curveViewBG:GetFrame(), 0, 0);
-                        end
-                        lineY:Show();
-                        usedLines = usedLines + 1;
-                        linePreviousY = lineY;
-
-                        -- pos Z
-                        local lineZ = AM.GetAvailableCurvePoolLineElement();
-                        local x = startX * (1 - t) + endX * t;
-                        local y = pos.z * viewScale;
-                        lineZ:SetVertexColor(0,0,1,1);
-                        lineZ:ClearAllPoints();
-                        lineZ:SetStartPoint("LEFT", AM.curveViewBG:GetFrame(), x, y);
-                        if (linePreviousZ) then
-                            local relativePoint, relativeTo, offsetX, offsetY = linePreviousZ:GetStartPoint();
-                            lineZ:SetEndPoint(relativePoint, relativeTo, offsetX, offsetY);
-                        else
-                            lineZ:SetEndPoint("LEFT", AM.curveViewBG:GetFrame(), 0, 0);
-                        end
-                        lineZ:Show();
-                        usedLines = usedLines + 1;
-                        linePreviousZ = lineZ;
-                    end
-                end
-            end
-            -- lines: hide unused
-            for i = usedLines, #AM.CurvePool, 1 do
-                if (AM.CurvePool[i]) then
-                    AM.CurvePool[i]:Hide();
-                end
-            end
-            --]]
-        end
+        AM.RefreshUIModeCurves();
     end
 
     -- update timer
     if (AM.loadedTimeline) then
-        local totalTime = AM.TimeValueToString(AM.loadedTimeline.duration);
-        local currentTime = AM.TimeValueToString(AM.loadedTimeline.currentTime or 0);
+        local totalTime = AM.TimeValueToString(AM.loadedTimeline:GetDuration());
+        local currentTime = AM.TimeValueToString(AM.loadedTimeline:GetTime() or 0);
         AM.timerTextBox:SetText(currentTime .. "-" .. totalTime);
+    end
+
+    AM.inputState.workspaceRefreshed = true;
+end
+
+function AM.RefreshUIModeTracks()
+    -- load tracks
+    local usedTracks = 0;
+    local usedAnimations = 0;
+    local usedKeys = 0;
+    if (AM.loadedTimeline and AM.loadedTimeline:HasTracks()) then
+        usedTracks = AM.loadedTimeline:GetTrackCount();
+        for t = 1, AM.loadedTimeline:GetTrackCount(), 1 do
+            local track = AM.loadedTimeline:GetTrack(t);
+            local trackElement = AM.GetAvailableTrackElement();
+            local trackElementW = trackElement:GetWidth();
+            trackElement.name:SetText(track.name);
+            trackElement:Show();
+
+            -- animations
+            if (track.animations) then
+                for a = 1, #track.animations, 1 do
+                    local animElement = AM.GetAvailableAnimationElement();
+                    usedAnimations = usedAnimations + 1;
+                    local startMS = AM.currentCrop.min * AM.loadedTimeline:GetDuration();
+                    local endMS = AM.currentCrop.max * AM.loadedTimeline:GetDuration();
+                    local xMS = track.animations[a]:GetStartTime() or 0;
+                    local yMS = track.animations[a]:GetEndTime() or 3000;
+
+                    -- check if on screen or cropped out
+                    -- check if any of the points are on screen, or if both points are larger than screen else hide
+                    if (xMS >= startMS and xMS <= endMS) or (yMS >= startMS and yMS <= endMS) or (xMS <= startMS and yMS >= endMS ) then
+                        local xNorm = (xMS - startMS) / (endMS - startMS);
+                        local yNorm = (yMS - startMS) / (endMS - startMS);
+                        xNorm = max(0, xNorm);
+                        yNorm = min(1, yNorm);
+        
+                        local startP = math.floor(trackElementW * xNorm);
+                        local endP = math.floor(trackElementW * yNorm);
+                        local width = endP - startP;
+        
+                        animElement:ClearAllPoints();
+                        animElement:SetPoint("TOPLEFT", trackElement, "TOPLEFT", startP, 0);
+                        animElement:SetSize(width, AM.trackElementH);
+
+                        -- use alpha to desaturate the animation bars
+                        -- so that they don't draw more attention than the scene
+                        -- calculate an alpha value based on percieved R,G,B
+                        local R, G, B, A = track.animations[a]:GetColor();
+                        local alpha = 1.0 - ((R + G + (B / 2)) / 3);
+                        alpha = max(0, min(1, alpha));
+
+                        animElement.ntex:SetVertexColor(R, G, B, alpha);
+                        animElement:Show();
+        
+                        animElement.name:SetText(track.animations[a].name);
+
+                        -- store some information for lookup
+                        animElement.animIdx = a;
+                        animElement.trackIdx = t;
+
+                        if (track.animations[a] == AM.selectedAnim) then
+                            AM.animationSelectionBox.lineTop:SetTexCoord(0, width / 20, 0, 1);
+                            AM.animationSelectionBox.lineBottom:SetTexCoord(0, width / 20, 0, 1);
+                            local alphaH = max(0, min(1, alpha + 0.3));
+                            animElement.ntex:SetVertexColor(R, G, B, alphaH);
+                        end
+                    else
+                        animElement:Hide();
+                    end
+                end
+            end
+
+            -- animations: hide unused
+            for i = usedAnimations + 1, #AM.AnimationPool, 1 do
+                if (AM.AnimationPool[i]) then
+                    AM.AnimationPool[i]:Hide();
+                end
+            end
+
+            -- keyframes: hide unused
+            for i = usedKeys + 1, #AM.KeyframePool, 1 do
+                if (AM.KeyframePool[i]) then
+                    AM.KeyframePool[i]:Hide();
+                end
+            end
+
+            if (track == AM.selectedTrack) then
+                -- keyframes
+                local startMS = AM.currentCrop.min * AM.loadedTimeline:GetDuration();
+                local endMS = AM.currentCrop.max * AM.loadedTimeline:GetDuration();
+                local barWidth = AM.keyframeBars[1]:GetWidth();
+                usedKeys = usedKeys + AM.RefreshGroupKeyframes(track, startMS, endMS, barWidth, t);
+
+                -- Show track selection box on the left
+                AM.trackSelectionBox:Show();
+                AM.trackSelectionBox:SetSinglePoint("TOPLEFT", 0, (t - 1) * -(AM.trackElementH + Editor.pmult));
+            end
+        end
+    end
+
+    -- if no tracks, hide keyframes
+    if (usedTracks == 0) then
+        for i = 1, #AM.KeyframePool, 1 do
+            if (AM.KeyframePool[i]) then
+                AM.KeyframePool[i]:Hide();
+            end
+        end
+    end
+
+    -- tracks: hide unused
+    for i = usedTracks + 1, #AM.TrackPool, 1 do
+        if (AM.TrackPool[i]) then
+            AM.TrackPool[i]:Hide();
+        end
+    end
+
+    -- make list fit elements
+    local workAreaListHeight = usedTracks * (AM.trackElementH + Editor.pmult);
+    AM.workAreaList:SetHeight(workAreaListHeight);
+end
+
+function AM.RefreshUIModeKeyframes()
+    -- load tracks
+    local usedKeys = 0;
+    if (AM.loadedTimeline and AM.loadedTimeline:HasTracks()) then
+        for t = 1, AM.loadedTimeline:GetTrackCount(), 1 do
+            local track = AM.loadedTimeline:GetTrack(t);
+
+            if (AM.selectedTrack == track) then
+                local startMS = AM.currentCrop.min * AM.loadedTimeline:GetDuration();
+                local endMS = AM.currentCrop.max * AM.loadedTimeline:GetDuration();
+                local barWidth = AM.keyframeBars[1]:GetWidth();
+
+                -- keyframes
+                usedKeys = usedKeys + AM.RefreshKeyframes(track.keysPx, startMS, endMS, barWidth, t, 1);
+                usedKeys = usedKeys + AM.RefreshKeyframes(track.keysPy, startMS, endMS, barWidth, t, 2);
+                usedKeys = usedKeys + AM.RefreshKeyframes(track.keysPz, startMS, endMS, barWidth, t, 3);
+
+                usedKeys = usedKeys + AM.RefreshKeyframes(track.keysRx, startMS, endMS, barWidth, t, 4);
+                usedKeys = usedKeys + AM.RefreshKeyframes(track.keysRy, startMS, endMS, barWidth, t, 5);
+                usedKeys = usedKeys + AM.RefreshKeyframes(track.keysRz, startMS, endMS, barWidth, t, 6);
+
+                usedKeys = usedKeys + AM.RefreshKeyframes(track.keysS, startMS, endMS, barWidth, t, 7);
+
+                usedKeys = usedKeys + AM.RefreshKeyframes(track.keysA, startMS, endMS, barWidth, t, 8);
+
+                usedKeys = usedKeys + AM.RefreshGroupKeyframes(track, startMS, endMS, barWidth, t);
+            end
+        end
+    end
+    
+    -- keyframes: hide unused
+    --print (usedKeys .. " " .. #AM.KeyframePool)
+    for i = usedKeys + 1, #AM.KeyframePool, 1 do
+        if (AM.KeyframePool[i]) then
+            AM.KeyframePool[i]:Hide();
+        end
+    end
+end
+
+function AM.RefreshUIModeCurves()
+    local usedLines = 0;
+    local viewScale = 20;
+    if (AM.loadedTimeline and AM.selectedTrack) then
+        local track = AM.selectedTrack;
+        --local trackElement = AM.GetAvailableTrackElement();
+        --local trackElementW = trackElement:GetWidth() - 6;
+        local trackElementW = AM.workAreaList:GetWidth() - 6;
+        --[[
+        if (track.keyframes) then
+            local linePreviousX = nil;
+            local linePreviousY = nil;
+            local linePreviousZ = nil;
+            for k = 1, #track.keyframes - 1, 1 do
+                local startMS = AM.currentCrop.min * AM.loadedTimeline:GetDuration();
+                local endMS = AM.currentCrop.max * AM.loadedTimeline:GetDuration();
+
+                local time1MS = track.keyframes[k].time;
+                local time2MS = track.keyframes[k + 1].time;
+
+                local x1Norm = (time1MS - startMS) / (endMS - startMS);
+                local x2Norm = (time2MS - startMS) / (endMS - startMS);
+
+                local startX = math.floor(trackElementW * x1Norm);
+                local endX = math.floor(trackElementW * x2Norm);
+
+                local lineCount = 20;
+
+                for l = 1, lineCount, 1 do
+                    local t = (l / lineCount);
+                    local timeMS = time1MS * (1 - t) + time2MS * t;
+                    local pos = track:SamplePositionKey(timeMS);
+
+                    -- pos X
+                    local lineX = AM.GetAvailableCurvePoolLineElement();
+                    local x = startX * (1 - t) + endX * t;
+                    local y = pos.x * viewScale;
+                    lineX:SetVertexColor(1,0,0,1);
+                    lineX:ClearAllPoints();
+                    lineX:SetStartPoint("LEFT", AM.curveViewBG:GetFrame(), x, y);
+                    if (linePreviousX) then
+                        local relativePoint, relativeTo, offsetX, offsetY = linePreviousX:GetStartPoint();
+                        lineX:SetEndPoint(relativePoint, relativeTo, offsetX, offsetY);
+                    else
+                        lineX:SetEndPoint("LEFT", AM.curveViewBG:GetFrame(), 0, 0);
+                    end
+                    lineX:Show();
+                    usedLines = usedLines + 1;
+                    linePreviousX = lineX;
+
+                    -- pos Y
+                    local lineY = AM.GetAvailableCurvePoolLineElement();
+                    local x = startX * (1 - t) + endX * t;
+                    local y = pos.y * viewScale;
+                    lineY:SetVertexColor(0,1,0,1);
+                    lineY:ClearAllPoints();
+                    lineY:SetStartPoint("LEFT", AM.curveViewBG:GetFrame(), x, y);
+                    if (linePreviousY) then
+                        local relativePoint, relativeTo, offsetX, offsetY = linePreviousY:GetStartPoint();
+                        lineY:SetEndPoint(relativePoint, relativeTo, offsetX, offsetY);
+                    else
+                        lineY:SetEndPoint("LEFT", AM.curveViewBG:GetFrame(), 0, 0);
+                    end
+                    lineY:Show();
+                    usedLines = usedLines + 1;
+                    linePreviousY = lineY;
+
+                    -- pos Z
+                    local lineZ = AM.GetAvailableCurvePoolLineElement();
+                    local x = startX * (1 - t) + endX * t;
+                    local y = pos.z * viewScale;
+                    lineZ:SetVertexColor(0,0,1,1);
+                    lineZ:ClearAllPoints();
+                    lineZ:SetStartPoint("LEFT", AM.curveViewBG:GetFrame(), x, y);
+                    if (linePreviousZ) then
+                        local relativePoint, relativeTo, offsetX, offsetY = linePreviousZ:GetStartPoint();
+                        lineZ:SetEndPoint(relativePoint, relativeTo, offsetX, offsetY);
+                    else
+                        lineZ:SetEndPoint("LEFT", AM.curveViewBG:GetFrame(), 0, 0);
+                    end
+                    lineZ:Show();
+                    usedLines = usedLines + 1;
+                    linePreviousZ = lineZ;
+                end
+            end
+        end
+        -- lines: hide unused
+        for i = usedLines, #AM.CurvePool, 1 do
+            if (AM.CurvePool[i]) then
+                AM.CurvePool[i]:Hide();
+            end
+        end
+        --]]
     end
 end
 
@@ -2191,7 +2086,7 @@ function AM.RefreshKeyframes(keys, startMS, endMS, barWidth, trackIndex, compone
                 keyframeElement:SetParent(AM.keyframeBars[componentIndex]);
                 keyframeElement:SetPoint("CENTER", AM.keyframeBars[componentIndex], "LEFT", startP, 0);
                 keyframeElement:Show();
-                keyframeElement.ntex:SetTexCoord(AM.KeyframeInterpolationToTexCoords(keys[k].interpolationIn, keys[k].interpolationOut));
+                keyframeElement.ntex:SetTexCoord(AM.KeyframeInterpolationToTexCoords(keys[k]:GetInterpolationIn(), keys[k]:GetInterpolationOut()));
                 
                 -- store some information for lookup
                 keyframeElement.trackIdx = trackIndex;
@@ -2241,7 +2136,15 @@ function AM.RefreshKeyframes(keys, startMS, endMS, barWidth, trackIndex, compone
     return usedKeys;
 end
 
+--- Converts a keyframe interpolation index to texture coordinates.
+--- @param idx number The keyframe interpolation index.
+--- @param flipX? boolean Whether to flip the X-axis.
+--- @param flipY? boolean Whether to flip the Y-axis.
+--- @return number x1, number x2, number y1, number y2 The texture coordinates.
 function AM.KeyframeInterpolationIndexToTexCoords(idx, flipX, flipY)
+    flipX = flipX or false;
+    flipY = flipY or false;
+
     local x = math.fmod(idx, 4);
     local y = math.floor(idx / 4);
     local d = 0.25;
@@ -2266,68 +2169,69 @@ function AM.KeyframeInterpolationIndexToTexCoords(idx, flipX, flipY)
     return x1, x2, y1, y2;
 end
 
+--- Converts keyframe interpolation types to texture coordinates needed to display the keyframe graphic based on interpolation type.
+--- @param interpolationIn Keyframe.Interpolation The interpolation type of the incoming keyframe.
+--- @param interpolationOut Keyframe.Interpolation The interpolation type of the outgoing keyframe.
+--- @return number x1, number x2, number y1, number y2 The texture coordinates corresponding to the given interpolation types.
 function AM.KeyframeInterpolationToTexCoords(interpolationIn, interpolationOut)
-    interpolationIn = interpolationIn or Track.Interpolation.Bezier;
-    interpolationOut = interpolationOut or Track.Interpolation.Bezier;
-
-    if (interpolationIn == Track.Interpolation.Bezier) then
-        if (interpolationOut == Track.Interpolation.Bezier) then
+    if (interpolationIn == Keyframe.Interpolation.Bezier) then
+        if (interpolationOut == Keyframe.Interpolation.Bezier) then
             return AM.KeyframeInterpolationIndexToTexCoords(2);
-        elseif (interpolationOut == Track.Interpolation.Linear) then
+        elseif (interpolationOut == Keyframe.Interpolation.Linear) then
             return AM.KeyframeInterpolationIndexToTexCoords(4);
-        elseif (interpolationOut == Track.Interpolation.Step) then
+        elseif (interpolationOut == Keyframe.Interpolation.Step) then
             return AM.KeyframeInterpolationIndexToTexCoords(3);
-        elseif (interpolationOut == Track.Interpolation.Slow) then
+        elseif (interpolationOut == Keyframe.Interpolation.Slow) then
             return AM.KeyframeInterpolationIndexToTexCoords(10, true, true);
-        elseif (interpolationOut == Track.Interpolation.Fast) then
+        elseif (interpolationOut == Keyframe.Interpolation.Fast) then
             return AM.KeyframeInterpolationIndexToTexCoords(10, true);
         end
-    elseif (interpolationIn == Track.Interpolation.Linear) then
-        if (interpolationOut == Track.Interpolation.Bezier) then
+    elseif (interpolationIn == Keyframe.Interpolation.Linear) then
+        if (interpolationOut == Keyframe.Interpolation.Bezier) then
             return AM.KeyframeInterpolationIndexToTexCoords(4, true);
-        elseif (interpolationOut == Track.Interpolation.Linear) then
+        elseif (interpolationOut == Keyframe.Interpolation.Linear) then
             return AM.KeyframeInterpolationIndexToTexCoords(0);
-        elseif (interpolationOut == Track.Interpolation.Step) then
+        elseif (interpolationOut == Keyframe.Interpolation.Step) then
             return AM.KeyframeInterpolationIndexToTexCoords(1);
-        elseif (interpolationOut == Track.Interpolation.Slow) then
+        elseif (interpolationOut == Keyframe.Interpolation.Slow) then
             return AM.KeyframeInterpolationIndexToTexCoords(11, true, true);
-        elseif (interpolationOut == Track.Interpolation.Fast) then
+        elseif (interpolationOut == Keyframe.Interpolation.Fast) then
             return AM.KeyframeInterpolationIndexToTexCoords(11, true);
         end
-    elseif (interpolationIn == Track.Interpolation.Step) then
-        if (interpolationOut == Track.Interpolation.Bezier) then
+    elseif (interpolationIn == Keyframe.Interpolation.Step) then
+        if (interpolationOut == Keyframe.Interpolation.Bezier) then
             return AM.KeyframeInterpolationIndexToTexCoords(3, true);
-        elseif (interpolationOut == Track.Interpolation.Linear) then
+        elseif (interpolationOut == Keyframe.Interpolation.Linear) then
             return AM.KeyframeInterpolationIndexToTexCoords(1, true);
-        elseif (interpolationOut == Track.Interpolation.Step) then
+        elseif (interpolationOut == Keyframe.Interpolation.Step) then
             return AM.KeyframeInterpolationIndexToTexCoords(5);
-        elseif (interpolationOut == Track.Interpolation.Slow) then
+        elseif (interpolationOut == Keyframe.Interpolation.Slow) then
             return AM.KeyframeInterpolationIndexToTexCoords(9, true, true);
-        elseif (interpolationOut == Track.Interpolation.Fast) then
+        elseif (interpolationOut == Keyframe.Interpolation.Fast) then
             return AM.KeyframeInterpolationIndexToTexCoords(9, true);
         end
-    elseif (interpolationIn == Track.Interpolation.Slow) then
-        if (interpolationOut == Track.Interpolation.Bezier) then
+    elseif (interpolationIn == Keyframe.Interpolation.Slow) then
+        if (interpolationOut == Keyframe.Interpolation.Bezier) then
             return AM.KeyframeInterpolationIndexToTexCoords(10);
-        elseif (interpolationOut == Track.Interpolation.Linear) then
+        elseif (interpolationOut == Keyframe.Interpolation.Linear) then
             return AM.KeyframeInterpolationIndexToTexCoords(11);
-        elseif (interpolationOut == Track.Interpolation.Step) then
+        elseif (interpolationOut == Keyframe.Interpolation.Step) then
             return AM.KeyframeInterpolationIndexToTexCoords(9);
-        elseif (interpolationOut == Track.Interpolation.Slow) then
+        elseif (interpolationOut == Keyframe.Interpolation.Slow) then
             return AM.KeyframeInterpolationIndexToTexCoords(12);
-        elseif (interpolationOut == Track.Interpolation.Fast) then
+        elseif (interpolationOut == Keyframe.Interpolation.Fast) then
             return AM.KeyframeInterpolationIndexToTexCoords(8);
         end
-    elseif (interpolationIn == Track.Interpolation.Fast) then
-        if (interpolationOut == Track.Interpolation.Bezier) then
+    elseif (interpolationIn == Keyframe.Interpolation.Fast) then
+        if (interpolationOut == Keyframe.Interpolation.Bezier) then
             return AM.KeyframeInterpolationIndexToTexCoords(10, false, true);
-        elseif (interpolationOut == Track.Interpolation.Linear) then
+        elseif (interpolationOut == Keyframe.Interpolation.Linear) then
             return AM.KeyframeInterpolationIndexToTexCoords(11, false, true);
-        elseif (interpolationOut == Track.Interpolation.Step) then
+        elseif (interpolationOut == Keyframe.Interpolation.Step) then
             return AM.KeyframeInterpolationIndexToTexCoords(9, false, true);
-        elseif (interpolationOut == Track.Interpolation.Slow) then
+        elseif (interpolationOut == Keyframe.Interpolation.Slow) then
             return AM.KeyframeInterpolationIndexToTexCoords(8, false, true);
-        elseif (interpolationOut == Track.Interpolation.Fast) then
+        elseif (interpolationOut == Keyframe.Interpolation.Fast) then
             return AM.KeyframeInterpolationIndexToTexCoords(12, false, true);
         end
     end
@@ -2453,9 +2357,6 @@ function AM.AddAnim(track, animID, animVariant)
 
     animVariant = animVariant or 0;
 
-    -- place after last in time
-    local colorId = math.random(1, #AM.colors);
-
     -- get length
     local obj = AM.GetObjectOfTrack(track);
     if (not obj) then
@@ -2466,6 +2367,8 @@ function AM.AddAnim(track, animID, animVariant)
         obj.fileID = tonumber(idString);
     end
     
+    local anim = AnimationClip:New(animID, animVariant);
+
     local animData = SceneMachine.animationData[obj.fileID];
     local animLength = 3000;
     if (animData) then
@@ -2477,12 +2380,17 @@ function AM.AddAnim(track, animID, animVariant)
         end
     end
 
+    anim:SetLength(animLength);
+
     local startT = 0;
     local endT = startT + animLength;
     if (#track.animations > 0) then
-        startT = track.animations[#track.animations].endT;
+        startT = track.animations[#track.animations]:GetEndTime();
         endT = startT + animLength;
     end
+
+    anim:SetStartTime(startT);
+    anim:SetEndTime(endT);
 
     local name = SceneMachine.animationNames[animID];
     name = name or ("Anim_" .. animID);
@@ -2490,16 +2398,10 @@ function AM.AddAnim(track, animID, animVariant)
         name = name .. " " .. animVariant;
     end
 
-    track.animations[#track.animations + 1] = {
-        id = animID,
-        variation = animVariant,
-        animLength = animLength,
-        colorId = colorId,
-        startT = startT,
-        endT = endT,
-        name = name,
-        speed = 1,
-    };
+    anim:SetName(name);
+    anim:SetSpeed(1);
+
+    table.insert(track.animations, anim);
 
     Editor.FinishAction();
 
@@ -2560,13 +2462,10 @@ function AM.ReplaceAnim(track, currentAnim, newID, newVariant)
         end
     end
 
-    currentAnim.id = newID;
-    currentAnim.variation = newVariant;
-    currentAnim.animLength = animLength;
-    currentAnim.name = name;
-    -- leave these the same so we don't have to shift other animations around to fit a new size
-    --currentAnim.startT =
-    --currentAnim.endT =
+    currentAnim:SetID(newID);
+    currentAnim:SetVariation(newVariant);
+    currentAnim:SetLength(animLength);
+    currentAnim:SetName(name);
 
     Editor.FinishAction();
     AM.RefreshWorkspace();
@@ -2583,13 +2482,13 @@ function AM.SelectAnimation(index)
     -- find which animation, track and elements were just selected
     local animElement = AM.AnimationPool[index];
     local trackElement = animElement.trackIdx;
-    local track = AM.loadedTimeline.tracks[animElement.trackIdx];
+    local track = AM.loadedTimeline:GetTrack(animElement.trackIdx);
     local anim = track.animations[animElement.animIdx];
     
     AM.SelectTrack(animElement.trackIdx);
     AM.selectedAnim = anim;
 
-    Editor.lastSelectedType = "anim";
+    Editor.lastSelectedType = Editor.SelectionType.Anim;
 
     AM.animationSelectionBox:ClearAllPoints();
     AM.animationSelectionBox:SetParent(animElement);
@@ -2617,11 +2516,11 @@ function AM.Button_SetAnimationSpeed(index)
     end
 
     -- using percentage in the text box, easier to type than floats
-    local currentSpeed = AM.selectedAnim.speed or 1;
+    local currentSpeed = AM.selectedAnim:GetSpeed() or 1;
     local action = function(text)
         local value = tonumber(text);
         if (value) then
-            AM.selectedAnim.speed = value / 100;
+            AM.selectedAnim:SetSpeed(value / 100);
         end
         AM.RefreshWorkspace();
     end
@@ -2629,18 +2528,15 @@ function AM.Button_SetAnimationSpeed(index)
 end
 
 function AM.Button_RandomizeAnimColor(index)
-    local colorId = math.random(1, #AM.colors);
+    AM.selectedAnim:RandomizeColor();
 
     -- use alpha to desaturate the animation bars
     -- so that they don't draw more attention than the scene
     -- calculate an alpha value based on percieved R,G,B
-    local R = AM.colors[colorId][1] / 255;
-    local G = AM.colors[colorId][2] / 255;
-    local B = AM.colors[colorId][3] / 255;
+    local R, G, B, A = AM.selectedAnim:GetColor();
     local alpha = 1.0 - ((R + G + (B / 2)) / 3);
     alpha = max(0, min(1, alpha));
 
-    AM.selectedAnim.colorId = colorId;
     AM.AnimationPool[index].ntex:SetVertexColor(R, G, B, alpha);
 end
 
@@ -2669,10 +2565,10 @@ function AM.SetTime(timeMS, rounded)
 
     -- update timer
     if (AM.loadedTimeline) then
-        AM.loadedTimeline.currentTime = timeMS;
+        AM.loadedTimeline:SetTime(timeMS);
 
-        local totalTime = AM.TimeValueToString(AM.loadedTimeline.duration);
-        local currentTime = AM.TimeValueToString(AM.loadedTimeline.currentTime or 0);
+        local totalTime = AM.TimeValueToString(AM.loadedTimeline:GetDuration());
+        local currentTime = AM.TimeValueToString(AM.loadedTimeline:GetTime() or 0);
         AM.timerTextBox:SetText(currentTime .. "-" .. totalTime);
     end
 
@@ -2682,9 +2578,9 @@ function AM.SetTime(timeMS, rounded)
 
     -- go through the timeline tracks
     local timeline = AM.loadedTimeline;
-    if (timeline and timeline.tracks) then
-        for t in pairs(timeline.tracks) do
-            local track = timeline.tracks[t];
+    if (timeline and timeline:HasTracks()) then
+        for t = 1, timeline:GetTrackCount(), 1 do
+            local track = timeline:GetTrack(t);
             -- also get object
             local obj = AM.GetObjectOfTrack(track);
             if (obj) then
@@ -2761,15 +2657,7 @@ function AM.GetObjectOfTrack(track)
     if (not track) then return nil; end
 
     if (track.objectID) then
-        if (not SM.loadedScene.objects) then
-            return nil;
-        end
-    
-        for i in pairs(SM.loadedScene.objects) do
-            if (SM.loadedScene.objects[i].id == track.objectID) then
-                return SM.loadedScene.objects[i];
-            end
-        end
+        return SM.loadedScene:GetObjectByID(track.objectID);
     end
 
     return nil;
@@ -2779,7 +2667,7 @@ function AM.GetTimeNormalized(timeMS)
     if (not AM.loadedTimeline) then
         return 0;
     end
-    local totalTimeMS = AM.loadedTimeline.duration;
+    local totalTimeMS = AM.loadedTimeline:GetDuration();
     local startMS = AM.currentCrop.min * totalTimeMS;
     local endMS = AM.currentCrop.max * totalTimeMS;
     local timeNorm = (timeMS - startMS) / (endMS - startMS);
@@ -2837,7 +2725,7 @@ function AM.AddFullKey(track)
     end
 
     Editor.StartAction(Actions.Action.Type.TrackKeyframes, track, AM.loadedTimeline);
-    local timeMS = AM.loadedTimeline.currentTime;
+    local timeMS = AM.loadedTimeline:GetTime();
     local obj = AM.GetObjectOfTrack(track);
     if (obj) then
         local alpha = 1;
@@ -2861,7 +2749,7 @@ function AM.AddPosKey(track)
     end
 
     Editor.StartAction(Actions.Action.Type.TrackKeyframes, track, AM.loadedTimeline);
-    local timeMS = AM.loadedTimeline.currentTime;
+    local timeMS = AM.loadedTimeline:GetTime();
     local obj = AM.GetObjectOfTrack(track);
     if (obj) then
         track:AddPositionKeyframe(timeMS, obj:GetPosition(), AM.currentInterpolationIn, AM.currentInterpolationOut);
@@ -2881,7 +2769,7 @@ function AM.AddRotKey(track)
     end
 
     Editor.StartAction(Actions.Action.Type.TrackKeyframes, track, AM.loadedTimeline);
-    local timeMS = AM.loadedTimeline.currentTime;
+    local timeMS = AM.loadedTimeline:GetTime();
     local obj = AM.GetObjectOfTrack(track);
     if (obj) then
         track:AddRotationKeyframe(timeMS, obj:GetRotation(), AM.currentInterpolationIn, AM.currentInterpolationOut);
@@ -2901,7 +2789,7 @@ function AM.AddScaleKey(track)
     end
 
     Editor.StartAction(Actions.Action.Type.TrackKeyframes, track, AM.loadedTimeline);
-    local timeMS = AM.loadedTimeline.currentTime;
+    local timeMS = AM.loadedTimeline:GetTime();
     local obj = AM.GetObjectOfTrack(track);
     if (obj) then
         track:AddScaleKeyframe(timeMS, obj:GetScale(), AM.currentInterpolationIn, AM.currentInterpolationOut);
@@ -3024,12 +2912,12 @@ function AM.SelectKeyAtIndex(index)
 
     -- find which track and elements were just selected
     local keyframeElement = AM.KeyframePool[index];
-    local track = AM.loadedTimeline.tracks[keyframeElement.trackIdx];
+    local track = AM.loadedTimeline:GetTrack(keyframeElement.trackIdx);
     local keyIndex = keyframeElement.keyIdx;        -- only available in regular keys
     local keyTime = keyframeElement.time;           -- only available in keygroups
     local component = keyframeElement.componentIdx; -- available in regular keys, or -1
 
-    Editor.lastSelectedType = "key";
+    Editor.lastSelectedType = Editor.SelectionType.Key;
 
     if (component == -1) then
         AM.selectedKeyGroup = keyTime;
@@ -3090,7 +2978,6 @@ function AM.SelectKeyAtIndex(index)
         elseif (component == 8) then
             AM.selectedKeys[1] = track.keysA[keyIndex];
         end
-        --print(AM.selectedKeys[1].time);
 
         AM.selectedKeyGroup = AM.selectedKeys[1].time;
         AM.selectedKeyComponents[#AM.selectedKeyComponents + 1] = component;
@@ -3102,8 +2989,8 @@ end
 
 function AM.SelectTrackOfObject(obj)
 	if (AM.loadedTimeline) then
-		for i in pairs(AM.loadedTimeline.tracks) do
-			if (AM.loadedTimeline.tracks[i].objectID == obj.id) then
+		for i = 1, AM.loadedTimeline:GetTrackCount(), 1 do
+			if (AM.loadedTimeline:GetTrack(i).objectID == obj.id) then
 				AM.SelectTrack(i);
 				return;
 			end
@@ -3172,10 +3059,10 @@ function AM.Play()
     if (AM.loopPlay) then
         -- find last keyed time
         AM.lastKeyedTime = 0;
-        for t = 1, #AM.loadedTimeline.tracks, 1 do
-            local track = AM.loadedTimeline.tracks[t];
+        for t = 1, AM.loadedTimeline:GetTrackCount(), 1 do
+            local track = AM.loadedTimeline:GetTrack(t);
             if (track.animations and #track.animations > 0) then
-                local animEnd = track.animations[#track.animations].endT;
+                local animEnd = track.animations[#track.animations]:GetEndTime();
                 if (animEnd > AM.lastKeyedTime) then
                     AM.lastKeyedTime = animEnd;
                 end
@@ -3239,14 +3126,14 @@ function AM.Play()
         end
 
         if (AM.lastKeyedTime == 0) then
-            AM.lastKeyedTime = AM.loadedTimeline.duration;
+            AM.lastKeyedTime = AM.loadedTimeline:GetDuration();
         end
     end
 
     if (AM.cameraPlay) then
         -- find a suitable camera from tracks
-        for t = 1, #AM.loadedTimeline.tracks, 1 do
-            local track = AM.loadedTimeline.tracks[t];
+        for t = 1, AM.loadedTimeline:GetTrackCount(), 1 do
+            local track = AM.loadedTimeline:GetTrack(t);
             local obj = AM.GetObjectOfTrack(track);
             if (obj and obj:GetType() == SceneMachine.GameObjects.Object.Type.Camera) then
                 CC.ControllingCameraObject = obj;
@@ -3265,7 +3152,7 @@ function AM.Pause()
     AM.playing = false;
 
     if (AM.loadedTimeline) then
-        AM.SetTime(AM.loadedTimeline.currentTime, false);
+        AM.SetTime(AM.loadedTimeline:GetTime(), false);
     end
 
     if (AM.cameraPlay) then
@@ -3288,15 +3175,15 @@ end
 
 function AM.SeekToEndButton_OnClick()
     if (AM.loadedTimeline) then
-        AM.SetTime(AM.loadedTimeline.duration);
+        AM.SetTime(AM.loadedTimeline:GetDuration());
     end
 end
 
 function AM.SkipFrameForwardButton_OnClick()
     if (AM.loadedTimeline) then
-        local nextTime = AM.loadedTimeline.currentTime + 35;
-        if (nextTime > AM.loadedTimeline.duration) then
-            nextTime = AM.loadedTimeline.duration;
+        local nextTime = AM.loadedTimeline:GetTime() + 35;
+        if (nextTime > AM.loadedTimeline:GetDuration()) then
+            nextTime = AM.loadedTimeline:GetDuration();
         end
         AM.SetTime(nextTime);
     end
@@ -3304,7 +3191,7 @@ end
 
 function AM.SkipFrameBackwardButton_OnClick()
     if (AM.loadedTimeline) then
-        local nextTime = AM.loadedTimeline.currentTime - 33;
+        local nextTime = AM.loadedTimeline:GetTime() - 33;
         if (nextTime < 0) then
             nextTime = 0;
         end
@@ -3391,34 +3278,34 @@ function AM.Button_SetModeToCurves()
 end
 
 function AM.Button_SetInterpolationInMode(value)
-    local interpolation = Track.Interpolation.Bezier;
+    local interpolation = Keyframe.Interpolation.Bezier;
     if (value == 1) then
-        interpolation = Track.Interpolation.Bezier;
+        interpolation = Keyframe.Interpolation.Bezier;
     elseif (value == 2) then
-        interpolation = Track.Interpolation.Linear;
+        interpolation = Keyframe.Interpolation.Linear;
     elseif (value == 3) then
-        interpolation = Track.Interpolation.Step;
+        interpolation = Keyframe.Interpolation.Step;
     elseif (value == 4) then
-        interpolation = Track.Interpolation.Slow;
+        interpolation = Keyframe.Interpolation.Slow;
     elseif (value == 5) then
-        interpolation = Track.Interpolation.Fast;
+        interpolation = Keyframe.Interpolation.Fast;
     end
 
     AM.currentInterpolationIn = interpolation;
 end
 
 function AM.Button_SetInterpolationOutMode(value)
-    local interpolation = Track.Interpolation.Bezier;
+    local interpolation = Keyframe.Interpolation.Bezier;
     if (value == 1) then
-        interpolation = Track.Interpolation.Bezier;
+        interpolation = Keyframe.Interpolation.Bezier;
     elseif (value == 2) then
-        interpolation = Track.Interpolation.Linear;
+        interpolation = Keyframe.Interpolation.Linear;
     elseif (value == 3) then
-        interpolation = Track.Interpolation.Step;
+        interpolation = Keyframe.Interpolation.Step;
     elseif (value == 4) then
-        interpolation = Track.Interpolation.Slow;
+        interpolation = Keyframe.Interpolation.Slow;
     elseif (value == 5) then
-        interpolation = Track.Interpolation.Fast;
+        interpolation = Keyframe.Interpolation.Fast;
     end
 
     AM.currentInterpolationOut = interpolation;
@@ -3427,7 +3314,7 @@ end
 function AM.Button_SetKeyInterpolationIn()
     if (AM.selectedKeys) then
         for i = 1, #AM.selectedKeys, 1 do
-            AM.selectedKeys[i].interpolationIn = AM.currentInterpolationIn;
+            AM.selectedKeys[i]:SetInterpolationIn(AM.currentInterpolationIn);
         end
     end
 
@@ -3437,7 +3324,7 @@ end
 function AM.Button_SetKeyInterpolationOut()
     if (AM.selectedKeys) then
         for i = 1, #AM.selectedKeys, 1 do
-            AM.selectedKeys[i].interpolationOut = AM.currentInterpolationOut;
+            AM.selectedKeys[i]:SetInterpolationOut(AM.currentInterpolationOut);
         end
     end
 
@@ -3485,7 +3372,7 @@ function AM.OnFinishedKeyRetiming()
     end
 
     if (AM.clonedKeys and #AM.clonedKeys > 0) then
-        if (AM.clonedKeys[1].time == AM.selectedKeys[1].time) then
+        if (AM.clonedKeys[1] == AM.selectedKeys[1]) then
             for i = 1, #AM.clonedKeys, 1 do
                 AM.RemoveKey_internal(AM.selectedTrack, AM.clonedKeys[i]);
             end
@@ -3493,6 +3380,6 @@ function AM.OnFinishedKeyRetiming()
         AM.clonedKeys = nil;
     end
 
-    AM.selectedTrack:SortKeyframes();
+    AM.selectedTrack:SortAllKeyframes();
     Editor.FinishAction();
 end

@@ -44,7 +44,7 @@ function Group:Select()
     if (not self.selected) then
         self.selected = true;
         -- TODO: This isn't doing anything for some reason
-        --local objects = SH.GetChildObjects(self.id);
+        --local objects = SM.loadedScene:GetChildObjects(self.id);
         --Group:FitObjects(objects);
     end
 end
@@ -137,7 +137,7 @@ end
 --- Shows the group.
 function Group:Show()
     self.visible = true;
-    local objects = SH.GetChildObjectsRecursive(self.id);
+    local objects = self.scene:GetChildObjectsRecursive(self.id);
     if (objects) then
         for i = 1, #objects, 1 do
             objects[i]:Show();
@@ -148,7 +148,7 @@ end
 --- Hides the group.
 function Group:Hide()
     self.visible = false;
-    local objects = SH.GetChildObjectsRecursive(self.id);
+    local objects = self.scene:GetChildObjectsRecursive(self.id);
     if (objects) then
         for i = 1, #objects, 1 do
             objects[i]:Hide();
@@ -160,7 +160,7 @@ end
 --- Makes it unselectable in the scene viewport.
 function Group:Freeze()
     self.frozen = true;
-    local objects = SH.GetChildObjectsRecursive(self.id);
+    local objects = self.scene:GetChildObjectsRecursive(self.id);
     if (objects) then
         for i = 1, #objects, 1 do
             objects[i]:Freeze();
@@ -172,7 +172,7 @@ end
 --- Makes it selectable in the scene viewport.
 function Group:Unfreeze()
     self.frozen = false;
-    local objects = SH.GetChildObjectsRecursive(self.id);
+    local objects = self.scene:GetChildObjectsRecursive(self.id);
     if (objects) then
         for i = 1, #objects, 1 do
             objects[i]:Unfreeze();

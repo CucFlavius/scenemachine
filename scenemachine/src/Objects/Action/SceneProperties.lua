@@ -16,6 +16,7 @@ setmetatable(SceneProperties, Action)
 --- @param properties table The properties to initialize the SceneProperties object with.
 --- @return SceneProperties v The newly created SceneProperties object.
 function SceneProperties:New(properties)
+	--- @class SceneProperties : Action
 	local v = 
     {
         type = Action.Type.SceneProperties,
@@ -50,52 +51,32 @@ end
 function SceneProperties:Undo()
 	-- Restore the ambient color
 	local R, G, B, A = self.startProperties.ambientColor[1], self.startProperties.ambientColor[2], self.startProperties.ambientColor[3], self.startProperties.ambientColor[4];
-	Renderer.projectionFrame:SetLightAmbientColor(R, G, B);
-	SM.loadedScene.properties.ambientColor = { R, G, B, A };
+	SM.loadedScene:SetAmbientColor(R, G, B, A);
 
 	-- Restore the diffuse color
 	R, G, B, A = self.startProperties.diffuseColor[1], self.startProperties.diffuseColor[2], self.startProperties.diffuseColor[3], self.startProperties.diffuseColor[4];
-	Renderer.projectionFrame:SetLightDiffuseColor(R, G, B);
-	SM.loadedScene.properties.diffuseColor = { R, G, B, A };
+	SM.loadedScene:SetDiffuseColor(R, G, B, A);
 
 	-- Restore the background color
 	R, G, B, A = self.startProperties.backgroundColor[1], self.startProperties.backgroundColor[2], self.startProperties.backgroundColor[3], self.startProperties.backgroundColor[4];
-	Renderer.backgroundFrame.texture:SetColorTexture(R, G, B, 1);
-	SM.loadedScene.properties.backgroundColor = { R, G, B, A };
+	SM.loadedScene:SetBackgroundColor(R, G, B, A);
 
-	-- Restore the lighting visibility
-	Renderer.projectionFrame:SetLightVisible(self.startProperties.enableLighting);
+	SM.loadedScene:SetLightingEnabled(self.startProperties.enableLighting);
 end
 
 --- Redo the scene properties.
 function SceneProperties:Redo()
 	-- Get the end properties for ambient color
 	local R, G, B, A = self.endProperties.ambientColor[1], self.endProperties.ambientColor[2], self.endProperties.ambientColor[3], self.endProperties.ambientColor[4];
-	
-	-- Set the ambient color for the projection frame
-	Renderer.projectionFrame:SetLightAmbientColor(R, G, B);
-	
-	-- Update the ambient color in the loaded scene properties
-	SM.loadedScene.properties.ambientColor = { R, G, B, A };
+	SM.loadedScene:SetAmbientColor(R, G, B, A);
 	
 	-- Get the end properties for diffuse color
 	R, G, B, A = self.endProperties.diffuseColor[1], self.endProperties.diffuseColor[2], self.endProperties.diffuseColor[3], self.endProperties.diffuseColor[4];
-	
-	-- Set the diffuse color for the projection frame
-	Renderer.projectionFrame:SetLightDiffuseColor(R, G, B);
-	
-	-- Update the diffuse color in the loaded scene properties
-	SM.loadedScene.properties.diffuseColor = { R, G, B, A };
+	SM.loadedScene:SetDiffuseColor(R, G, B, A);
 	
 	-- Get the end properties for background color
 	R, G, B, A = self.endProperties.backgroundColor[1], self.endProperties.backgroundColor[2], self.endProperties.backgroundColor[3], self.endProperties.backgroundColor[4];
+	SM.loadedScene:SetBackgroundColor(R, G, B, A);
 	
-	-- Set the background color for the background frame texture
-	Renderer.backgroundFrame.texture:SetColorTexture(R, G, B, 1);
-	
-	-- Update the background color in the loaded scene properties
-	SM.loadedScene.properties.backgroundColor = { R, G, B, A };
-	
-	-- Set the visibility of the light based on the end properties
-	Renderer.projectionFrame:SetLightVisible(self.endProperties.enableLighting);
+	SM.loadedScene:SetLightingEnabled(self.endProperties.enableLighting);
 end
