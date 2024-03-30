@@ -1,7 +1,6 @@
 local Vector3 = SceneMachine.Vector3;
 local Matrix = SceneMachine.Matrix;
 local Quaternion = SceneMachine.Quaternion;
-local Gizmos = SceneMachine.Gizmos;
 
 SceneMachine.GameObjects.Object = {}
 
@@ -15,6 +14,13 @@ Object.Type = {
     Creature = 2,
     Character = 3,
     Camera = 4
+};
+
+--- @enum Object.GizmoType
+Object.GizmoType = {
+    None = 0,
+    Object = 1,
+    Camera = 2,
 };
 
 Object.TypeNames = {
@@ -60,9 +66,9 @@ function Object:HasActor()
 end
 
 --- Returns the gizmo type for the object.
---- @return Gizmos.Type gizmoType The gizmo type.
+--- @return Object.GizmoType gizmoType The gizmo type.
 function Object:GetGizmoType()
-    return Gizmos.Type.Object;
+    return Object.GizmoType.Object;
 end
 
 --- Recalculates the position, rotation, and scale of the object's associated actor.

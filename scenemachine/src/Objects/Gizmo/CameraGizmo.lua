@@ -1,11 +1,19 @@
-local Gizmos = SceneMachine.Gizmos;
-local Vector3 = SceneMachine.Vector3;
+local Gizmo = SceneMachine.Gizmos.Gizmo;
+SceneMachine.Gizmos.CameraGizmo = {};
+
+--- @class CameraGizmo : Gizmo
+local CameraGizmo = SceneMachine.Gizmos.CameraGizmo;
 local Resources = SceneMachine.Resources;
 
-function Gizmos.CreateCameraGizmo()
-    local ch = 0.5;
+CameraGizmo.__index = CameraGizmo;
+setmetatable(CameraGizmo, Gizmo)
 
-    Gizmos.CameraGizmo = 
+--- Creates a new instance of the CameraGizmo class.
+--- @return CameraGizmo
+function CameraGizmo:New()
+    local ch = 0.5;
+    --- @class CameraGizmo : Gizmo
+    local v = 
     {
         lineCount = 12;
         scale = 1;
@@ -35,33 +43,43 @@ function Gizmos.CreateCameraGizmo()
         lines = {};
         lineDepths = {};
         dashedLine = true;
-    }
+    };
 
-    --Gizmos.GenerateCameraFrustumVertices(math.rad(60), 1/2, 1, 20);
+    setmetatable(v, CameraGizmo);
 
+    v:Build();
+    return v;
+end
+
+--- Builds the CameraGizmo object.
+function CameraGizmo:Build()
     -- Frame --
-    local lineProjectionFrame = Gizmos.CreateLineProjectionFrame();
-    Gizmos.frames["CameraGizmoFrame"] = lineProjectionFrame;
+    self:CreateLineProjectionFrame();
 
     -- Fill tables --
-    for v = 1, #Gizmos.CameraGizmo.vertices, 1 do
-        Gizmos.CameraGizmo.transformedVertices[v] = {{0,0,0}, {0,0,0}};
-        Gizmos.CameraGizmo.screenSpaceVertices[v] = {{0,0}, {0,0}};
-        Gizmos.CameraGizmo.faceColors[v] = {1,1,1,0.5};
+    for v = 1, #self.vertices, 1 do
+        self.transformedVertices[v] = {{0,0,0}, {0,0,0}};
+        self.screenSpaceVertices[v] = {{0,0}, {0,0}};
+        self.faceColors[v] = {1,1,1,0.5};
     end
 
     -- Lines --
-    for t = 1, Gizmos.CameraGizmo.lineCount, 1 do
-        Gizmos.CameraGizmo.lines[t] = lineProjectionFrame:CreateLine(nil, nil, nil);
-        Gizmos.CameraGizmo.lines[t]:SetThickness(1.5);
-        Gizmos.CameraGizmo.lines[t]:SetTexture(Resources.textures["Line"], "REPEAT", "REPEAT", "NEAREST");
+    for t = 1, self.lineCount, 1 do
+        self.lines[t] = self.lineProjectionFrame:CreateLine(nil, nil, nil);
+        self.lines[t]:SetThickness(1.5);
+        self.lines[t]:SetTexture(Resources.textures["Line"], "REPEAT", "REPEAT", "NEAREST");
     end
 end
 
-function Gizmos.GenerateCameraFrustumVertices(fov, aspectRatio, near, far)
+--- Generates the vertices of a camera frustum based on the given parameters.
+--- @param fov number The field of view angle in radians.
+--- @param aspectRatio number The aspect ratio of the camera.
+--- @param near number The distance to the near plane.
+--- @param far number The distance to the far plane.
+function CameraGizmo:GenerateCameraFrustumVertices(fov, aspectRatio, near, far)
     local halfHeight = math.tan(fov / 2)
     local halfWidth = halfHeight * aspectRatio
-    local vertices = Gizmos.CameraGizmo.vertices;
+    local vertices = self.vertices;
 
     -- Near plane
     vertices[1][1] = {near, -halfHeight * near, -halfWidth * near}
@@ -92,4 +110,15 @@ function Gizmos.GenerateCameraFrustumVertices(fov, aspectRatio, near, far)
     vertices[11][2] = {far, halfHeight * far, halfWidth * far}
     vertices[12][1] = {near, halfHeight * near, -halfWidth * near}
     vertices[12][2] = {far, halfHeight * far, -halfWidth * far}
+end
+
+--- Shades the camera gizmo. (Unused)
+function CameraGizmo:Shade()
+
+end
+
+--- Returns a string representation of the Gizmo object.
+--- @return string The string representation of the Gizmo object.
+CameraGizmo.__tostring = function(self)
+    return "CameraGizmo";
 end

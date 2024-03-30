@@ -1,7 +1,7 @@
 local CC = SceneMachine.CameraController;
 local Player = SceneMachine.Player;
 local Renderer = SceneMachine.Renderer;
-local Gizmos = SceneMachine.Gizmos;
+local GM = SceneMachine.GizmoManager;
 local Input = SceneMachine.Input;
 local Camera = SceneMachine.Camera;
 local Math = SceneMachine.Math;
@@ -9,6 +9,7 @@ local Vector3 = SceneMachine.Vector3;
 local Quaternion = SceneMachine.Quaternion;
 local SM = SceneMachine.Editor.SceneManager;
 local AM = SceneMachine.Editor.AnimationManager;
+local Object = SceneMachine.GameObjects.Object;
 
 ----------------------------------
 --			CC State	 		--
@@ -73,7 +74,7 @@ end
 
 function CC.Update(deltaTime)
 	-- don't move when marquee selecting
-	if (Gizmos.marqueeOn) then
+	if (GM.marqueeOn) then
 		return
 	end;
 
@@ -180,7 +181,7 @@ function CC.Update(deltaTime)
 
 		CC.position:Lerp(CC.Focus.startPos, CC.Focus.endPos, fractionOfJourney);
 
-		if (CC.Focus.gizmoType == Gizmos.Type.Camera) then
+		if (CC.Focus.gizmoType == Object.GizmoType.Camera) then
 			local rotQ = Quaternion:New();
 			rotQ:Lerp(CC.Focus.startRot, CC.Focus.endRot, fractionOfJourney)
 			Camera.eulerRotation:SetVector3(rotQ:ToEuler());
@@ -225,7 +226,7 @@ end
 function CC.FocusEnd(cancelled)
 	CC.Focus.focusing = false;
 	if (not cancelled) then
-		if (CC.Focus.gizmoType == Gizmos.Type.Camera) then
+		if (CC.Focus.gizmoType == Object.GizmoType.Camera) then
 			CC.ControllingCameraObject = CC.Focus.focusedObject;
 			SM.viewportButton:Show();
 		end
@@ -251,7 +252,7 @@ function CC.FocusObject(object)
 
 	local objectCenter;
 	CC.Focus.gizmoType = object:GetGizmoType();
-	if (CC.Focus.gizmoType == Gizmos.Type.Object) then
+	if (CC.Focus.gizmoType == Object.GizmoType.Object) then
 		SM.StopControllingCamera();	-- ensuring the camera is not controlled during focus by mistake
 		local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
 		objectCenter = Vector3:New( objectPos.x, objectPos.y, (objectPos.z + (zMax * objectScale / 2)) );
@@ -259,7 +260,7 @@ function CC.FocusObject(object)
 		local dist = radius / (math.sin(Camera.fov) * 0.3);
 		vector:Scale(dist * objectScale);
 		objectCenter:Subtract(vector);
-	elseif (CC.Focus.gizmoType == Gizmos.Type.Camera) then
+	elseif (CC.Focus.gizmoType == Object.GizmoType.Camera) then
 		objectCenter = Vector3:New( objectPos.x, objectPos.y, objectPos.z );
 		-- set camera properties that don't need animating
 		Camera.fov = object:GetFoV();

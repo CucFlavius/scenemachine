@@ -1,7 +1,7 @@
 local Camera = SceneMachine.Camera;
 local Renderer = SceneMachine.Renderer;
 local CameraController = SceneMachine.CameraController;
-local Gizmos = SceneMachine.Gizmos;
+local GM = SceneMachine.GizmoManager
 local Input = SceneMachine.Input;
 local Editor = SceneMachine.Editor;
 local AM = SceneMachine.Editor.AnimationManager;
@@ -24,7 +24,7 @@ function SceneMachine.Start()
 	SceneMachine.Resources.Initialize("Interface\\AddOns\\scenemachine\\res");
     SceneMachine.Editor.Initialize();
     CameraController.Initialize();
-	Gizmos.Create();
+	GM.Create();
 	SceneMachine.Network.Initialize();
 	if (Debug) then Debug.Init(); end
 end
@@ -74,7 +74,7 @@ local function SG_UpdateLoop ()
 		Camera.Update();
 		CameraController.Update(SceneMachine.deltaTime);
 		Input.Update();
-		Gizmos.Update();
+		GM.Update();
 		Renderer.Update();
 		AM.Update(SceneMachine.deltaTime);
 		SH.Update(SceneMachine.deltaTime);

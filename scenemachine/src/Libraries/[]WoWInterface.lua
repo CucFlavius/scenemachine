@@ -96,6 +96,7 @@ function SetPoint(point, relativeFrame, relativePoint, ofsx, ofsy) end
 function SetPoint(point, relativeFrame, relativePoint) end
 function SetPoint(point, ofsx, ofsy) end
 function SetPoint(point) end
+function CreateLine(a, b, c) end
 
 --------------------
 --      table     --

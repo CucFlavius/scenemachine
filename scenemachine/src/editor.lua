@@ -4,7 +4,7 @@ local Renderer = SceneMachine.Renderer;
 local SH = Editor.SceneHierarchy;
 local MousePick = Editor.MousePick;
 local OP = Editor.ObjectProperties;
-local Gizmos = SceneMachine.Gizmos;
+local GM = SceneMachine.GizmoManager;
 local SM = Editor.SceneManager;
 local CC = SceneMachine.CameraController;
 local PM = Editor.ProjectManager;
@@ -16,6 +16,7 @@ local ColorPicker = Editor.ColorPicker;
 local L = Editor.localization;
 local Actions = SceneMachine.Actions;
 local Camera = SceneMachine.Camera;
+local Gizmo = SceneMachine.Gizmos.Gizmo;
 
 Editor.MODE_LOCAL = 1;
 Editor.MODE_NETWORK = 2;
@@ -39,6 +40,7 @@ Editor.MAIN_FRAME_STRATA = "HIGH";              -- Main window
 Editor.SUB_FRAME_STRATA = "DIALOG";             -- Child windows like "Project Manager"
 Editor.MESSAGE_BOX_FRAME_STRATA = "FULLSCREEN"; -- Dialogs like "Are you sure you wanna?""
 
+--- @enum Editor.SelectionType
 Editor.SelectionType = {
     Object = 1,
     Track = 2,
@@ -160,10 +162,10 @@ function Editor.Initialize()
         end
     end);
     SceneMachine.Input.AddKeyBind("F",function() CC.FocusObjects(SM.selectedObjects); end);
-    SceneMachine.Input.AddKeyBind("1", function() Gizmos.activeTransformGizmo = 0; end);
-    SceneMachine.Input.AddKeyBind("2", function() Gizmos.activeTransformGizmo = 1; end);
-    SceneMachine.Input.AddKeyBind("3", function() Gizmos.activeTransformGizmo = 2; end);
-    SceneMachine.Input.AddKeyBind("4", function() Gizmos.activeTransformGizmo = 3; end);
+    SceneMachine.Input.AddKeyBind("1", function() GM.activeTransformGizmo = Gizmo.TransformType.Select; end);
+    SceneMachine.Input.AddKeyBind("2", function() GM.activeTransformGizmo = Gizmo.TransformType.Move; end);
+    SceneMachine.Input.AddKeyBind("3", function() GM.activeTransformGizmo = Gizmo.TransformType.Rotate; end);
+    SceneMachine.Input.AddKeyBind("4", function() GM.activeTransformGizmo = Gizmo.TransformType.Scale; end);
 
     -- load saved variables (this is safe to do because Editor.Initialize() is done on ADDON_LOADED)
     Editor.ProjectManager.LoadSavedData();
@@ -212,35 +214,35 @@ function Editor.CreateToolbar()
             },
             { type = "Separator" },
             {
-                type = "Button", name = "Select", icon = toolbar:GetIcon("select"), action = function(self) Gizmos.activeTransformGizmo = 0; end,
+                type = "Button", name = "Select", icon = toolbar:GetIcon("select"), action = function(self) GM.activeTransformGizmo = Gizmo.TransformType.Select; end,
                 tooltip = L["EDITOR_TOOLBAR_TT_SELECT_TOOL"],
             },
             {
-                type = "Button", name = "Move", icon = toolbar:GetIcon("move"), action = function(self) Gizmos.activeTransformGizmo = 1; end,
+                type = "Button", name = "Move", icon = toolbar:GetIcon("move"), action = function(self) GM.activeTransformGizmo = Gizmo.TransformType.Move; end,
                 tooltip = L["EDITOR_TOOLBAR_TT_MOVE_TOOL"],
             },
             {
-                type = "Button", name = "Rotate", icon = toolbar:GetIcon("rotate"), action = function(self) Gizmos.activeTransformGizmo = 2; end,
+                type = "Button", name = "Rotate", icon = toolbar:GetIcon("rotate"), action = function(self) GM.activeTransformGizmo = Gizmo.TransformType.Rotate; end,
                 tooltip = L["EDITOR_TOOLBAR_TT_ROTATE_TOOL"],
             },
             {
-                type = "Button", name = "Scale", icon = toolbar:GetIcon("scale"), action = function(self) Gizmos.activeTransformGizmo = 3; end,
+                type = "Button", name = "Scale", icon = toolbar:GetIcon("scale"), action = function(self) GM.activeTransformGizmo = Gizmo.TransformType.Scale; end,
                 tooltip = L["EDITOR_TOOLBAR_TT_SCALE_TOOL"],
             },
             { type = "Separator" },
             {
                 type = "Toggle", name = "PivotSpace", iconOn = toolbar:GetIcon("localpivot"), iconOff = toolbar:GetIcon("worldpivot"),
-                action = function(self, on) if (on) then Gizmos.space = 1; else Gizmos.space = 0; end end,
+                action = function(self, on) if (on) then GM.space = 1; else GM.space = 0; end end,
                 default = true, tooltips = { L["EDITOR_TOOLBAR_TT_PIVOT_LOCAL_SPACE"], L["EDITOR_TOOLBAR_TT_PIVOT_WORLD_SPACE"] },
             },
             {
                 type = "Toggle", name = "PivotLocation", iconOn = toolbar:GetIcon("centerpivot"), iconOff = toolbar:GetIcon("basepivot"),
-                action = function(self, on) if (on) then Editor.SetPivotMode(0); else Editor.SetPivotMode(1); end end,
+                action = function(self, on) if (on) then Editor.SetPivotMode(Gizmo.Pivot.Center); else Editor.SetPivotMode(Gizmo.Pivot.Base); end end,
                 default = true, tooltips = { L["EDITOR_TOOLBAR_TT_PIVOT_CENTER"], L["EDITOR_TOOLBAR_TT_PIVOT_BASE"] },
             },
             {
                 type = "Toggle", name = "MultiTransform", iconOn = toolbar:GetIcon("together"), iconOff = toolbar:GetIcon("individual"),
-                action = function(self, on) if (on) then Editor.SetMultiTransformMode(0); else Editor.SetMultiTransformMode(1); end end,
+                action = function(self, on) if (on) then Editor.SetMultiTransformMode(Gizmo.MultiTransform.Together); else Editor.SetMultiTransformMode(Gizmo.MultiTransform.Individual); end end,
                 default = true, tooltips = { L["EDITOR_TOOLBAR_TT_MULTITRANSFORM_TOGETHER"], L["EDITOR_TOOLBAR_TT_MULTITRANSFORM_INDIVIDUAL"] },
             },
             { type = "DragHandle" },
@@ -623,19 +625,19 @@ function Editor.OpenQuickTextbox(action, text, title)
 end
 
 function Editor.SetPivotMode(mode)
-    Gizmos.pivot = mode;
+    GM.pivot = mode;
 end
 
 function Editor.SetMultiTransformMode(mode)
-    Gizmos.multiTransform = mode;
+    GM.multiTransform = mode;
 end
 
 function Editor.OpenContextMenu(x, y)
 	local menuOptions = {
-        { ["Name"] = L["CM_SELECT"], ["Action"] = function() Gizmos.activeTransformGizmo = 0; end },
-        { ["Name"] = L["CM_MOVE"], ["Action"] = function() Gizmos.activeTransformGizmo = 1; end },
-        { ["Name"] = L["CM_ROTATE"], ["Action"] = function() Gizmos.activeTransformGizmo = 2; end },
-        { ["Name"] = L["CM_SCALE"], ["Action"] = function() Gizmos.activeTransformGizmo = 3; end },
+        { ["Name"] = L["CM_SELECT"], ["Action"] = function() GM.activeTransformGizmo = Gizmo.TransformType.Select; end },
+        { ["Name"] = L["CM_MOVE"], ["Action"] = function() GM.activeTransformGizmo = Gizmo.TransformType.Move; end },
+        { ["Name"] = L["CM_ROTATE"], ["Action"] = function() GM.activeTransformGizmo = Gizmo.TransformType.Rotate; end },
+        { ["Name"] = L["CM_SCALE"], ["Action"] = function() GM.activeTransformGizmo = Gizmo.TransformType.Scale; end },
         { ["Name"] = nil },
         { ["Name"] = L["CM_DELETE"], ["Action"] = function() SM.DeleteObjects(SM.selectedObjects); end },
         { ["Name"] = L["CM_HIDE_SHOW"], ["Action"] = function() SM.ToggleObjectsVisibility(SM.selectedObjects); end },

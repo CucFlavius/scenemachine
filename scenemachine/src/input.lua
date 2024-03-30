@@ -4,7 +4,7 @@ local PM = Editor.ProjectManager;
 local Input = SceneMachine.Input;
 local CC = SceneMachine.CameraController;
 local Renderer = SceneMachine.Renderer;
-local Gizmos = SceneMachine.Gizmos;
+local GM = SceneMachine.GizmoManager;
 local Camera = SceneMachine.Camera;
 local MousePick = Editor.MousePick;
 local AssetBrowser = SceneMachine.Editor.AssetBrowser;
@@ -70,7 +70,7 @@ function Input.Initialize()
         -- Handle Code that needs direct mouse input here (so not OnUpdate)
         if (not down) then
             -- Don't want to perform a mouse pick right after a gizmo transform operation
-            if (not Gizmos.isUsed) then
+            if (not GM.isUsed) then
                 local x, y = GetCursorPosition();
                 MousePick.Pick(x, y);
                 SM.ApplySelectionEffects();
@@ -260,7 +260,7 @@ function Input.OnDragStart(LMB, RMB, MMB)
     if RMB then
         CC.OnRMBDown();
     elseif LMB then
-        if (Gizmos.isHighlighted) then
+        if (GM.isHighlighted) then
             local recordAction = true;
             if (SceneMachine.Input.ShiftModifier) then
                 -- clone object first
@@ -268,24 +268,24 @@ function Input.OnDragStart(LMB, RMB, MMB)
                 SM.CloneObjects(SM.selectedObjects, true);
             end
 
-            Gizmos.OnLMBDown(Input.mouseXRaw, Input.mouseYRaw, recordAction);
+            GM.OnLMBDown(Input.mouseXRaw, Input.mouseYRaw, recordAction);
         end
     end
 end
 
 function Input.OnDragStop()
     CC.OnRMBUp();
-    if (Gizmos.isUsed) then
-        Gizmos.OnLMBUp();
+    if (GM.isUsed) then
+        GM.OnLMBUp();
     end
-    Gizmos.EndMarqueeSelect();
+    GM.EndMarqueeSelect();
 end
 
 function Input.OnClick(LMB, RMB, MMB, x, y)
     if (not Editor.isOpen) then return end
     if (LMB) then
-        if (not Gizmos.isHighlighted) then
-            Gizmos.StartMarqueeSelect();
+        if (not GM.isHighlighted) then
+            GM.StartMarqueeSelect();
         end
     elseif (RMB) then
     elseif (MMB) then
@@ -312,7 +312,7 @@ function Input.OnClickUp(LMB, RMB, MMB, x, y)
             AM.inputState.movingAnimHandleR = -1;
             Editor.FinishAction();
         end
-        Gizmos.EndMarqueeSelect();
+        GM.EndMarqueeSelect();
     elseif (RMB) then
         -- open RMB renderer context menu --
         local w, h = Renderer.projectionFrame:GetSize();

@@ -1,6 +1,6 @@
 local Editor = SceneMachine.Editor;
 local MousePick = Editor.MousePick;
-local Gizmos = SceneMachine.Gizmos;
+local GM = SceneMachine.GizmoManager;
 local SM = Editor.SceneManager;
 local SH = Editor.SceneHierarchy;
 local Renderer = SceneMachine.Renderer;
@@ -12,6 +12,7 @@ local Ray = SceneMachine.Ray;
 local Vector3 = SceneMachine.Vector3;
 local Quaternion = SceneMachine.Quaternion;
 local AM = SceneMachine.Editor.AnimationManager;
+local Object = SceneMachine.GameObjects.Object;
 
 function MousePick.Initialize()
     MousePick.previousSelectionList = {};
@@ -20,7 +21,7 @@ end
 
 function MousePick.Pick(x, y)
 
-    if (Gizmos.marqueeVisible) then
+    if (GM.marqueeVisible) then
         return;
     end
 
@@ -38,7 +39,7 @@ function MousePick.Pick(x, y)
         local gizmoType = object:GetGizmoType();
 
         -- Can't select invisible/frozen, only in the hierarchy
-        if (object.visible) and (not object.frozen) and (gizmoType == Gizmos.Type.Object) and
+        if (object.visible) and (not object.frozen) and (gizmoType == Object.GizmoType.Object) and
             (object:GetType() ~= SceneMachine.GameObjects.Object.Type.Group) then
 
             local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();

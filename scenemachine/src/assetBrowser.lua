@@ -2,7 +2,7 @@ local AssetBrowser = SceneMachine.Editor.AssetBrowser;
 local Editor = SceneMachine.Editor;
 local Renderer = SceneMachine.Renderer;
 local SM = Editor.SceneManager;
-local Gizmos = SceneMachine.Gizmos;
+local GM = SceneMachine.GizmoManager
 local Input = SceneMachine.Input;
 local Camera = SceneMachine.Camera;
 local Vector3 = SceneMachine.Vector3;
@@ -15,6 +15,7 @@ local L = Editor.localization;
 local Net = SceneMachine.Network;
 local Actions = SceneMachine.Actions;
 local Scene = SceneMachine.Scene;
+local Gizmo = SceneMachine.Gizmos.Gizmo;
 
 local c1 = { 0.1757, 0.1757, 0.1875 };
 local c2 = { 0.242, 0.242, 0.25 };
@@ -1270,7 +1271,7 @@ function AssetBrowser.OnThumbnailDrag(ID)
                 if (fileID == ID) then
                     local fileName = searchData[i].N;
                     local mouseRay = Camera.GetMouseRay();
-                    local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
+                    local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, GM.up) or Vector3.zero;
                     local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
                     local object = SM.loadedScene:CreateObject(fileID, fileName, initialPosition.x, initialPosition.y, initialPosition.z);
                     Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
@@ -1282,10 +1283,10 @@ function AssetBrowser.OnThumbnailDrag(ID)
                     OP.Refresh();
                     Input.mouseState.LMB = true;
                     Input.mouseState.isDraggingAssetFromUI = true;
-                    Gizmos.activeTransformGizmo = 1;
-                    Gizmos.highlightedAxis = 4;
-                    Gizmos.selectedAxis = 4;
-                    Gizmos.OnLMBDown(Input.mouseX, Input.mouseY, false);
+                    GM.activeTransformGizmo = Gizmo.TransformType.Move;
+                    GM.highlightedAxis = Gizmo.Axis.XY;
+                    GM.selectedAxis = Gizmo.Axis.XY;
+                    GM.OnLMBDown(Input.mouseX, Input.mouseY, false);
                     return;
                 end
             end
@@ -1298,7 +1299,7 @@ function AssetBrowser.OnThumbnailDrag(ID)
                     if fileID == ID then
                         local fileName = AssetBrowser.currentDirectory["FN"][i];
                         local mouseRay = Camera.GetMouseRay();
-                        local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
+                        local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, GM.up) or Vector3.zero;
                         local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
                         local object = SM.loadedScene:CreateObject(fileID, fileName, initialPosition.x, initialPosition.y, initialPosition.z);
                         Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
@@ -1310,10 +1311,10 @@ function AssetBrowser.OnThumbnailDrag(ID)
                         OP.Refresh();
                         Input.mouseState.LMB = true;
                         Input.mouseState.isDraggingAssetFromUI = true;
-                        Gizmos.activeTransformGizmo = 1;
-                        Gizmos.highlightedAxis = 4;
-                        Gizmos.selectedAxis = 4;
-                        Gizmos.OnLMBDown(Input.mouseX, Input.mouseY, false);
+                        GM.activeTransformGizmo = Gizmo.TransformType.Move;
+                        GM.highlightedAxis = Gizmo.Axis.XY;
+                        GM.selectedAxis = Gizmo.Axis.XY;
+                        GM.OnLMBDown(Input.mouseX, Input.mouseY, false);
                         return;
                     end
                 end
@@ -1335,7 +1336,7 @@ function AssetBrowser.OnThumbnailDrag(ID)
                     Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
                     local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
                     local mouseRay = Camera.GetMouseRay();
-                    local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
+                    local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, GM.up) or Vector3.zero;
                     object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
                     SM.selectedObjects = { object };
                     Editor.lastSelectedType = Editor.SelectionType.Object;
@@ -1343,10 +1344,10 @@ function AssetBrowser.OnThumbnailDrag(ID)
                     OP.Refresh();
                     Input.mouseState.LMB = true;
                     Input.mouseState.isDraggingAssetFromUI = true;
-                    Gizmos.activeTransformGizmo = 1;
-                    Gizmos.highlightedAxis = 4;
-                    Gizmos.selectedAxis = 4;
-                    Gizmos.OnLMBDown(Input.mouseX, Input.mouseY, false);
+                    GM.activeTransformGizmo = Gizmo.TransformType.Move;
+                    GM.highlightedAxis = Gizmo.Axis.XY;
+                    GM.selectedAxis = Gizmo.Axis.XY;
+                    GM.OnLMBDown(Input.mouseX, Input.mouseY, false);
                     return;
                 end
             end
@@ -1362,7 +1363,7 @@ function AssetBrowser.OnThumbnailDrag(ID)
                     Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
                     local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
                     local mouseRay = Camera.GetMouseRay();
-                    local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
+                    local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, GM.up) or Vector3.zero;
                     object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
                     SM.selectedObjects = { object };
                     Editor.lastSelectedType = Editor.SelectionType.Object;
@@ -1370,10 +1371,10 @@ function AssetBrowser.OnThumbnailDrag(ID)
                     OP.Refresh();
                     Input.mouseState.LMB = true;
                     Input.mouseState.isDraggingAssetFromUI = true;
-                    Gizmos.activeTransformGizmo = 1;
-                    Gizmos.highlightedAxis = 4;
-                    Gizmos.selectedAxis = 4;
-                    Gizmos.OnLMBDown(Input.mouseX, Input.mouseY, false);
+                    GM.activeTransformGizmo = Gizmo.TransformType.Move;
+                    GM.highlightedAxis = Gizmo.Axis.XY;
+                    GM.selectedAxis = Gizmo.Axis.XY;
+                    GM.OnLMBDown(Input.mouseX, Input.mouseY, false);
                     return;
                 end
             end
@@ -1396,7 +1397,7 @@ function AssetBrowser.OnThumbnailDrag(ID)
                     Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
                     local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
                     local mouseRay = Camera.GetMouseRay();
-                    local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
+                    local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, GM.up) or Vector3.zero;
                     object:SetPosition(initialPosition.x, initialPosition.y, initialPosition.z + ((zMax - zMin) / 2));
                     SM.selectedObjects = { object };
                     Editor.lastSelectedType = Editor.SelectionType.Object;
@@ -1404,15 +1405,15 @@ function AssetBrowser.OnThumbnailDrag(ID)
                     OP.Refresh();
                     Input.mouseState.LMB = true;
                     Input.mouseState.isDraggingAssetFromUI = true;
-                    Gizmos.activeTransformGizmo = 1;
-                    Gizmos.highlightedAxis = 4;
-                    Gizmos.selectedAxis = 4;
-                    Gizmos.OnLMBDown(Input.mouseX, Input.mouseY, false);
+                    GM.activeTransformGizmo = Gizmo.TransformType.Move;
+                    GM.highlightedAxis = Gizmo.Axis.XY;
+                    GM.selectedAxis = Gizmo.Axis.XY;
+                    GM.OnLMBDown(Input.mouseX, Input.mouseY, false);
                     return;
                 elseif (item.fileID == ID) then
                     local name = AssetBrowser.GetFileName(item.fileID);
                     local mouseRay = Camera.GetMouseRay();
-                    local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, Gizmos.up) or Vector3.zero;
+                    local initialPosition = mouseRay:PlaneIntersection(Vector3.zero, GM.up) or Vector3.zero;
                     local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
                     local object = SM.loadedScene:CreateObject(item.fileID, name, initialPosition.x, initialPosition.y, initialPosition.z);
                     Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
@@ -1424,10 +1425,10 @@ function AssetBrowser.OnThumbnailDrag(ID)
                     OP.Refresh();
                     Input.mouseState.LMB = true;
                     Input.mouseState.isDraggingAssetFromUI = true;
-                    Gizmos.activeTransformGizmo = 1;
-                    Gizmos.highlightedAxis = 4;
-                    Gizmos.selectedAxis = 4;
-                    Gizmos.OnLMBDown(Input.mouseX, Input.mouseY, false);
+                    GM.activeTransformGizmo = Gizmo.TransformType.Move;
+                    GM.highlightedAxis = Gizmo.Axis.XY;
+                    GM.selectedAxis = Gizmo.Axis.XY;
+                    GM.OnLMBDown(Input.mouseX, Input.mouseY, false);
                 end
             end
         end

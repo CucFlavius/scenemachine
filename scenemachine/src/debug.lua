@@ -3,7 +3,6 @@
 --------------------------------------------------
 
 Debug = {};
-local Gizmos = SceneMachine.Gizmos;
 local Renderer = SceneMachine.Renderer;
 local Vector3 = SceneMachine.Vector3;
 

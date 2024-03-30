@@ -36,6 +36,14 @@ Note: This documentation comment is for illustrative purposes only and may not r
 	<Script file="GameObject/Character.lua" />
 	<Script file="GameObject/Group.lua" />
 	<Script file="GameObject/Camera.lua" />
+
+	<!-- Gizmos -->
+	<Script file="Gizmo/Gizmo.lua" />
+	<Script file="Gizmo/MoveGizmo.lua" />
+	<Script file="Gizmo/RotateGizmo.lua" />
+	<Script file="Gizmo/ScaleGizmo.lua" />
+	<Script file="Gizmo/SelectionGizmo.lua" />
+	<Script file="Gizmo/CameraGizmo.lua" />
 	
 	<!-- UI Objects -->
 	<Script file="UI/UI.lua" />

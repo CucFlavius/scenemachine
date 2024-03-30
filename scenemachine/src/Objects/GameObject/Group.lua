@@ -2,9 +2,7 @@
 SceneMachine.GameObjects.Group = {};
 
 local Vector3 = SceneMachine.Vector3;
-local Gizmos = SceneMachine.Gizmos;
 local Object = SceneMachine.GameObjects.Object;
-local SH = SceneMachine.Editor.SceneHierarchy;
 
 --- @class Group : Object
 local Group = SceneMachine.GameObjects.Group;
@@ -61,9 +59,9 @@ function Group:GetActiveBoundingBox()
 end
 
 --- Returns the gizmo type for the object.
---- @return Gizmos.Type gizmoType The gizmo type.
+--- @return Object.GizmoType gizmoType The gizmo type.
 function Group:GetGizmoType()
-    return Gizmos.Type.Object;
+    return Object.GizmoType.Object;
 end
 
 function Group:FitObjects(objects)
@@ -78,7 +76,7 @@ function Group:FitObjects(objects)
         for i = 1, #objects do
             local object = objects[i];
             local xmin, ymin, zmin, xmax, ymax, zmax = 0, 0, 0, 0, 0, 0;
-            if (object:GetGizmoType() == Gizmos.Type.Object) then
+            if (object:GetGizmoType() == Object.GizmoType.Object) then
                 xmin, ymin, zmin, xmax, ymax, zmax = object:GetActiveBoundingBox();
                 xmin = xmin or 0; ymin = ymin or 0; zmin = zmin or 0;
                 xmax = xmax or 0; ymax = ymax or 0; zmax = zmax or 0;
@@ -89,7 +87,7 @@ function Group:FitObjects(objects)
                 xmax = bbCenter[1];
                 ymax = bbCenter[2];
                 zmax = bbCenter[3];
-            elseif (object:GetGizmoType() == Gizmos.Type.Camera) then
+            elseif (object:GetGizmoType() == Object.GizmoType.Camera) then
                 xmin = 0;
                 ymin = 0;
                 zmin = 0;

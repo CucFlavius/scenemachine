@@ -10,6 +10,7 @@ SceneMachine.Camera = {};
 SceneMachine.CameraController = {};
 SceneMachine.Renderer = {};
 SceneMachine.Gizmos = {};
+SceneMachine.GizmoManager = {};
 SceneMachine.Input = {};
 SceneMachine.Network = {};
 SceneMachine.Network.Packets = {};

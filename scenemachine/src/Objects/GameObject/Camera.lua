@@ -3,7 +3,6 @@ SceneMachine.GameObjects.Camera = {};
 
 local Vector3 = SceneMachine.Vector3;
 local Object = SceneMachine.GameObjects.Object;
-local Gizmos = SceneMachine.Gizmos;
 
 --- @class Camera : Object
 local Camera = SceneMachine.GameObjects.Camera;
@@ -97,9 +96,9 @@ function Camera:ImportPacked(data)
 end
 
 --- Returns the type of gizmo for the camera.
---- @return Gizmos.Type gizmoType The gizmo type.
+--- @return Object.GizmoType gizmoType The gizmo type.
 function Camera:GetGizmoType()
-    return Gizmos.Type.Camera;
+    return Object.GizmoType.Camera;
 end
 
 --- Retrieves the field of view (FoV) value of the camera.

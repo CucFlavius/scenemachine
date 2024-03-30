@@ -61,7 +61,15 @@ function Math.multiplyRotations(rotation1, rotation2)
     return q1:ToEuler();
 end
 
-function Math.normalize(vector)
+
+function Math.normalize(value, min, max)
+    return (value - min) / (max - min)
+end
+
+function Math.clamp(value, min, max)
+    return math.min(math.max(value, min), max);
+end
+function Math.normalizeVector(vector)
     local magnitude = math.sqrt(vector[1]^2 + vector[2]^2 + vector[3]^2)
     
     if magnitude ~= 0 then

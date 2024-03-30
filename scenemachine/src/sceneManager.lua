@@ -12,10 +12,10 @@ local Resources = SceneMachine.Resources;
 local L = Editor.localization;
 local Vector3 = SceneMachine.Vector3;
 local Actions = SceneMachine.Actions;
-local Gizmos = SceneMachine.Gizmos;
 local CC = SceneMachine.CameraController;
 local Timeline = SceneMachine.Timeline;
 local Scene = SceneMachine.Scene;
+local Object = SceneMachine.GameObjects.Object;
 
 local tabButtonHeight = 20;
 local tabPool = {};
@@ -394,7 +394,7 @@ function SM.CalculateObjectsAverage()
         -- Iterate through the rest of the objects in the array
         for i = 1, #SM.selectedObjects do
             local xmin, ymin, zmin, xmax, ymax, zmax = 0, 0, 0, 0, 0, 0;
-            if (SM.selectedObjects[i]:GetGizmoType() == Gizmos.Type.Object) then
+            if (SM.selectedObjects[i]:GetGizmoType() == Object.GizmoType.Object) then
                 xmin, ymin, zmin, xmax, ymax, zmax = SM.selectedObjects[i]:GetActiveBoundingBox();
                 xmin = xmin or 0; ymin = ymin or 0; zmin = zmin or 0;
                 xmax = xmax or 0; ymax = ymax or 0; zmax = zmax or 0;
@@ -405,7 +405,7 @@ function SM.CalculateObjectsAverage()
                 xmax = bbCenter[1];
                 ymax = bbCenter[2];
                 zmax = bbCenter[3];
-            elseif (SM.selectedObjects[i]:GetGizmoType() == Gizmos.Type.Camera) then
+            elseif (SM.selectedObjects[i]:GetGizmoType() == Object.GizmoType.Camera) then
                 xmin = 0;
                 ymin = 0;
                 zmin = 0;

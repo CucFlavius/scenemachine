@@ -1,15 +1,9 @@
 local Editor = SceneMachine.Editor;
 local SM = Editor.SceneManager;
-local Gizmos = SceneMachine.Gizmos;
 local Renderer = SceneMachine.Renderer;
 local Camera = SceneMachine.Camera;
-local World = SceneMachine.World;
-local FX = SceneMachine.FX;
-local Input = SceneMachine.Input;
-local Math = SceneMachine.Math;
-local CC = SceneMachine.CameraController;
-local Vector3 = SceneMachine.Vector3;
 local Resources = SceneMachine.Resources;
+local Object = SceneMachine.GameObjects.Object;
 
 --- WTF ---
 local sqrt = math.sqrt;
@@ -22,12 +16,10 @@ Renderer.SpriteBufferFrames = {};
 Renderer.spriteFrameStartLevel = 0;
 Renderer.usedSprites = 0;
 Renderer.actors = {};
+Renderer.gizmos = {};
 Renderer.delayedUnitsQueue = {};
 Renderer.delayedUnitsQueueHasItems = false;
 Renderer.delayedUnitsQueueTimer = 0;
-SceneMachine.UsedFrames = 1;
-SceneMachine.CulledFrames = 1;
-SceneMachine.lineThickness = 2;
 
 function Renderer.GenerateFrameBuffer(startLevel)
 
@@ -93,7 +85,6 @@ function Renderer.CreateRenderer(x, y, w, h, parent, startLevel)
 	Renderer.backgroundFrame:SetHeight(Renderer.h);
 	Renderer.backgroundFrame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, -21);
     Renderer.backgroundFrame:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 0, 0);
-    --Renderer.backgroundFrame:SetAllPoints(parent);
 
 	Renderer.backgroundFrame.texture = Renderer.backgroundFrame:CreateTexture("Renderer.backgroundFrame.texture", "ARTWORK")
 	Renderer.backgroundFrame.texture:SetColorTexture(0.554,0.554,0.554,1);
@@ -101,11 +92,7 @@ function Renderer.CreateRenderer(x, y, w, h, parent, startLevel)
 	Renderer.backgroundFrame:SetFrameLevel(startLevel);
 
 	Renderer.projectionFrame = CreateFrame("ModelScene", "Renderer.projectionFrame", Renderer.backgroundFrame);
-	--Renderer.projectionFrame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", 0, 0);
-    --Renderer.projectionFrame:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, 0);
     Renderer.projectionFrame:SetAllPoints(Renderer.backgroundFrame);
-	--Renderer.projectionFrame:SetWidth(w);
-	--Renderer.projectionFrame:SetHeight(h);
 	Renderer.projectionFrame:SetClipsChildren(true);
 	Renderer.projectionFrame:SetCameraPosition(4,0,0);
 	Renderer.projectionFrame:SetCameraOrientationByYawPitchRoll(0, 0, 0);
@@ -122,7 +109,6 @@ function Renderer.AddActor(fileID, X, Y, Z, type)
     if (X == nil) then X = 0 end
     if (Y == nil) then Y = 0 end
     if (Z == nil) then Z = 0 end
-
 
     type = type or SceneMachine.GameObjects.Object.Type.Model;
 
@@ -267,7 +253,7 @@ function Renderer.RenderSprites()
     for i = 1, SM.loadedScene:GetObjectCount(), 1 do
         local object = SM.loadedScene:GetObject(i);
         if (object) then
-            if (object:GetGizmoType() == Gizmos.Type.Camera) then
+            if (object:GetGizmoType() == Object.GizmoType.Camera) then
                 if (object:IsVisible()) then
                     local pos = object:GetPosition();
                     
@@ -303,205 +289,21 @@ function Renderer.RenderSprites()
 end
 
 function Renderer.RenderGizmos()
-    if (Renderer.projectionFrame == nil) then return end
-    if (Renderer.active == true) then
+    if (not Renderer.projectionFrame) then
+        return;
+    end
+
+    if (Renderer.active) then
         Renderer.scale = 1.0 / Renderer.projectionFrame:GetEffectiveScale();
-        SceneMachine.usedFramesLastFrame = SceneMachine.UsedFrames;
-        SceneMachine.UsedFrames = 1;
-        SceneMachine.CulledFrames = 1;
 
-        -- Render gizmos --
-
-        if (SceneMachine.Gizmos.DebugGizmo) then
-            if (SceneMachine.Gizmos.DebugGizmo.active == true) then
-                RenderGizmoLines(SceneMachine.Gizmos.DebugGizmo);
-                --ShadeScaleGizmo(SceneMachine.Gizmos.DebugGizmo);
-            end
-        end
-
-        if #SM.selectedObjects > 0 then
-            if (SM.selectedObjects[1]:GetGizmoType() == Gizmos.Type.Object) then
-                RenderGizmoLines(SceneMachine.Gizmos.WireBox);
-                ShadeSelectionGizmo(SceneMachine.Gizmos.WireBox);
-            elseif (SM.selectedObjects[1]:GetGizmoType() == Gizmos.Type.Camera) then
-                RenderGizmoLines(SceneMachine.Gizmos.CameraGizmo);
-            end
-        end
-        
-        if (SceneMachine.Gizmos.activeTransformGizmo == 1) then
-            RenderGizmoLines(SceneMachine.Gizmos.MoveGizmo);
-            ShadeMovementGizmo(SceneMachine.Gizmos.MoveGizmo);
-        elseif (SceneMachine.Gizmos.activeTransformGizmo == 2) then
-            RenderGizmoLines(SceneMachine.Gizmos.RotateGizmo);
-            ShadeRotationGizmo(SceneMachine.Gizmos.RotateGizmo);
-        elseif (SceneMachine.Gizmos.activeTransformGizmo == 3) then
-            RenderGizmoLines(SceneMachine.Gizmos.ScaleGizmo);
-            ShadeScaleGizmo(SceneMachine.Gizmos.ScaleGizmo);
-        end
-    end
-end
-
-function RenderGizmoLines(gizmo)
-    if (not gizmo) then return end
-	local vertices = gizmo.transformedVertices;
-	local faceColors = gizmo.faceColors;
-
-	for t = 1, gizmo.lineCount, 1 do
-		local vert = vertices[t];
-		local faceColor = faceColors[t];
-        
-        local line = gizmo.lines[t];
-        
-		-- Near plane face culling --
-		local cull = Renderer.NearPlaneFaceCullingLine(vert, Camera.planePosition.x, Camera.planePosition.y, Camera.planePosition.z, Camera.forward.x, Camera.forward.y, Camera.forward.z, 0);
-
-		if (not cull) then
-			-- Project to screen space --
-			local aX, aY, aZ = Renderer.projectionFrame:Project3DPointTo2D(vert[1][1],vert[1][2],vert[1][3]);
-			local bX, bY, bZ = Renderer.projectionFrame:Project3DPointTo2D(vert[2][1],vert[2][2],vert[2][3]);
-            
-            --- these are needed for calculating mouse over
-            gizmo.screenSpaceVertices[t][1][1] = aX;
-            gizmo.screenSpaceVertices[t][1][2] = aY;
-            gizmo.screenSpaceVertices[t][2][1] = bX;
-            gizmo.screenSpaceVertices[t][2][2] = bY;
-
-			-- Render --
-			if (aX ~= nil and aY ~= nil and bX ~= nil and bY ~= nil) then
-                line:Show();
-                line:SetVertexColor(faceColor[1], faceColor[2], faceColor[3], faceColor[4] or 1);
-                line:SetStartPoint("BOTTOMLEFT", aX * Renderer.scale, aY * Renderer.scale) -- start topleft
-                line:SetEndPoint("BOTTOMLEFT", bX * Renderer.scale, bY * Renderer.scale)   -- end bottomright
-
-                if (gizmo.dashedLine == true) then
-                    local dist = Vector3.ManhattanDistanceP(vert[1][1],vert[1][2],vert[1][3],vert[2][1],vert[2][2],vert[2][3]);
-                    dist = max(dist, 1);
-                    dist = min(dist, 100);
-                    line:SetTexCoord(0, dist , 0, 1);
-                end
-
-                if (gizmo.lines ~= nil) then
-                    gizmo.lines[t] = line;
-                    gizmo.lineDepths[t] = aZ + bZ;
+        for i = 1, #Renderer.gizmos, 1 do
+            local gizmo = Renderer.gizmos[i];
+            if (gizmo) then
+                if (gizmo:IsVisible()) then
+                    gizmo:RenderLines();
+                    gizmo:Shade();
                 end
             end
-		else
-			-- Cull --
-			line:Hide();
-		end
-
-	end
-end
-
-function ShadeSelectionGizmo(gizmo)
-    if (not gizmo) then return end
-    -- Create an array of indices
-    local indices = {}
-    for i = 1, #gizmo.lineDepths do
-        indices[i] = i
-    end
-
-    -- Sort the indices based on the values in the 'numbers' table
-    table.sort(indices, function(a, b)
-        if (gizmo.lineDepths[a] ~= nil and gizmo.lineDepths[b] ~= nil) then
-            return gizmo.lineDepths[a] < gizmo.lineDepths[b];
-        else
-            return false;
-        end
-    end)
-
-    -- Create sorted tables
-    local sortedLineDepths = {}
-    local sortedLines = {}
-    for _, index in ipairs(indices) do
-        table.insert(sortedLineDepths, gizmo.lineDepths[index])
-        table.insert(sortedLines, gizmo.lines[index])
-    end
-
-    for i = 1, 3 do
-        if (sortedLines[i] ~= nil) then
-            sortedLines[i]:SetVertexColor(1, 1, 1, 0.3);
-        end
-    end
-end
-
-function ShadeMovementGizmo(gizmo)
-    if (not gizmo) then return end
-    for t = 1, 3, 1 do
-        if (gizmo.lines[t].axis == Gizmos.highlightedAxis) then
-            gizmo.faceColors[t][4] = 1.0;
-            for c = 4 + 2 + (gizmo.coneDetail * (t-1)), 4 + 2 + (gizmo.coneDetail * (t)), 1 do
-                gizmo.faceColors[c][4] = 1.0;
-            end
-        else
-            gizmo.faceColors[t][4] = 0.3;
-            for c = 4 + 2 + (gizmo.coneDetail * (t-1)), 4 + 2 + (gizmo.coneDetail * (t)), 1 do
-                gizmo.faceColors[c][4] = 0.3;
-            end
-        end
-    end
-
-    for t = 4, 4 + 6, 1 do
-        if (gizmo.lines[t].axis == Gizmos.highlightedAxis) then
-            gizmo.faceColors[t][4] = 1.0;
-        else
-            gizmo.faceColors[t][4] = 0.3;
-        end
-    end
-end
-
-function ShadeRotationGizmo(gizmo)
-    if (not gizmo) then return end
-    local function normalize(value, min, max)
-        return (value - min) / (max - min)
-    end
-    
-    local function clamp(value, min, max)
-        return math.min(math.max(value, min), max);
-    end
-
-    local minD = 10000000;
-    local maxD = -10000000;
-
-    -- find min max depth
-    for i = 1, #gizmo.lineDepths do
-        if (gizmo.lineDepths[i] > maxD) then
-            maxD = gizmo.lineDepths[i];
-        end
-        if (gizmo.lineDepths[i] < minD) then
-            minD = gizmo.lineDepths[i];
-        end
-    end
-
-    -- fade alpha
-    for i = 1, #gizmo.lineDepths do
-        -- get an alpha value between 0 and 1
-        local alpha = normalize(gizmo.lineDepths[i], minD, maxD);
-
-        -- make non linear
-        alpha = math.pow(alpha, 2.2);
-
-        gizmo.lines[i].alpha = alpha;
-
-        -- clamp
-        if (gizmo.lines[i].axis == Gizmos.highlightedAxis) then
-            alpha = clamp(alpha, 0.5, 1);
-        else
-            alpha = clamp(alpha, 0, 0.3);
-        end
-
-        local faceColor = gizmo.faceColors[i];
-        gizmo.lines[i]:SetVertexColor(faceColor[1], faceColor[2], faceColor[3], alpha);
-    end
-end
-
-function ShadeScaleGizmo(gizmo)
-    if (not gizmo) then return end
-    for t = 1, gizmo.lineCount, 1 do
-        if (Gizmos.highlightedAxis ~= 0) then
-            gizmo.faceColors[t][4] = 1.0;
-        else
-            gizmo.faceColors[t][4] = 0.3;
         end
     end
 end
