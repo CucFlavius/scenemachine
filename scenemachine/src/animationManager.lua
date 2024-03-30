@@ -511,8 +511,7 @@ function AM.CreateAnimationManager(x, y, w, h, parent, startLevel)
 
     local timelineTabH = 20;
 
-    AM.groupBG = UI.Rectangle:New(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 0);
-    AM.groupBG:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", 0, 0);
+    AM.groupBG = UI.Rectangle:NewTLBR(x, y, 0, 0, parent, 0, 0, 0, 0);
     AM.groupBG:SetFrameLevel(startLevel);
     AM.groupBG:GetFrame():SetScript("OnSizeChanged",
     function(_, width, height)
@@ -537,8 +536,7 @@ function AM.CreateAnimationManager(x, y, w, h, parent, startLevel)
     AM.parentFrame = parent;
     AM.groupBGy = y;
 
-    AM.tabGroup = UI.TabGroup:New(0, 0, 100, tabButtonHeight, AM.groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", startLevel + 2, true);
-    AM.tabGroup:SetPoint("TOPRIGHT", AM.groupBG:GetFrame(), "TOPRIGHT", 0, 0);
+    AM.tabGroup = UI.TabGroup:NewTLTR(0, 0, 0, 0, tabButtonHeight, AM.groupBG:GetFrame(), startLevel + 2, true);
     AM.tabGroup.dropdownButton.tooltip = L["AM_TT_LIST"];
     AM.tabGroup.addButton.tooltip = L["AM_TT_ADDTIMELINE"];
 
@@ -628,17 +626,14 @@ function AM.CreateAnimationSelectWindow(x, y, w, h)
     AM.animSelectWindow:SetFrameStrata(Editor.SUB_FRAME_STRATA);
     AM.animSelectWindow:MakeWholeWindowDraggable();
 
-    AM.animScrollList = UI.PooledScrollList:New(0, 0, w, h - 30, AM.animSelectWindow:GetFrame(), "TOPLEFT", "TOPLEFT");
-    AM.animScrollList:SetPoint("BOTTOMRIGHT", AM.animSelectWindow:GetFrame(), "BOTTOMRIGHT", 0, 30);
+    AM.animScrollList = UI.PooledScrollList:NewTLBR(0, 0, 0, 30, AM.animSelectWindow:GetFrame());
 	AM.animScrollList:SetItemTemplate(
 		{
             replaceAnim = nil,
 			height = 20,
 			buildItem = function(item)
 				-- main button --
-				item.components[1] = UI.Button:New(0, 0, 50, 18, item:GetFrame(), "CENTER", "CENTER", "");
-				item.components[1]:ClearAllPoints();
-				item.components[1]:SetAllPoints(item:GetFrame());
+				item.components[1] = UI.Button:NewAP(item:GetFrame(), "");
 
 				-- anim name text --
 				item.components[2] = UI.Label:New(10, 0, 200, 18, item.components[1]:GetFrame(), "LEFT", "LEFT", "", 9);
@@ -698,8 +693,7 @@ function AM.CreateAnimationSelectWindow(x, y, w, h)
         AM.animSelectWindow:Hide();
         AM.SetTime(AM.loadedTimeline:GetTime());
     end);
-    AM.animSelectWindow.filterBox = UI.TextBox:New(80, 5, 100, 20, AM.animSelectWindow:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "", 9);
-    AM.animSelectWindow.filterBox:SetPoint("BOTTOMRIGHT", AM.animSelectWindow:GetFrame(), "BOTTOMRIGHT", -5, 0);
+    AM.animSelectWindow.filterBox = UI.TextBox:NewBLBR(80, 5, -5, 0, 20, AM.animSelectWindow:GetFrame(), "", 9);
     AM.animSelectWindow.filterBox:SetScript("OnTextChanged", function(self, userInput) AM.FilterAnimList(self:GetText()); end );
     AM.animSelectWindow:Hide();
 end
@@ -1040,8 +1034,7 @@ function AM.CreateToolbar(x, y, w, h, parent, startLevel)
 end
 
 function AM.CreateWorkArea(x, y, w, h, parent, startLevel)
-    AM.workAreaBG = UI.Rectangle:New(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 0);
-    AM.workAreaBG:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -6, 20);
+    AM.workAreaBG = UI.Rectangle:NewTLBR(x, y, -6, 20, parent, 0, 0, 0, 0);
     AM.workAreaBG:GetFrame():SetClipsChildren(true);
     AM.workAreaBG:SetFrameLevel(startLevel + 1);
 
@@ -1064,8 +1057,7 @@ function AM.CreateWorkArea(x, y, w, h, parent, startLevel)
         end
     end)
 
-    AM.workAreaList = UI.Rectangle:New(0, 0, w, h, AM.workAreaViewport, "TOPLEFT", "TOPLEFT",  c4[1], c4[2], c4[3], 1);
-    AM.workAreaList:SetPoint("TOPRIGHT", AM.workAreaViewport, "TOPRIGHT", 0, 0);
+    AM.workAreaList = UI.Rectangle:NewTLTR(0, 0, 0, 0, h, AM.workAreaViewport, c4[1], c4[2], c4[3], 1);
     AM.workAreaList:SetFrameLevel(startLevel + 2);
 
     AM.TrackPool = {};
@@ -1134,7 +1126,7 @@ function AM.CreateWorkArea(x, y, w, h, parent, startLevel)
     AM.animationSelectionBox.lineRight = lineRight;
     AM.animationSelectionBox:Hide();
 
-	AM.workAreaScrollbar = UI.Scrollbar:New(0, y, 16, h, AM.groupBG:GetFrame(),
+	AM.workAreaScrollbar = UI.Scrollbar:NewTRBR(0, y, 0, 20, 16, AM.groupBG:GetFrame(),
 	function(value)
 		-- on scroll
         if (AM.uiMode == AM.Mode.Tracks) then
@@ -1151,15 +1143,13 @@ function AM.CreateWorkArea(x, y, w, h, parent, startLevel)
             AM.keyframeAreaList:SetPoint("TOPRIGHT", AM.keyframeViewport, "TOPRIGHT", 0, math.floor(pos));
         end
 	end);
-    AM.workAreaScrollbar:SetPoint("BOTTOMRIGHT", AM.groupBG:GetFrame(), "BOTTOMRIGHT", 0, 20);
     AM.workAreaScrollbar:SetFrameLevel(startLevel + 6);
 
     AM.workAreaCreated = true;
 end
 
 function AM.CreateKeyframeView(x, y, w, h, parent, startLevel)
-    AM.keyframeViewBG = UI.Rectangle:New(x, y, w, h, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 0);
-    AM.keyframeViewBG:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", 0, 20);
+    AM.keyframeViewBG = UI.Rectangle:NewTLBR(x, y, 0, 20, parent, 0, 0, 0, 0);
     AM.keyframeViewBG:GetFrame():SetClipsChildren(true);
     AM.keyframeViewBG:SetFrameLevel(startLevel + 1);
 
@@ -1175,8 +1165,7 @@ function AM.CreateKeyframeView(x, y, w, h, parent, startLevel)
     AM.keyframeViewport:SetFrameLevel(startLevel + 1);
     AM.keyframeViewport:SetScript("OnClick", function() AM.SelectKeyAtIndex(-1); end);
 
-    AM.keyframeAreaList = UI.Rectangle:New(0, 0, w, h, AM.keyframeViewport, "TOPLEFT", "TOPLEFT",  c4[1], c4[2], c4[3], 1);
-    AM.keyframeAreaList:SetPoint("TOPRIGHT", AM.keyframeViewport, "TOPRIGHT", -6, 0);
+    AM.keyframeAreaList = UI.Rectangle:NewTLTR(0, 0, -6, 0, h, AM.keyframeViewport, c4[1], c4[2], c4[3], 1);
     AM.keyframeAreaList:SetFrameLevel(startLevel + 2);
 
     AM.keyframeBars = {};
@@ -1402,10 +1391,7 @@ function AM.GenerateAnimationElement(index, x, y, w, h, parent, R, G, B, A)
     end)
 
     -- name
-    element.name = UI.Label:New(2, 0, 100, 10, element, "CENTER", "CENTER", index, 8);
-    element.name:ClearAllPoints();
-    element.name:SetPoint("LEFT", element, "LEFT", 10, 0);
-    element.name:SetPoint("RIGHT", element);
+    element.name = UI.Label:NewLR(10, 0, 0, 0, 10, element, index, 8);
     element.name:SetAlpha(0.7);
     element.name:SetTextColor(0, 0, 0, 1);
     element:Hide();

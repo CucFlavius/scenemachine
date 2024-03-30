@@ -12,8 +12,7 @@ function MainMenu.OpenKeyboardShortcuts()
         Editor.KeyboardShortcutsWindow:SetFrameStrata(Editor.SUB_FRAME_STRATA);
         Editor.KeyboardShortcutsWindow.resizeFrame:Hide();
 
-        Editor.KeyboardShortcutsPicture = UI.ImageBox:New(0, 0, 1024, 512, Editor.KeyboardShortcutsWindow:GetFrame(), "TOPLEFT", "TOPLEFT", Resources.textures["KeyboardShortcuts"]);
-        Editor.KeyboardShortcutsPicture:SetPoint("BOTTOMRIGHT", Editor.KeyboardShortcutsWindow:GetFrame(), "BOTTOMRIGHT", 0, 0);
+        Editor.KeyboardShortcutsPicture = UI.ImageBox:NewTLBR(0, 0, 0, 0, Editor.KeyboardShortcutsWindow:GetFrame(), Resources.textures["KeyboardShortcuts"]);
     end
 
     Editor.KeyboardShortcutsWindow:Show();

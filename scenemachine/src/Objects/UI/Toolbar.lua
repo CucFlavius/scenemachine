@@ -2,11 +2,24 @@ local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
 local Editor = SceneMachine.Editor;
 UI.Toolbar = {};
+
+--- @class Toolbar : Element
 local Toolbar = UI.Toolbar;
+
 Toolbar.__index = Toolbar;
 setmetatable(Toolbar, UI.Element)
 
+--- Creates a new Toolbar object.
+--- @param x number? The x-coordinate of the toolbar's position.
+--- @param y number? The y-coordinate of the toolbar's position.
+--- @param w number? The width of the toolbar.
+--- @param h number? The height of the toolbar.
+--- @param parent Element? The parent element of the toolbar.
+--- @param window Element? The window element associated with the toolbar.
+--- @param iconData table? The icon data for the toolbar.
+--- @return Toolbar: The newly created Toolbar object.
 function Toolbar:New(x, y, w, h, parent, window, iconData)
+    --- @class Toolbar : Element
 	local v =
     {
         x = x or 0,
@@ -25,9 +38,9 @@ function Toolbar:New(x, y, w, h, parent, window, iconData)
 	return v;
 end
 
+--- Builds the toolbar UI element.
 function Toolbar:Build()
-    self.frame = UI.Rectangle:New(self.x, self.y, self.w, self.h, self.parent, "TOPLEFT", "TOPLEFT", 0.1757, 0.1757, 0.1875, 1);
-    self.frame:SetPoint("TOPRIGHT", self.parent, "TOPRIGHT", 0, 0);
+    self.frame = UI.Rectangle:NewTLTR(self.x, self.y, 0, 0, self.h, self.parent, 0.1757, 0.1757, 0.1875, 1);
     self.iconsTexture = self.iconData.texture;
     self.iconCoordMap = self.iconData.coords;
     self.iconCoordLookup = {};
@@ -41,6 +54,10 @@ function Toolbar:Build()
     end
 end
 
+--- Retrieves the icon and its coordinates based on the given name.
+--- @param name string The name of the icon.
+--- @param mirrorX boolean Whether to mirror the icon horizontally. Defaults to false.
+--- @return table: The icon texture and its coordinates.
 function Toolbar:GetIcon(name, mirrorX)
     mirrorX = mirrorX or false;
     local iconCoords = self.iconCoordLookup[name];
@@ -50,9 +67,15 @@ function Toolbar:GetIcon(name, mirrorX)
     return { self.iconsTexture, iconCoords };
 end
 
+--- Creates a group of UI components within the toolbar.
+--- @param x number The x-coordinate of the group.
+--- @param y number The y-coordinate of the group.
+--- @param w number The width of the group.
+--- @param h number The height of the group.
+--- @param components table A table containing the components to be added to the group.
+--- @return table: The created group.
 function Toolbar:CreateGroup(x, y, w, h, components)
-    local group = UI.Rectangle:New(x, y, w, h, self.frame:GetFrame(), "TOPLEFT", "TOPLEFT", 0.1757, 0.1757, 0.1875, 1);
-    group:SetPoint("TOPRIGHT", self.frame:GetFrame(), "TOPRIGHT", 0, 0);
+    local group = UI.Rectangle:NewTLTR(x, y, 0, 0, h, self.frame:GetFrame(), 0.1757, 0.1757, 0.1875, 1);
     group:SetClipsChildren(true);
     group.components = {};
     group.h = h;
@@ -156,6 +179,8 @@ function Toolbar:ToggleGroupComponent(group, name, on)
     end
 end
 
+--- Refreshes the layout of a group in the toolbar.
+--- @param group table The group to refresh.
 function Toolbar:RefreshGroup(group)
     local currentLevel = group:GetFrameLevel();
 

@@ -11,15 +11,13 @@ local Camera = SceneMachine.Camera;
 
 function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
     --local group = Editor.CreateGroup("Properties", h, leftPanel:GetFrame());
-    local groupBG = UI.Rectangle:New(-6, 0, w, h, leftPanel:GetFrame(), "BOTTOMRIGHT", "BOTTOMRIGHT",  0.1757, 0.1757, 0.1875, 1);
-    groupBG:SetPoint("BOTTOMLEFT", leftPanel:GetFrame(), "BOTTOMLEFT", 6, 6);
+    local groupBG = UI.Rectangle:NewBLBR(6, 6, -6, 0, h, leftPanel:GetFrame(), 0.1757, 0.1757, 0.1875, 1);
     groupBG:SetFrameLevel(startLevel);
     groupBG.frame:SetResizable(true);
     groupBG.frame:SetUserPlaced(true);
     groupBG.frame:SetResizeBounds(120, 20, 800, 500);
 
-    Editor.horizontalSeparatorL = UI.Rectangle:New(0, 6, 0, 6, groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", 1,1,1,0);
-    Editor.horizontalSeparatorL:SetPoint("TOPRIGHT", leftPanel:GetFrame(), "TOPRIGHT", 0, 0);
+    Editor.horizontalSeparatorL = UI.Rectangle:NewTLTR(0, 6, 0, 0, 6, groupBG:GetFrame(), 1, 1, 1, 0);
     Editor.horizontalSeparatorL:SetFrameLevel(startLevel + 10);
     Editor.horizontalSeparatorL:GetFrame():EnableMouse(true);
     Editor.horizontalSeparatorL:GetFrame():RegisterForDrag("LeftButton");
@@ -37,18 +35,15 @@ function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
     Editor.horizontalSeparatorL:GetFrame():SetScript('OnEnter', function() SetCursor(Resources.textures["CursorResizeV"]); end)
     Editor.horizontalSeparatorL:GetFrame():SetScript('OnLeave', function() ResetCursor(); end)
 
-    local groupTitleText = UI.Label:New(0, 0, w - 30, 20, groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", "   " .. L["OP_TITLE"], 9);
+    local groupTitleText = UI.Label:NewTLTR(10, 0, 0, 0, 20, groupBG:GetFrame(), L["OP_TITLE"], 9);
     groupTitleText:SetPoint("TOPRIGHT", groupBG:GetFrame(), "TOPRIGHT", 0, 0);
     groupTitleText:SetFrameLevel(startLevel + 1);
 
-    local groupContent = UI.Rectangle:New(0, -20, w - 12, h - 20, groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", 0.1445, 0.1445, 0.1445, 1);
-    groupContent:SetPoint("BOTTOMRIGHT", groupBG:GetFrame(), "BOTTOMRIGHT", 0, 0);
+    local groupContent = UI.Rectangle:NewTLBR(0, -20, 0, 0, groupBG:GetFrame(), 0.1445, 0.1445, 0.1445, 1);
     groupContent:SetFrameLevel(startLevel + 2);
 
-    OP.collapseList = UI.CollapsableList:New(0, 0, w - 6, h - 20, { 71, 49, 93, 71 }, groupContent:GetFrame(), "TOPLEFT", "TOPLEFT",
-    { L["OP_TRANSFORM"], L["OP_ACTOR_PROPERTIES"], L["OP_SCENE_PROPERTIES"], L["OP_CAMERA_PROPERTIES"], },
-    c1[1], c1[2], c1[3], 1);
-    OP.collapseList:SetPoint("BOTTOMRIGHT", groupContent:GetFrame(), "BOTTOMRIGHT", 0, 0);
+    OP.collapseList = UI.CollapsableList:NewTLBR(0, 0, 0, 0, groupContent:GetFrame(), { 71, 49, 93, 71 },
+        { L["OP_TRANSFORM"], L["OP_ACTOR_PROPERTIES"], L["OP_SCENE_PROPERTIES"], L["OP_CAMERA_PROPERTIES"], }, c1[1], c1[2], c1[3], 1);
     OP.collapseList:SetFrameLevel(startLevel + 3);
     
     OP.transformPropertyGroup = OP.collapseList.bars[1];

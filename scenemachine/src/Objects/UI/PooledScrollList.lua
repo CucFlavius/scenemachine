@@ -1,11 +1,23 @@
 local UI = SceneMachine.UI;
 UI.PooledScrollList = {};
+
+--- @class PooledScrollList : Element
 local PooledScrollList = UI.PooledScrollList;
 PooledScrollList.__index = PooledScrollList;
 setmetatable(PooledScrollList, UI.Element)
 
+--- Creates a new instance of the PooledScrollList class.
+--- @param x number? The x-coordinate of the scroll list's position.
+--- @param y number? The y-coordinate of the scroll list's position.
+--- @param w number? The width of the scroll list.
+--- @param h number? The height of the scroll list.
+--- @param parent table? The parent element of the scroll list.
+--- @param point string? The anchor point of the scroll list relative to its parent.
+--- @param parentPoint string? The anchor point of the parent element relative to the scroll list.
+--- @return PooledScrollList: The newly created PooledScrollList instance.
 function PooledScrollList:New(x, y, w, h, parent, point, parentPoint)
-	local v = 
+    --- @class PooledScrollList : Element
+    local v =
     {
         x = x or 0,
         y = y or 0,
@@ -20,58 +32,115 @@ function PooledScrollList:New(x, y, w, h, parent, point, parentPoint)
         currentPos = 0,
     };
 
-	setmetatable(v, PooledScrollList);
+    setmetatable(v, PooledScrollList);
+
+    v.frame = CreateFrame("Frame", "SceneMachine.UI.PooledScrollList.frame", v.parent);
+    v.frame:SetPoint(v.point, v.parent, v.parentPoint, v.x, v.y);
+    v.frame:SetSize(v.w, v.h);
+
     v:Build();
-	return v;
+
+    return v;
 end
 
-function PooledScrollList:Build()
-    self.frame = UI.Rectangle:New(self.x, self.y, self.w, self.h, self.parent, self.point, self.parentPoint, 1, 1, 1, 0);
-	self.frame:GetFrame():SetScript("OnMouseWheel",
-    function(_, delta)
-        self:ScrollStep(delta);
-        --self:SetPosition(self.currentPos - (delta / #self.data));
-    end);
-    
-    self.viewport = UI.Rectangle:New(self.x, self.y, self.w, self.h, self.frame:GetFrame(), "TOPLEFT", "TOPLEFT", 1, 0, 1, 0);
-    self.viewport:ClearAllPoints();
-    self.viewport:SetPoint("TOPLEFT", self.frame:GetFrame(), "TOPLEFT", 0, 0);
-    self.viewport:SetPoint("BOTTOMRIGHT", self.frame:GetFrame(), "BOTTOMRIGHT", -16, 0);
-    self.viewport:SetClipsChildren(true);
-    self.viewport:GetFrame():SetScript("OnSizeChanged",
-    function(_, width, height)
-        self:MakePool(width - 16, height);
-        self.viewportHeight = height;
-        self.scrollbar:Resize(height, #self.data * self.template.height);
-        if (self.template.useHorizontalScrollbar) then
-            self.viewportWidth = width;
-            self.scrollbarH:Resize(width, self.maxWidth);
-        end
-        self:SetPosition(self.currentPos);
-        --self:Refresh(self.currentDif);
-    end);
-    self.scrollbar = UI.Scrollbar:New(0, 0, 16, self.h, self.frame:GetFrame(), function(v) self:SetPosition(v); end);
-    self.scrollbar:SetPoint("BOTTOMRIGHT", self.frame:GetFrame(), "BOTTOMRIGHT", 0, 0);
+--- Creates a new instance of the PooledScrollList class.
+--- @param xA number The x-coordinate of the top-left corner of the scroll list.
+--- @param yA number The y-coordinate of the top-left corner of the scroll list.
+--- @param xB number The x-coordinate of the bottom-right corner of the scroll list.
+--- @param yB number The y-coordinate of the bottom-right corner of the scroll list.
+--- @param parent table? The parent frame of the scroll list.
+--- @return PooledScrollList: The newly created PooledScrollList instance.
+function PooledScrollList:NewTLBR(xA, yA, xB, yB, parent)
+    --- @class PooledScrollList : Element
+    local v =
+    {
+        parent = parent or nil,
+        viewportHeight = 0;
+        visible = true,
+        currentDif = 0,
+        currentPos = 0,
+    };
 
+    setmetatable(v, PooledScrollList);
+
+    v.frame = CreateFrame("Frame", "SceneMachine.UI.PooledScrollList.frame", v.parent);
+    v.frame:SetPoint("TOPLEFT", parent, "TOPLEFT", xA, yA);
+    v.frame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", xB, yB);
+
+    v:Build();
+
+    return v;
+end
+
+--- Builds the PooledScrollList.
+function PooledScrollList:Build()
+    -- Set the OnMouseWheel script for the frame
+    self.frame:SetScript("OnMouseWheel",
+        function(_, delta)
+            self:ScrollStep(delta);
+            --self:SetPosition(self.currentPos - (delta / #self.data));
+        end);
+
+    -- Create the viewport rectangle
+    self.viewport = UI.Rectangle:NewTLBR(0, 0, 0, 0, self.frame,1, 0, 1, 0);
+    self.viewport:SetClipsChildren(true);
+
+    -- Set the OnSizeChanged script for the viewport frame
+    self.viewport:GetFrame():SetScript("OnSizeChanged",
+        function(_, width, height)
+            self:MakePool(width - 16, height);
+            self.viewportHeight = height;
+            self.scrollbar:Resize(height, #self.data * self.template.height);
+            if (self.template.useHorizontalScrollbar) then
+                self.viewportWidth = width;
+                self.scrollbarH:Resize(width, self.maxWidth);
+            end
+            self:SetPosition(self.currentPos);
+            --self:Refresh(self.currentDif);
+        end);
+
+    -- Create the scrollbar
+    self.scrollbar = UI.Scrollbar:NewTRBR(0, 0, 0, 0, 16, self.frame, function(v) self:SetPosition(v); end);
+
+    -- Initialize data and item pool
     self.data = {};
     self.itemPool = {};
     self.dataStartIdx = 1;
 end
 
+--- Sets the frame level of the PooledScrollList and its components.
+--- @param level number The new frame level to set.
+function PooledScrollList:SetFrameLevel(level)
+    self.frame:SetFrameLevel(level);
+    self.viewport:SetFrameLevel(level + 1);
+
+    for i = 1, #self.itemPool, 1 do
+        self.itemPool[i]:SetFrameLevel(level + 2 + i);
+        for c = 1, #self.itemPool[i].components, 1 do
+            self.itemPool[i].components[c]:SetFrameLevel(level + 2 + i + c);
+        end
+    end
+end
+
+--- Sets the item template for the PooledScrollList.
+--- @param template table The template to set.
 function PooledScrollList:SetItemTemplate(template)
     self.template = template;
 
     if (self.template.useHorizontalScrollbar) then
         self.viewport:ClearAllPoints();
-        self.viewport:SetPoint("TOPLEFT", self.frame:GetFrame(), "TOPLEFT", 0, 0);
-        self.viewport:SetPoint("BOTTOMRIGHT", self.frame:GetFrame(), "BOTTOMRIGHT", -16, 16);
+        self.viewport:SetPoint("TOPLEFT", self.frame, "TOPLEFT", 0, 0);
+        self.viewport:SetPoint("BOTTOMRIGHT", self.frame, "BOTTOMRIGHT", -16, 16);
 
-        self.scrollbarH = UI.ScrollbarHorizontal:New(0, 0, self.w, 16, self.frame:GetFrame(), function(v) self:SetHorizontalPosition(v); end);
-        self.scrollbarH:SetPoint("BOTTOMRIGHT", self.frame:GetFrame(), "BOTTOMRIGHT", -16, 0);
-        self.scrollbarH:SetFrameLevel(self.viewport:GetFrameLevel() + 10);
+        self.scrollbarH = UI.ScrollbarHorizontal:NewBLBR(0, 0, -16, 0, 16, self.frame, function(v) self:SetHorizontalPosition(v); end);
+        self.scrollbarH:SetFrameLevel(self.viewport:GetFrameLevel() + 100);
     end
 end
 
+--- Creates a pool of items for the scroll list based on the specified viewport dimensions.
+--- If no dimensions are provided, it uses the dimensions of the current viewport.
+--- @param viewportWidth number? The width of the viewport (optional)
+--- @param viewportHeight number? The height of the viewport (optional)
 function PooledScrollList:MakePool(viewportWidth, viewportHeight)
     viewportHeight = viewportHeight or self.viewport:GetHeight();
     viewportWidth = viewportWidth or self.viewport:GetWidth();
@@ -95,6 +164,8 @@ function PooledScrollList:MakePool(viewportWidth, viewportHeight)
     end
 end
 
+--- Scrolls the PooledScrollList by the specified value.
+--- @param value number The value by which to scroll the list.
 function PooledScrollList:ScrollStep(value)
     self.dataStartIdx = self.dataStartIdx - value;
     self.currentPos = math.min(1, self.dataStartIdx / (#self.data - (self.visibleElementCount - 1)));
@@ -102,6 +173,8 @@ function PooledScrollList:ScrollStep(value)
     self:Refresh(0);
 end
 
+--- Sets the position of the PooledScrollList.
+--- @param value number The position value between 0 and 1.
 function PooledScrollList:SetPosition(value)
     if (value >= 1) then value = 0.9999; end -- this fixes my bad logic which causes a pop when scrolling to the end
     self.currentPos = value;
@@ -115,6 +188,8 @@ function PooledScrollList:SetPosition(value)
     self:Refresh(dif);
 end
 
+--- Sets the horizontal position of the PooledScrollList.
+--- @param value number The horizontal position value between 0 and 1.
 function PooledScrollList:SetHorizontalPosition(value)
     local maxOffset = self.maxWidth - self.viewportWidth
     local offset = -value * maxOffset
@@ -124,12 +199,16 @@ function PooledScrollList:SetHorizontalPosition(value)
     end
 end
 
+--- Sets the data for the PooledScrollList and refreshes the list.
+--- @param data table The data to be set for the PooledScrollList.
 function PooledScrollList:SetData(data)
     self.data = data;
     self.scrollbar:Resize(self.viewportHeight, #self.data * self.template.height);
     self:Refresh(self.currentDif);
 end
 
+--- Refreshes the PooledScrollList with new data and updates the visible elements.
+--- @param dif number The difference in position of the elements.
 function PooledScrollList:Refresh(dif)
     self.currentDif = dif;
     if (self.template.useHorizontalScrollbar) then
@@ -174,6 +253,7 @@ function PooledScrollList:Refresh(dif)
     end
 end
 
+--- Refreshes the static items in the PooledScrollList.
 function PooledScrollList:RefreshStatic()
     local pidx = 1;
     for d = self.dataStartIdx, self.dataEndIdx, 1 do

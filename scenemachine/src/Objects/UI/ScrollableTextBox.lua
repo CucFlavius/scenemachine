@@ -3,11 +3,38 @@ local Resources = SceneMachine.Resources;
 local L = Editor.localization;
 local UI = SceneMachine.UI;
 UI.ScrollableTextBox = {};
+
+--- @class ScrollableTextBox : Element
 local ScrollableTextBox = UI.ScrollableTextBox;
+
 ScrollableTextBox.__index = ScrollableTextBox;
 setmetatable(ScrollableTextBox, UI.Element);
 
+-- the scrollable edit box is a bit awful because it's two frames wrapped around the actual editbox
+-- object
+--   frame
+--     scrollbox
+--       editBox
+
+-- to get the editbox or scrollbox from the object, use the accessors
+--  object:GetEditBox()
+--  object:GetScrollBox()
+
+--- Creates a new instance of ScrollableTextBox.
+--- @param x number? - The x-coordinate of the ScrollableTextBox's position.
+--- @param y number? - The y-coordinate of the ScrollableTextBox's position.
+--- @param w number? - The width of the ScrollableTextBox.
+--- @param h number? - The height of the ScrollableTextBox.
+--- @param parent table? - The parent element of the ScrollableTextBox.
+--- @param point string? - The anchor point of the ScrollableTextBox relative to its parent.
+--- @param parentPoint string? - The anchor point of the parent element relative to the ScrollableTextBox.
+--- @param text string? - The initial text content of the ScrollableTextBox.
+--- @param textHeight number? - The height of the text in the ScrollableTextBox.
+--- @param textFont table? - The font used for the text in the ScrollableTextBox.
+--- @param includeScrollButtons boolean? - Determines whether to include scroll buttons in the ScrollableTextBox.
+--- @return ScrollableTextBox: The newly created ScrollableTextBox instance.
 function ScrollableTextBox:New(x, y, w, h, parent, point, parentPoint, text, textHeight, textFont, includeScrollButtons)
+    --- @class ScrollableTextBox : Element
 	local v =
     {
         x = x or 0,
@@ -22,28 +49,59 @@ function ScrollableTextBox:New(x, y, w, h, parent, point, parentPoint, text, tex
         textFont = textFont or Resources.defaultFont,
         includeScrollButtons = includeScrollButtons or false,
         visible = true,
+        tooltip = nil,
+        tooltipDetailed = nil,
     };
 
 	setmetatable(v, ScrollableTextBox);
+
+    v.frame = CreateFrame("Frame", "SceneMachine.UI.ScrollableEditBox.frame", v.parent, "ScrollingEditBoxTemplate");
+	v.frame:SetPoint(v.point, v.parent, v.parentPoint, v.x, v.y);
+	v.frame:SetSize(v.w, v.h);
+
     v:Build();
+
 	return v;
 end
 
--- the scrollable edit box is a bit awful because it's two frames wrapped around the actual editbox
--- object
---   frame
---     scrollbox
---       editBox
+--- Creates a new instance of the ScrollableTextBox class.
+--- @param xA number The x-coordinate of the top-left corner of the text box.
+--- @param yA number The y-coordinate of the top-left corner of the text box.
+--- @param xB number The x-coordinate of the bottom-right corner of the text box.
+--- @param yB number The y-coordinate of the bottom-right corner of the text box.
+--- @param parent table? The parent element of the text box.
+--- @param text string? The initial text to display in the text box.
+--- @param textHeight number? The height of the text in the text box.
+--- @param textFont string? The font to use for the text in the text box.
+--- @param includeScrollButtons boolean? Whether to include scroll buttons in the text box.
+--- @return ScrollableTextBox: The new instance of the ScrollableTextBox class.
+function ScrollableTextBox:NewTLBR(xA, yA, xB, yB, parent, text, textHeight, textFont, includeScrollButtons)
+    --- @class ScrollableTextBox : Element
+	local v =
+    {
+        parent = parent or nil,
+        text = text or nil,
+        textHeight = textHeight or 9,
+        textFont = textFont or Resources.defaultFont,
+        includeScrollButtons = includeScrollButtons or false,
+        visible = true,
+        tooltip = nil,
+        tooltipDetailed = nil,
+    };
 
--- to get the editbox or scrollbox from the object, use the accessors
---  object:GetEditBox()
---  object:GetScrollBox()
+	setmetatable(v, ScrollableTextBox);
 
+    v.frame = CreateFrame("Frame", "SceneMachine.UI.ScrollableEditBox.frame", v.parent, "ScrollingEditBoxTemplate");
+    v.frame:SetPoint("TOPLEFT", parent, "TOPLEFT", xA, yA);
+    v.frame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", xB, yB);
+    
+    v:Build();
+
+	return v;
+end
+
+--- Builds the scrollable text box.
 function ScrollableTextBox:Build()
-	self.frame = CreateFrame("Frame", "SceneMachine.UI.ScrollableEditBox.frame", self.parent, "ScrollingEditBoxTemplate");
-	self.frame:SetPoint(self.point, self.parent, self.parentPoint, self.x, self.y);
-	self.frame:SetSize(self.w, self.h);
-
     local editBox = self.frame:GetEditBox();
 	editBox:SetFont(self.textFont, self.textHeight, "OUTLINE");
     editBox:SetText(self.text);
@@ -112,18 +170,26 @@ function ScrollableTextBox:Build()
     end
 end
 
+--- Sets the script for the ScrollableTextBox.
+--- @param handler string The name of the script handler.
+--- @param func function The function to be executed when the script is triggered.
 function ScrollableTextBox:SetScript(handler, func)
     self.frame:GetEditBox():SetScript(handler, func);
 end
 
+--- Sets the focus on the scrollable text box.
 function ScrollableTextBox:SetFocus()
     self.frame:GetEditBox():SetFocus();
 end
 
+--- Clears the focus from the scrollable text box.
 function ScrollableTextBox:ClearFocus()
     self.frame:GetEditBox():ClearFocus();
 end
 
+--- Sets the text of the scrollable text box.
+--- @param text string The text to set.
+--- @param skipUpdate boolean (optional) Whether to skip updating the edit box. Defaults to false.
 function ScrollableTextBox:SetText(text, skipUpdate)
     if (text) then
         self.text = text;
@@ -133,38 +199,59 @@ function ScrollableTextBox:SetText(text, skipUpdate)
     end
 end
 
+--- Gets the text of the scrollable text box.
+--- @return string: The text of the scrollable text box.
 function ScrollableTextBox:GetText()
     return self.text;
 end
 
+--- Retrieves the edit box associated with the scrollable text box.
+--- @return table: The edit box associated with the scrollable text box.
 function ScrollableTextBox:GetEditBox()
     return self.frame:GetEditBox();
 end
 
+--- Retrieves the scroll box associated with the scrollable text box.
+--- @return table: The scroll box associated with the scrollable text box.
 function ScrollableTextBox:GetScrollBox()
     return self.frame:GetScrollBox();
 end
 
+--- Sets the horizontal justification of the scrollable text box.
+--- @param justifyH string The horizontal justification value to set.
 function ScrollableTextBox:SetJustifyH(justifyH)
     self.frame:GetEditBox():SetJustifyH(justifyH);
 end
 
+--- Sets the text color of the scrollable text box.
+--- @param R number: The red component of the color (0-1).
+--- @param G number: The green component of the color (0-1).
+--- @param B number: The blue component of the color (0-1).
+--- @param A number: The alpha component of the color (0-1).
 function ScrollableTextBox:SetTextColor(R, G, B, A)
     self.frame:GetEditBox():SetTextColor(R, G, B, A);
 end
 
+--- Sets the enabled state of the ScrollableTextBox.
+--- @param on boolean Whether the ScrollableTextBox should be enabled or not.
 function ScrollableTextBox:SetEnabled(on)
     self.frame:GetEditBox():SetEnabled(on);
 end
 
+--- Sets whether the text box should allow multiple lines.
+--- @param on boolean Whether to enable or disable multi-line mode.
 function ScrollableTextBox:SetMultiLine(on)
     self.frame:GetEditBox():SetMultiLine(on);
 end
 
+--- Sets the maximum number of letters allowed in the scrollable text box.
+--- @param number number The maximum number of letters.
 function ScrollableTextBox:SetMaxLetters(number)
     self.frame:GetEditBox():SetMaxLetters(number);
 end
 
+--- Sets whether the scroll should be interpolated.
+--- @param interpolate boolean Whether to interpolate the scroll.
 function ScrollableTextBox:SetInterpolateScroll(interpolate)
     self.frame:SetInterpolateScroll(interpolate);
 end

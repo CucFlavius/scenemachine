@@ -61,8 +61,6 @@ Note: This documentation comment is for illustrative purposes only and may not r
 	<Script file="UI/CollapsableBox.lua" />
 	<Script file="UI/CollapsableList.lua" />
 	<Script file="UI/Dropdown.lua" />
-	<Script file="UI/ScrollFrame.lua" />
-	<Script file="UI/ItemList.lua" />
 	<Script file="UI/PooledScrollList.lua" />
 	<Script file="UI/PooledGridScrollList.lua" />
 	<Script file="UI/PropertyField.lua" />

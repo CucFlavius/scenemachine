@@ -1,10 +1,29 @@
 local UI = SceneMachine.UI;
 UI.CollapsableBox = {};
+
+--- @class CollapsableBox : Element
 local CollapsableBox = UI.CollapsableBox;
+
 CollapsableBox.__index = CollapsableBox;
 setmetatable(CollapsableBox, UI.Element)
 
+--- Creates a new instance of the CollapsableBox class.
+--- @param x number (optional) - The x-coordinate of the box.
+--- @param y number (optional) - The y-coordinate of the box.
+--- @param w number (optional) - The width of the box.
+--- @param h number (optional) - The height of the box.
+--- @param parent table (optional) - The parent element of the box.
+--- @param point string (optional) - The anchor point of the box.
+--- @param parentPoint string (optional) - The anchor point of the parent element.
+--- @param title string (optional) - The title of the box.
+--- @param R number (optional) - The red color component of the box.
+--- @param G number (optional) - The green color component of the box.
+--- @param B number (optional) - The blue color component of the box.
+--- @param A number (optional) - The alpha (transparency) value of the box.
+--- @param list table (optional) - The list of items in the box.
+--- @return CollapsableBox - The new instance of the CollapsableBox class.
 function CollapsableBox:New(x, y, w, h, parent, point, parentPoint, title, R, G, B, A, list)
+    --- @class CollapsableBox : Element
 	local v = 
     {
         x = x or 0,
@@ -28,16 +47,24 @@ function CollapsableBox:New(x, y, w, h, parent, point, parentPoint, title, R, G,
 	return v;
 end
 
+--- Builds the collapsible box UI element.
 function CollapsableBox:Build()
-    self.bar = UI.Button:New(self.x, self.y, self.w, 12, self.parent, "TOPLEFT", "TOPLEFT", self.title);
-    self.bar:SetPoint("TOPRIGHT", self.parent, "TOPRIGHT", self.x, self.y);
-    self.panel = UI.Rectangle:New(0, -12, self.w, self.h, self.bar.frame, "TOPLEFT", "TOPLEFT", self.R, self.G, self.B, self.A);
-    self.panel:SetPoint("TOPRIGHT", self.bar.frame, "TOPRIGHT", 0, -12);
+    -- Create the bar button
+    self.bar = UI.Button:NewTLTR(self.x, self.y, self.x, self.y, 12, self.parent, self.title, nil, nil);
+    
+    -- Create the panel rectangle
+    self.panel = UI.Rectangle:NewTLTR(0, -12, 0, -12, self.h, self.bar.frame, self.R, self.G, self.B, self.A);
+    
+    -- Store references to local variables
     local list = self.list;
     local panel = self.panel;
     local bar = self.bar;
+    
+    -- Set the frame and collapsed state
     self.frame = self.bar.frame;
     self.isCollapsed = false;
+    
+    -- Set the bar justification and onClick behavior
     self.bar:SetJustifyH("CENTER");
     self.bar:SetScript("OnClick", function (self, button, down)
         bar.isCollapsed = not bar.isCollapsed;
@@ -51,7 +78,6 @@ function CollapsableBox:Build()
             list.scrollbar:Resize(list.viewportHeight, list:GetVisibleHeight());
         end
     end);
-
 end
 
 CollapsableBox.__tostring = function(self)

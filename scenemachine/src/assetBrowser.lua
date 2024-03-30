@@ -33,11 +33,7 @@ AssetBrowser.COLLECTION_DATA_VERSION = 1;
 
 function AssetBrowser.Create(parent, w, h, startLevel)
 
-    AssetBrowser.tabGroup = UI.TabGroup:New(0, 0, 100, tabButtonHeight, parent, "TOPLEFT", "TOPLEFT", startLevel + 2, false);
-    AssetBrowser.tabGroup:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, 0);
-    --AssetBrowser.tabGroup.dropdownButton.tooltip = L["AM_TT_LIST"];
-    --AssetBrowser.tabGroup.addButton.tooltip = L["AM_TT_ADDTIMELINE"];
-
+    AssetBrowser.tabGroup = UI.TabGroup:NewTLTR(0, 0, 0, 0, tabButtonHeight, parent, startLevel + 2, false);
 	AssetBrowser.tabGroup:SetItemTemplate(
     {
         height = tabButtonHeight,
@@ -64,17 +60,13 @@ function AssetBrowser.Create(parent, w, h, startLevel)
      });
 
     AssetBrowser.tabs = {};
-    AssetBrowser.tabs[1] = UI.Rectangle:New(0, -20, w, h, parent, "TOPRIGHT", "TOPRIGHT", 0, 0, 0, 0.0);
-    AssetBrowser.tabs[1]:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 0, 0);
+    AssetBrowser.tabs[1] = UI.Rectangle:NewTLBR(0, -20, 0, 0, parent, 0, 0, 0, 0.0);
     AssetBrowser.tabs[1]:SetFrameLevel(startLevel + 3);
-    AssetBrowser.tabs[2] = UI.Rectangle:New(0, -20, w, h, parent, "TOPRIGHT", "TOPRIGHT", 0, 0, 0, 0.0);
-    AssetBrowser.tabs[2]:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 0, 0);
+    AssetBrowser.tabs[2] = UI.Rectangle:NewTLBR(0, -20, 0, 0, parent, 0, 0, 0, 0.0);
     AssetBrowser.tabs[2]:SetFrameLevel(startLevel + 3);
-    AssetBrowser.tabs[3] = UI.Rectangle:New(0, -20, w, h, parent, "TOPRIGHT", "TOPRIGHT", 0, 0, 0, 0.0);
-    AssetBrowser.tabs[3]:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 0, 0);
+    AssetBrowser.tabs[3] = UI.Rectangle:NewTLBR(0, -20, 0, 0, parent, 0, 0, 0, 0.0);
     AssetBrowser.tabs[3]:SetFrameLevel(startLevel + 3);
-    AssetBrowser.tabs[4] = UI.Rectangle:New(0, -20, w, h, parent, "TOPRIGHT", "TOPRIGHT", 0, 0, 0, 0.0);
-    AssetBrowser.tabs[4]:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 0, 0);
+    AssetBrowser.tabs[4] = UI.Rectangle:NewTLBR(0, -20, 0, 0, parent, 0, 0, 0, 0.0);
     AssetBrowser.tabs[4]:SetFrameLevel(startLevel + 3);
 
     AssetBrowser.RefreshTabs();
@@ -394,15 +386,13 @@ function AssetBrowser.OnChangeTab(idx)
 end
 
 function AssetBrowser.CreateCollectionsTab(x, y, parent, startLevel)
-    AssetBrowser.collectionsBottomGroup = UI.Rectangle:New(0, 0, 100, scenemachine_settings.collectionsPanelH, parent, "BOTTOMRIGHT", "BOTTOMRIGHT",  0.1757, 0.1757, 0.1875, 1);
-    AssetBrowser.collectionsBottomGroup:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 0, 6);
+    AssetBrowser.collectionsBottomGroup = UI.Rectangle:NewBLBR(0, 0, 0, 6, scenemachine_settings.collectionsPanelH, parent, 0.1757, 0.1757, 0.1875, 1);
     AssetBrowser.collectionsBottomGroup:SetFrameLevel(startLevel);
     AssetBrowser.collectionsBottomGroup.frame:SetResizable(true);
     AssetBrowser.collectionsBottomGroup.frame:SetUserPlaced(true);
     AssetBrowser.collectionsBottomGroup.frame:SetResizeBounds(120, 20, 800, 500);
 
-    AssetBrowser.collectionsSeparator = UI.Rectangle:New(0, 6, 100, 6, AssetBrowser.collectionsBottomGroup:GetFrame(), "TOPLEFT", "TOPLEFT", 1,1,1,0);
-    AssetBrowser.collectionsSeparator:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, 0);
+    AssetBrowser.collectionsSeparator = UI.Rectangle:NewTLTR(0, 6, 0, 0, 6, AssetBrowser.collectionsBottomGroup:GetFrame(), 1,1,1,0);
     AssetBrowser.collectionsSeparator:SetFrameLevel(startLevel + 10);
     AssetBrowser.collectionsSeparator:GetFrame():EnableMouse(true);
     AssetBrowser.collectionsSeparator:GetFrame():RegisterForDrag("LeftButton");
@@ -420,21 +410,17 @@ function AssetBrowser.CreateCollectionsTab(x, y, parent, startLevel)
     AssetBrowser.collectionsSeparator:GetFrame():SetScript('OnEnter', function() SetCursor(Resources.textures["CursorResizeV"]); end)
     AssetBrowser.collectionsSeparator:GetFrame():SetScript('OnLeave', function() ResetCursor(); end)
 
-    AssetBrowser.collectionsTopGroup = UI.Rectangle:New(0, -30 - Editor.pmult, 100, 100, parent, "TOPLEFT", "TOPLEFT",  0, 0, 0, 0);
-    AssetBrowser.collectionsTopGroup:SetPoint("BOTTOMRIGHT", AssetBrowser.collectionsSeparator:GetFrame(), "BOTTOMRIGHT", 0, 6);
+    AssetBrowser.collectionsTopGroup = UI.Rectangle:NewTLBR(0, -30 - Editor.pmult, 0, 6, parent, 0, 0, 0, 0);
 	AssetBrowser.collectionsTopGroup:SetFrameLevel(startLevel);
 
-    AssetBrowser.collectionScrollList = UI.PooledScrollList:New(1, -1, 100, 100, AssetBrowser.collectionsTopGroup:GetFrame(), "TOPLEFT", "TOPLEFT");
-	AssetBrowser.collectionScrollList:SetPoint("BOTTOMRIGHT", AssetBrowser.collectionsTopGroup:GetFrame(), "BOTTOMRIGHT", 0, 0);
+    AssetBrowser.collectionScrollList = UI.PooledScrollList:NewTLBR(1, -1, 0, 0, AssetBrowser.collectionsTopGroup:GetFrame());
 	AssetBrowser.collectionScrollList:SetFrameLevel(startLevel + 3);
 	AssetBrowser.collectionScrollList:SetItemTemplate(
 		{
 			height = 20,
 			buildItem = function(item)
 				-- main button --
-				item.components[1] = UI.Button:New(0, 0, 50, 18, item:GetFrame(), "CENTER", "CENTER", "");
-				item.components[1]:ClearAllPoints();
-				item.components[1]:SetAllPoints(item:GetFrame());
+				item.components[1] = UI.Button:NewAP( item:GetFrame(), "");
 
 				-- object name text --
 				item.components[2] = UI.Label:New(10, 0, 200, 18, item.components[1]:GetFrame(), "LEFT", "LEFT", "", 9);
@@ -779,17 +765,13 @@ end
 function AssetBrowser.CreateSearchBar(xMin, yMin, xMax, yMax, parent, startLevel)
     local h = 20;
 
-    AssetBrowser.searchBarBG = UI.Rectangle:New(xMin, yMin, 1, 1, parent, "TOPLEFT", "TOPLEFT", c1[1], c1[2], c1[3], 1);
-    AssetBrowser.searchBarBG:SetPoint("TOPRIGHT", parent, "TOPRIGHT", xMax, yMax);
+    AssetBrowser.searchBarBG = UI.Rectangle:NewTLTR(xMin, yMin, xMax, yMax, h, parent, c1[1], c1[2], c1[3], 1);
     AssetBrowser.searchBarBG:SetFrameLevel(startLevel);
-    AssetBrowser.searchBarBG:SetHeight(h);
 
     local searchLabel = UI.Label:New(5, 0, 50, h, AssetBrowser.searchBarBG:GetFrame(), "TOPLEFT", "TOPLEFT", L["SEARCH"]);
     searchLabel:SetFrameLevel(startLevel + 1);
 
-    AssetBrowser.searchBar = UI.TextBox:New(50, 0, 1, 1, AssetBrowser.searchBarBG:GetFrame(), "TOPLEFT", "TOPLEFT", "");
-    AssetBrowser.searchBar:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, 0);
-    AssetBrowser.searchBar:SetHeight(h);
+    AssetBrowser.searchBar = UI.TextBox:NewTLTR(50, 0, 0, 0, h, AssetBrowser.searchBarBG:GetFrame(), "");
     AssetBrowser.searchBar:SetFrameLevel(startLevel + 1);
     AssetBrowser.searchBar:SetScript('OnEnterPressed', function(self)
         -- set value
@@ -841,7 +823,7 @@ function AssetBrowser.GridCollectionRemove(entry)
 end
 
 function AssetBrowser.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
-    AssetBrowser.gridList = UI.PooledGridScrollList:NewP(parent, xMin, yMin, "TOPLEFT", "TOPLEFT", xMax, yMax, "BOTTOMRIGHT", "BOTTOMRIGHT");
+    AssetBrowser.gridList = UI.PooledGridScrollList:NewTLBR(xMin, yMin, xMax, yMax, parent);
     AssetBrowser.gridList:SetFrameLevel(startLevel + 2);
     AssetBrowser.gridList:SetItemTemplate(
 		{
@@ -849,17 +831,14 @@ function AssetBrowser.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
 			height = 94 + 15,
 			buildItem = function(item)
 				-- main button --
-				item.components[1] = UI.Button:New(0, 0, 94, 94 + 15, item:GetFrame(), "CENTER", "CENTER", "");
-				item.components[1]:ClearAllPoints();
-				item.components[1]:SetAllPoints(item:GetFrame());
+				item.components[1] = UI.Button:NewAP(item:GetFrame(), "");
                 item.components[1]:SetFrameLevel(startLevel + 3);
                 item.components[1]:GetFrame():RegisterForDrag("LeftButton");
                 item.components[1]:GetFrame():RegisterForClicks("LeftButtonUp", "RightButtonUp");
                 item.components[1]:SetClipsChildren(true);
 
 				-- name text --
-				item.components[4] = UI.Label:New(10, 0, 94, 30, item.components[1]:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", "", 9);
-                item.components[4]:SetPoint("BOTTOMRIGHT", item.components[1]:GetFrame(), "BOTTOMRIGHT", -10, 0);
+				item.components[4] = UI.Label:NewBLBR(10, 0, -10, 0, 30, item.components[1]:GetFrame(), "", 9);
                 item.components[4]:GetFrame().text:SetMaxLines(2);
                 item.components[4]:GetFrame().text:SetNonSpaceWrap(true);
                 item.components[4]:SetFrameLevel(startLevel + 4);
@@ -877,8 +856,7 @@ function AssetBrowser.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
                 end);
             
                 -- image --
-                item.components[3] = UI.ImageBox:New(15, -15, 1, 1, item.components[1]:GetFrame(), "TOPLEFT", "TOPLEFT", Resources.textures["FolderIcon"]);
-                item.components[3]:SetPoint("BOTTOMRIGHT", item.components[1]:GetFrame(), "BOTTOMRIGHT", -15, 15 + 15);
+                item.components[3] = UI.ImageBox:NewTLBR(15, -15, -15, 30, item.components[1]:GetFrame(), Resources.textures["FolderIcon"]);
 
                 -- model --
                 item.components[2] = CreateFrame("PlayerModel", "thumbnail_model_frame", item.components[1]:GetFrame());

@@ -1,30 +1,44 @@
 local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
 UI.Window = {};
+
+--- @class Window : Element
 local Window = UI.Window;
-local Editor = SceneMachine.Editor;
+
 Window.__index = Window;
 setmetatable(Window, UI.Element)
 
+--- Creates a new Window object.
+--- @param x number? The x-coordinate of the window's position.
+--- @param y number? The y-coordinate of the window's position.
+--- @param w number? The width of the window.
+--- @param h number? The height of the window.
+--- @param parent Element? The parent element of the window.
+--- @param point string? The anchor point of the window relative to its parent.
+--- @param parentPoint string? The anchor point of the parent element.
+--- @param title string? The title of the window.
+--- @return Window: The newly created Window object.
 function Window:New(x, y, w, h, parent, point, parentPoint, title)
-	local v = 
-    {
-        x = x or 0,
-        y = y or 0,
-        w = w or 20,
-        h = h or 20,
-        parent = parent or nil,
-        point = point or "TOPLEFT",
-        parentPoint = parentPoint or "TOPLEFT",
-        title = title or nil,
-        visible = true,
-    };
+	--- @class Window : Element
+	local v =
+	{
+		x = x or 0,
+		y = y or 0,
+		w = w or 20,
+		h = h or 20,
+		parent = parent or nil,
+		point = point or "TOPLEFT",
+		parentPoint = parentPoint or "TOPLEFT",
+		title = title or nil,
+		visible = true,
+	};
 
 	setmetatable(v, Window);
-    v:Build();
+	v:Build();
 	return v;
 end
 
+--- Builds the window.
 function Window:Build()
 	-- main window frame --
 	self.frame = CreateFrame("Frame", "UI.Window.frame " .. self.title, self.parent);
@@ -35,8 +49,6 @@ function Window:Build()
 	self.frame_texture:SetAllPoints(self.frame);
 	self.frame:SetMovable(true);
 	self.frame:EnableMouse(true);
-	--self.frame:SetUserPlaced(true);
-    --self.frame:SetIgnoreParentScale(true);
 	self.frame:SetClampedToScreen(true);
 	UI.AddBackdropShadow(self.frame, 0, 20);
 
@@ -59,35 +71,37 @@ function Window:Build()
 	self.frame:SetClampedToScreen(true);
 
 	-- Close Button --
-	self.closeButton = UI.Button:New(-1, -1, 20 - 1, 20 - 1, self.titleBar, "TOPRIGHT", "TOPRIGHT",
-		nil, Resources.textures["CloseButton"])
+	self.closeButton = UI.Button:New(-1, -1, 20 - 1, 20 - 1, self.titleBar, "TOPRIGHT", "TOPRIGHT", nil, Resources.textures["CloseButton"])
 	self.closeButton:SetScript("OnClick", function() self:Hide(); end)
-    self.closeButton:SetColor(UI.Button.State.Normal, 0.1757, 0.1757, 0.1875, 1);
-    self.closeButton:SetColor(UI.Button.State.Highlight, 0.1757, 0.1757, 0.1875, 1);
-    self.closeButton:SetColor(UI.Button.State.Pressed, 0, 0.4765, 0.7968, 1);
+	self.closeButton:SetColor(UI.Button.State.Normal, 0.1757, 0.1757, 0.1875, 1);
+	self.closeButton:SetColor(UI.Button.State.Highlight, 0.1757, 0.1757, 0.1875, 1);
+	self.closeButton:SetColor(UI.Button.State.Pressed, 0, 0.4765, 0.7968, 1);
 
-    -- Resize Handle --
-    self.frame:SetResizable(true);
+	-- Resize Handle --
+	self.frame:SetResizable(true);
 	self.frame:SetResizeBounds(200, 200, 1920, 1080);
-    self.resizeFrame = UI.ImageBox:New(0, 0, 16, 16, self.frame, "BOTTOMRIGHT", "BOTTOMRIGHT", Resources.textures["CornerResize"]);
-    self.resizeFrame:GetFrame():EnableMouse(true);
+	self.resizeFrame = UI.ImageBox:New(0, 0, 16, 16, self.frame, "BOTTOMRIGHT", "BOTTOMRIGHT", Resources.textures["CornerResize"]);
+	self.resizeFrame:GetFrame():EnableMouse(true);
 	self.resizeFrame:SetVertexColor(1,1,1,0.3);
-    self.resizeFrame:GetFrame():RegisterForDrag("LeftButton");
-    self.resizeFrame:GetFrame():SetScript("OnDragStart", function() self.frame:StartSizing("BOTTOMRIGHT"); SetCursor(Resources.textures["CursorResize"]); end);
+	self.resizeFrame:GetFrame():RegisterForDrag("LeftButton");
+	self.resizeFrame:GetFrame():SetScript("OnDragStart", function() self.frame:StartSizing("BOTTOMRIGHT"); SetCursor(Resources.textures["CursorResize"]); end);
 	self.resizeFrame:GetFrame():SetScript("OnDragStop", function() self.frame:StopMovingOrSizing(); ResetCursor(); end);
 	self.resizeFrame:GetFrame():SetScript('OnEnter', function() SetCursor(Resources.textures["CursorResize"]); end)
-    self.resizeFrame:GetFrame():SetScript('OnLeave', function() ResetCursor(); end)
+	self.resizeFrame:GetFrame():SetScript('OnLeave', function() ResetCursor(); end)
 end
 
+--- Makes the whole window draggable.
 function Window:MakeWholeWindowDraggable()
 	self.frame:RegisterForDrag("LeftButton");
 	self.frame:SetScript("OnDragStart", function() self.frame:StartMoving(); end);
 	self.frame:SetScript("OnDragStop", function() self.frame:StopMovingOrSizing(); end);
 end
 
+--- Creates a menu bar for the window.
+--- @param menu table The menu items to be displayed on the menu bar.
 function Window:WindowCreateMenuBar(menu)
-	local menubar = UI.Rectangle:New(0, 0, self:GetWidth(), 15, self:GetFrame(), "TOPLEFT", "TOPLEFT", 0.1757, 0.1757, 0.1875, 1);
-	menubar:SetPoint("TOPRIGHT", self:GetFrame(), "TOPRIGHT", 0, 0);
+	-- Create the menu bar rectangle
+	local menubar = UI.Rectangle:NewTLTR(0, 0, 0, 0, 15, self:GetFrame(), 0.1757, 0.1757, 0.1875, 1);
 	menubar:GetFrame():EnableMouse(true);
 	menubar:GetFrame():RegisterForDrag("LeftButton");
 	menubar:GetFrame():SetScript("OnDragStart", function() self.frame:StartMoving(); end);
@@ -97,6 +111,7 @@ function Window:WindowCreateMenuBar(menu)
 
 	local scale = SceneMachine.mainWindow:GetEffectiveScale();
 
+	-- Create buttons for each menu item
 	for m = 1, #menu, 1 do
 		menubar.buttons[m] = UI.Button:New((m - 1) * 50, 0, 50, 15, menubar:GetFrame(), "LEFT", "LEFT", menu[m]["Name"]);
 		menubar.buttons[m]:SetScript("OnClick", function ()
@@ -110,6 +125,7 @@ function Window:WindowCreateMenuBar(menu)
 		end);
 	end
 
+	-- Create the popup menu if it doesn't exist
 	if (self.popup == nil) then
 		self.popup = self:CreateMenu(nil);
 	end
@@ -117,6 +133,9 @@ function Window:WindowCreateMenuBar(menu)
 	self.menuIsOpen = false;
 end
 
+--- Creates a menu for the Window object.
+--- @param parent table The parent frame for the menu.
+--- @return table: The created menu frame.
 function Window:CreateMenu(parent)
 	local popup = CreateFrame("Button", "Zee.WindowAPI.Button", parent)
 	popup:SetPoint("TOPLEFT", self:GetFrame(), "TOPLEFT", 0, 0);
@@ -149,6 +168,11 @@ function Window:CreateMenu(parent)
 	return popup;
 end
 
+--- Displays a popup window menu at the specified coordinates.
+--- @param mx number The x-coordinate of the menu's top-left corner.
+--- @param my number The y-coordinate of the menu's top-left corner.
+--- @param menuOptions table An array of menu options to be displayed.
+--- @param scale boolean: Determines whether to scale the popup window based on the effective scale of the parent window.
 function Window:PopupWindowMenu(mx, my, menuOptions, scale)
 	self.menuIsOpen = true;
 	if (scale) then
@@ -203,12 +227,16 @@ function Window:PopupWindowMenu(mx, my, menuOptions, scale)
 	self.popup.menu:SetPoint("TOPLEFT", self.popup, "TOPLEFT", mx, my);
 end
 
+--- Sets the text for the window title.
+---@param t string The text to set as the window title.
 function Window:SetTitleText(t)
 	self:SetTitle(t);
 end
 
+--- Sets the title of the window.
+---@param t string The new title for the window.
 function Window:SetTitle(t)
-    self.titleBar_text:SetText(t);
+	self.titleBar_text:SetText(t);
 end
 
 Window.__tostring = function(self)

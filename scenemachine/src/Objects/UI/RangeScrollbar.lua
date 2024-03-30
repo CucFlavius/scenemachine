@@ -4,12 +4,23 @@ local Resources = SceneMachine.Resources;
 local Input = SceneMachine.Input;
 
 SceneMachine.UI.RangeScrollbar = {};
+
+--- @class RangeScrollbar : Element
 local RangeScrollbar = SceneMachine.UI.RangeScrollbar;
+
 RangeScrollbar.__index = RangeScrollbar;
 setmetatable(RangeScrollbar, SceneMachine.UI.Element)
 
+--- Creates a new RangeScrollbar object.
+--- @param x number? The x position of the scrollbar.
+--- @param y number? The y position of the scrollbar.
+--- @param h number? The height of the scrollbar.
+--- @param parent Element? The parent element of the scrollbar.
+--- @param onRangeChange function? The callback function to be called when the range changes.
+--- @return RangeScrollbar: The newly created RangeScrollbar object.
 function RangeScrollbar:New(x, y, h, parent, onRangeChange)
-	local v = 
+    --- @class RangeScrollbar : Element
+    local v =
     {
         x = x or 0,
         y = y or 0,
@@ -31,23 +42,13 @@ function RangeScrollbar:New(x, y, h, parent, onRangeChange)
         onRangeChange = onRangeChange,
     };
 
-	setmetatable(v, RangeScrollbar);
+    setmetatable(v, RangeScrollbar);
     v:Build();
     Editor.ui:AddElement(v);
-	return v;
+    return v;
 end
 
-function RangeScrollbar:Set(x, y, h, parent)
-    self.x = x or 0;
-    self.y = y or 0;
-    self.h = h or 20;
-    self.parent = parent or nil;
-
-    self.frame:ClearAllPoints();
-	self.frame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", x, y);
-	self.frame:SetSize(w, h);
-end
-
+--- Builds the range scrollbar.
 function RangeScrollbar:Build()
     local x = self.x;
     local w = 200;
@@ -55,11 +56,9 @@ function RangeScrollbar:Build()
     local h = self.h;
     local parent = self.parent;
 
-    self.frame = UI.Rectangle:New(x, y, w, h, parent, "BOTTOMLEFT", "BOTTOMLEFT", 0, 0, 0, 0);
-    self.frame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", x, y);
+    self.frame = UI.Rectangle:NewBLBR(x, y, x, y, h, parent, 0, 0, 0, 0);
 
-    self.frameCenter = UI.ImageBox:New(h, 0, w - (h * 2), h, self.frame:GetFrame(), "LEFT", "LEFT", Resources.textures["CropBar"], { 0.25 + 0.125, 0.75 - 0.125, 0, 0.5 });
-    self.frameCenter:SetPoint("RIGHT", self.frame:GetFrame(), "RIGHT", -h, y);
+    self.frameCenter = UI.ImageBox:NewLR(h, 0, -h, y, h, self.frame:GetFrame(), Resources.textures["CropBar"], { 0.25 + 0.125, 0.75 - 0.125, 0, 0.5 });
     self.frameCenter:SetVertexColor(0.18,0.18,0.18,1);
 
     self.frameLeft = UI.ImageBox:New(0, 0, h, h, self.frame:GetFrame(), "LEFT", "LEFT", Resources.textures["CropBar"], { 0, 0.5, 0, 0.5 });
@@ -142,22 +141,28 @@ function RangeScrollbar:Build()
     self.middleDrag:SetScript("OnMouseUp", function(_, button) self.inputState.movingCenter = false; end);
 end
 
+-- Updates the range scrollbar based on the input state.
 function RangeScrollbar:Update()
+    -- Check if the scrollbar is enabled
     if (not self.enabled) then
         return;
     end
 
+    -- Update the scrollbar when moving the minimum value
     if (self.inputState.movingMin) then
         local scale = self.parent:GetEffectiveScale();
         local groupBgW = self.parent:GetWidth() + 6;
         local mouseDiff = (self.inputState.mousePosStartX - Input.mouseXRaw) * scale;
         local nextPoint = self.inputState.minFramePosStart - mouseDiff;
         local newPoint = 0;
+
+        -- Check if the next point is within the valid range
         if (nextPoint >= 0 and nextPoint < self.inputState.maxFramePosStart - 32) then
             self.leftDrag:ClearAllPoints();
             newPoint = nextPoint;
             self.leftDrag:SetPoint("LEFT", nextPoint, 0);
         else
+            -- Adjust the position if the next point is out of range
             if (nextPoint <= 0) then
                 self.leftDrag:ClearAllPoints();
                 newPoint = 0;
@@ -170,27 +175,36 @@ function RangeScrollbar:Update()
             end
         end
 
+        -- Update the middle drag position
         self.middleDrag:ClearAllPoints();
         self.middleDrag:SetPoint("LEFT", self.frame:GetFrame(), "LEFT", newPoint + 16, 0);
         self.middleDrag:SetPoint("RIGHT", self.frame:GetFrame(), "LEFT", self.inputState.maxFramePosStart, 0);
+
+        -- Normalize the new point and update the current minimum value
         local newPointNormalized = newPoint / groupBgW;
-        self.currentMin = max(0, newPointNormalized);
+        self.currentMin = math.max(0, newPointNormalized);
+
+        -- Trigger the range change event if it exists
         if (self.onRangeChange) then
             self.onRangeChange(self.currentMin, self.currentMax);
         end
     end
 
+    -- Update the scrollbar when moving the maximum value
     if (self.inputState.movingMax) then
         local scale = self.parent:GetEffectiveScale();
         local groupBgW = self.parent:GetWidth() - 16;
         local mouseDiff = (self.inputState.mousePosStartX - Input.mouseXRaw) * scale;
         local nextPoint = self.inputState.maxFramePosStart - mouseDiff;
         local newPoint = 0;
+
+        -- Check if the next point is within the valid range
         if (nextPoint > self.inputState.minFramePosStart + 32 and nextPoint < groupBgW) then
             self.rightDrag:ClearAllPoints();
             newPoint = nextPoint;
             self.rightDrag:SetPoint("LEFT", nextPoint, 0);
         else
+            -- Adjust the position if the next point is out of range
             if (nextPoint <= self.inputState.minFramePosStart + 32) then
                 self.rightDrag:ClearAllPoints();
                 newPoint = self.inputState.minFramePosStart + 32;
@@ -203,16 +217,22 @@ function RangeScrollbar:Update()
             end
         end
 
+        -- Update the middle drag position
         self.middleDrag:ClearAllPoints();
         self.middleDrag:SetPoint("RIGHT", self.frame:GetFrame(), "LEFT", newPoint, 0);
         self.middleDrag:SetPoint("LEFT", self.frame:GetFrame(), "LEFT", self.inputState.minFramePosStart + 16, 0);
+
+        -- Normalize the new point and update the current maximum value
         local newPointNormalized = newPoint / groupBgW;
-        self.currentMax = min(1, newPointNormalized);
+        self.currentMax = math.min(1, newPointNormalized);
+
+        -- Trigger the range change event if it exists
         if (self.onRangeChange) then
             self.onRangeChange(self.currentMin, self.currentMax);
         end
     end
 
+    -- Update the scrollbar when moving the center value
     if (self.inputState.movingCenter) then
         local scale = self.parent:GetEffectiveScale();
         local groupBgW = self.parent:GetWidth() - 16;
@@ -220,9 +240,12 @@ function RangeScrollbar:Update()
         local mouseDiff = (self.inputState.mousePosStartX - Input.mouseXRaw) * scale;
         local nextPoint = self.inputState.centerFramePosStart - mouseDiff;
         local newPoint = 0;
+
+        -- Check if the next point is within the valid range
         if (nextPoint > 0 and nextPoint < (groupBgW) - sliderSize) then
             newPoint = nextPoint;
         else
+            -- Adjust the position if the next point is out of range
             if (nextPoint <= 0) then
                 newPoint = 0;
             end
@@ -231,27 +254,35 @@ function RangeScrollbar:Update()
             end
         end
 
+        -- Update the middle drag position
         self.middleDrag:ClearAllPoints();
         self.middleDrag:SetPoint("RIGHT", self.frame:GetFrame(), "LEFT", newPoint + sliderSize, 0);
         self.middleDrag:SetPoint("LEFT", self.frame:GetFrame(), "LEFT", newPoint + 16, 0);
         
+        -- Update the right drag position
         self.rightDrag:ClearAllPoints();
         self.rightDrag:SetPoint("LEFT", newPoint + sliderSize, 0);
         
+        -- Update the left drag position
         self.leftDrag:ClearAllPoints();
         self.leftDrag:SetPoint("LEFT", newPoint, 0);
 
+        -- Normalize the new points and update the current minimum and maximum values
         local newPointMinNormalized = newPoint / groupBgW;
         local newPointMaxNormalized = (newPoint + sliderSize) / groupBgW;
-        self.currentMax = min(1, newPointMaxNormalized);
-        self.currentMin = max(0, newPointMinNormalized);
+        self.currentMax = math.min(1, newPointMaxNormalized);
+        self.currentMin = math.max(0, newPointMinNormalized);
+
+        -- Trigger the range change event if it exists
         if (self.onRangeChange) then
             self.onRangeChange(self.currentMin, self.currentMax);
         end
     end
-
 end
 
+--- Sets the range of the scrollbar.
+--- @param min number The minimum value of the range.
+--- @param max number The maximum value of the range.
 function RangeScrollbar:SetRange(min, max)
     self.currentMin = min;
     self.currentMax = max;
@@ -271,57 +302,27 @@ function RangeScrollbar:SetRange(min, max)
     self.leftDrag:SetPoint("LEFT", minDenormalized, 0);
 end
 
+--- Resizes the range scrollbar.
 function RangeScrollbar:Resize()
     self:SetRange(self.currentMin, self.currentMax);
 end
 
---[[
-function RangeScrollbar:Resize(viewportH, listH)
-    local minRangeScrollbar = 20;
-    local maxRangeScrollbar = viewportH;
-    local desiredRangeScrollbar = (viewportH / listH) * viewportH;
-    local newRangeScrollbarHeight = max(minRangeScrollbar, min(maxRangeScrollbar, desiredRangeScrollbar));
-
-    if (newRangeScrollbarHeight >= maxRangeScrollbar) then
-        -- disable
-        self:Disable();
-    else
-        -- enable
-        self:Enable();
-    end
-
-    self.RangeScrollbarSlider:SetHeight(math.floor(newRangeScrollbarHeight));
-    self:Update();
-    self:SetValueWithoutAction(self.currentValue or 0);
-end
---]]
+--- Disables the range scrollbar by hiding the drag elements and setting the enabled flag to false.
 function RangeScrollbar:Disable()
+    self.leftDrag:Hide();
+    self.rightDrag:Hide();
+    self.middleDrag:Hide();
     self.enabled = false;
-    self.RangeScrollbarSlider:Hide();
 end
 
+--- Enables the range scrollbar by showing the left, right, and middle drag elements.
 function RangeScrollbar:Enable()
+    self.leftDrag:Show();
+    self.rightDrag:Show();
+    self.middleDrag:Show();
     self.enabled = true;
-    self.RangeScrollbarSlider:Show();
 end
 
---[[
-function RangeScrollbar:SetValue(value)
-    self:SetValueWithoutAction(value);
-    if (self.onScroll) then
-        self.onScroll(value);
-    end
-end
---]]
-
---[[
-function RangeScrollbar:SetValueWithoutAction(value)
-    self.currentValue = value;
-    local newPoint = value * (self.height - self.RangeScrollbarSlider:GetHeight());
-    self.RangeScrollbarSlider:ClearAllPoints();
-    self.RangeScrollbarSlider:SetPoint("TOP", self.frame:GetFrame(), "TOP", 0, -newPoint);
-end
---]]
 RangeScrollbar.__tostring = function(self)
 	return string.format("RangeScrollbar( %.3f, %.3f, %.3f, %.3f, %s )", self.x, self.y, self.w, self.h, self.parent);
 end

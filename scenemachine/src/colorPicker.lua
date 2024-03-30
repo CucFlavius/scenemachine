@@ -249,7 +249,7 @@ function ColorPicker.Initialize(r, g, b)
         local cy = radius;
         
         -- determine if within radius
-        local dist = math.sqrt(math.pow((cx - (relativeX)), 2) + math.pow((cy - (relativeY)), 2));
+        local dist = math.sqrt(((cx - (relativeX)) ^ 2) + ((cy - (relativeY)) ^ 2));
         if (dist > 130 and dist < 150) then
             ColorPicker.circleInteract = true;
         elseif (dist < 130) then
@@ -267,17 +267,14 @@ function ColorPicker.Initialize(r, g, b)
     ColorPicker.triangleDot = UI.ImageBox:New(0, 0, 20, 20, ColorPicker.circle, "CENTER", "CENTER", Resources.textures["ColorPicker"], { 0.5 + 0.0625, 0.5 + 0.125, 0.5, 0.5 + 0.0625 });
     ColorPicker.triangleDot:SetFrameLevel(10);
 
-    ColorPicker.triangleColor = UI.ImageBox:New(0, 0, 1, 1, ColorPicker.circleGroup:GetFrame(), "TOPLEFT", "TOPLEFT", Resources.textures["ColorPicker"], { 0.5, 1.0, 0, 0.5 });
-    ColorPicker.triangleColor:SetPoint("BOTTOMRIGHT", ColorPicker.circleGroup:GetFrame(), "BOTTOMRIGHT", 0, 1.1);
+    ColorPicker.triangleColor = UI.ImageBox:NewTLBR(0, 0, 0, 1.1, ColorPicker.circleGroup:GetFrame(), Resources.textures["ColorPicker"], { 0.5, 1.0, 0, 0.5 });
     ColorPicker.triangleColor:SetFrameLevel(4);
     ColorPicker.triangleColor:SetVertexColor(0, 0, 1, 1);
 
-    ColorPicker.triangleLight = UI.ImageBox:New(0, 0, 1, 1, ColorPicker.circleGroup:GetFrame(), "CENTER", "CENTER", Resources.textures["ColorPicker"], { 0, 0.5, 0.5, 1 });
-    ColorPicker.triangleLight:SetAllPoints(ColorPicker.circleGroup:GetFrame());
+    ColorPicker.triangleLight = UI.ImageBox:NewAP(ColorPicker.circleGroup:GetFrame(), Resources.textures["ColorPicker"], { 0, 0.5, 0.5, 1 });
     ColorPicker.triangleLight:SetFrameLevel(6);
 
-    ColorPicker.triangleDark = UI.ImageBox:New(0, 0, 1, 1, ColorPicker.circleGroup:GetFrame(), "CENTER", "CENTER", Resources.textures["ColorPicker"], { 0, 0.5, 1, 0.5 });
-    ColorPicker.triangleDark:SetAllPoints(ColorPicker.circleGroup:GetFrame());
+    ColorPicker.triangleDark = UI.ImageBox:NewAP(ColorPicker.circleGroup:GetFrame(), Resources.textures["ColorPicker"], { 0, 0.5, 1, 0.5 });
     ColorPicker.triangleDark:SetVertexColor(0, 0, 0, 1);
     ColorPicker.triangleDark:SetFrameLevel(7);
 

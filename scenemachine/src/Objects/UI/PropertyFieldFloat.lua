@@ -1,13 +1,25 @@
 local UI = SceneMachine.UI;
 local L = SceneMachine.Editor.localization;
 UI.PropertyFieldFloat = {};
+
+--- @class PropertyFieldFloat : PropertyField
 local PropertyFieldFloat = UI.PropertyFieldFloat;
+
 local Resources = SceneMachine.Resources;
 PropertyFieldFloat.__index = PropertyFieldFloat;
 setmetatable(PropertyFieldFloat, UI.PropertyField)
 
+--- Creates a new instance of PropertyFieldFloat.
+---@param y number? The y position of the field.
+---@param h number? The height of the field.
+---@param parent table? The parent object.
+---@param title string? The title of the field.
+---@param default number? The default value of the field.
+---@param onSetValue function? The callback function to be called when the value changes.
+---@return PropertyFieldFloat: The new instance of PropertyFieldFloat.
 function PropertyFieldFloat:New(y, h, parent, title, default, onSetValue)
-	local v = 
+    --- @class PropertyFieldFloat : PropertyField
+	local v =
     {
         y = y or 0,
         h = h or 20,
@@ -24,6 +36,7 @@ function PropertyFieldFloat:New(y, h, parent, title, default, onSetValue)
 	return v;
 end
 
+--- Builds the PropertyFieldFloat UI element.
 function PropertyFieldFloat:Build()
     local fieldPad = 2;
     self.field = self:BuildFloatField(self.onSetValue, self.default);
@@ -38,10 +51,14 @@ function PropertyFieldFloat:Build()
     resetButton.tooltip = L["OP_TT_RESET_VALUE"];
 end
 
+--- Sets the value of the PropertyFieldFloat.
+--- @param value number The new value to set.
 function PropertyFieldFloat:Set(value)
     self.field:SetText(tostring(value));
 end
 
+--- Sets the enabled state of the PropertyFieldFloat.
+--- @param enabled boolean - Whether the PropertyFieldFloat should be enabled or disabled.
 function PropertyFieldFloat:SetEnabled(enabled)
     local c = 0.5;
     if (enabled) then

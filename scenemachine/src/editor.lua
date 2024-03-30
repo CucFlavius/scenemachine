@@ -416,14 +416,13 @@ function Editor.CreateMainWindow(startLevel)
 end
 
 function Editor.CreateRightPanel(startLevel)
-    local rightPanel = UI.Rectangle:New(0, -Editor.toolbarHeight, scenemachine_settings.rightPanelW, Editor.height - Editor.toolbarHeight, SceneMachine.mainWindow:GetFrame(), "TOPRIGHT", "TOPRIGHT", 0.1171, 0.1171, 0.1171, 1);
-    rightPanel:SetPoint("BOTTOMRIGHT", SceneMachine.mainWindow:GetFrame(), "BOTTOMRIGHT", 0, 0);
+    local rightPanel = UI.Rectangle:NewTRBR(0, -Editor.toolbarHeight, 0, 0, scenemachine_settings.rightPanelW, SceneMachine.mainWindow:GetFrame(), 0.1171, 0.1171, 0.1171, 1);
     rightPanel:SetFrameLevel(startLevel);
     rightPanel.frame:SetResizeBounds(200, 100, 650, 200);
     rightPanel.frame:SetResizable(true);
     rightPanel.frame:SetUserPlaced(true);
 
-    Editor.verticalSeparatorR = UI.Rectangle:New(0, 0, 6, 310, rightPanel:GetFrame(), "TOPLEFT", "TOPLEFT", 1,1,1,0);
+    Editor.verticalSeparatorR = UI.Rectangle:New(0, 0, 6, 310, rightPanel:GetFrame(), "TOPLEFT", "TOPLEFT", 1 ,1 ,1 ,0);
     Editor.verticalSeparatorR:SetPoint("BOTTOMLEFT", rightPanel:GetFrame(), "BOTTOMLEFT", 0, 0);
     Editor.verticalSeparatorR:SetFrameLevel(100);
     Editor.verticalSeparatorR:GetFrame():EnableMouse(true);
@@ -449,15 +448,14 @@ function Editor.CreateRightPanel(startLevel)
 end
 
 function Editor.CreateLeftPanel(startLevel)
-    local leftPanel = UI.Rectangle:New(0, -Editor.toolbarHeight, scenemachine_settings.leftPanelW, 310, SceneMachine.mainWindow:GetFrame(), "TOPLEFT", "TOPLEFT", c4[1], c4[2], c4[3], 1);
-    leftPanel:SetPoint("BOTTOMLEFT", SceneMachine.mainWindow:GetFrame(), "BOTTOMLEFT", 0, 0);
+    local leftPanel = UI.Rectangle:NewTLBL(0, -Editor.toolbarHeight, 0, 0, scenemachine_settings.leftPanelW, SceneMachine.mainWindow:GetFrame(), c4[1], c4[2], c4[3], 1);
     leftPanel:SetFrameLevel(startLevel);
 
 	leftPanel.frame:SetResizeBounds(200, 100, 600, 200);
     leftPanel.frame:SetResizable(true);
     leftPanel.frame:SetUserPlaced(true);
     
-    Editor.verticalSeparatorL = UI.Rectangle:New(0, 0, 6, 310, leftPanel:GetFrame(), "TOPRIGHT", "TOPRIGHT", 1,1,1,0);
+    Editor.verticalSeparatorL = UI.Rectangle:New(0, 0, 6, 310, leftPanel:GetFrame(), "TOPRIGHT", "TOPRIGHT", 1, 1, 1, 0);
     Editor.verticalSeparatorL:SetPoint("BOTTOMRIGHT", leftPanel:GetFrame(), "BOTTOMRIGHT", 0, 0);
     Editor.verticalSeparatorL:SetFrameLevel(100);
     Editor.verticalSeparatorL:GetFrame():EnableMouse(true);
@@ -489,8 +487,7 @@ function Editor.CreateBottomPanel(startLevel)
     bottomPanel.frame:SetUserPlaced(true);
     bottomPanel.frame:SetResizeBounds(120, 120, 800, 800);
 
-    Editor.horizontalSeparator = UI.Rectangle:New(0, 6, 6, 6, bottomPanel:GetFrame(), "TOPLEFT", "TOPLEFT", 1,1,1,0);
-    Editor.horizontalSeparator:SetPoint("TOPRIGHT", bottomPanel:GetFrame(), "TOPRIGHT", 0, 0);
+    Editor.horizontalSeparator = UI.Rectangle:NewTLTR(0, 6, 0, 0, 6, bottomPanel:GetFrame(), 1, 1, 1, 0);
     Editor.horizontalSeparator:SetFrameLevel(100);
     Editor.horizontalSeparator:GetFrame():EnableMouse(true);
     Editor.horizontalSeparator:GetFrame():RegisterForDrag("LeftButton");
@@ -515,14 +512,11 @@ function Editor.CreateBottomPanel(startLevel)
 end
 
 function Editor.CreateGroup(name, groupHeight, groupParent, startLevel)
-    local groupBG = UI.Rectangle:New(6, -6, scenemachine_settings.leftPanelW - 12, groupHeight, groupParent, "TOPLEFT", "TOPLEFT",  c1[1], c1[2], c1[3], 1);
-    groupBG:SetPoint("BOTTOMRIGHT", groupParent, "BOTTOMRIGHT", -6, 6);
+    local groupBG = UI.Rectangle:NewTLBR(6, -6, -6, 6, groupParent, c1[1], c1[2], c1[3], 1);
     groupBG:SetFrameLevel(startLevel);
-    local groupTitleText = UI.Label:New(0, 0, scenemachine_settings.leftPanelW - 30, 20, groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", "   " .. name, 9);
-    groupTitleText:SetPoint("TOPRIGHT", groupBG:GetFrame(), "TOPRIGHT", 0, 0);
+    local groupTitleText = UI.Label:NewTLTR(10, 0, 0, 0, 20, groupBG:GetFrame(), name, 9);
     groupTitleText:SetFrameLevel(startLevel + 1);
-    local groupContent = UI.Rectangle:New(0, -20, scenemachine_settings.leftPanelW - 12, groupHeight - 20, groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", 0.1445, 0.1445, 0.1445, 1);
-    groupContent:SetPoint("BOTTOMRIGHT", groupBG:GetFrame(), "BOTTOMRIGHT", 0, 0);
+    local groupContent = UI.Rectangle:NewTLBR(0, -20, 0, 0, groupBG:GetFrame(), 0.1445, 0.1445, 0.1445, 1);
     groupContent:SetFrameLevel(startLevel + 2);
     return groupContent:GetFrame();
 end
@@ -549,11 +543,8 @@ function Editor.ShowImportExportWindow(action, text)
         Editor.importExportWindow:MakeWholeWindowDraggable();
 
         local textHeight = 9;
-        local ebWidth, ebHeight = 390, 390; -- this just gets eaten by the anchors anyways but might as well keep it
-        Editor.importExportWindow.editBox = UI.ScrollableTextBox:New(xOffset, yOffset, ebWidth, ebHeight, Editor.importExportWindow:GetFrame(), "TOPLEFT", "TOPLEFT", "", textHeight, nil, true);
-
+        Editor.importExportWindow.editBox = UI.ScrollableTextBox:NewTLBR(xOffset, yOffset, 0, 0, Editor.importExportWindow:GetFrame(), "", textHeight, nil, true);
         local editBox = Editor.importExportWindow.editBox;
-        editBox:SetPoint("BOTTOMRIGHT", Editor.importExportWindow:GetFrame(), 0, 0);
         editBox:SetMultiLine(true);
         editBox:SetMaxLetters(0);
         editBox:SetScript('OnEscapePressed', function()
@@ -598,9 +589,7 @@ function Editor.OpenQuickTextbox(action, text, title)
 
         local textHeight = 9;
         local ebWidth, ebHeight = 390, 30; -- this just gets eaten by the anchors anyways but might as well keep it
-        Editor.quickTextWindow.editBox = UI.TextBox:New(xOffset, yOffset, ebWidth, ebHeight, Editor.quickTextWindow:GetFrame(), "TOPLEFT", "TOPLEFT", "", textHeight);
-
-        Editor.quickTextWindow.editBox:SetPoint("BOTTOMRIGHT", Editor.quickTextWindow:GetFrame(), -xOffset, -yOffset);
+        Editor.quickTextWindow.editBox = UI.TextBox:NewTLBR(xOffset, yOffset, -xOffset, -yOffset, Editor.quickTextWindow:GetFrame(), "", textHeight);
         Editor.quickTextWindow.editBox:SetScript('OnEscapePressed', function()
             Editor.quickTextWindow.editBox:ClearFocus();
             Editor.ui.focused = false;

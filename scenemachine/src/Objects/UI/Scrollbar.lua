@@ -3,17 +3,26 @@ local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
 
 SceneMachine.UI.Scrollbar = {};
+
+--- @class Scrollbar : Element
 local Scrollbar = SceneMachine.UI.Scrollbar;
+
 Scrollbar.__index = Scrollbar;
 setmetatable(Scrollbar, SceneMachine.UI.Element)
 
-function Scrollbar:New(x, y, w, h, parent, onScroll)
+--- Creates a new Scrollbar object with top-right and bottom-right coordinates, width, parent, and onScroll callback.
+--- @param xA number: The x-coordinate of the top-right corner of the scrollbar frame.
+--- @param yA number: The y-coordinate of the top-right corner of the scrollbar frame.
+--- @param xB number: The x-coordinate of the bottom-right corner of the scrollbar frame.
+--- @param yB number: The y-coordinate of the bottom-right corner of the scrollbar frame.
+--- @param w number: The width of the scrollbar frame.
+--- @param parent table? The parent frame of the scrollbar.
+--- @param onScroll function The callback function to be called when the scrollbar is scrolled.
+--- @return Scrollbar: The newly created Scrollbar object.
+function Scrollbar:NewTRBR(xA, yA, xB, yB, w, parent, onScroll)
+    --- @class Scrollbar : Element
 	local v = 
     {
-        x = x or 0,
-        y = y or 0,
-        w = w or 20,
-        h = h or 20,
         parent = parent or nil,
         inputState = {
             movingScrollbar = false,
@@ -23,68 +32,52 @@ function Scrollbar:New(x, y, w, h, parent, onScroll)
         visible = true,
         enabled = true,
         onScroll = onScroll,
+        height = 100,
     };
 
 	setmetatable(v, Scrollbar);
+
+    v.frame = CreateFrame("Frame", "SceneMachine.UI.Scrollbar.frame", parent);
+    v.frame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", xA, yA);
+    v.frame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", xB, yB);
+    v.frame:SetWidth(w);
+
     v:Build();
     Editor.ui:AddElement(v);
 	return v;
 end
 
-function Scrollbar:Set(x, y, w, h, parent)
-    self.x = x or 0;
-    self.y = y or 0;
-    self.w = w or 20;
-    self.h = h or 20;
-    self.parent = parent or nil;
-    self.currentValue = 0;
-
-    self.frame:ClearAllPoints();
-	self.frame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", x, y);
-	self.frame:SetSize(w, h);
-end
-
+--- Builds the scrollbar UI elements.
 function Scrollbar:Build()
-    local x = self.x;
-    local y = self.y;
-    local w = self.w;
-    local h = self.h;
+    local w = self.frame:GetWidth();
     local parent = self.parent;
     local inputState = self.inputState;
 
     -- Background
-    self.frame = UI.Rectangle:New(x, y, w, h, parent, "TOPRIGHT", "TOPRIGHT",  0, 0, 0, 0);
-    self.frame:GetFrame():SetScript("OnSizeChanged",
+    self.frame:SetScript("OnSizeChanged",
         function(_, width, height)
-            --print(width .. " " .. height);
             self.height = height;
         end);
 
-    self.frameTop = UI.ImageBox:New(0, 0, w, w / 2, self.frame.frame, "TOP", "TOP", Resources.textures["ScrollBar"], { 0, 1, 0, 0.5 });
+    self.frameTop = UI.ImageBox:New(0, 0, w, w / 2, self.frame, "TOP", "TOP", Resources.textures["ScrollBar"], { 0, 1, 0, 0.5 });
     self.frameTop:SetVertexColor(0.18,0.18,0.18,1);
-    --self.frameTop:SetVertexColor(0.1171, 0.1171, 0.1171, 1);
     
-    self.frameCenter = UI.ImageBox:New(0, 0, w, h - w, self.frame.frame, "TOP", "TOP", Resources.textures["ScrollBar"], { 0, 1, 0.4, 0.6 });
-    self.frameCenter:ClearAllPoints();
-    self.frameCenter:SetPoint("TOP", self.frame.frame, "TOP", 0, -w / 2);
-    self.frameCenter:SetPoint("BOTTOM", self.frame.frame, "BOTTOM", 0, w / 2);
+    self.frameCenter = UI.ImageBox:NewTB(0, -w / 2, 0, w / 2, w, self.frame, Resources.textures["ScrollBar"], { 0, 1, 0.4, 0.6 });
     self.frameCenter:SetVertexColor(0.18,0.18,0.18,1);
-    --self.frameCenter:SetVertexColor(0.1171, 0.1171, 0.1171, 1);
     
-    self.frameBottom = UI.ImageBox:New(0, 0, w, w / 2, self.frame.frame, "BOTTOM", "BOTTOM", Resources.textures["ScrollBar"], { 0, 1, 0.5, 1 });
+    self.frameBottom = UI.ImageBox:New(0, 0, w, w / 2, self.frame, "BOTTOM", "BOTTOM", Resources.textures["ScrollBar"], { 0, 1, 0.5, 1 });
     self.frameBottom:SetVertexColor(0.18,0.18,0.18,1);
-    --self.frameBottom:SetVertexColor(0.1171, 0.1171, 0.1171, 1);
 
     -- Slider
-    self.scrollbarSlider = CreateFrame("Button", "scrollbarSlider", self.frame.frame)
-	self.scrollbarSlider:SetPoint("TOP", self.frame.frame, "TOP", 0, 0);
+    self.scrollbarSlider = CreateFrame("Button", "scrollbarSlider", self.frame)
+	self.scrollbarSlider:SetPoint("TOP", self.frame, "TOP", 0, 0);
 	self.scrollbarSlider:SetSize(w, 50);
     self.scrollbarSlider.ntex = self.scrollbarSlider:CreateTexture();
     self.scrollbarSlider.ntex:SetColorTexture(0,0,0,0);
     self.scrollbarSlider.ntex:SetAllPoints();
     self.scrollbarSlider:SetNormalTexture(self.scrollbarSlider.ntex);
     self.scrollbarSlider:SetScript("OnMouseDown", function()
-        if (math.ceil(self:GetHeight()) == parent:GetHeight()) then
+        if (math.ceil(self.frame:GetHeight()) == parent:GetHeight()) then
             return;
         end
         inputState.movingScrollbar = true;
@@ -95,10 +88,7 @@ function Scrollbar:Build()
     end);
     self.scrollbarSlider:SetScript("OnMouseUp", function() inputState.movingScrollbar = false; end);
 
-    self.scrollbarSliderCenter = UI.ImageBox:New(0, 0, w, h, self.scrollbarSlider, "CENTER", "CENTER", Resources.textures["ScrollBar"], { 0, 1, 0.4, 0.6 });
-    self.scrollbarSliderCenter:ClearAllPoints();
-    self.scrollbarSliderCenter:SetPoint("TOP", self.scrollbarSlider, "TOP", 0, -w / 2);
-    self.scrollbarSliderCenter:SetPoint("BOTTOM", self.scrollbarSlider, "BOTTOM", 0, w / 2);
+    self.scrollbarSliderCenter = UI.ImageBox:NewTB(0, -w / 2, 0, w / 2, w, self.scrollbarSlider,Resources.textures["ScrollBar"], { 0, 1, 0.4, 0.6 });
     self.scrollbarSliderCenter:SetVertexColor(0.3,0.3,0.3,1);
 
     self.scrollbarSliderTop = UI.ImageBox:New(0, 0, w, w / 2, self.scrollbarSlider, "TOP", "TOP", Resources.textures["ScrollBar"], { 0, 1, 0, 0.5 });
@@ -108,6 +98,22 @@ function Scrollbar:Build()
     self.scrollbarSliderBottom:SetVertexColor(0.3,0.3,0.3,1);
 end
 
+--- Sets the frame level of the scrollbar and its components.
+--- @param level number The new frame level to set.
+function Scrollbar:SetFrameLevel(level)
+    self.frame:SetFrameLevel(level);
+
+    self.frameTop:SetFrameLevel(level + 1);
+    self.frameCenter:SetFrameLevel(level + 1);
+    self.frameBottom:SetFrameLevel(level + 1);
+
+    self.scrollbarSlider:SetFrameLevel(level + 1);
+    self.scrollbarSliderCenter:SetFrameLevel(level + 2);
+    self.scrollbarSliderTop:SetFrameLevel(level + 2);
+    self.scrollbarSliderBottom:SetFrameLevel(level + 2);
+end
+
+-- Updates the scrollbar's position and triggers the onScroll event if the scrollbar is being moved.
 function Scrollbar:Update()
     if (not self.enabled) then
         return;
@@ -134,7 +140,7 @@ function Scrollbar:Update()
         end
 
         self.scrollbarSlider:ClearAllPoints();
-        self.scrollbarSlider:SetPoint("TOP", self.frame:GetFrame(), "TOP", 0, newPoint);
+        self.scrollbarSlider:SetPoint("TOP", self.frame, "TOP", 0, newPoint);
         
         -- Scroll the items list --
         local newPointNormalized = math.abs(newPoint) / (groupBgH - sliderSize);
@@ -145,11 +151,14 @@ function Scrollbar:Update()
     end
 end
 
+--- Resizes the scrollbar based on the viewport height and list height.
+--- @param viewportH number The height of the viewport.
+--- @param listH number The height of the list.
 function Scrollbar:Resize(viewportH, listH)
     local minScrollbar = 20;
     local maxScrollbar = viewportH;
     local desiredScrollbar = (viewportH / listH) * viewportH;
-    local newScrollbarHeight = max(minScrollbar, min(maxScrollbar, desiredScrollbar));
+    local newScrollbarHeight = math.max(minScrollbar, math.min(maxScrollbar, desiredScrollbar));
 
     if (newScrollbarHeight >= maxScrollbar) then
         -- disable
@@ -164,16 +173,20 @@ function Scrollbar:Resize(viewportH, listH)
     self:SetValueWithoutAction(self.currentValue or 0);
 end
 
+--- Disables the scrollbar.
 function Scrollbar:Disable()
     self.enabled = false;
     self.scrollbarSlider:Hide();
 end
 
+--- Enables the scrollbar.
 function Scrollbar:Enable()
     self.enabled = true;
     self.scrollbarSlider:Show();
 end
 
+--- Sets the value of the scrollbar.
+--- @param value number The new value for the scrollbar.
 function Scrollbar:SetValue(value)
     self:SetValueWithoutAction(value);
     if (self.onScroll) then
@@ -181,11 +194,13 @@ function Scrollbar:SetValue(value)
     end
 end
 
+--- Sets the value of the scrollbar without triggering any action.
+--- @param value number The new value for the scrollbar.
 function Scrollbar:SetValueWithoutAction(value)
     self.currentValue = value;
     local newPoint = value * (self.height - self.scrollbarSlider:GetHeight());
     self.scrollbarSlider:ClearAllPoints();
-    self.scrollbarSlider:SetPoint("TOP", self.frame:GetFrame(), "TOP", 0, -newPoint);
+    self.scrollbarSlider:SetPoint("TOP", self.frame, "TOP", 0, -newPoint);
 end
 
 Scrollbar.__tostring = function(self)

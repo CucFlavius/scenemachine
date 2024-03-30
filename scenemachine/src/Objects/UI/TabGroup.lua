@@ -2,20 +2,29 @@ local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
 local Editor = SceneMachine.Editor;
 UI.TabGroup = {};
+
+--- @class TabGroup : Element
 local TabGroup = UI.TabGroup;
+
 TabGroup.__index = TabGroup;
 setmetatable(TabGroup, UI.Element)
 
-function TabGroup:New(x, y, w, h, parent, point, parentPoint, startLevel, editable)
-	local v = 
+--- Creates a new TabGroup object.
+--- @param xA number The x-coordinate of the top-left corner of the TabGroup frame.
+--- @param yA number The y-coordinate of the top-left corner of the TabGroup frame.
+--- @param xB number The x-coordinate of the top-right corner of the TabGroup frame.
+--- @param yB number The y-coordinate of the top-right corner of the TabGroup frame.
+--- @param h number? The height of the TabGroup frame.
+--- @param parent table The parent frame of the TabGroup.
+--- @param startLevel number The starting level of the TabGroup.
+--- @param editable boolean Indicates whether the TabGroup is editable.
+--- @return TabGroup: The newly created TabGroup object.
+function TabGroup:NewTLTR(xA, yA, xB, yB, h, parent, startLevel, editable)
+    --- @class TabGroup : Element
+    local v =
     {
-        x = x or 0,
-        y = y or 0,
-        w = w or 20,
         h = h or 20,
         parent = parent or nil,
-        point = point or "TOPLEFT",
-        parentPoint = parentPoint or "TOPLEFT",
         viewportWidth = 0;
         visible = true,
         startLevel = startLevel,
@@ -25,27 +34,37 @@ function TabGroup:New(x, y, w, h, parent, point, parentPoint, startLevel, editab
         selectedIndex = 0,
     };
 
-	setmetatable(v, TabGroup);
+    setmetatable(v, TabGroup);
+
+    v.frame = CreateFrame("Frame", "SceneMachine.UI.Label.frame", parent);
+    v.frame:SetPoint("TOPLEFT", parent, "TOPLEFT", xA, yA);
+    v.frame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", xB, yB);
+    v.frame:SetHeight(h);
     v:Build();
-	return v;
+    return v;
 end
 
+-- Builds the TabGroup UI element
 function TabGroup:Build()
-    self.frame = UI.Rectangle:New(self.x, self.y, self.w, self.h, self.parent, self.point, self.parentPoint, 1, 1, 1, 0);
-	self.frame:GetFrame():SetScript("OnMouseWheel", function(_, delta)
+    -- Set the OnMouseWheel script for the frame
+    self.frame:SetScript("OnMouseWheel", function(_, delta)
         if (self.scrollbar.enabled) then
             local value = math.min(math.max(0, self.scrollbar.currentValue - (delta / (#self.data * 2))), 1);
             self.scrollbar:SetValue(value);
         end
     end);
+
+    -- Set the frame level if specified
     if (self.startLevel) then
         self.frame:SetFrameLevel(self.startLevel);
     end
 
-    self.dropdownButton = UI.Button:New(0, 0, self.h, self.h, self.frame:GetFrame(), "TOPRIGHT", "TOPRIGHT", nil, Resources.textures["ArrowDown"], nil);
+    -- Create the dropdown button
+    self.dropdownButton = UI.Button:New(0, 0, self.h, self.h, self.frame, "TOPRIGHT", "TOPRIGHT", nil, Resources.textures["ArrowDown"], nil);
     self.dropdownButton.icon:SetSize(7, 7);
     self.dropdownButton:SetColor(UI.Button.State.Normal, 0, 0, 0, 0);
 
+    -- Set the OnClick script for the dropdown button
     self.dropdownButton:SetScript("OnClick", function()
         local menuOptions = {};
         for i = 1, #self.data, 1 do
@@ -62,27 +81,31 @@ function TabGroup:Build()
         SceneMachine.mainWindow:PopupWindowMenu(rx * scale, ry * scale, menuOptions);
     end);
 
+    -- Calculate the button space
     local buttonSpace = self.h;
     if (self.editable) then
         buttonSpace = buttonSpace + self.h;
-        self.addButton = UI.Button:New(-self.h, 0, self.h, self.h, self.frame:GetFrame(), "TOPRIGHT", "TOPRIGHT", nil, Resources.textures["Add"], nil);
+        -- Create the add button
+        self.addButton = UI.Button:New(-self.h, 0, self.h, self.h, self.frame, "TOPRIGHT", "TOPRIGHT", nil, Resources.textures["Add"], nil);
         self.addButton.icon:SetSize(7, 7);
         self.addButton:SetColor(UI.Button.State.Normal, 0, 0, 0, 0);
 
+        -- Set the OnClick script for the add button
         self.addButton:SetScript("OnClick", function()
             local onRename = function(text, index) if (self.template.addAction) then self.template.addAction(text); end end
             self:RenameTab(-1, nil, onRename);
         end);
     end
 
+    -- Create the edit box if editable
     if (self.editable) then
-        self.editBox = UI.TextBox:New(0, 0, 100, tabButtonHeight, self.frame:GetFrame(), "TOPLEFT", "TOPLEFT", "Rename");
+        self.editBox = UI.TextBox:New(0, 0, 100, self.h, self.frame, "TOPLEFT", "TOPLEFT", "Rename");
         self.editBox.frame.texture:SetColorTexture(0,0,0,1);
         self.editBox:Hide();
     end
 
-    self.viewport = UI.Rectangle:New(self.x, self.y, self.w, self.h - 5, self.frame:GetFrame(), "TOPLEFT", "TOPLEFT", 1, 0, 1, 0);
-    self.viewport:SetPoint("TOPRIGHT", self.frame:GetFrame(), "TOPRIGHT", -buttonSpace, 0);
+    -- Create the viewport
+    self.viewport = UI.Rectangle:NewTLTR(0, 0, -buttonSpace, 0, self.h - 5, self.frame, 1, 0, 1, 0);
     self.viewport:SetClipsChildren(true);
     self.viewport:GetFrame():SetScript("OnSizeChanged", function(_, width, height)
         self.viewportWidth = width;
@@ -93,36 +116,45 @@ function TabGroup:Build()
         self.viewport:SetFrameLevel(self.startLevel + 1);
     end
 
-    self.scrollbar = UI.ScrollbarHorizontal:New(0, 0, 300, 5, self.frame:GetFrame(), function(v) self:SetPosition(v); end);
-    self.scrollbar:SetPoint("BOTTOMRIGHT", self.frame:GetFrame(), "BOTTOMRIGHT", -buttonSpace, 0);
+    -- Create the horizontal scrollbar
+    self.scrollbar = UI.ScrollbarHorizontal:NewBLBR(0, 0, -buttonSpace, 0, 5, self.frame, function(v) self:SetPosition(v); end);
     if (self.startLevel) then
         self.scrollbar:SetFrameLevel(self.startLevel + 4);
     end
 
+    -- Initialize data and item pool
     self.data = {};
     self.itemPool = {};
     self.poolSize = 0;
     self.dataStartIdx = 1;
 
-    -- create a font string used for calculating all text size
-    self.stringCalc = self.frame:GetFrame():CreateFontString("stringCalc");
-	self.stringCalc:SetFont(Resources.defaultFont, 9, "NORMAL");
-	self.stringCalc:SetAllPoints(self.frame:GetFrame());
-	self.stringCalc:SetJustifyV("CENTER");
-	self.stringCalc:SetJustifyH("LEFT");
+    -- Create a font string used for calculating all text size
+    self.stringCalc = self.frame:CreateFontString("stringCalc");
+    self.stringCalc:SetFont(Resources.defaultFont, 9, "NORMAL");
+    self.stringCalc:SetAllPoints(self.frame);
+    self.stringCalc:SetJustifyV("CENTER");
+    self.stringCalc:SetJustifyH("LEFT");
     self.stringCalc:Hide();
 end
 
+--- Sets the item template for the TabGroup.
+--- @param template table The template to set.
 function TabGroup:SetItemTemplate(template)
     self.template = template;
 end
 
+--- Scrolls the tab group by a specified value.
+--- @param value number The value by which to scroll the tab group.
 function TabGroup:ScrollStep(value)
     self.dataStartIdx = self.dataStartIdx - value;
     --self.scrollbar:SetValueWithoutAction(self.dataStartIdx / (#self.data - (#self.itemPool - 4)));
     self:Refresh(0);
 end
 
+--- Renames or adds a tab in the TabGroup.
+--- @param index number The index of the tab to be renamed. Set to 0 to add a new tab.
+--- @param item table The tab item to be renamed. Set to nil when adding a new tab.
+--- @param onRename function The callback function to be called when the tab is renamed.
 function TabGroup:RenameTab(index, item, onRename)
     self.editBox:Show();
     local previousName = "";
@@ -135,9 +167,9 @@ function TabGroup:RenameTab(index, item, onRename)
         item.components[2]:SetText("");
     else
         -- Add --
-        self.editBox:SetParent(self.frame:GetFrame());
+        self.editBox:SetParent(self.frame);
         self.editBox:ClearAllPoints();
-        self.editBox:SetAllPoints(self.frame:GetFrame());
+        self.editBox:SetAllPoints(self.frame);
         self.editBox:SetFrameLevel(self.startLevel + 100);
         previousName = self.template.defaultTabName or "Add";
     end
@@ -161,6 +193,8 @@ function TabGroup:RenameTab(index, item, onRename)
     end);
 end
 
+--- Sets the position of the TabGroup.
+--- @param value number The position value between 0 and 1.
 function TabGroup:SetPosition(value)
     if (not value) then
         return;
@@ -179,7 +213,7 @@ function TabGroup:SetPosition(value)
         total = total + self.data[i].width;
     end
     dif = total - offs;
-    start = max(start, 1);
+    start = math.max(start, 1);
     dif = self.data[start].width - dif;
 
     self.dataStartIdx = start;
@@ -187,10 +221,12 @@ function TabGroup:SetPosition(value)
     self:Refresh(dif);
 end
 
+--- Sets the data for the TabGroup.
+--- @param data table[] The data to be set.
 function TabGroup:SetData(data)
     self.data = data;
 
-    --- calc sizes
+    --- Calculates the sizes of the tabs based on the data.
     local tw = 0;
     self.dataEndIdx = #self.data;
     for i = self.dataStartIdx, #self.data, 1 do
@@ -206,6 +242,8 @@ function TabGroup:SetData(data)
     self:Refresh(0);
 end
 
+--- Retrieves an item from the item pool.
+--- @return table: The item from the item pool.
 function TabGroup:GetItem()
     local i = self.usedItems + 1;
     self.usedItems = self.usedItems + 1;
@@ -217,9 +255,7 @@ function TabGroup:GetItem()
         
         self.itemPool[i].components = {};
         -- main button --
-        self.itemPool[i].components[1] = UI.Button:New(0, 0, 10, self.template.height, self.itemPool[i]:GetFrame(), "CENTER", "CENTER", "");
-        self.itemPool[i].components[1]:ClearAllPoints();
-        self.itemPool[i].components[1]:SetAllPoints(self.itemPool[i]:GetFrame());
+        self.itemPool[i].components[1] = UI.Button:NewAP(self.itemPool[i]:GetFrame(), "");
 
         -- scene name text --
         self.itemPool[i].components[2] = UI.Label:New(10, 0, 100, self.template.height, self.itemPool[i].components[1]:GetFrame(), "LEFT", "LEFT", "", 9);
@@ -234,6 +270,8 @@ function TabGroup:GetItem()
     return self.itemPool[i];
 end
 
+--- Refreshes the TabGroup with new data and updates the displayed items.
+--- @param dif number The difference in x-offset for the items.
 function TabGroup:Refresh(dif)
     self.usedItems = 0;
 
@@ -241,7 +279,7 @@ function TabGroup:Refresh(dif)
         self.dataStartIdx = 1;
     end
 
-    --- calc data end idx
+    --- Calculate the data end index based on the viewport width.
     local vpw = self.viewportWidth;
     local tw = 0;
     self.dataEndIdx = #self.data;

@@ -31,13 +31,12 @@ SH.inputState = {
 function SH.CreatePanel(w, h, leftPanel, startLevel)
     --local group = Editor.CreateGroup("Hierarchy", h, leftPanel:GetFrame());
 	SH.groupBG = UI.Rectangle:New(6, -6, w, h, leftPanel:GetFrame(), "TOPLEFT", "TOPLEFT",  0.1757, 0.1757, 0.1875, 1);
-    SH.groupBG:SetPoint("BOTTOMRIGHT", Editor.horizontalSeparatorL:GetFrame(), "BOTTOMRIGHT", -6, 6);
+    SH.groupBG:SetPoint("BOTTOMRIGHT", Editor.horizontalSeparatorL:GetFrame(), "BOTTOMRIGHT", 0, 6);
 	SH.groupBG:SetFrameLevel(startLevel);
-    SH.groupTitleText = UI.Label:New(0, 0, w - 30, 20, SH.groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", "   " .. L["SH_TITLE"], 9);
-    SH.groupTitleText:SetPoint("TOPRIGHT", SH.groupBG:GetFrame(), "TOPRIGHT", 0, 0);
-	SH.groupTitleText:SetFrameLevel(startLevel + 1);
-    local groupContent = UI.Rectangle:New(0, -20, w - 12, h - 20, SH.groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", 0.1445, 0.1445, 0.1445, 1);
-    groupContent:SetPoint("BOTTOMRIGHT", SH.groupBG:GetFrame(), "BOTTOMRIGHT", 0, 0);
+	local groupTitleText = UI.Label:NewTLTR(10, 0, 0, 0, 20, SH.groupBG:GetFrame(), L["SH_TITLE"], 9);
+    groupTitleText:SetPoint("TOPRIGHT", SH.groupBG:GetFrame(), "TOPRIGHT", 0, 0);
+	groupTitleText:SetFrameLevel(startLevel + 1);
+    local groupContent = UI.Rectangle:NewTLBR(0, -20, 0, 0, SH.groupBG:GetFrame(), 0.1445, 0.1445, 0.1445, 1);
 	groupContent:SetFrameLevel(startLevel + 2);
 
 	SH.eyeIconVisibleTexCoord = { 0, 0.25, 0, 0.25 };
@@ -51,8 +50,7 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 	SH.cameraIconTexCoord = { 0.5, 0.75, 0.5, 0.75 };
 	SH.lightIconTexCoord = { 0.5, 0.75, 0.75, 1 };
 
-	SH.scrollList = UI.PooledScrollList:New(1, -1, w - 12, h - 22, groupContent:GetFrame(), "TOPLEFT", "TOPLEFT");
-	SH.scrollList:SetPoint("BOTTOMRIGHT", groupContent:GetFrame(), "BOTTOMRIGHT", 0, 0);
+	SH.scrollList = UI.PooledScrollList:NewTLBR(1, -1, 0, 0, groupContent:GetFrame());
 	SH.scrollList:SetFrameLevel(startLevel + 3);
 	SH.scrollList:SetItemTemplate(
 		{
@@ -62,10 +60,8 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 				item:SetColor(0, 0, 0, 0);
 
 				-- main button --
-				item.components[1] = UI.Button:New(0, 0, 50, 18, item:GetFrame(), "CENTER", "CENTER", "");
+				item.components[1] = UI.Button:NewAP(item:GetFrame(), "");
 				item.components[1]:GetFrame():RegisterForClicks("LeftButtonUp", "RightButtonUp", "LeftButtonDown");
-				item.components[1]:ClearAllPoints();
-				item.components[1]:SetAllPoints(item:GetFrame());
 				item.components[1]:SetColor(UI.Button.State.Normal, 0, 0, 0, 0);
 				item.components[1]:SetColor(UI.Button.State.Highlight, 0, 0, 0, 0);	-- disable button highlight
 

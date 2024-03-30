@@ -46,8 +46,7 @@ function SM.Create(x, y, w, h, parent, startLevel)
     end);
     SM.viewportButton:Hide();
 
-    SM.tabGroup = UI.TabGroup:New(0, 0, 100, tabButtonHeight, SM.groupBG:GetFrame(), "TOPLEFT", "TOPLEFT", startLevel + 2, true);
-    SM.tabGroup:SetPoint("TOPRIGHT", SM.groupBG:GetFrame(), "TOPRIGHT", 0, 0);
+    SM.tabGroup = UI.TabGroup:NewTLTR(0, 0, 0, 0, tabButtonHeight, SM.groupBG:GetFrame(), startLevel + 2, true);
     SM.tabGroup.dropdownButton.tooltip = L["SM_TT_LIST"];
     SM.tabGroup.addButton.tooltip = L["SM_TT_ADDSCENE"];
 

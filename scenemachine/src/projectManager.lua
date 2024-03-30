@@ -25,12 +25,39 @@ function PM.CreateWindow()
     -- project list frame --
     PM.projectListFrame = UI.Rectangle:New(0, 0, managerWindowWidth, managerWindowHeight, PM.window:GetFrame(), "TOPLEFT", "TOPLEFT", 0, 0, 0, 0);
 
-    PM.projectScrollList = UI.ScrollFrame:New(10, -10, managerWindowWidth - 20, 200, PM.projectListFrame:GetFrame(), "TOPLEFT", "TOPLEFT");
-    PM.projectList = UI.ItemList:New(PM.projectScrollList:GetWidth() - 30, 20, PM.projectScrollList.contentFrame, function(index) 
-        if (index > 0) then
-            PM.selectedProjectID = PM.projectListIDs[index];
-        end
-     end);
+    PM.projectList = UI.PooledScrollList:NewTLBR(10, -10, 0, 30, PM.projectListFrame:GetFrame(), "TOPLEFT", "TOPLEFT");
+	PM.projectList:SetItemTemplate(
+		{
+            replaceAnim = nil,
+			height = 20,
+			buildItem = function(item)
+				-- main button --
+				item.components[1] = UI.Button:NewAP(item:GetFrame(), "");
+
+				-- project name text --
+				item.components[2] = UI.Label:New(10, 0, 200, 18, item.components[1]:GetFrame(), "LEFT", "LEFT", "", 9);
+			end,
+			refreshItem = function(entry, item)
+                -- main button --
+				item.components[1]:SetScript("OnClick", function()
+                    PM.selectedProjectID = entry.ID;
+                    PM.projectList:RefreshStatic();
+                end);
+
+				if (entry.ID == PM.selectedProjectID) then
+					item.components[1]:SetColor(UI.Button.State.Normal, 0, 0.4765, 0.7968, 1);
+				else
+					item.components[1]:SetColor(UI.Button.State.Normal, 0.1757, 0.1757, 0.1875, 1);
+				end
+
+				-- object name text --
+				item.components[2]:SetText(entry.name);
+			end,
+	    }
+    );
+
+    PM.projectList:SetFrameLevel(10);
+	PM.projectList:MakePool();
 
     local buttonSpacing = 5;
     PM.newProjectButton = UI.Button:New(10, 10, 60, 40, PM.projectListFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", L["PM_BUTTON_NEW_PROJECT"], nil);
@@ -43,15 +70,6 @@ function PM.CreateWindow()
     PM.deleteProjectButton:SetScript("OnClick", function(self) PM.ButtonDeleteProject() end);
     PM.saveDataButton = UI.Button:New((60 * 4) + (buttonSpacing * 4) + 10, 10, 60, 40, PM.projectListFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", L["PM_BUTTON_SAVE_DATA"], nil);
     PM.saveDataButton:SetScript("OnClick", function(self) Editor.Save() end);
-
-    -- project edit frame --
-    PM.projectEditFrame = UI.Rectangle:New(0, 0, managerWindowWidth, managerWindowHeight, PM.window:GetFrame(), "TOPLEFT", "TOPLEFT", 0, 0, 0, 0);
-    PM.projectEditFrame_NameBox = UI.TextBox:New(10, -10, 300, 20, PM.projectEditFrame:GetFrame(), "TOPLEFT", "TOPLEFT", "", 12);
-
-    PM.saveEditProjectButton = UI.Button:New(10, 10, 60, 40, PM.projectEditFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", L["BUTTON_SAVE"], nil);
-    PM.saveEditProjectButton:SetScript("OnClick", function(self) PM.ButtonSaveEditProject() end);
-    PM.closeEditProjectButton = UI.Button:New(60 + 10 + 10, 10, 60, 40, PM.projectEditFrame:GetFrame(), "BOTTOMLEFT", "BOTTOMLEFT", L["BUTTON_CANCEL"], nil);
-    PM.closeEditProjectButton:SetScript("OnClick", function(self) PM.ButtonCancelEditProject() end);
 
     PM.window:Hide();
 end
@@ -172,30 +190,28 @@ end
 function PM.OpenWindow()
     PM.window:Show();
     PM.projectListFrame:Show();
-    PM.projectEditFrame:Hide();
     PM.window:SetTitle(L["PM_WINDOW_TITLE"]);
     PM.RefreshProjectWindow();
 end
 
 function PM.RefreshProjectWindow()
-    PM.projectList:Clear();
+    local data = {};
     local index = 1;
     for ID in pairs(PM.projects) do
-        PM.projectList:SetItem(index, PM.projects[ID].name .. " " .. ID);
+        data[index] = PM.projects[ID];
         index = index + 1;
     end
 
-    -- resize --
-    --PM.projectScrollList.Scrollbar:SetMinMaxValues(0, max((index * 20) - (150), 1));
-	--PM.projectScrollList.Scrollbar:SetValueStep(1);
+    PM.projectList:SetData(data);
+    Editor.RefreshProjectsDropdown();
 end
 
 function PM.ButtonNewProject()
-    PM.projectListFrame:Hide();
-    PM.projectEditFrame:Show();
-    PM.window:SetTitle(L["PM_NEW_PROJECT"]);
-
-    PM.projectEditFrame_NameBox:SetText(L["PM_PROJECT_NAME"]);
+    local action = function(text)
+        local project = PM.CreateProject(text);
+        PM.RefreshProjectWindow();
+    end;
+    Editor.OpenQuickTextbox(action, L["PM_PROJECT_NAME"], L["PM_NEW_PROJECT"]);
 end
 
 function PM.ButtonLoadProject()
@@ -212,36 +228,12 @@ function PM.ButtonEditProject()
         return;
     end
 
-    PM.projectListFrame:Hide();
-    PM.projectEditFrame:Show();
-    PM.window:SetTitle(L["PM_EDIT_PROJECT"]);
-
-    -- fill in existing info --
-    PM.projectEditFrame_NameBox:SetText(PM.projects[PM.selectedProjectID].name);
-end
-
-function PM.ButtonCancelEditProject()
-    PM.projectListFrame:Show();
-    PM.projectEditFrame:Hide();
-    PM.window:SetTitle(L["PM_WINDOW_TITLE"]);
-end
-
-function PM.ButtonSaveEditProject()
-    PM.projectListFrame:Show();
-    PM.projectEditFrame:Hide();
-    PM.window:SetTitle(L["PM_WINDOW_TITLE"]);
-
-    local projectName = PM.projectEditFrame_NameBox:GetText();
-
-    local project = PM.projects[PM.selectedProjectID];
-    if (project == nil) then
-        -- make a new project
-        project = PM.CreateProject(projectName);
-    else
-        project.name = projectName;
-    end
-
-    PM.RefreshProjectWindow();
+    local action = function(text)
+        local project = PM.projects[PM.selectedProjectID];
+        project.name = text;
+        PM.RefreshProjectWindow();
+    end;
+    Editor.OpenQuickTextbox(action, PM.projects[PM.selectedProjectID].name, L["PM_EDIT_PROJECT"]);
 end
 
 function PM.ButtonDeleteProject()
