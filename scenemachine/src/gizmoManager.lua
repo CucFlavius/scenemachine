@@ -123,9 +123,15 @@ function GM.StartMarqueeSelect()
 
     GM.marqueeOn = true;
     GM.marqueeVisible = false;
-    GM.marqueeStartPoint = { Input.mouseX, Input.mouseY };
+
+
+    local w, h = Renderer.projectionFrame:GetSize();
+    local rx = Input.mouseX * Renderer.scale;
+    local ry = Input.mouseY * Renderer.scale;
+
+    GM.marqueeStartPoint = { rx, ry };
     GM.marqueeBox:ClearAllPoints();
-    GM.marqueeBox:SetPoint("BOTTOMLEFT", Renderer.projectionFrame, "BOTTOMLEFT", Input.mouseX, Input.mouseY);
+    GM.marqueeBox:SetPoint("BOTTOMLEFT", Renderer.projectionFrame, "BOTTOMLEFT", rx, ry);
 end
 
 function GM.EndMarqueeSelect()
@@ -165,7 +171,11 @@ function GM.Update()
     GM.highlightedAxis = 0;
     GM.isHighlighted = false;
 
-    GM.UpdateMarquee(mouseX, mouseY);
+    if (Renderer.scale) then
+        local rx = mouseX * Renderer.scale;
+        local ry = mouseY * Renderer.scale;
+        GM.UpdateMarquee(rx, ry);
+    end
 
     -- Handle gizmo mouse highlight and selection --
     GM.SelectionCheck(mouseX, mouseY);

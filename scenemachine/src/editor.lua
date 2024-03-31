@@ -280,6 +280,7 @@ function Editor.CreateToolbar()
                 action = function(self) SM.loadedScene:CreateCharacter(0, 0, 0); SH.RefreshHierarchy(); OP.Refresh(); end,
                 tooltip = L["EDITOR_TOOLBAR_TT_CREATE_CHARACTER"],
             },
+            { type = "DragHandle" },
             {
                 type = "Toggle", name = "ToggleLetterbox", iconOn = toolbar:GetIcon("letterboxon"), iconOff = toolbar:GetIcon("letterboxoff"),
                 action = function(self, on) if (on) then Renderer.ShowLetterbox(); else Renderer.HideLetterbox(); end end,
@@ -416,20 +417,21 @@ function Editor.SetScale(percent)
     SceneMachine.mainWindow:SetScale(Editor.scale);
     scenemachine_settings.editor_scale = percent;
 
-    local screenW = GetScreenWidth();
-    local screenH = GetScreenHeight();
+    --local screenW = GetScreenWidth();
+    --local screenH = GetScreenHeight();
     --local aspect = screenW / screenH;
-    local maxW = screenW - 50;
-    local maxH = screenH - 50;
-    local w = min(maxW, SceneMachine.mainWindow:GetWidth());
-    local h = min(maxH, SceneMachine.mainWindow:GetHeight());
-    SceneMachine.mainWindow:SetSize(w / Editor.scale, h / Editor.scale);
+    --local maxW = screenW - 50;
+    --local maxH = screenH - 50;
+    --local w = math.max(math.min(maxW, SceneMachine.mainWindow:GetWidth() / Editor.scale, 1280));
+    --local h = math.max(math.min(maxH, SceneMachine.mainWindow:GetHeight() / Editor.scale, 720));
+    --SceneMachine.mainWindow:SetSize(w, h);
+    Editor.ResetWindow();
 end
 
 function Editor.ResetWindow()
     SceneMachine.mainWindow:ClearAllPoints();
     SceneMachine.mainWindow:SetPoint("CENTER", nil, "CENTER", 0, 0);
-    SceneMachine.mainWindow:SetSize(Editor.width, Editor.height);
+    SceneMachine.mainWindow:SetSize(Editor.width / Editor.scale, Editor.height / Editor.scale);
 end
 
 function Editor.CreateMainWindow(startLevel)
