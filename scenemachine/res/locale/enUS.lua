@@ -51,6 +51,10 @@ L["EDITOR_TOOLBAR_TT_UNDO"] = "Undo";
 L["EDITOR_TOOLBAR_TT_REDO"] = "Redo";
 L["EDITOR_TOOLBAR_TT_CREATE_CAMERA"] = "Create Camera";
 L["EDITOR_TOOLBAR_TT_CREATE_CHARACTER"] = "Create Character";
+L["EDITOR_FULLSCREEN_NOTIFICATION"] = "Entered Fullscreen\nPress ESC to exit\nPress P to play/pause";
+L["EDITOR_TOOLBAR_TT_LETTERBOX_ON"] = "Hide Letterbox (black bars)";
+L["EDITOR_TOOLBAR_TT_LETTERBOX_OFF"] = "Show Letterbox (black bars)";
+L["EDITOR_TOOLBAR_TT_FULLSCREEN"] = "Enter Fullscreen";
 
 -- Main Menu --
 L["MM_FILE"] = "File";

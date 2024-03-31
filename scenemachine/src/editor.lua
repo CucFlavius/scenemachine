@@ -113,6 +113,7 @@ function Editor.Initialize()
     SceneMachine.Input.AddKeyBind("E", function() CC.Action.StrafeRight = true end, function() CC.Action.StrafeRight = false end);
     SceneMachine.Input.AddKeyBind("SPACE", function() CC.Action.MoveUp = true end, function() CC.Action.MoveUp = false end);
     SceneMachine.Input.AddKeyBind("X", function() CC.Action.MoveDown = true end, function() CC.Action.MoveDown = false end);
+    SceneMachine.Input.AddKeyBind("P", function() if (AM.playing) then AM.Pause(); else AM.Play(); end end, nil);
 	SceneMachine.Input.AddKeyBind("Z", function() 
         if (SceneMachine.Input.ControlModifier) then
             Editor.Undo();
@@ -159,6 +160,24 @@ function Editor.Initialize()
     SceneMachine.Input.AddKeyBind("DELETE",function()
         if (Editor.ui.focused == false) then
             Editor.DeleteLastSelected();
+        end
+    end);
+    SceneMachine.Input.AddKeyBind("ESCAPE", function()
+        if (Editor.ui.focused == false) then
+            if (Renderer.isFullscreen) then
+                Renderer.FullScreen(false);
+
+                if (Editor.fullscreenNotification.timer1) then
+                    Editor.fullscreenNotification.timer1:Cancel();
+                end
+            
+                if (Editor.fullscreenNotification.timer2) then
+                    Editor.fullscreenNotification.timer2:Cancel();
+                end
+                Editor.fullscreenNotification:Hide();
+            else
+                Editor.Hide();
+            end
         end
     end);
     SceneMachine.Input.AddKeyBind("F",function() CC.FocusObjects(SM.selectedObjects); end);
@@ -261,6 +280,19 @@ function Editor.CreateToolbar()
                 action = function(self) SM.loadedScene:CreateCharacter(0, 0, 0); SH.RefreshHierarchy(); OP.Refresh(); end,
                 tooltip = L["EDITOR_TOOLBAR_TT_CREATE_CHARACTER"],
             },
+            {
+                type = "Toggle", name = "ToggleLetterbox", iconOn = toolbar:GetIcon("letterboxon"), iconOff = toolbar:GetIcon("letterboxoff"),
+                action = function(self, on) if (on) then Renderer.ShowLetterbox(); else Renderer.HideLetterbox(); end end,
+                default = false, tooltips = { L["EDITOR_TOOLBAR_TT_LETTERBOX_ON"], L["EDITOR_TOOLBAR_TT_LETTERBOX_OFF"] },
+            },
+            {
+                type = "Button", name = "EnterFullscreen", icon = toolbar:GetIcon("fullscreen"), action = function(self)
+                    Renderer.FullScreen(true);
+                    Editor.ShowFullscreenNotification();
+                    SM.SelectObject(nil);
+                end,
+                tooltip = L["EDITOR_TOOLBAR_TT_FULLSCREEN"],
+            },
         }
     );
 
@@ -307,6 +339,10 @@ function Editor.Show()
 
     scenemachine_settings.editor_is_open = true;
     Editor.isOpen = true;
+
+    if (Input.KeyboardListener) then
+        Input.KeyboardListener:EnableKeyboard(true);
+    end
 end
 
 function Editor.Hide()
@@ -314,6 +350,8 @@ function Editor.Hide()
     --Input.KeyboardListener:SetPropagateKeyboardInput(true);
     scenemachine_settings.editor_is_open = false;
     Editor.isOpen = false;
+
+    Input.KeyboardListener:EnableKeyboard(false);
 end
 
 function Editor.Toggle()
@@ -824,4 +862,29 @@ function Editor.PreprocessSavedVars()
             end
         end
     end
+end
+
+function Editor.ShowFullscreenNotification()
+    if (not Editor.fullscreenNotification) then
+        Editor.fullscreenNotification = UI.Label:New(0, 0, 500, 500, Renderer.projectionFrame, "CENTER", "CENTER", L["EDITOR_FULLSCREEN_NOTIFICATION"], 30);
+    end
+
+    if (Editor.fullscreenNotification.timer1) then
+        Editor.fullscreenNotification.timer1:Cancel();
+    end
+
+    if (Editor.fullscreenNotification.timer2) then
+        Editor.fullscreenNotification.timer2:Cancel();
+    end
+
+    Editor.fullscreenNotification:Show();
+    Editor.fullscreenNotification:SetAlpha(1);
+
+    Editor.fullscreenNotification.timer1 = C_Timer.NewTimer(1, function()
+        UIFrameFadeOut(Editor.fullscreenNotification, 1, 1, 0);
+    end);
+
+    Editor.fullscreenNotification.timer2 = C_Timer.NewTimer(2, function()
+        Editor.fullscreenNotification:Hide();
+    end);
 end

@@ -3,6 +3,7 @@ local SM = Editor.SceneManager;
 local Renderer = SceneMachine.Renderer;
 local Camera = SceneMachine.Camera;
 local Resources = SceneMachine.Resources;
+local UI = SceneMachine.UI;
 local Object = SceneMachine.GameObjects.Object;
 
 --- WTF ---
@@ -20,6 +21,8 @@ Renderer.gizmos = {};
 Renderer.delayedUnitsQueue = {};
 Renderer.delayedUnitsQueueHasItems = false;
 Renderer.delayedUnitsQueueTimer = 0;
+Renderer.letterboxEnabled = false;
+Renderer.isFullscreen = false;
 
 function Renderer.GenerateFrameBuffer(startLevel)
 
@@ -78,6 +81,7 @@ end
 function Renderer.CreateRenderer(x, y, w, h, parent, startLevel)
 	Renderer.w = w;
 	Renderer.h = h;
+    Renderer.parent = parent;
 
     Renderer.backgroundFrame = CreateFrame("Frame", "Renderer.backgroundFrame", parent)
 	Renderer.backgroundFrame:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
@@ -97,9 +101,45 @@ function Renderer.CreateRenderer(x, y, w, h, parent, startLevel)
 	Renderer.projectionFrame:SetCameraPosition(4,0,0);
 	Renderer.projectionFrame:SetCameraOrientationByYawPitchRoll(0, 0, 0);
     Renderer.projectionFrame:SetFrameLevel(startLevel + 2);
+
 	Renderer.GenerateFrameBuffer(startLevel + 30);
+    Renderer.CreateLetterbox(startLevel + 3);
 
 	Renderer.active = false;
+end
+
+function Renderer.CreateLetterbox(startLevel)
+    Renderer.letterboxT = UI.Rectangle:NewTLTR(0, 0, 0, 0, 20, Renderer.projectionFrame, 0, 0, 0, 1);
+    Renderer.letterboxT:SetFrameLevel(startLevel);
+    Renderer.letterboxT:Hide();
+
+    Renderer.letterboxB = UI.Rectangle:NewBLBR(0, 0, 0, 0, 20, Renderer.projectionFrame, 0, 0, 0, 1);
+    Renderer.letterboxB:SetFrameLevel(startLevel);
+    Renderer.letterboxB:Hide();
+
+    Renderer.letterboxL = UI.Rectangle:NewTLBL(0, 0, 0, 0, 20, Renderer.projectionFrame, 0, 0, 0, 1);
+    Renderer.letterboxL:SetFrameLevel(startLevel);
+    Renderer.letterboxL:Hide();
+
+    Renderer.letterboxR = UI.Rectangle:NewTRBR(0, 0, 0, 0, 20, Renderer.projectionFrame, 0, 0, 0, 1);
+    Renderer.letterboxR:SetFrameLevel(startLevel);
+    Renderer.letterboxR:Hide();
+end
+
+function Renderer.FullScreen(on)
+    if (on) then
+        Renderer.backgroundFrame:SetParent(UIParent);
+        Renderer.backgroundFrame:SetAllPoints(UIParent);
+        Renderer.backgroundFrame:SetFrameStrata("FULLSCREEN");
+    else
+        Renderer.backgroundFrame:SetParent(Renderer.parent);
+        Renderer.backgroundFrame:ClearAllPoints();
+        Renderer.backgroundFrame:SetPoint("TOPRIGHT", Renderer.parent, "TOPRIGHT", 0, -21);
+        Renderer.backgroundFrame:SetPoint("BOTTOMLEFT", Renderer.parent, "BOTTOMLEFT", 0, 0);
+        Renderer.backgroundFrame:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
+    end
+
+    Renderer.isFullscreen = on;
 end
 
 function Renderer.AddActor(fileID, X, Y, Z, type)
@@ -207,7 +247,68 @@ end
 function Renderer.Update()
     Renderer.RenderGizmos();
     Renderer.RenderSprites();
+    if (Renderer.letterboxEnabled) then
+        Renderer.UpdateLetterbox();
+    end
     Renderer.CheckQueuedTasks();
+end
+
+function Renderer.ShowLetterbox()
+    Renderer.letterboxEnabled = true;
+    Renderer.letterboxT:Show();
+    Renderer.letterboxB:Show();
+    Renderer.letterboxL:Show();
+    Renderer.letterboxR:Show();
+end
+
+function Renderer.HideLetterbox()
+    Renderer.letterboxEnabled = false;
+    Renderer.letterboxT:Hide();
+    Renderer.letterboxB:Hide();
+    Renderer.letterboxL:Hide();
+    Renderer.letterboxR:Hide();
+end
+
+function Renderer.ToggleLetterbox()
+    Renderer.letterboxEnabled = not Renderer.letterboxEnabled;
+    if (not Renderer.letterboxEnabled) then
+        Renderer.letterboxT:Hide();
+        Renderer.letterboxB:Hide();
+        Renderer.letterboxL:Hide();
+        Renderer.letterboxR:Hide();
+    end
+end
+
+function Renderer.UpdateLetterbox()
+    -- Get camera and screen aspect ratios
+    local cameraAspect = Camera.aspectRatio
+    local width, height = GetPhysicalScreenSize()
+    local screenAspect = width / height
+
+    -- Calculate letterbox height
+    local letterboxHeight = 0
+
+    if cameraAspect < screenAspect then
+        Renderer.letterboxT:Show();
+        Renderer.letterboxB:Show();
+        Renderer.letterboxL:Hide();
+        Renderer.letterboxR:Hide();
+        -- Camera aspect ratio is narrower, add letterbox at top and bottom
+        letterboxHeight = (Camera.height - Camera.width / screenAspect) / 2
+        Renderer.letterboxT:SetHeight(letterboxHeight);
+        Renderer.letterboxB:SetHeight(letterboxHeight);
+    else
+        Renderer.letterboxT:Hide();
+        Renderer.letterboxB:Hide();
+        Renderer.letterboxL:Show();
+        Renderer.letterboxR:Show();
+        -- Camera aspect ratio is wider, add letterbox at left and right
+        local letterboxWidth = (Camera.width - Camera.height * screenAspect) / 2
+        Renderer.letterboxL:SetWidth(letterboxWidth);
+        Renderer.letterboxR:SetWidth(letterboxWidth);
+
+    end
+
 end
 
 function Renderer.CheckQueuedTasks()
@@ -250,30 +351,32 @@ function Renderer.RenderSprites()
         return;
     end
 
-    for i = 1, SM.loadedScene:GetObjectCount(), 1 do
-        local object = SM.loadedScene:GetObject(i);
-        if (object) then
-            if (object:GetGizmoType() == Object.GizmoType.Camera) then
-                if (object:IsVisible()) then
-                    local pos = object:GetPosition();
-                    
-                    -- Near plane face culling --
-                    local cull = Renderer.NearPlaneFaceCullingVert({pos.x, pos.y, pos.z}, Camera.planePosition.x, Camera.planePosition.y, Camera.planePosition.z, Camera.forward.x, Camera.forward.y, Camera.forward.z)
-                    if (not cull) then
-                        local sprite = Renderer.GetAvailableSprite();
-                        sprite.objIdx = i;
+    if (not Renderer.isFullscreen) then
+        for i = 1, SM.loadedScene:GetObjectCount(), 1 do
+            local object = SM.loadedScene:GetObject(i);
+            if (object) then
+                if (object:GetGizmoType() == Object.GizmoType.Camera) then
+                    if (object:IsVisible()) then
+                        local pos = object:GetPosition();
+                        
+                        -- Near plane face culling --
+                        local cull = Renderer.NearPlaneFaceCullingVert({pos.x, pos.y, pos.z}, Camera.planePosition.x, Camera.planePosition.y, Camera.planePosition.z, Camera.forward.x, Camera.forward.y, Camera.forward.z)
+                        if (not cull) then
+                            local sprite = Renderer.GetAvailableSprite();
+                            sprite.objIdx = i;
 
-                        -- Project to screen space --
-                        local aX, aY, aZ = Renderer.projectionFrame:Project3DPointTo2D(pos.x, pos.y, pos.z);
-                        local size = 20;
-                        local hSize = size / 2;
-                        -- Render --
-                        if (aX ~= nil and aY ~= nil) then
-                            sprite:Show();
-                            sprite:ClearAllPoints();
-                            sprite:SetPoint("BOTTOMLEFT", Renderer.projectionFrame, "BOTTOMLEFT", aX * Renderer.scale - hSize, aY * Renderer.scale - hSize);
-                            sprite:SetSize(size, size);
-                            sprite.texture:SetTexCoord(0, 0.25, 0, 0.25);
+                            -- Project to screen space --
+                            local aX, aY, aZ = Renderer.projectionFrame:Project3DPointTo2D(pos.x, pos.y, pos.z);
+                            local size = 20;
+                            local hSize = size / 2;
+                            -- Render --
+                            if (aX ~= nil and aY ~= nil) then
+                                sprite:Show();
+                                sprite:ClearAllPoints();
+                                sprite:SetPoint("BOTTOMLEFT", Renderer.projectionFrame, "BOTTOMLEFT", aX * Renderer.scale - hSize, aY * Renderer.scale - hSize);
+                                sprite:SetSize(size, size);
+                                sprite.texture:SetTexCoord(0, 0.25, 0, 0.25);
+                            end
                         end
                     end
                 end
@@ -289,7 +392,7 @@ function Renderer.RenderSprites()
 end
 
 function Renderer.RenderGizmos()
-    if (not Renderer.projectionFrame) then
+    if (not Renderer.projectionFrame or Renderer.isFullscreen) then
         return;
     end
 

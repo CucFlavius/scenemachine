@@ -157,7 +157,11 @@ function Toolbar:CreateGroup(x, y, w, h, components)
         if (component.tooltip) then
             group.components[c].tooltip = component.tooltip;
         elseif (component.tooltips) then
-            group.components[c].tooltip = component.tooltips[1];
+            if (component.default) then
+                group.components[c].tooltip = component.tooltips[1];
+            else
+                group.components[c].tooltip = component.tooltips[2];
+            end
         end
         group.components[c].tooltipDetailed = component.tooltipDetailed;
     end

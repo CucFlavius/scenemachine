@@ -38,13 +38,13 @@ function SM.Create(x, y, w, h, parent, startLevel)
     SM.groupBG:SetClipsChildren(true);
     SceneMachine.Renderer.CreateRenderer(0, 0, w, h - tabButtonHeight, SM.groupBG:GetFrame(), startLevel + 1);
     
-    SM.viewportButton = UI.Button:New(0, 0, 100, 20, SceneMachine.Renderer.projectionFrame, "TOPLEFT", "TOPLEFT", L["SM_EXIT_CAMERA"]);
-    SM.viewportButton:SetFrameLevel(SceneMachine.Renderer.projectionFrame:GetFrameLevel() + 100);
-    SM.viewportButton:SetScript("OnClick", function()
+    SM.exitCameraButton = UI.Button:New(0, 0, 100, 20, SceneMachine.Renderer.projectionFrame, "TOPLEFT", "TOPLEFT", L["SM_EXIT_CAMERA"]);
+    SM.exitCameraButton:SetFrameLevel(SceneMachine.Renderer.projectionFrame:GetFrameLevel() + 100);
+    SM.exitCameraButton:SetScript("OnClick", function()
         SM.StopControllingCamera();
         Camera.fov = math.rad(70);
     end);
-    SM.viewportButton:Hide();
+    SM.exitCameraButton:Hide();
 
     SM.tabGroup = UI.TabGroup:NewTLTR(0, 0, 0, 0, tabButtonHeight, SM.groupBG:GetFrame(), startLevel + 2, true);
     SM.tabGroup.dropdownButton.tooltip = L["SM_TT_LIST"];
@@ -238,7 +238,7 @@ function SM.UnloadScene()
 end
 
 function SM.StopControllingCamera()
-    SM.viewportButton:Hide();
+    SM.exitCameraButton:Hide();
     CC.ControllingCameraObject = nil;
 end
 

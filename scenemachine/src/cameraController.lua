@@ -228,7 +228,11 @@ function CC.FocusEnd(cancelled)
 	if (not cancelled) then
 		if (CC.Focus.gizmoType == Object.GizmoType.Camera) then
 			CC.ControllingCameraObject = CC.Focus.focusedObject;
-			SM.viewportButton:Show();
+			if (Renderer.isFullscreen) then
+				SM.exitCameraButton:Hide();
+			else
+				SM.exitCameraButton:Show();
+			end
 		end
 	end
 end

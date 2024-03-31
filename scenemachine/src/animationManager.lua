@@ -3127,7 +3127,11 @@ function AM.Play()
                 Camera.fov = obj:GetFoV();
                 Camera.nearClip = obj:GetNearClip();
                 Camera.farClip = obj:GetFarClip();
-                SM.viewportButton:Show();
+                if (Renderer.isFullscreen) then
+                    SM.exitCameraButton:Hide();
+                else
+                    SM.exitCameraButton:Show();
+                end
                 break;
             end
         end
@@ -3143,7 +3147,7 @@ function AM.Pause()
 
     if (AM.cameraPlay) then
         CC.ControllingCameraObject = nil;
-        SM.viewportButton:Hide();
+        SM.exitCameraButton:Hide();
     end
 end
 

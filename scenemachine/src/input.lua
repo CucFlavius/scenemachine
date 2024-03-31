@@ -70,7 +70,7 @@ function Input.Initialize()
         -- Handle Code that needs direct mouse input here (so not OnUpdate)
         if (not down) then
             -- Don't want to perform a mouse pick right after a gizmo transform operation
-            if (not GM.isUsed) then
+            if (not GM.isUsed and not Renderer.isFullscreen) then
                 local x, y = GetCursorPosition();
                 MousePick.Pick(x, y);
                 SM.ApplySelectionEffects();
@@ -284,7 +284,7 @@ end
 function Input.OnClick(LMB, RMB, MMB, x, y)
     if (not Editor.isOpen) then return end
     if (LMB) then
-        if (not GM.isHighlighted) then
+        if (not GM.isHighlighted and not Renderer.isFullscreen) then
             GM.StartMarqueeSelect();
         end
     elseif (RMB) then
@@ -315,11 +315,13 @@ function Input.OnClickUp(LMB, RMB, MMB, x, y)
         GM.EndMarqueeSelect();
     elseif (RMB) then
         -- open RMB renderer context menu --
-        local w, h = Renderer.projectionFrame:GetSize();
-        if (x > 0 and y > 0 and x < w / Renderer.scale and y < h / Renderer.scale) then
-            local rx = (x * Renderer.scale) + (Renderer.projectionFrame:GetLeft() - SceneMachine.mainWindow:GetLeft());
-            local ry = ((y * Renderer.scale) - h) + (Renderer.projectionFrame:GetTop() - SceneMachine.mainWindow:GetTop());
-            Editor.OpenContextMenu(rx, ry);
+        if (not Renderer.isFullscreen) then
+            local w, h = Renderer.projectionFrame:GetSize();
+            if (x > 0 and y > 0 and x < w / Renderer.scale and y < h / Renderer.scale) then
+                local rx = (x * Renderer.scale) + (Renderer.projectionFrame:GetLeft() - SceneMachine.mainWindow:GetLeft());
+                local ry = ((y * Renderer.scale) - h) + (Renderer.projectionFrame:GetTop() - SceneMachine.mainWindow:GetTop());
+                Editor.OpenContextMenu(rx, ry);
+            end
         end
     elseif (MMB) then
     end
