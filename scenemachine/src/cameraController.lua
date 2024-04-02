@@ -213,14 +213,49 @@ end
 
 function CC.FocusObjects(objects)
 	if (#objects == 0) then
-		return
+		return;
 	end
 
+	-- Focus single object
 	if (#objects == 1) then
 		CC.FocusObject(objects[1]);
+		return;
 	end
 
-	-- TODO: Focus multiple objects
+	-- Focus multiple objects
+	CC.Focus.focusedObject = objects[1];
+
+	-- set start position
+	CC.Focus.startPos:SetVector3(Camera.position);
+	CC.Focus.startRot:SetFromEuler(Camera.eulerRotation);
+
+	local objectPos = SM.selectedPosition;--Vector3
+	local objectRot = SM.selectedRotation;
+	local objectScale = SM.selectedScale ;--Float
+	local vector = Vector3:New();
+	vector:SetVector3(Camera.forward);
+
+	local objectCenter;
+
+	SM.StopControllingCamera();	-- ensuring the camera is not controlled during focus by mistake
+	local bb = SM.selectedBounds;
+	local xMin, yMin, zMin, xMax, yMax, zMax = bb[1], bb[2], bb[3], bb[4], bb[5], bb[6];
+	objectCenter = Vector3:New( objectPos.x, objectPos.y, (objectPos.z + (zMax * objectScale / 2)) );
+	local radius = math.max(xMax, math.max(yMax, zMax));
+	local dist = radius / (math.sin(Camera.fov) * 0.3);
+	vector:Scale(dist * objectScale);
+	objectCenter:Subtract(vector);
+
+	-- set end position
+	CC.Focus.endPos:SetVector3(objectCenter);
+	CC.Focus.endRot:SetFromEuler(objectRot);
+
+	CC.Focus.startTime = SceneMachine.time;
+
+	-- calculate the journey length.
+	CC.Focus.distance = Vector3.ManhattanDistance(CC.Focus.startPos, CC.Focus.endPos);
+
+	CC.Focus.focusing = true;
 end
 
 function CC.FocusEnd(cancelled)

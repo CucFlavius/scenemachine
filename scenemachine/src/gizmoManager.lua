@@ -428,7 +428,7 @@ function GM.ApplyRotationMotion(object, direction, mouseDiff, axis)
     local oldRy = rotationOld.y;
     local oldRz = rotationOld.z;
 
-    --[[
+
     local repeatX = math.floor(oldRx / fullCircle);
     local repeatY = math.floor(oldRy / fullCircle);
     local repeatZ = math.floor(oldRz / fullCircle);
@@ -443,7 +443,7 @@ function GM.ApplyRotationMotion(object, direction, mouseDiff, axis)
     rotation:SetFromEuler(rotationOld);
     rotation:RotateAroundAxis(direction, mouseDiff);
     local rotationNew = rotation:ToEuler();
-
+    --[[
     if (mouseDiff > 0) then
         if (rotationOld.z > 0 and rotationNew.z < 0) then
             repeatZ = repeatZ + 1;
