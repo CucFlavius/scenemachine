@@ -108,7 +108,15 @@ function AB.Update(deltaTime)
         -- Check if mouse is over asset browser
         local isOver = MouseIsOver(AB.tabs[1]:GetFrame());
         if (isOver) then
-            AB.draggableItem:Show();
+            if (not AB.draggableItem:IsVisible()) then
+                AB.draggableItem:Show();
+
+                if (AB.itemBeingDragged.components[2].fileID) then
+                    AB.itemBeingDragged.components[2]:SetModel(AB.itemBeingDragged.components[2].fileID);
+                elseif (AB.itemBeingDragged.components[2].displayID) then
+                    AB.itemBeingDragged.components[2]:SetDisplayInfo(AB.itemBeingDragged.components[2].displayID);
+                end
+            end
             local mx, my = Input.mouseXRaw, Input.mouseYRaw;
             local w = AB.draggableItem:GetWidth();
             local h = AB.draggableItem:GetHeight();
@@ -851,16 +859,16 @@ function AB.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
                 item.components[4]:GetFrame().text:SetNonSpaceWrap(true);
                 item.components[4]:SetFrameLevel(startLevel + 4);
                 
+                -- on drag --
+                item.components[1]:GetFrame():SetScript("OnDragStart", function (self, button, down)
+                    AB.OnThumbnailStartDrag(item, item.ID);
+                end);
+
                 -- on double click --
                 item.components[1]:GetFrame():SetScript("OnDoubleClick", function (self, button, down)
                     if (button == "LeftButton") then
                         AB.OnThumbnailDoubleClick(item.ID, item.components[4]:GetText());
                     end
-                end);
-            
-                -- on drag --
-                item.components[1]:GetFrame():SetScript("OnDragStart", function (self, button, down)
-                    AB.OnThumbnailStartDrag(item, item.ID);
                 end);
             
                 -- image --
@@ -920,6 +928,7 @@ function AB.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
                     if (item.components[2].fileID ~= entry.fileID) then
                         item.components[2]:SetModel(entry.fileID);
                         item.components[2].fileID = entry.fileID;
+                        item.components[2].displayID = nil;
                     end
                 -- has creature (displayID)
                 elseif (entry.displayID) then
@@ -928,11 +937,14 @@ function AB.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
                     if (item.components[2].displayID ~= entry.displayID) then
                         item.components[2]:SetDisplayInfo(entry.displayID);
                         item.components[2].displayID = entry.displayID;
+                        item.components[2].fileID = nil;
                     end
                 -- doesn't have model (folder)
                 else
                     item.components[3]:Show();
                     item.components[2]:Hide();
+                    item.components[2].displayID = nil;
+                    item.components[2].fileID = nil;
                 end
 
                 if (item == AB.selectedGridViewItem) then
@@ -941,6 +953,9 @@ function AB.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
 					item.components[1]:SetColor(UI.Button.State.Normal, 0.1757, 0.1757, 0.1875, 1);
 				end
 			end,
+            clearItem = function(item)
+                item.components[2]:ClearModel();
+            end
 	    }
     );
 end
@@ -1436,6 +1451,8 @@ function AB.OnThumbnailFinishedDrag()
     AB.itemBeingDragged.components[2]:SetParent(AB.itemBeingDragged.components[1]:GetFrame());
     AB.itemBeingDragged.components[2]:SetPoint("TOPLEFT", AB.itemBeingDragged.components[1]:GetFrame(), "TOPLEFT", 0, 0);
     AB.itemBeingDragged.components[2]:SetPoint("BOTTOMRIGHT", AB.itemBeingDragged.components[1]:GetFrame(), "BOTTOMRIGHT", 0, 0);
+
+    AB.gridList:RefreshStatic();
 end
 
 function AB.SearchModelList(value)

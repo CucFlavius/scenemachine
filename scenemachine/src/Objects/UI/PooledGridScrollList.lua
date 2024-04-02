@@ -251,6 +251,9 @@ function PooledGridScrollList:Refresh(dif)
                 if (self.data[dIdx]) then
                     self.template.refreshItem(self.data[dIdx], item, dIdx);
                 else
+                    if (self.template.clearItem) then
+                        self.template.clearItem(item);
+                    end
                     item:Hide();
                 end
             else
