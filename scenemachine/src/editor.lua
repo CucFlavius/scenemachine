@@ -232,21 +232,16 @@ function Editor.CreateToolbar()
                 tooltip = L["EDITOR_TOOLBAR_TT_REDO"],
             },
             { type = "Separator" },
-            {
-                type = "Button", name = "Select", icon = toolbar:GetIcon("select"), action = function(self) GM.activeTransformGizmo = Gizmo.TransformType.Select; end,
-                tooltip = L["EDITOR_TOOLBAR_TT_SELECT_TOOL"],
-            },
-            {
-                type = "Button", name = "Move", icon = toolbar:GetIcon("move"), action = function(self) GM.activeTransformGizmo = Gizmo.TransformType.Move; end,
-                tooltip = L["EDITOR_TOOLBAR_TT_MOVE_TOOL"],
-            },
-            {
-                type = "Button", name = "Rotate", icon = toolbar:GetIcon("rotate"), action = function(self) GM.activeTransformGizmo = Gizmo.TransformType.Rotate; end,
-                tooltip = L["EDITOR_TOOLBAR_TT_ROTATE_TOOL"],
-            },
-            {
-                type = "Button", name = "Scale", icon = toolbar:GetIcon("scale"), action = function(self) GM.activeTransformGizmo = Gizmo.TransformType.Scale; end,
-                tooltip = L["EDITOR_TOOLBAR_TT_SCALE_TOOL"],
+            {   type = "ToggleGroup", name = "TransformToggles",
+                icons = { toolbar:GetIcon("select"), toolbar:GetIcon("move"), toolbar:GetIcon("rotate"), toolbar:GetIcon("scale") },
+                actions = { 
+                    function(self) GM.activeTransformGizmo = Gizmo.TransformType.Select; end,
+                    function(self) GM.activeTransformGizmo = Gizmo.TransformType.Move; end,
+                    function(self) GM.activeTransformGizmo = Gizmo.TransformType.Rotate; end,
+                    function(self) GM.activeTransformGizmo = Gizmo.TransformType.Scale; end
+                },
+                tooltips = { L["EDITOR_TOOLBAR_TT_SELECT_TOOL"], L["EDITOR_TOOLBAR_TT_MOVE_TOOL"], L["EDITOR_TOOLBAR_TT_ROTATE_TOOL"], L["EDITOR_TOOLBAR_TT_SCALE_TOOL"] },
+                default = 2,
             },
             { type = "Separator" },
             {

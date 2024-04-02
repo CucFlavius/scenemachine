@@ -144,6 +144,27 @@ function Toolbar:CreateGroup(x, y, w, h, components)
                 end
             end);
             x = x + buttonW;
+        elseif (component.type == "ToggleGroup") then
+            group.components[c] = {};
+            for i = 1, #component.icons, 1 do
+                group.components[c][i] = UI.Button:New(x, 0, buttonW, buttonH, group:GetFrame(), "LEFT", "LEFT", nil, component.icons[i][1], component.icons[i][2]);
+                if (component.default == i) then
+                    group.components[c][i]:SetColor(UI.Button.State.Normal, 0.419, 0.419, 0.43, 1);
+                else
+                    group.components[c][i]:SetColor(UI.Button.State.Normal, 0.1757, 0.1757, 0.1875, 1);
+                end
+                group.components[c][i].toggleOn = component.default == i;
+                group.components[c][i]:SetScript("OnClick", function (self, button, down)
+                    for j = 1, #group.components[c], 1 do
+                        group.components[c][j].toggleOn = false;
+                        group.components[c][j]:SetColor(UI.Button.State.Normal, 0.1757, 0.1757, 0.1875, 1);
+                    end
+                    group.components[c][i].toggleOn = true;
+                    group.components[c][i]:SetColor(UI.Button.State.Normal, 0.419, 0.419, 0.43, 1);
+                    component.actions[i]();
+                end);
+                x = x + buttonW;
+            end
         elseif (component.type == "Dropdown") then
             group.components[c] = UI.Dropdown:New(x, 0, component.width, 22, group:GetFrame(), "LEFT", "LEFT", component.options, component.action, self.window);
             x = x + component.width;
@@ -154,13 +175,19 @@ function Toolbar:CreateGroup(x, y, w, h, components)
 
         group.components[c].type = component.type;
         group.components[c].name = component.name;
-        if (component.tooltip) then
-            group.components[c].tooltip = component.tooltip;
-        elseif (component.tooltips) then
+        if (component.type == "ToggleGroup" and component.tooltips) then
+            for i = 1, #component.tooltips, 1 do
+                group.components[c][i].tooltip = component.tooltips[i];
+            end
+        elseif (component.type == "Toggle" and component.tooltips) then
             if (component.default) then
                 group.components[c].tooltip = component.tooltips[1];
             else
                 group.components[c].tooltip = component.tooltips[2];
+            end
+        else
+            if (component.tooltip) then
+                group.components[c].tooltip = component.tooltip;
             end
         end
         group.components[c].tooltipDetailed = component.tooltipDetailed;

@@ -152,7 +152,6 @@ end
 --- @param axis Vector3 The axis to rotate around (a Vector3).
 --- @param angle number The angle of rotation in radians (a number).
 function Quaternion:RotateAroundAxis(axis, angle)
-
     -- Calculate half angle
     local halfAngle = angle * 0.5
 
@@ -160,9 +159,19 @@ function Quaternion:RotateAroundAxis(axis, angle)
     local sinHalfAngle = math.sin(halfAngle)
     local cosHalfAngle = math.cos(halfAngle)
 
-    -- Construct the quaternion
-    local rotationQuat = Quaternion:New(axis.x * sinHalfAngle, axis.y * sinHalfAngle, axis.z * sinHalfAngle, cosHalfAngle)
-    self:Multiply(rotationQuat);
+    -- Normalize the axis
+    axis:Normalize()
+
+    -- Construct the quaternion representing the rotation
+    local rotationQuat = Quaternion:New(
+        axis.x * sinHalfAngle,
+        axis.y * sinHalfAngle,
+        axis.z * sinHalfAngle,
+        cosHalfAngle
+    )
+
+    -- Quaternion multiplication: q_new = q_rot * q_current
+    self:Multiply(rotationQuat)
 end
 
 --- Returns the conjugate of the quaternion.

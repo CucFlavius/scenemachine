@@ -18,6 +18,7 @@ local RotateGizmo = SceneMachine.Gizmos.RotateGizmo;
 local ScaleGizmo = SceneMachine.Gizmos.ScaleGizmo;
 local CameraGizmo = SceneMachine.Gizmos.CameraGizmo;
 local Object = SceneMachine.GameObjects.Object;
+local Quaternion = SceneMachine.Quaternion;
 
 GM.isUsed = false;
 GM.isHighlighted = false;
@@ -416,17 +417,73 @@ function GM.ApplyPositionMotion(object, iPointDiff)
     object:SetWorldPosition(position.x, position.y, position.z);
 end
 
-function GM.ApplyRotationMotion(object, direction, mouseDiff)
+local fullCircle = math.rad(360);
+local halfCircle = math.rad(180);
+local quarterCircle = math.rad(90);
 
-    local rotation = object:GetQuaternionRotation();
+function GM.ApplyRotationMotion(object, direction, mouseDiff, axis)
+
     local rotationOld = object:GetRotation();
     local oldRx = rotationOld.x;
     local oldRy = rotationOld.y;
     local oldRz = rotationOld.z;
 
+    --[[
+    local repeatX = math.floor(oldRx / fullCircle);
+    local repeatY = math.floor(oldRy / fullCircle);
+    local repeatZ = math.floor(oldRz / fullCircle);
+
+    -- Clamp rotation values between -180 and 180
+    --oldRx = mod((oldRx + halfCircle), fullCircle) - halfCircle;
+    --oldRy = mod((oldRy + halfCircle), fullCircle) - halfCircle;
+    --oldRz = mod((oldRz + halfCircle), fullCircle) - halfCircle;
+    --rotationOld:Set(oldRx, oldRy, oldRz);
+
+    local rotation = Quaternion:New();
+    rotation:SetFromEuler(rotationOld);
     rotation:RotateAroundAxis(direction, mouseDiff);
-    local rotationE = rotation:ToEuler();
-    --local degRotationE = Vector3:New(rotationE.x * 180 / math.pi, rotationE.y * 180 / math.pi, rotationE.z * 180 / math.pi);
+    local rotationNew = rotation:ToEuler();
+
+    if (mouseDiff > 0) then
+        if (rotationOld.z > 0 and rotationNew.z < 0) then
+            repeatZ = repeatZ + 1;
+        elseif (rotationOld.z < 0 and rotationNew.z > 0) then
+            repeatZ = repeatZ - 1;
+        end
+    elseif (mouseDiff < 0) then
+        if (rotationOld.z > 0 and rotationNew.z < 0) then
+            repeatZ = repeatZ + 1;
+        elseif (rotationOld.z < 0 and rotationNew.z > 0) then
+            repeatZ = repeatZ - 1;
+        end
+    end
+
+    rotationNew.z = rotationNew.z + (repeatZ * fullCircle);
+    --]]
+    --[[
+    if (rotationOld.x >= 0 and rotationNew.x < 0 and mouseDiff > 0) then
+        -- x flipped from +180 to -180
+        --rotationNew.x = rotationNew.x + fullCircle;
+        repeatX = repeatX + 1;
+    elseif (rotationOld.x < 0 and rotationNew.x >= 0 and mouseDiff < 0) then
+        -- x flipped from -180 to +180
+        --rotationNew.x = rotationNew.x - fullCircle;
+        repeatX = repeatX - 1;
+    end
+
+    if (rotationOld.y >= 0 and rotationNew.y < 0 and mouseDiff > 0) then
+        -- y flipped from +180 to -180
+        --rotationNew.y = rotationNew.y + fullCircle;
+        repeatY = repeatY + 1;
+    elseif (rotationOld.y < 0 and rotationNew.y >= 0 and mouseDiff < 0) then
+        -- y flipped from -180 to +180
+        --rotationNew.y = rotationNew.y - fullCircle;
+        repeatY = repeatY - 1;
+    end
+    --]]
+
+    --rotationNew.x = rotationNew.x + repeatX * fullCircle;
+    --rotationNew.y = rotationNew.y + repeatY * fullCircle;
 
     -- handle rotation that affects position
     local position = object:GetPosition();
@@ -468,7 +525,7 @@ function GM.ApplyRotationMotion(object, direction, mouseDiff)
             local pivotOffsetA = Vector3:New(0, 0, -h);
             pivotOffsetA:RotateAroundPivot(pivotCenter, Vector3:New(oldRx, oldRy, oldRz));
             local pivotOffset = Vector3:New(0, 0, -h);
-            pivotOffset:RotateAroundPivot(pivotCenter, Vector3:New(rotationE.x, rotationE.y, rotationE.z));
+            pivotOffset:RotateAroundPivot(pivotCenter, Vector3:New(rotationNew.x, rotationNew.y, rotationNew.z));
 
             local px, py, pz = position.x, position.y, position.z;
             px = px + (pivotOffsetA.x - pivotOffset.x);
@@ -478,7 +535,7 @@ function GM.ApplyRotationMotion(object, direction, mouseDiff)
         end
     end
 
-    object:SetRotation(rotationE.x, rotationE.y, rotationE.z);
+    object:SetRotation(rotationNew.x, rotationNew.y, rotationNew.z);
 end
 
 function GM.ApplyScaleMotion(object, direction, mouseDiff)
@@ -565,7 +622,7 @@ function GM.MotionToTransform()
         local mouseDiff = ((xDiff + yDiff) / 2) / 100;
 
         for i = 1, #SM.selectedObjects, 1 do
-            GM.ApplyRotationMotion(SM.selectedObjects[i], direction, mouseDiff);
+            GM.ApplyRotationMotion(SM.selectedObjects[i], direction, mouseDiff, GM.selectedAxis);
         end
 
         GM.LMBPrevious.x = Input.mouseXRaw;
