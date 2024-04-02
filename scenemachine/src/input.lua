@@ -114,7 +114,8 @@ function Input.Update()
             if (Input.mouseState.isDraggingAssetFromUI) then
                 Input.mouseState.LMB = false;
                 Input.mouseState.isDraggingAssetFromUI = false;
-                
+                AssetBrowser.OnThumbnailFinishedDrag();
+
                 -- Check if mouse is over asset browser, then delete object instead of placing it
                 local isOver = MouseIsOver(AssetBrowser.tabs[1]:GetFrame());
                 if (isOver) then

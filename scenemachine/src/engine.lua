@@ -70,7 +70,7 @@ local function SG_UpdateLoop ()
 	end
 
 	if (Editor.isOpen) then
-		Editor.Update();
+		Editor.Update(SceneMachine.deltaTime);
 		Camera.Update();
 		CameraController.Update(SceneMachine.deltaTime);
 		Input.Update();

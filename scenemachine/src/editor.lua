@@ -17,6 +17,7 @@ local L = Editor.localization;
 local Actions = SceneMachine.Actions;
 local Camera = SceneMachine.Camera;
 local Gizmo = SceneMachine.Gizmos.Gizmo;
+local AssetBrowser = Editor.AssetBrowser;
 
 Editor.MODE_LOCAL = 1;
 Editor.MODE_NETWORK = 2;
@@ -200,8 +201,9 @@ function Editor.Initialize()
     Editor.RefreshActionToolbar();
 end
 
-function Editor.Update()
+function Editor.Update(deltaTime)
     Editor.ui:Update();
+    AssetBrowser.Update(deltaTime);
     if (ColorPicker.enabled) then
         ColorPicker.Update();
     end
