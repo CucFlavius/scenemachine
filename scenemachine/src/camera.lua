@@ -156,3 +156,8 @@ function Camera.GetMouseRay()
 
     return mouseRay;
 end
+
+function Camera.GetCenterRay()
+    local centerRay = Ray:New(Camera.position, Camera.forward);
+    return centerRay;
+end

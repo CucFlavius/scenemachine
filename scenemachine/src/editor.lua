@@ -187,6 +187,13 @@ function Editor.Initialize()
     SceneMachine.Input.AddKeyBind("3", function() GM.activeTransformGizmo = Gizmo.TransformType.Rotate; end);
     SceneMachine.Input.AddKeyBind("4", function() GM.activeTransformGizmo = Gizmo.TransformType.Scale; end);
 
+    SceneMachine.Renderer.projectionFrame:SetScript("OnMouseWheel",
+    function(_, delta)
+        if (Editor.ui.focused == false) then
+            CC.Zoom(delta);
+        end
+    end);
+
     -- load saved variables (this is safe to do because Editor.Initialize() is done on ADDON_LOADED)
     Editor.ProjectManager.LoadSavedData();
 

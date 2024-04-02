@@ -10,6 +10,7 @@ local Quaternion = SceneMachine.Quaternion;
 local SM = SceneMachine.Editor.SceneManager;
 local AM = SceneMachine.Editor.AnimationManager;
 local Object = SceneMachine.GameObjects.Object;
+local BoundingBox = SceneMachine.BoundingBox;
 
 ----------------------------------
 --			CC State	 		--
@@ -53,6 +54,7 @@ CC.moveSpeed = 10;
 CC.acceleration = 1.0;
 CC.maxAcceleration = 12.0;
 CC.mouseTurnSpeed = 0.2;
+CC.scrollsTillDestination = 5;
 
 --------------------------------------
 --			Keyboard Input			--
@@ -166,6 +168,7 @@ function CC.Update(deltaTime)
         SceneMachine.Camera.eulerRotation.z = clampAngle(rad(CC.Direction));
     end
 
+	-- camera pan with middle mouse button
 	if (CC.MMBPressed == true) then
 		local xDiff = Input.mouseXRaw - CC.MMBPrevious.x;
 		local yDiff = Input.mouseYRaw - CC.MMBPrevious.y;
@@ -352,4 +355,29 @@ end
 
 function DegreeToRadian(angle)
     return (math.pi * angle / 180.0);
+end
+
+function CC.Zoom(delta)
+	local v = Vector3:New();
+	v:SetVector3(Camera.forward);
+
+	local dist = -math.huge;
+	local foundObjectDist = false;
+
+	if (#SM.selectedObjects > 0) then
+		local position = SM.selectedPosition;
+		dist = math.abs(Vector3.ManhattanDistance(position, Camera.position));
+		foundObjectDist = true;
+	end
+
+	if (foundObjectDist and dist ~= 0) then
+		dist = math.max(0.01, math.min(100, math.abs(dist)));
+		v:Scale(dist ^ (1 / CC.scrollsTillDestination));
+	end
+	
+	if (delta > 0) then
+		CC.position:Add(v);
+	else
+		CC.position:Subtract(v);
+	end
 end
