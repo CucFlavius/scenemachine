@@ -876,8 +876,7 @@ function AB.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
 
                 -- model --
                 item.components[2] = CreateFrame("PlayerModel", "thumbnail_model_frame", item.components[1]:GetFrame());
-                item.components[2]:SetPoint("TOPLEFT", item.components[1]:GetFrame(), "TOPLEFT", 0, 0);
-                item.components[2]:SetPoint("BOTTOMRIGHT", item.components[1]:GetFrame(), "BOTTOMRIGHT", 0, 0);
+                item.components[2]:SetAllPoints(item.components[1]:GetFrame());
                 item.components[2]:SetCustomCamera(1);
 			end,
 			refreshItem = function(entry, item, index)
@@ -1128,15 +1127,7 @@ function AB.OnThumbnailDoubleClick(ID, name)
                 local fileID = searchData[i].fileID;
                 if (fileID == ID) then
                     local fileName = searchData[i].N;
-                    local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
-                    local object = SM.loadedScene:CreateObject(fileID, fileName, 0, 0, 0);
-                    Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
-                    SM.selectedObjects = { object };
-                    Editor.lastSelectedType = Editor.SelectionType.Object;
-                    SH.RefreshHierarchy();
-                    OP.Refresh();
-                    local objectHierarchyAfter = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
-                    Editor.FinishAction(objectHierarchyAfter);
+                    AB.LoadModel(fileID, fileName);
                     return;
                 end
             end
@@ -1165,15 +1156,7 @@ function AB.OnThumbnailDoubleClick(ID, name)
                     local fileID = AB.currentDirectory["FI"][i];
                     if (fileID == ID) then
                         local fileName = AB.currentDirectory["FN"][i];
-                        local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
-                        local object = SM.loadedScene:CreateObject(fileID, fileName, 0, 0, 0);
-                        Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
-                        SM.selectedObjects = { object };
-                        Editor.lastSelectedType = Editor.SelectionType.Object;
-                        SH.RefreshHierarchy();
-                        OP.Refresh();
-                        local objectHierarchyAfter = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
-                        Editor.FinishAction(objectHierarchyAfter);
+                        AB.LoadModel(fileID, fileName);
                         return;
                     end
                 end
@@ -1190,15 +1173,7 @@ function AB.OnThumbnailDoubleClick(ID, name)
                 local displayID = SceneMachine.creatureToDisplayID[creatureID];
                 local name = SceneMachine.creatureData[creatureID];
                 if (ID == creatureID) then
-                    local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
-                    local object = SM.loadedScene:CreateCreature(displayID, name or "Creature", 0, 0, 0);
-                    Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
-                    SM.selectedObjects = { object };
-                    Editor.lastSelectedType = Editor.SelectionType.Object;
-                    SH.RefreshHierarchy();
-                    OP.Refresh();
-                    local objectHierarchyAfter = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
-                    Editor.FinishAction(objectHierarchyAfter);
+                    AB.LoadCreature(displayID, name);
                     return;
                 end
             end
@@ -1208,15 +1183,7 @@ function AB.OnThumbnailDoubleClick(ID, name)
                 local displayID = SceneMachine.creatureToDisplayID[creatureID];
                 local name = SceneMachine.creatureData[creatureID];
                 if (ID == creatureID) then
-                    local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
-                    local object = SM.loadedScene:CreateCreature(displayID, name or "Creature", 0, 0, 0);
-                    Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
-                    SM.selectedObjects = { object };
-                    Editor.lastSelectedType = Editor.SelectionType.Object;
-                    SH.RefreshHierarchy();
-                    OP.Refresh();
-                    local objectHierarchyAfter = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
-                    Editor.FinishAction(objectHierarchyAfter);
+                    AB.LoadCreature(displayID, name);
                     return;
                 end
             end
@@ -1230,35 +1197,59 @@ function AB.OnThumbnailDoubleClick(ID, name)
                 local item = AB.selectedCollection.items[i];
                 if (item.displayID == ID) then
                     local name = "Creature";
-                    for creatureID, displayID in pairs(SceneMachine.creatureToDisplayID) do
-                        if (displayID == item.displayID) then
-                            name = SceneMachine.creatureData[creatureID];
+                    for creatureID1, displayID1 in pairs(SceneMachine.creatureToDisplayID) do
+                        if (displayID1 == item.displayID) then
+                            name = SceneMachine.creatureData[creatureID1];
                         end
                     end
-                    local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
-                    local object = SM.loadedScene:CreateCreature(item.displayID, name or "Creature", 0, 0, 0);
-                    Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
-                    SM.selectedObjects = { object };
-                    Editor.lastSelectedType = Editor.SelectionType.Object;
-                    SH.RefreshHierarchy();
-                    OP.Refresh();
-                    local objectHierarchyAfter = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
-                    Editor.FinishAction(objectHierarchyAfter);
+                    AB.LoadCreature(item.displayID, name);
                     return;
                 elseif (item.fileID == ID) then
-                    local name = AB.GetFileName(item.fileID);
-                    local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
-                    local object = SM.loadedScene:CreateObject(item.fileID, name or "Model", 0, 0, 0);
-                    Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
-                    SM.selectedObjects = { object };
-                    Editor.lastSelectedType = Editor.SelectionType.Object;
-                    SH.RefreshHierarchy();
-                    OP.Refresh();
-                    local objectHierarchyAfter = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
-                    Editor.FinishAction(objectHierarchyAfter);
+                    AB.LoadModel(item.fileID);
+                    return;
                 end
             end
         end
+    end
+end
+
+function AB.LoadModel(fileID, name)
+    local name = name or AB.GetFileName(fileID);
+    AB.LoadObject(fileID, name, SceneMachine.GameObjects.Object.Type.Model);
+end
+
+function AB.LoadCreature(displayID, name)
+    AB.LoadObject(displayID, name, SceneMachine.GameObjects.Object.Type.Creature);
+end
+
+function AB.LoadObject(ID, name, type)
+    local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
+
+    local object = nil;
+    if (type == SceneMachine.GameObjects.Object.Type.Model) then
+        object = SM.loadedScene:CreateObject(ID, name or "Model", 0, 0, 0);
+    elseif (type == SceneMachine.GameObjects.Object.Type.Creature) then
+        object = SM.loadedScene:CreateCreature(ID, name or "Creature", 0, 0, 0);
+    end
+
+    if (object) then
+        -- calculate a good position for the new object
+        local xMin, yMin, zMin, xMax, yMax, zMax = object:GetActiveBoundingBox();
+		local radius = math.max(xMax, math.max(yMax, zMax));
+		local dist = radius / (math.sin(Camera.fov) * 0.3);
+        local vector = Vector3:New();
+        vector:SetVector3(Camera.forward);
+		vector:Scale(dist);
+        vector:Add(Camera.position);
+        object:SetPositionVector3(vector);
+
+        Editor.StartAction(Actions.Action.Type.CreateObject, { object }, objectHierarchyBefore);
+        SM.selectedObjects = { object };
+        Editor.lastSelectedType = Editor.SelectionType.Object;
+        SH.RefreshHierarchy();
+        OP.Refresh();
+        local objectHierarchyAfter = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
+        Editor.FinishAction(objectHierarchyAfter);
     end
 end
 
