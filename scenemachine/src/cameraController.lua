@@ -16,7 +16,9 @@ local Object = SceneMachine.GameObjects.Object;
 ----------------------------------
 CC.Action = {};						-- the collection of player action booleans
 CC.RMBPrevious = {};
+CC.MMBPrevious = {};
 CC.RMBPressed = false;
+CC.MMBPressed = false;
 CC.Action.TurnLeft = false;			-- true if turn right key is pressed
 CC.Action.TurnRight = false;		-- true if turn right key is pressed
 CC.Action.MoveForward = false;		-- true if move forward key pressed
@@ -164,6 +166,25 @@ function CC.Update(deltaTime)
         SceneMachine.Camera.eulerRotation.z = clampAngle(rad(CC.Direction));
     end
 
+	if (CC.MMBPressed == true) then
+		local xDiff = Input.mouseXRaw - CC.MMBPrevious.x;
+		local yDiff = Input.mouseYRaw - CC.MMBPrevious.y;
+		CC.MMBPrevious.x = Input.mouseXRaw;
+		CC.MMBPrevious.y = Input.mouseYRaw;
+
+		local cosDir = math.cos(DegreeToRadian(CC.Direction + 90))
+		local sinDir = math.sin(DegreeToRadian(CC.Direction + 90));
+
+		CC.position.x = CC.position.x + (CC.moveSpeed * deltaTime * CC.acceleration * cosDir * xDiff);
+		CC.position.y = CC.position.y + (CC.moveSpeed * deltaTime * CC.acceleration * sinDir * xDiff);
+
+		local v = Vector3:New();
+		v:SetVector3(Camera.up);
+		v:Scale(CC.moveSpeed * CC.acceleration * deltaTime * -yDiff);
+		CC.position:Add(v);
+
+	end
+
 	-- handle focus
 	if (CC.Action.MoveForward or CC.Action.MoveBackward or CC.Action.StrafeLeft or CC.Action.StrafeRight or CC.Action.MoveUp or CC.Action.MoveDown) then
 		-- cancel focus if any movement key is pressed
@@ -207,8 +228,18 @@ function CC.OnRMBDown()
 	CC.RMBPrevious.y = Input.mouseYRaw;
 end
 
+function CC.OnMMBDown()
+	CC.MMBPressed = true;
+	CC.MMBPrevious.x = Input.mouseXRaw;
+	CC.MMBPrevious.y = Input.mouseYRaw;
+end
+
 function CC.OnRMBUp()
 	CC.RMBPressed = false;
+end
+
+function CC.OnMMBUp()
+	CC.MMBPressed = false;
 end
 
 function CC.FocusObjects(objects)

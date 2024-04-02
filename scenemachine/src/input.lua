@@ -271,11 +271,14 @@ function Input.OnDragStart(LMB, RMB, MMB)
 
             GM.OnLMBDown(Input.mouseXRaw, Input.mouseYRaw, recordAction);
         end
+    elseif MMB then
+        CC.OnMMBDown();
     end
 end
 
 function Input.OnDragStop()
     CC.OnRMBUp();
+    CC.OnMMBUp();
     if (GM.isUsed) then
         GM.OnLMBUp();
     end
