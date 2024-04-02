@@ -341,7 +341,7 @@ function GM.MoveGizmoParalelAxesCheck()
     local direction = GM.axisToDirectionVector[Gizmo.Axis.Z];
     local angle = GM.CalculateAngleBetweenPlanes(direction, ray.direction);
 
-    if (angle > 1.5 and angle < 1.7) then
+    if (angle > 1.55 and angle < 1.65) then
         GM.moveGizmo:HideAxis(Gizmo.Axis.XY);
     else
         GM.moveGizmo:ShowAxis(Gizmo.Axis.XY);
@@ -351,7 +351,7 @@ function GM.MoveGizmoParalelAxesCheck()
     direction = GM.axisToDirectionVector[Gizmo.Axis.Y];
     angle = GM.CalculateAngleBetweenPlanes(direction, ray.direction);
 
-    if (angle > 1.5 and angle < 1.7) then
+    if (angle > 1.55 and angle < 1.65) then
         GM.moveGizmo:HideAxis(Gizmo.Axis.XZ);
     else
         GM.moveGizmo:ShowAxis(Gizmo.Axis.XZ);
@@ -361,7 +361,7 @@ function GM.MoveGizmoParalelAxesCheck()
     direction = GM.axisToDirectionVector[Gizmo.Axis.X];
     angle = GM.CalculateAngleBetweenPlanes(direction, ray.direction);
 
-    if (angle > 1.5 and angle < 1.7) then
+    if (angle > 1.55 and angle < 1.65) then
         GM.moveGizmo:HideAxis(Gizmo.Axis.YZ);
     else
         GM.moveGizmo:ShowAxis(Gizmo.Axis.YZ);
@@ -442,11 +442,21 @@ function GM.UpdateGizmoTransform()
 
     if (GM.activeTransformGizmo == Gizmo.TransformType.Move) then
         -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
-        GM.moveGizmo:SetScale(Vector3.ManhattanDistance(worldPosition, Camera.position) / 15);
+        GM.moveGizmo:SetScale(Vector3.Distance(worldPosition, Camera.position) / 10);
+        -- determine which axes point away from the camera in order to flip the gizmo
+        local directionX = GM.axisToDirectionVector[Gizmo.Axis.X];
+        local dotX = Vector3.DotProduct(directionX, Camera.forward);
+        GM.moveGizmo.flipX = dotX > 0;
+        local directionY = GM.axisToDirectionVector[Gizmo.Axis.Y];
+        local dotY = Vector3.DotProduct(directionY, Camera.forward);
+        GM.moveGizmo.flipY = dotY > 0;
+        local directionZ = GM.axisToDirectionVector[Gizmo.Axis.Z];
+        local dotZ = Vector3.DotProduct(directionZ, Camera.forward);
+        GM.moveGizmo.flipZ = dotZ > 0;
         GM.moveGizmo:TransformGizmo(worldPosition, worldRotation, 1, centerH, GM.space, GM.pivot);
     elseif (GM.activeTransformGizmo == Gizmo.TransformType.Rotate) then
         -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
-        GM.rotateGizmo:SetScale(Vector3.ManhattanDistance(worldPosition, Camera.position) / 10);
+        GM.rotateGizmo:SetScale(Vector3.Distance(worldPosition, Camera.position) / 5);
         GM.rotateGizmo:TransformGizmo(worldPosition, worldRotation, 1, centerH, GM.space, GM.pivot);
     elseif (GM.activeTransformGizmo == Gizmo.TransformType.Scale) then
         GM.scaleGizmo:SetScale(Vector3.ManhattanDistance(worldPosition, Camera.position) / 15);

@@ -5,8 +5,7 @@ SceneMachine.Gizmos.MoveGizmo = {};
 local MoveGizmo = SceneMachine.Gizmos.MoveGizmo;
 local Resources = SceneMachine.Resources;
 local Math = SceneMachine.Math;
-local Camera = SceneMachine.Camera;
-local GM = SceneMachine.Gizmos.GizmoManager;
+local Vector3 = SceneMachine.Vector3;
 
 MoveGizmo.__index = MoveGizmo;
 setmetatable(MoveGizmo, Gizmo)
@@ -59,6 +58,9 @@ function MoveGizmo:New()
         lines = {};
         lineDepths = {};
         axisVisibility = { true, true, true, true, true, true };
+        flipX = false;
+        flipY = false;
+        flipZ = false;
     };
 
     setmetatable(v, MoveGizmo);
@@ -264,6 +266,66 @@ function MoveGizmo:SelectionCheck(mouseX, mouseY)
     end
 
     return self.isHighlighted, self.selectedAxis, self.highlightedAxis;
+end
+
+--- Transforms the Move Gizmo based on the given parameters. (Overrides Gizmo:TransformGizmo)
+--- @param position Vector3 The position of the Gizmo.
+--- @param rotation Vector3 The rotation of the Gizmo.
+--- @param scale number The scale of the Gizmo.
+--- @param centerH number The center height of the bounding box.
+--- @param space Gizmo.Space The space in which the transformation is applied (0 for world space, 1 for local space).
+--- @param pivot Gizmo.Pivot The pivot point of the Gizmo (0 for center, 1 for base).
+function Gizmo:TransformGizmo(position, rotation, scale, centerH, space, pivot)
+    local pivotOffset;
+    if (pivot == Gizmo.Pivot.Center) then
+        pivotOffset = Vector3:New( 0, 0, 0 );
+    elseif (pivot == Gizmo.Pivot.Base) then
+        pivotOffset = Vector3:New(0, 0, centerH);
+        pivotOffset:RotateAroundPivot(Vector3:New(0, 0, 0), rotation);
+    end
+
+    for q = 1, self.lineCount, 1 do
+        local axis = self.lines[q].axis;
+        for v = 1, 2, 1 do
+            local vert = Vector3:New();
+            if (axis == Gizmo.Axis.XY or axis == Gizmo.Axis.XZ or axis == Gizmo.Axis.YZ) then
+                if (self.flipX) then
+                    vert.x = -self.vertices[q][v][1];
+                else
+                    vert.x = self.vertices[q][v][1];
+                end
+
+                if (self.flipY) then
+                    vert.y = -self.vertices[q][v][2];
+                else
+                    vert.y = self.vertices[q][v][2];
+                end
+
+                if (self.flipZ) then
+                    vert.z = -self.vertices[q][v][3];
+                else
+                    vert.z = self.vertices[q][v][3];
+                end
+            else
+                vert.x = self.vertices[q][v][1];
+                vert.y = self.vertices[q][v][2];
+                vert.z = self.vertices[q][v][3];
+            end
+
+            if (space == 1) then
+                -- local space --
+                vert:RotateAroundPivot(Vector3:New(0, 0, 0), rotation);
+                self.transformedVertices[q][v][1] = vert.x * self.scale * scale + position.x + pivotOffset.x;
+                self.transformedVertices[q][v][2] = vert.y * self.scale * scale + position.y + pivotOffset.y;
+                self.transformedVertices[q][v][3] = vert.z * self.scale * scale + position.z + pivotOffset.z;
+            elseif (space == 0) then
+                -- world space --
+                self.transformedVertices[q][v][1] = vert.x * self.scale * scale + position.x + pivotOffset.x;
+                self.transformedVertices[q][v][2] = vert.y * self.scale * scale + position.y + pivotOffset.y;
+                self.transformedVertices[q][v][3] = vert.z * self.scale * scale + position.z + pivotOffset.z;
+            end
+        end
+    end
 end
 
 --- Shades the move gizmo based on the highlighted axis.

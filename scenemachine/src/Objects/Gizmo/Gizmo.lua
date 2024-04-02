@@ -114,16 +114,15 @@ function Gizmo:TransformGizmo(position, rotation, scale, centerH, space, pivot)
 
     for q = 1, self.lineCount, 1 do
         for v = 1, 2, 1 do
+            local vert = Vector3:New(self.vertices[q][v][1], self.vertices[q][v][2], self.vertices[q][v][3]);
             if (space == 1) then
                 -- local space --
-                local rotated = Vector3:New(self.vertices[q][v][1], self.vertices[q][v][2], self.vertices[q][v][3]);
-                rotated:RotateAroundPivot(Vector3:New(0, 0, 0), rotation);
-                self.transformedVertices[q][v][1] = rotated.x * self.scale * scale + position.x + pivotOffset.x;
-                self.transformedVertices[q][v][2] = rotated.y * self.scale * scale + position.y + pivotOffset.y;
-                self.transformedVertices[q][v][3] = rotated.z * self.scale * scale + position.z + pivotOffset.z;
+                vert:RotateAroundPivot(Vector3:New(0, 0, 0), rotation);
+                self.transformedVertices[q][v][1] = vert.x * self.scale * scale + position.x + pivotOffset.x;
+                self.transformedVertices[q][v][2] = vert.y * self.scale * scale + position.y + pivotOffset.y;
+                self.transformedVertices[q][v][3] = vert.z * self.scale * scale + position.z + pivotOffset.z;
             elseif (space == 0) then
                 -- world space --
-                local vert = Vector3:New(self.vertices[q][v][1], self.vertices[q][v][2], self.vertices[q][v][3]);
                 self.transformedVertices[q][v][1] = vert.x * self.scale * scale + position.x + pivotOffset.x;
                 self.transformedVertices[q][v][2] = vert.y * self.scale * scale + position.y + pivotOffset.y;
                 self.transformedVertices[q][v][3] = vert.z * self.scale * scale + position.z + pivotOffset.z;
