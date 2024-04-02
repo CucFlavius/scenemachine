@@ -18,7 +18,7 @@ setmetatable(Creature, Actor)
 --- @param rotation Vector3? (optional) The rotation of the creature.
 --- @param scale number? (optional) The scale of the creature.
 --- @return Creature v The newly created Creature instance.
-function Creature:New(name, displayID, position, rotation, scale)
+function Creature:New(scene, name, displayID, position, rotation, scale)
     local v = 
     {
         fileID = 0,
@@ -34,6 +34,7 @@ function Creature:New(name, displayID, position, rotation, scale)
         visible = true,
         frozen = false,
         isRenamed = false,
+        scene = scene,
         type = Object.Type.Creature,
     };
 

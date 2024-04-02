@@ -14,6 +14,7 @@ local CC = SceneMachine.CameraController;
 local Camera = SceneMachine.Camera;
 local Keyframe = SceneMachine.Keyframe;
 local AnimationClip = SceneMachine.AnimationClip;
+--- @type Timeline
 local Timeline = SceneMachine.Timeline;
 
 local tabButtonHeight = 20;
@@ -113,7 +114,7 @@ function AM.Update(deltaTime)
                 local duration = AM.loadedTimeline:GetDuration();
                 if (nextTime >= duration) then
                     AM.SetTime(duration);
-                    AM.playing = false;
+                    AM.Pause();
                     return;
                 end
             else
@@ -141,7 +142,7 @@ function AM.Update(deltaTime)
         local lengthMS = endMS - startMS;
 
         local timeMS = startMS + (newPointNormalized * lengthMS);
-        timeMS = max(startMS, min(endMS, timeMS));  -- clamp
+        timeMS = math.max(startMS, math.min(endMS, timeMS));  -- clamp
 
         AM.SetTime(math.floor(timeMS));
     end
@@ -176,7 +177,7 @@ function AM.Update(deltaTime)
         local timeMS = AM.inputState.timeStart + timeChangeMS - startMS;
         local maxT = math.floor(math.floor(totalTimeMS / 33.3333) * 33.3333);
         timeMS = math.floor(math.floor(timeMS / 33.3333) * 33.3333);
-        timeMS = min(maxT ,max(0, timeMS));
+        timeMS = math.min(maxT ,math.max(0, timeMS));
 
         if (previousTime ~= timeMS) then
             AM.toOverrideKeys = nil;
@@ -493,20 +494,6 @@ function AM.Update(deltaTime)
     end
 end
 
-function AM.Round(num, dp)
-    --[[
-    round a number to so-many decimal of places, which can be negative, 
-    e.g. -1 places rounds to 10's,  
-    
-    examples
-        173.2562 rounded to 0 dps is 173.0
-        173.2562 rounded to 2 dps is 173.26
-        173.2562 rounded to -1 dps is 170.0
-    ]]--
-    local mult = 10^(dp or 0)
-    return math.floor(num * mult + 0.5)/mult
-end
-
 function AM.CreateAnimationManager(x, y, w, h, parent, startLevel)
 
     local timelineTabH = 20;
@@ -556,8 +543,7 @@ function AM.CreateAnimationManager(x, y, w, h, parent, startLevel)
 
             local menuOptions = {
                 [1] = { ["Name"] = L["RENAME"], ["Action"] = function() AM.tabGroup:RenameTab(index, item, AM.RenameTimeline); end },
-                [2] = { ["Name"] = L["EDIT"], ["Action"] = function()  AM.Button_EditTimeline(index) end },
-                [3] = { ["Name"] = L["DELETE"], ["Action"] = function() AM.Button_DeleteTimeline(index); end },
+                [2] = { ["Name"] = L["DELETE"], ["Action"] = function() AM.Button_DeleteTimeline(index); end },
             };
 
             SceneMachine.mainWindow:PopupWindowMenu(rx * scale, ry * scale, menuOptions);
@@ -764,7 +750,6 @@ function AM.CreateMainKeyframeBar(x, y, w, h, parent, startLevel)
     AM.mainKeyframeBar:RegisterForClicks("LeftButtonUp", "LeftButtonDown");
     AM.mainKeyframeBar:SetFrameLevel(startLevel);
     AM.mainKeyframeBar:SetScript("OnClick", function() AM.SelectKeyAtIndex(-1); end);
-
 
     AM.KeyframePool = {};
     for i = 1, AM.KeyframePoolSize, 1 do
@@ -1425,10 +1410,6 @@ function AM.RenameTimeline(text, index)
     end
 end
 
-function AM.Button_EditTimeline(index)
-    -- not sure what this will do
-end
-
 function AM.Button_DeleteTimeline(index)
     Editor.OpenMessageBox(SceneMachine.mainWindow:GetFrame(), L["AM_MSG_DELETE_TIMELINE_TITLE"], L["AM_MSG_DELETE_TIMELINE_MESSAGE"], true, true, function() AM.DeleteTimeline(index); end, function() end);
 end
@@ -1447,7 +1428,7 @@ function AM.CreateTimeline(timelineName)
 end
 
 function AM.CreateTimeline_internal(timelineName)
-    local timeline = Timeline:New(timelineName);
+    local timeline = Timeline:New(timelineName, 30000, SM.loadedScene);
     SM.loadedScene:AddTimeline(timeline);
     AM.RefreshTimelineTabs();
     AM.RefreshWorkspace();
@@ -1531,7 +1512,7 @@ function AM.AddTrack_internal(object)
         end
     end
 
-    local track = Track:New(object);
+    local track = Track:New(object, AM.loadedTimeline);
     local index = AM.loadedTimeline:AddTrack(track);
 
     AM.SelectTrack(index);
@@ -1790,8 +1771,8 @@ function AM.RefreshWorkspace()
 
     -- update timer
     if (AM.loadedTimeline) then
-        local totalTime = AM.TimeValueToString(AM.loadedTimeline:GetDuration());
-        local currentTime = AM.TimeValueToString(AM.loadedTimeline:GetTime() or 0);
+        local totalTime = AM.loadedTimeline:GetDurationString();
+        local currentTime = AM.loadedTimeline:GetTimeString();
         AM.timerTextBox:SetText(currentTime .. "-" .. totalTime);
     end
 
@@ -2322,73 +2303,13 @@ function AM.RefreshGroupKeyframes(track, startMS, endMS, barWidth, trackIndex)
     return usedKeys;
 end
 
-function AM.TimeValueToString(duration)
-    duration = duration or 0;
-    local durationS = duration / 1000;
-    local durationM = math.floor(durationS / 60);
-    durationS = durationS - (60 * durationM);
-    return string.format("%02d:%02d", durationM, durationS);
-end
-
 function AM.AddAnim(track, animID, animVariant)
     if (not track) then
         return;
     end
 
-    if (not track.animations) then
-        track.animations = {};
-    end
-
     Editor.StartAction(Actions.Action.Type.TrackAnimations, track, AM.loadedTimeline);
-
-    animVariant = animVariant or 0;
-
-    -- get length
-    local obj = AM.GetObjectOfTrack(track);
-    if (not obj) then
-        return;
-    end
-    if (obj.fileID == nil or obj.fileID <= 0) then
-        local ignore, ignore2, idString = strsplit(" ", obj.actor:GetModelPath());
-        obj.fileID = tonumber(idString);
-    end
-    
-    local anim = AnimationClip:New(animID, animVariant);
-
-    local animData = SceneMachine.animationData[obj.fileID];
-    local animLength = 3000;
-    if (animData) then
-        for i in pairs(animData) do
-            local entry = animData[i];
-            if (entry[1] == animID and entry[2] == animVariant) then
-                animLength = entry[3];
-            end
-        end
-    end
-
-    anim:SetLength(animLength);
-
-    local startT = 0;
-    local endT = startT + animLength;
-    if (#track.animations > 0) then
-        startT = track.animations[#track.animations]:GetEndTime();
-        endT = startT + animLength;
-    end
-
-    anim:SetStartTime(startT);
-    anim:SetEndTime(endT);
-
-    local name = SceneMachine.animationNames[animID];
-    name = name or ("Anim_" .. animID);
-    if (animVariant ~= 0) then
-        name = name .. " " .. animVariant;
-    end
-
-    anim:SetName(name);
-    anim:SetSpeed(1);
-
-    table.insert(track.animations, anim);
-
+    track:AddAnimation(animID, animVariant);
     Editor.FinishAction();
 
     AM.RefreshWorkspace();
@@ -2405,55 +2326,21 @@ function AM.RemoveAnim(track, anim)
     end
 
     Editor.StartAction(Actions.Action.Type.TrackAnimations, track, AM.loadedTimeline);
-
-    for i in pairs(track.animations) do
-        if (track.animations[i] == anim) then
-            table.remove(track.animations, i);
-        end
-    end
-
+    track:RemoveAnimation(anim);
     Editor.FinishAction();
 
     AM.RefreshWorkspace();
 end
 
 function AM.ReplaceAnim(track, currentAnim, newID, newVariant)
-    Editor.StartAction(Actions.Action.Type.TrackAnimations, track, AM.loadedTimeline);
-
-    -- get name
-    local name = SceneMachine.animationNames[newID];
-    name = name or ("Anim_" .. newID);
-    if (newVariant ~= 0) then
-        name = name .. " " .. newVariant;
-    end
-
-    -- get length
-    local obj = AM.GetObjectOfTrack(track);
-    if (not obj) then
+    if (not track or not currentAnim) then
         return;
     end
-    if (obj.fileID == nil or obj.fileID <= 0) then
-        local ignore, ignore2, idString = strsplit(" ", obj.actor:GetModelPath());
-        obj.fileID = tonumber(idString);
-    end
-    
-    local animData = SceneMachine.animationData[obj.fileID];
-    local animLength = 3000;
-    if (animData) then
-        for i in pairs(animData) do
-            local entry = animData[i];
-            if (entry[1] == newID and entry[2] == newVariant) then
-                animLength = entry[3];
-            end
-        end
-    end
 
-    currentAnim:SetID(newID);
-    currentAnim:SetVariation(newVariant);
-    currentAnim:SetLength(animLength);
-    currentAnim:SetName(name);
-
+    Editor.StartAction(Actions.Action.Type.TrackAnimations, track, AM.loadedTimeline);
+    track:ReplaceAnimation(currentAnim, newID, newVariant);
     Editor.FinishAction();
+
     AM.RefreshWorkspace();
 end
 
@@ -2527,18 +2414,20 @@ function AM.Button_RandomizeAnimColor(index)
 end
 
 function AM.SetTime(timeMS, rounded)
-    if (rounded == nil) then
-        rounded = true;
+    if (not SM.loadedScene or not AM.loadedTimeline) then
+        return;
     end
 
-    -- force time selection to 30 fps ticks
-    if rounded then
-        timeMS = floor(floor(timeMS / 33.3333) * 33.3333);
-    end
+    AM.loadedTimeline:SetTime(timeMS, rounded);
+
+    -- update timer
+    local totalTime = AM.loadedTimeline:GetDurationString();
+    local currentTime = AM.loadedTimeline:GetTimeString();
+    AM.timerTextBox:SetText(currentTime .. "-" .. totalTime);
 
     -- move ze slider
     local groupBgH = AM.timebarGroup:GetWidth() - 26;
-    local timeNorm = AM.GetTimeNormalized(timeMS);
+    local timeNorm = AM.GetCroppedTimeNormalized(AM.loadedTimeline:GetTime());
     if (timeNorm < 0 or timeNorm > 1) then
         -- the slider is offscreen
         AM.TimeSlider:Hide();
@@ -2549,84 +2438,8 @@ function AM.SetTime(timeMS, rounded)
         AM.TimeSlider:SetPoint("CENTER", AM.timebarGroup, "LEFT", pos, 0);
     end
 
-    -- update timer
-    if (AM.loadedTimeline) then
-        AM.loadedTimeline:SetTime(timeMS);
-
-        local totalTime = AM.TimeValueToString(AM.loadedTimeline:GetDuration());
-        local currentTime = AM.TimeValueToString(AM.loadedTimeline:GetTime() or 0);
-        AM.timerTextBox:SetText(currentTime .. "-" .. totalTime);
-    end
-
-    if (not SM.loadedScene) then
-        return;
-    end
-
-    -- go through the timeline tracks
-    local timeline = AM.loadedTimeline;
-    if (timeline and timeline:HasTracks()) then
-        for t = 1, timeline:GetTrackCount(), 1 do
-            local track = timeline:GetTrack(t);
-            -- also get object
-            local obj = AM.GetObjectOfTrack(track);
-            if (obj) then
-                -- animate object
-                if (obj:HasActor()) then
-                    local animID, variationID, animMS, animSpeed = track:SampleAnimation(timeMS);
-
-                    if (AM.playing) then
-                        -- Sample playback
-                        if (obj.currentAnimID ~= animID or obj.currentAnimVariationID ~= variationID) then
-                            -- Animation switch
-                            if (animID ~= -1) then
-                                --obj.actor:SetAnimationBlendOperation(1);  -- 0: don't blend, 1: blend
-                                obj.actor:SetAnimation(animID, variationID, animSpeed, animMS / 1000);
-                            end
-                            obj.currentAnimID = animID;
-                            obj.currentAnimVariationID = variationID;
-                        end
-                    else
-                        -- Sample single key
-                        animSpeed = 0;
-                        obj.currentAnimID = nil;
-                        obj.currentAnimVariationID = nil;
-                        if (animID ~= -1) then
-                            obj.actor:SetAnimation(animID, variationID, animSpeed, animMS / 1000);
-                        else
-                            -- stop playback
-                        end
-                    end
-                end
-                -- animate keyframes
-                local currentPos = obj:GetPosition();
-                local posX = track:SamplePositionXKey(timeMS) or currentPos.x;
-                local posY = track:SamplePositionYKey(timeMS) or currentPos.y;
-                local posZ = track:SamplePositionZKey(timeMS) or currentPos.z;
-                obj:SetPosition(posX, posY, posZ);
-
-                local currentRot = obj:GetRotation();
-                local rotX = track:SampleRotationXKey(timeMS) or currentRot.x;
-                local rotY = track:SampleRotationYKey(timeMS) or currentRot.y;
-                local rotZ = track:SampleRotationZKey(timeMS) or currentRot.z;
-                obj:SetRotation(rotX, rotY, rotZ);
-
-                local currentScale = obj:GetScale();
-                local scale = track:SampleScaleKey(timeMS) or currentScale;
-                obj:SetScale(scale);
-
-                if (obj:IsVisible()) then
-                    if (obj:HasActor()) then
-                        local currentAlpha = obj:GetAlpha();
-                        local alpha = track:SampleAlphaKey(timeMS) or currentAlpha;
-                        obj:SetAlpha(alpha);
-                    end
-                end
-            end
-        end
-    end
-
+    -- transfer object motion to camera controller
     if (CC.ControllingCameraObject ~= nil) then
-        -- transfer object motion to camera controller
         local pos = CC.ControllingCameraObject:GetPosition();
         local rot = CC.ControllingCameraObject:GetRotation();
         CC.position:SetVector3(pos);
@@ -2649,7 +2462,7 @@ function AM.GetObjectOfTrack(track)
     return nil;
 end
 
-function AM.GetTimeNormalized(timeMS)
+function AM.GetCroppedTimeNormalized(timeMS)
     if (not AM.loadedTimeline) then
         return 0;
     end
@@ -2796,8 +2609,9 @@ function AM.RemoveKeys(track, keys)
 
     Editor.StartAction(Actions.Action.Type.TrackKeyframes, track, AM.loadedTimeline);
     for i = 1, #keys, 1 do
-        AM.RemoveKey_internal(track, keys[i]);
+        track:RemoveKey(keys[i]);
     end
+    AM.RefreshWorkspace();
     Editor.FinishAction();
 end
 
@@ -2811,78 +2625,9 @@ function AM.RemoveKey(track, key)
     end
 
     Editor.StartAction(Actions.Action.Type.TrackKeyframes, track, AM.loadedTimeline);
-    AM.RemoveKey_internal(track, key);
-    Editor.FinishAction();
-end
-
-function AM.RemoveKey_internal(track, key)
-    
-
-    if (track.keysPx) then
-        for i in pairs(track.keysPx) do
-            if (track.keysPx[i] == key) then
-                table.remove(track.keysPx, i);
-            end
-        end
-    end
-
-    if (track.keysPy) then
-        for i in pairs(track.keysPy) do
-            if (track.keysPy[i] == key) then
-                table.remove(track.keysPy, i);
-            end
-        end
-    end
-
-    if (track.keysPz) then
-        for i in pairs(track.keysPz) do
-            if (track.keysPz[i] == key) then
-                table.remove(track.keysPz, i);
-            end
-        end
-    end
-
-    if (track.keysRx) then
-        for i in pairs(track.keysRx) do
-            if (track.keysRx[i] == key) then
-                table.remove(track.keysRx, i);
-            end
-        end
-    end
-
-    if (track.keysRy) then
-        for i in pairs(track.keysRy) do
-            if (track.keysRy[i] == key) then
-                table.remove(track.keysRy, i);
-            end
-        end
-    end
-
-    if (track.keysRz) then
-        for i in pairs(track.keysRz) do
-            if (track.keysRz[i] == key) then
-                table.remove(track.keysRz, i);
-            end
-        end
-    end
-
-    if (track.keysS) then
-        for i in pairs(track.keysS) do
-            if (track.keysS[i] == key) then
-                table.remove(track.keysS, i);
-            end
-        end
-    end
-
-    if (track.keysA) then
-        for i in pairs(track.keysA) do
-            if (track.keysA[i] == key) then
-                table.remove(track.keysA, i);
-            end
-        end
-    end
-
+    track:RemoveKey(key);
     AM.RefreshWorkspace();
+    Editor.FinishAction();
 end
 
 function AM.SelectKeyAtIndex(index)
@@ -2987,133 +2732,14 @@ function AM.SelectTrackOfObject(obj)
     AM.RefreshWorkspace();
 end
 
-function AM.TrackHasAnims(track)
-    if (not track) then
-        return false;
-    end
-
-    if (track.animations and #track.animations > 0) then
-        return true;
-    end
-
-    return false;
-end
-
-function AM.TrackHasKeyframes(track)
-    if (not track) then
-        return false;
-    end
-
-    if (track.keysPx and #track.keysPx > 0) then
-        return true;
-    end
-
-    if (track.keysPy and #track.keysPy > 0) then
-        return true;
-    end
-
-    if (track.keysPz and #track.keysPz > 0) then
-        return true;
-    end
-
-    if (track.keysRx and #track.keysRx > 0) then
-        return true;
-    end
-
-    if (track.keysRy and #track.keysRy > 0) then
-        return true;
-    end
-
-    if (track.keysRz and #track.keysRz > 0) then
-        return true;
-    end
-
-    if (track.keysS and #track.keysS > 0) then
-        return true;
-    end
-
-    if (track.keysA and #track.keysA > 0) then
-        return true;
-    end
-
-    return false;
-end
-
 function AM.Play()
     AM.playing = true;
 
+    AM.loadedTimeline:Play();
+
     if (AM.loopPlay) then
         -- find last keyed time
-        AM.lastKeyedTime = 0;
-        for t = 1, AM.loadedTimeline:GetTrackCount(), 1 do
-            local track = AM.loadedTimeline:GetTrack(t);
-            if (track.animations and #track.animations > 0) then
-                local animEnd = track.animations[#track.animations]:GetEndTime();
-                if (animEnd > AM.lastKeyedTime) then
-                    AM.lastKeyedTime = animEnd;
-                end
-            end
-
-            if (track.keysPx and #track.keysPx > 0) then
-                local keyEnd = track.keysPx[#track.keysPx].time;
-                if (keyEnd > AM.lastKeyedTime) then
-                    AM.lastKeyedTime = keyEnd;
-                end
-            end
-
-            if (track.keysPy and #track.keysPy > 0) then
-                local keyEnd = track.keysPy[#track.keysPy].time;
-                if (keyEnd > AM.lastKeyedTime) then
-                    AM.lastKeyedTime = keyEnd;
-                end
-            end
-
-            if (track.keysPz and #track.keysPz > 0) then
-                local keyEnd = track.keysPz[#track.keysPz].time;
-                if (keyEnd > AM.lastKeyedTime) then
-                    AM.lastKeyedTime = keyEnd;
-                end
-            end
-
-            if (track.keysRx and #track.keysRx > 0) then
-                local keyEnd = track.keysRx[#track.keysRx].time;
-                if (keyEnd > AM.lastKeyedTime) then
-                    AM.lastKeyedTime = keyEnd;
-                end
-            end
-
-            if (track.keysRy and #track.keysRy > 0) then
-                local keyEnd = track.keysRy[#track.keysRy].time;
-                if (keyEnd > AM.lastKeyedTime) then
-                    AM.lastKeyedTime = keyEnd;
-                end
-            end
-
-            if (track.keysRz and #track.keysRz > 0) then
-                local keyEnd = track.keysRz[#track.keysRz].time;
-                if (keyEnd > AM.lastKeyedTime) then
-                    AM.lastKeyedTime = keyEnd;
-                end
-            end
-
-            if (track.keysS and #track.keysS > 0) then
-                local keyEnd = track.keysS[#track.keysS].time;
-                if (keyEnd > AM.lastKeyedTime) then
-                    AM.lastKeyedTime = keyEnd;
-                end
-            end
-
-            if (track.keysA and #track.keysA > 0) then
-                local keyEnd = track.keysA[#track.keysA].time;
-                if (keyEnd > AM.lastKeyedTime) then
-                    AM.lastKeyedTime = keyEnd;
-                end
-            end
-        end
-
-        if (AM.lastKeyedTime == 0) then
-            AM.lastKeyedTime = AM.loadedTimeline:GetDuration();
-        end
+        AM.lastKeyedTime = AM.loadedTimeline:GetLastKeyedTime();
     end
 
     if (AM.cameraPlay) then
@@ -3140,6 +2766,8 @@ end
 
 function AM.Pause()
     AM.playing = false;
+
+    AM.loadedTimeline:Pause();
 
     if (AM.loadedTimeline) then
         AM.SetTime(AM.loadedTimeline:GetTime(), false);
@@ -3354,7 +2982,7 @@ function AM.OnFinishedKeyRetiming()
     if (AM.toOverrideKeys) then
         for i = 1, #AM.toOverrideKeys, 1 do
             if (AM.toOverrideKeys[i]) then
-                AM.RemoveKey_internal(AM.selectedTrack, AM.toOverrideKeys[i]);
+                AM.selectedTrack:RemoveKey(AM.toOverrideKeys[i]);
             end
         end
 
@@ -3364,12 +2992,14 @@ function AM.OnFinishedKeyRetiming()
     if (AM.clonedKeys and #AM.clonedKeys > 0) then
         if (AM.clonedKeys[1] == AM.selectedKeys[1]) then
             for i = 1, #AM.clonedKeys, 1 do
-                AM.RemoveKey_internal(AM.selectedTrack, AM.clonedKeys[i]);
+                AM.selectedTrack:RemoveKey(AM.clonedKeys[i]);
             end
         end
         AM.clonedKeys = nil;
     end
 
     AM.selectedTrack:SortAllKeyframes();
+    AM.RefreshWorkspace();
+
     Editor.FinishAction();
 end

@@ -18,7 +18,7 @@ setmetatable(Model, Actor)
 --- @param rotation Vector3? (optional) The rotation of the model.
 --- @param scale number? (optional) The scale of the model.
 --- @return Model v The newly created Model instance.
-function Model:New(name, fileID, position, rotation, scale)
+function Model:New(name, fileID, position, rotation, scale, scene)
     local v =
     {
         fileID = fileID or 0,
@@ -33,6 +33,7 @@ function Model:New(name, fileID, position, rotation, scale)
         visible = true,
         frozen = false, -- could check here if path is skybox and freeze automagically
         isRenamed = false,
+        scene = scene,
         type = Object.Type.Model,
     };
 

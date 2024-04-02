@@ -27,12 +27,13 @@ local fields = {}
 --- Creates a new AnimationClip object.
 --- @param id number? (optional) - The ID of the animation clip.
 --- @param variation number? (optional) - The variation of the animation clip.
+--- @param track Track - The track of the animation clip.
 --- @param startT number? (optional) - The start time of the animation clip.
 --- @param endT number? (optional) - The end time of the animation clip.
 --- @param name string? (optional) - The name of the animation clip.
 --- @param speed number? (optional) - The speed of the animation clip.
 --- @return AnimationClip - The newly created AnimationClip object.
-function AnimationClip:New(id, variation, startT, endT, name, speed)
+function AnimationClip:New(id, variation, track, startT, endT, name, speed)
     --- @class AnimationClip
     local v = 
     {
@@ -44,6 +45,7 @@ function AnimationClip:New(id, variation, startT, endT, name, speed)
         name = name or "Anim",
         speed = speed or 1,
         colorId = 0,
+        track = track,
     };
 
     setmetatable(v, AnimationClip)
@@ -67,6 +69,7 @@ function AnimationClip:NewClone(anim)
         name = anim.name,
         speed = anim.speed,
         colorId = anim.colorId,
+        track = anim.track,
     };
 
     setmetatable(v, AnimationClip)
@@ -85,6 +88,10 @@ function AnimationClip:SetAnim(anim)
     self.endT = anim.endT;
     self.name = anim.name;
     self.speed = anim.speed;
+end
+
+function AnimationClip:SetTrack(track)
+    self.track = track;
 end
 
 --- Export the AnimationClip data
@@ -309,6 +316,10 @@ function AnimationClip.SwapAnimData(A, B)
     B:SetColorId(colorId);
     B:SetVariation(variation);
     B:SetLength(animLength);
+end
+
+function AnimationClip:ClearRuntimeData()
+    self.track = nil;
 end
 
 --- Checks if two AnimationClip objects are equal, byt comparing time values.

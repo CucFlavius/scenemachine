@@ -13,7 +13,7 @@ local fields = {}
 -- Creates a new Track object.
 --- @param object? Object The object to associate with the track.
 --- @return Track v The newly created Track object.
-function Track:New(object)
+function Track:New(object, timeline)
     --- @class Track
     local v = 
     {
@@ -35,6 +35,8 @@ function Track:New(object)
         keysS = {};
         --- @type Keyframe[]?
         keysA = {};
+        --- @type Timeline
+        timeline = timeline;
     };
 
     setmetatable(v, Track)
@@ -45,6 +47,12 @@ function Track:New(object)
     end
 
     return v
+end
+
+--- Sets the timeline for the track.
+--- @param timeline Timeline The timeline to associate with the track.
+function Track:SetTimeline(timeline)
+    self.timeline = timeline;
 end
 
 --- Export the track data
@@ -94,10 +102,12 @@ end
 
 function Track:ImportAnimationData(data)
     if (data and data.animations) then
+        --- @type AnimationClip[]
         self.animations = {};
         for k in pairs(data.animations) do
             self.animations[k] = AnimationClip:New();
             self.animations[k]:ImportData(data.animations[k]);
+            self.animations[k]:SetTrack(self);
         end
     end
 end
@@ -483,6 +493,287 @@ function Track:InterpolateStep(t1, t2, timeMS)
     end
 
     return 0;
+end
+
+function Track:AddAnimation(animID, variant)
+    if (not self.animations) then
+        self.animations = {};
+    end
+
+    variant = variant or 0;
+
+    -- get length
+    local obj = self.timeline.scene:GetObjectByID(self.objectID);
+    if (not obj) then
+        return;
+    end
+    if (obj.fileID == nil or obj.fileID <= 0) then
+        local _, _, idString = strsplit(" ", obj.actor:GetModelPath());
+        local fileID = tonumber(idString);
+        if (fileID) then
+            obj.fileID = fileID;
+        end
+    end
+    
+    local anim = AnimationClip:New(animID, variant, self);
+
+    local animData = SceneMachine.animationData[obj.fileID];
+    local animLength = 3000;
+    if (animData) then
+        for i in pairs(animData) do
+            local entry = animData[i];
+            if (entry[1] == animID and entry[2] == variant) then
+                animLength = entry[3];
+            end
+        end
+    end
+
+    anim:SetLength(animLength);
+
+    local startT = 0;
+    local endT = startT + animLength;
+    if (#self.animations > 0) then
+        startT = self.animations[#self.animations]:GetEndTime();
+        endT = startT + animLength;
+    end
+
+    anim:SetStartTime(startT);
+    anim:SetEndTime(endT);
+
+    local name = SceneMachine.animationNames[animID];
+    name = name or ("Anim_" .. animID);
+    if (variant ~= 0) then
+        name = name .. " " .. variant;
+    end
+
+    anim:SetName(name);
+    anim:SetSpeed(1);
+
+    table.insert(self.animations, anim);
+end
+
+function Track:RemoveAnimation(anim)
+    for i in pairs(self.animations) do
+        if (self.animations[i] == anim) then
+            table.remove(self.animations, i);
+        end
+    end
+end
+
+function Track:ReplaceAnimation(currentAnim, newID, newVariant)
+    -- get name
+    local name = SceneMachine.animationNames[newID];
+    name = name or ("Anim_" .. newID);
+    if (newVariant ~= 0) then
+        name = name .. " " .. newVariant;
+    end
+
+    -- get length
+    local obj = self.timeline.scene:GetObjectByID(self.objectID);
+    if (not obj) then
+        return;
+    end
+    if (obj.fileID == nil or obj.fileID <= 0) then
+        local ignore, ignore2, idString = strsplit(" ", obj.actor:GetModelPath());
+        obj.fileID = tonumber(idString);
+    end
+    
+    local animData = SceneMachine.animationData[obj.fileID];
+    local animLength = 3000;
+    if (animData) then
+        for i in pairs(animData) do
+            local entry = animData[i];
+            if (entry[1] == newID and entry[2] == newVariant) then
+                animLength = entry[3];
+            end
+        end
+    end
+
+    currentAnim:SetID(newID);
+    currentAnim:SetVariation(newVariant);
+    currentAnim:SetLength(animLength);
+    currentAnim:SetName(name);
+end
+
+function Track:SetCurrentlyPlayingAnim(animID, variant)
+    self.currentAnimID = animID;
+    self.currentAnimVariationID = variant;
+end
+
+function Track:SetTime(timeMS, playback)
+    -- also get object
+    local obj = self.timeline.scene:GetObjectByID(self.objectID);
+
+    if (not obj) then
+        return;
+    end
+
+    -- animate object
+    if (obj:HasActor()) then
+        local animID, variationID, animMS, animSpeed = self:SampleAnimation(timeMS);
+
+        if (playback) then
+            -- Sample playback
+            if (self.currentAnimID ~= animID or self.currentAnimVariationID ~= variationID) then
+                -- Animation switch
+                if (animID ~= -1) then
+                    --obj.actor:SetAnimationBlendOperation(1);  -- 0: don't blend, 1: blend
+                    obj.actor:SetAnimation(animID, variationID, animSpeed, animMS / 1000);
+                end
+                self:SetCurrentlyPlayingAnim(animID, variationID);
+            end
+        else
+            -- Sample single key
+            animSpeed = 0;
+            self:SetCurrentlyPlayingAnim(nil, nil);
+            if (animID ~= -1) then
+                obj.actor:SetAnimation(animID, variationID, animSpeed, animMS / 1000);
+            else
+                -- stop playback
+            end
+        end
+    end
+    
+    -- animate keyframes
+    local currentPos = obj:GetPosition();
+    local posX = self:SamplePositionXKey(timeMS) or currentPos.x;
+    local posY = self:SamplePositionYKey(timeMS) or currentPos.y;
+    local posZ = self:SamplePositionZKey(timeMS) or currentPos.z;
+    obj:SetPosition(posX, posY, posZ);
+
+    local currentRot = obj:GetRotation();
+    local rotX = self:SampleRotationXKey(timeMS) or currentRot.x;
+    local rotY = self:SampleRotationYKey(timeMS) or currentRot.y;
+    local rotZ = self:SampleRotationZKey(timeMS) or currentRot.z;
+    obj:SetRotation(rotX, rotY, rotZ);
+
+    local currentScale = obj:GetScale();
+    local scale = self:SampleScaleKey(timeMS) or currentScale;
+    obj:SetScale(scale);
+
+    if (obj:IsVisible()) then
+        if (obj:HasActor()) then
+            local currentAlpha = obj:GetAlpha();
+            local alpha = self:SampleAlphaKey(timeMS) or currentAlpha;
+            obj:SetAlpha(alpha);
+        end
+    end
+end
+
+function Track:GetLastKeyedTime()
+    local lastKeyedTime = 0;
+
+    if (self.animations and #self.animations > 0) then
+        local animEnd = self.animations[#self.animations]:GetEndTime();
+        if (animEnd > lastKeyedTime) then
+            lastKeyedTime = animEnd;
+        end
+    end
+
+    lastKeyedTime = self:GetEndKeyTime(self.keysPx, lastKeyedTime);
+    lastKeyedTime = self:GetEndKeyTime(self.keysPy, lastKeyedTime);
+    lastKeyedTime = self:GetEndKeyTime(self.keysPz, lastKeyedTime);
+
+    lastKeyedTime = self:GetEndKeyTime(self.keysRx, lastKeyedTime);
+    lastKeyedTime = self:GetEndKeyTime(self.keysRy, lastKeyedTime);
+    lastKeyedTime = self:GetEndKeyTime(self.keysRz, lastKeyedTime);
+
+    lastKeyedTime = self:GetEndKeyTime(self.keysS, lastKeyedTime);
+    lastKeyedTime = self:GetEndKeyTime(self.keysA, lastKeyedTime);
+
+    return lastKeyedTime;
+end
+
+function Track:GetEndKeyTime(keys, compareWith)
+    if (keys and #keys > 0) then
+        local keyEnd = keys[#keys].time;
+        if (compareWith and keyEnd > compareWith) then
+            return keyEnd;
+        else
+            return compareWith;
+        end
+
+        return keyEnd;
+    end
+
+    return compareWith or 0;
+end
+
+function Track:ClearRuntimeData()
+    self.timeline = nil;
+    self.currentAnimID = nil;
+    self.currentAnimVariationID = nil;
+
+    for i in pairs(self.animations) do
+        self.animations[i]:ClearRuntimeData();
+    end
+end
+
+function Track:HasAnimations()
+    if (self.animations and #self.animations > 0) then
+        return true;
+    end
+
+    return false;
+end
+
+function Track:HasKeyframes()
+    if (self.keysPx and #self.keysPx > 0) then
+        return true;
+    end
+
+    if (self.keysPy and #self.keysPy > 0) then
+        return true;
+    end
+
+    if (self.keysPz and #self.keysPz > 0) then
+        return true;
+    end
+
+    if (self.keysRx and #self.keysRx > 0) then
+        return true;
+    end
+
+    if (self.keysRy and #self.keysRy > 0) then
+        return true;
+    end
+
+    if (self.keysRz and #self.keysRz > 0) then
+        return true;
+    end
+
+    if (self.keysS and #self.keysS > 0) then
+        return true;
+    end
+
+    if (self.keysA and #self.keysA > 0) then
+        return true;
+    end
+
+    return false;
+end
+
+function Track:RemoveKey(key)
+    self:RemoveKeyFromList(key, self.keysPx);
+    self:RemoveKeyFromList(key, self.keysPy);
+    self:RemoveKeyFromList(key, self.keysPz);
+
+    self:RemoveKeyFromList(key, self.keysRx);
+    self:RemoveKeyFromList(key, self.keysRy);
+    self:RemoveKeyFromList(key, self.keysRz);
+
+    self:RemoveKeyFromList(key, self.keysS);
+    self:RemoveKeyFromList(key, self.keysA);
+end
+
+function Track:RemoveKeyFromList(key, keyList)
+    if (keyList) then
+        for i in pairs(keyList) do
+            if (keyList[i] == key) then
+                table.remove(keyList, i);
+            end
+        end
+    end
 end
 
 --- Returns a string representation of the Track object.

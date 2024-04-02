@@ -13,7 +13,7 @@ setmetatable(Group, Object)
 --- Creates a new Group object.
 ---@param name string? (optional) The name of the group. Defaults to "NewGroup".
 ---@return Group v The newly created Group object.
-function Group:New(name)
+function Group:New(name, scene)
     local v = 
     {
         name = name or "NewGroup",
@@ -31,6 +31,7 @@ function Group:New(name)
         maxX = 0.5,
         maxY = 0.5,
         maxZ = 0.5,
+        scene = scene
     };
 
 	setmetatable(v, Group)

@@ -764,6 +764,10 @@ function Object:Deselect()
     print("Deselect() not implemented for type " .. self:GetTypeName());
 end
 
+function Object:SetScene(scene)
+    self.scene = scene;
+end
+
 --- Clears the runtime data of the object.
 --- Is called right before saving the variables to file.
 function Object:ClearRuntimeData()

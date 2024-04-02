@@ -2,6 +2,8 @@ SceneMachine.Timeline = {}
 
 --- @class Timeline
 local Timeline = SceneMachine.Timeline;
+--- @class Track
+local Track = SceneMachine.Track;
 
 setmetatable(Timeline, Timeline)
 
@@ -11,20 +13,31 @@ local fields = {}
 --- @param name string The name of the timeline.
 --- @param duration? number (optional) The duration of the timeline in milliseconds. Defaults to 30000 (30 seconds).
 --- @return Timeline: The newly created Timeline object.
-function Timeline:New(name, duration)
+function Timeline:New(name, duration, scene)
     --- @class Timeline
     local v = 
     {
+        --- @type string
         name = name,
+        --- @type number
         currentTime = 0,
+        --- @type number
         duration = duration or 30000, -- 30000 miliseconds, 30 seconds
         --- @type Track[]
         tracks = {},
+        --- @type Scene
+        scene = scene,
     };
 
     setmetatable(v, Timeline)
 
     return v
+end
+
+--- Sets the scene for the timeline.
+---@param scene Scene The scene to set.
+function Timeline:SetScene(scene)
+    self.scene = scene;
 end
 
 --- Export the Timeline data
@@ -56,16 +69,11 @@ function Timeline:ImportData(data)
             for j = 1, #data.tracks, 1 do
                 local track = SceneMachine.Track:New();
                 track:ImportData(data.tracks[j]);
+                track:SetTimeline(self);
                 self.tracks[j] = track;
             end
         end
     end
-end
-
---- Clears the runtime data of the timeline.
---- Is called right before saving the variables to file.
-function Timeline:ClearRuntimeData()
-    self.width = nil;
 end
 
 --- Gets the duration of the timeline in miliseconds.
@@ -84,12 +92,6 @@ end
 --- @return number currentTime The current time.
 function Timeline:GetTime()
     return self.currentTime;
-end
-
---- Sets the current time of the timeline in miliseconds.
---- @param time number The new time value.
-function Timeline:SetTime(time)
-    self.currentTime = time;
 end
 
 --- Adds a track to the timeline.
@@ -146,6 +148,91 @@ function Timeline:GetTrackCount()
     end
 
     return #self.tracks;
+end
+
+--- Clears the runtime data of the timeline.
+--- Is called right before saving the variables to file.
+function Timeline:ClearRuntimeData()
+    self.width = nil;
+    self.scene = nil;
+
+    if (self.tracks) then
+        for i = 1, #self.tracks, 1 do
+            self.tracks[i]:ClearRuntimeData();
+        end
+    end
+end
+
+function Timeline:Play()
+    self.playing = true;
+end
+
+function Timeline:Pause()
+    self.playing = false;
+end
+
+function Timeline:SetTime(timeMS, rounded)
+    if (rounded == nil) then
+        rounded = true;
+    end
+
+    -- force time selection to 30 fps ticks
+    if (rounded) then
+        timeMS = floor(floor(timeMS / 33.3333) * 33.3333);
+    end
+
+    self.currentTime = timeMS;
+
+    if (not self:HasTracks()) then
+        return;
+    end
+
+    for t = 1, self:GetTrackCount(), 1 do
+        local track = self:GetTrack(t);
+
+        if (track) then
+            track:SetTime(timeMS, self.playing);
+        end
+    end
+end
+
+function Timeline:GetLastKeyedTime()
+    local lastKeyedTime = 0;
+    for t = 1, self:GetTrackCount(), 1 do
+        local track = self:GetTrack(t);
+        if (track) then
+            local newKeyedTime = track:GetLastKeyedTime();
+            if (newKeyedTime > lastKeyedTime) then
+                lastKeyedTime = newKeyedTime;
+            end
+        end
+    end
+
+    if (lastKeyedTime == 0) then
+        lastKeyedTime = self:GetDuration();
+    end
+
+    return lastKeyedTime;
+end
+
+function Timeline:GetDurationString()
+    return Timeline.TimeValueToString(self:GetDuration());
+end
+
+function Timeline:GetTimeString()
+    return Timeline.TimeValueToString(self:GetTime());
+end
+
+function Timeline:GetTimeNormalized()
+    return self.currentTime / self.duration;
+end
+
+function Timeline.TimeValueToString(duration)
+    duration = duration or 0;
+    local durationS = duration / 1000;
+    local durationM = math.floor(durationS / 60);
+    durationS = durationS - (60 * durationM);
+    return string.format("%02d:%02d", durationM, durationS);
 end
 
 --- Returns a string representation of the Timeline object.

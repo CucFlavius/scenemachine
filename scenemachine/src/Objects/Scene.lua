@@ -79,7 +79,7 @@ function Scene:Load()
     self:VerifyHierarchyIntegrityRecursive(self.objectHierarchy);
 
     if (#self.timelines == 0) then
-        self.timelines[1] = Timeline:New("Timeline 1");
+        self.timelines[1] = Timeline:New("Timeline 1", 30000, self);
     end
 
     for i = 1, #self.objects, 1 do
@@ -120,7 +120,7 @@ end
 
 --- Retrieves an object from the scene by its ID.
 --- @param id number The ID of the object to retrieve.
---- @return Object|nil: The object with the specified ID, or nil if not found.
+--- @return Object|Actor|nil: The object with the specified ID, or nil if not found.
 function Scene:GetObjectByID(id)
     if (self.objectIDMap[id]) then
         return self.objectIDMap[id];
@@ -220,8 +220,7 @@ end
 --- @param z number The z-coordinate of the object's position.
 --- @return Model: The newly created model object.
 function Scene:CreateObject(fileID, name, x, y, z)
-    local object = SceneMachine.GameObjects.Model:New(name, fileID, Vector3:New(x, y, z));
-    object.scene = self;
+    local object = SceneMachine.GameObjects.Model:New(name, fileID, Vector3:New(x, y, z), self);
     table.insert(self.objects, object);
 
     -- Create actor
@@ -242,8 +241,7 @@ end
 --- @param z number The z-coordinate of the creature's position.
 --- @return Creature: The newly created creature object.
 function Scene:CreateCreature(displayID, name, x, y, z)
-    local object = SceneMachine.GameObjects.Creature:New(name, displayID, Vector3:New(x, y, z));
-    object.scene = self;
+    local object = SceneMachine.GameObjects.Creature:New(self, name, displayID, Vector3:New(x, y, z));
     table.insert(self.objects, object);
 
     -- Create actor
@@ -262,8 +260,7 @@ end
 --- @param z number The z-coordinate of the character's position.
 --- @return Character: The created character object.
 function Scene:CreateCharacter(x, y, z)
-    local object = SceneMachine.GameObjects.Character:New(UnitName("player"), Vector3:New(x, y, z));
-    object.scene = self;
+    local object = SceneMachine.GameObjects.Character:New(UnitName("player"), Vector3:New(x, y, z), self);
     table.insert(self.objects, object);
 
     -- Create actor
@@ -301,8 +298,7 @@ function Scene:CreateCamera(fov, nearClip, farClip, x, y, z, rx, ry, rz)
     nearClip = nearClip or 0.01;
     farClip = farClip or 1000;
 
-    local object = SceneMachine.GameObjects.Camera:New(name, position, rotation, fov, nearClip, farClip);
-    object.scene = self;
+    local object = SceneMachine.GameObjects.Camera:New(name, position, rotation, fov, nearClip, farClip, self);
     table.insert(self.objects, object);
 
     self:AddObjectToHierarchy(object.id);
@@ -1003,7 +999,7 @@ function Scene:ImportData(data)
         end
         
         if (object) then
-            object.scene = self;
+            object:SetScene(self);
         end
 
         if (object:HasActor()) then
@@ -1025,6 +1021,7 @@ function Scene:ImportData(data)
             local timelineData = data.timelines[i];
             local timeline = Timeline:New();
             timeline:ImportData(timelineData);
+            timeline.scene = self;
             self.timelines[i] = timeline;
         end
     end
@@ -1130,6 +1127,7 @@ function Scene:ImportVersion1Scene(sceneData)
             local timelineData = sceneData.timelines[i];
             local timeline = Timeline:New();
             timeline:ImportData(timelineData);
+            timeline.scene = self;
             self.timelines[i] = timeline;
         end
     end
@@ -1179,6 +1177,7 @@ function Scene:ImportVersion2Scene(sceneData)
             local timelineData = sceneData.timelines[i];
             local timeline = Timeline:New();
             timeline:ImportData(timelineData);
+            timeline.scene = self;
             self.timelines[i] = timeline;
         end
     end
@@ -1220,6 +1219,7 @@ function Scene:ImportNetworkScene(sceneData)
             local timelineData = sceneData.timelines[i];
             local timeline = Timeline:New();
             timeline:ImportData(timelineData);
+            timeline.scene = self;
             self.timelines[i] = timeline;
         end
     end

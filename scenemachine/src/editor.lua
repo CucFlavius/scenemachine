@@ -384,8 +384,8 @@ function Editor.DeleteLastSelected()
         end
 
     elseif (Editor.lastSelectedType == Editor.SelectionType.Track) then
-        local hasAnims = AM.TrackHasAnims(AM.selectedTrack);
-        local hasKeyframes = AM.TrackHasKeyframes(AM.selectedTrack);
+        local hasAnims = AM.selectedTrack and AM.selectedTrack:HasAnimations();
+        local hasKeyframes = AM.selectedTrack and AM.selectedTrack:HasKeyframes();
         local msgTitle = L["EDITOR_MSG_DELETE_TRACK_TITLE"];
         local msgText;
 

@@ -18,7 +18,7 @@ setmetatable(Camera, Object)
 --- @param nearClip number The near clipping plane of the camera.
 --- @param farClip number The far clipping plane of the camera.
 --- @return Camera v The newly created Camera object.
-function Camera:New(name, position, rotation, fov, nearClip, farClip)
+function Camera:New(name, position, rotation, fov, nearClip, farClip, scene)
     local v = 
     {
         type = Object.Type.Camera,
@@ -33,6 +33,7 @@ function Camera:New(name, position, rotation, fov, nearClip, farClip)
         fov = fov,
         nearClip = nearClip,
         farClip = farClip,
+        scene = scene,
     };
 
     setmetatable(v, Camera)

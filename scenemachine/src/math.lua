@@ -61,7 +61,6 @@ function Math.multiplyRotations(rotation1, rotation2)
     return q1:ToEuler();
 end
 
-
 function Math.normalize(value, min, max)
     return (value - min) / (max - min)
 end
@@ -69,6 +68,7 @@ end
 function Math.clamp(value, min, max)
     return math.min(math.max(value, min), max);
 end
+
 function Math.normalizeVector(vector)
     local magnitude = math.sqrt(vector[1]^2 + vector[2]^2 + vector[3]^2)
     
@@ -131,4 +131,18 @@ function Math.isPointInPolygon(px, py, x1, y1, x2, y2, x3, y3, x4, y4)
     end
 
     return count % 2 == 1
+end
+
+function Math.round(num, dp)
+    --[[
+    round a number to so-many decimal of places, which can be negative, 
+    e.g. -1 places rounds to 10's,  
+    
+    examples
+        173.2562 rounded to 0 dps is 173.0
+        173.2562 rounded to 2 dps is 173.26
+        173.2562 rounded to -1 dps is 170.0
+    ]]--
+    local mult = 10^(dp or 0)
+    return math.floor(num * mult + 0.5)/mult
 end
