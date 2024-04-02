@@ -275,6 +275,10 @@ function Vector3:Length()
     return math.sqrt(self.x^2 + self.y^2 + self.z^2);
 end
 
+function Vector3:Magnitude()
+    return self:Length();
+end
+
 --- Normalizes the vector, making it a unit vector.
 --- If the magnitude is zero, the vector will be set to a zero vector.
 --- @return Vector3 self The normalized vector.

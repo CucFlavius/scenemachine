@@ -10,6 +10,10 @@ function Math.dist2(v, w)
     return Math.sqr(v[1] - w[1]) + Math.sqr(v[2] - w[2])
 end
 
+function Math.manhattanDistance2D(xA, yA, xB, yB)
+    return math.abs(xA - xB) + math.abs(yA - yB);
+end
+
 function Math.distToSegmentSquared(p, v, w)
     local l2 = Math.dist2(v, w);
     if (l2 == 0) then

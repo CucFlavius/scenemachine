@@ -157,6 +157,18 @@ function Camera.GetMouseRay()
     return mouseRay;
 end
 
+function Camera.ScreenPointToRay(x, y)
+    local ndc = MouseToNormalizedDeviceCoords(x * Renderer.scale, y * Renderer.scale, Camera.width, Camera.height);
+    local clip = NDCToClipCoords(ndc);
+    local eye = ClipToEye(clip, Camera.projectionMatrix);
+    local direction = EyeToRayVector(eye, Camera.viewMatrix);
+
+    local origin = Camera.position;
+    local mouseRay = Ray:New(origin, direction);
+
+    return mouseRay;
+end
+
 function Camera.GetCenterRay()
     local centerRay = Ray:New(Camera.position, Camera.forward);
     return centerRay;

@@ -5,6 +5,8 @@ SceneMachine.Gizmos.MoveGizmo = {};
 local MoveGizmo = SceneMachine.Gizmos.MoveGizmo;
 local Resources = SceneMachine.Resources;
 local Math = SceneMachine.Math;
+local Camera = SceneMachine.Camera;
+local GM = SceneMachine.Gizmos.GizmoManager;
 
 MoveGizmo.__index = MoveGizmo;
 setmetatable(MoveGizmo, Gizmo)
@@ -56,6 +58,7 @@ function MoveGizmo:New()
         };
         lines = {};
         lineDepths = {};
+        axisVisibility = { true, true, true, true, true, true };
     };
 
     setmetatable(v, MoveGizmo);
@@ -147,21 +150,21 @@ function MoveGizmo:SelectionCheck(mouseX, mouseY)
     self.isHighlighted = false;
     self.selectedAxis = 0;
     self.highlightedAxis = 0;
-
+    
     -- check against the rectangle XY
-    -- <
-    local aX = self.screenSpaceVertices[4][1][1];
-    local aY = self.screenSpaceVertices[4][1][2];
-    -- >
-    local bX = self.screenSpaceVertices[5][1][1];
-    local bY = self.screenSpaceVertices[5][1][2];
-    -- v
-    local cX = self.screenSpaceVertices[5][2][1];
-    local cY = self.screenSpaceVertices[5][2][2];
-    -- ^
-    local dX = self.screenSpaceVertices[1][1][1];
-    local dY = self.screenSpaceVertices[1][1][2];
-    if (mouseX and mouseY and aX and aY and bX and bY) then
+    if (self.axisVisibility[4]) then
+        -- <
+        local aX = self.screenSpaceVertices[4][1][1];
+        local aY = self.screenSpaceVertices[4][1][2];
+        -- >
+        local bX = self.screenSpaceVertices[5][1][1];
+        local bY = self.screenSpaceVertices[5][1][2];
+        -- v
+        local cX = self.screenSpaceVertices[5][2][1];
+        local cY = self.screenSpaceVertices[5][2][2];
+        -- ^
+        local dX = self.screenSpaceVertices[1][1][1];
+        local dY = self.screenSpaceVertices[1][1][2];
         local inTriangle = Math.isPointInPolygon(mouseX, mouseY, aX, aY, cX, cY, bX, bY, dX, dY);
         if (inTriangle) then
             self.isHighlighted = true;
@@ -171,46 +174,63 @@ function MoveGizmo:SelectionCheck(mouseX, mouseY)
     end
 
     -- check against the rectangle XZ
-    -- <
-    local aX = self.screenSpaceVertices[6][1][1];
-    local aY = self.screenSpaceVertices[6][1][2];
-    -- >
-    local bX = self.screenSpaceVertices[7][1][1];
-    local bY = self.screenSpaceVertices[7][1][2];
-    -- v
-    local cX = self.screenSpaceVertices[7][2][1];
-    local cY = self.screenSpaceVertices[7][2][2];
-    -- ^
-    local dX = self.screenSpaceVertices[1][1][1];
-    local dY = self.screenSpaceVertices[1][1][2];
-    if (mouseX and mouseY and aX and aY and bX and bY) then
-        local inTriangle = Math.isPointInPolygon(mouseX, mouseY, aX, aY, cX, cY, bX, bY, dX, dY);
-        if (inTriangle) then
-            self.isHighlighted = true;
-            self.selectedAxis = Gizmo.Axis.XZ;
-            self.highlightedAxis = Gizmo.Axis.XZ;
+    if (self.axisVisibility[5]) then
+        -- <
+        local aX = self.screenSpaceVertices[6][1][1];
+        local aY = self.screenSpaceVertices[6][1][2];
+        -- >
+        local bX = self.screenSpaceVertices[7][1][1];
+        local bY = self.screenSpaceVertices[7][1][2];
+        -- v
+        local cX = self.screenSpaceVertices[7][2][1];
+        local cY = self.screenSpaceVertices[7][2][2];
+        -- ^
+        local dX = self.screenSpaceVertices[1][1][1];
+        local dY = self.screenSpaceVertices[1][1][2];
+        if (mouseX and mouseY and aX and aY and bX and bY) then
+            local inTriangle = Math.isPointInPolygon(mouseX, mouseY, aX, aY, cX, cY, bX, bY, dX, dY);
+            if (inTriangle) then
+                self.isHighlighted = true;
+                self.selectedAxis = Gizmo.Axis.XZ;
+                self.highlightedAxis = Gizmo.Axis.XZ;
+            end
         end
     end
 
     -- check against the rectangle YZ
-    -- <
-    local aX = self.screenSpaceVertices[8][1][1];
-    local aY = self.screenSpaceVertices[8][1][2];
-    -- >
-    local bX = self.screenSpaceVertices[9][1][1];
-    local bY = self.screenSpaceVertices[9][1][2];
-    -- v
-    local cX = self.screenSpaceVertices[9][2][1];
-    local cY = self.screenSpaceVertices[9][2][2];
-    -- ^
-    local dX = self.screenSpaceVertices[1][1][1];
-    local dY = self.screenSpaceVertices[1][1][2];
-    if (mouseX and mouseY and aX and aY and bX and bY) then
-        local inTriangle = Math.isPointInPolygon(mouseX, mouseY, aX, aY, cX, cY, bX, bY, dX, dY);
-        if (inTriangle) then
-            self.isHighlighted = true;
-            self.selectedAxis = Gizmo.Axis.YZ;
-            self.highlightedAxis = Gizmo.Axis.YZ;
+    if (self.axisVisibility[6]) then
+        -- <
+        local aX = self.screenSpaceVertices[8][1][1];
+        local aY = self.screenSpaceVertices[8][1][2];
+        -- >
+        local bX = self.screenSpaceVertices[9][1][1];
+        local bY = self.screenSpaceVertices[9][1][2];
+        -- v
+        local cX = self.screenSpaceVertices[9][2][1];
+        local cY = self.screenSpaceVertices[9][2][2];
+        -- ^
+        local dX = self.screenSpaceVertices[1][1][1];
+        local dY = self.screenSpaceVertices[1][1][2];
+        if (mouseX and mouseY and aX and aY and bX and bY) then
+            local inTriangle = Math.isPointInPolygon(mouseX, mouseY, aX, aY, cX, cY, bX, bY, dX, dY);
+            if (inTriangle) then
+                self.isHighlighted = true;
+                self.selectedAxis = Gizmo.Axis.YZ;
+                self.highlightedAxis = Gizmo.Axis.YZ;
+            end
+        end
+    end
+
+    -- check if the lines are points, to hide axes that are parallel to the camera
+    for t = 1, 3, 1 do
+        local aX = self.screenSpaceVertices[t][1][1];
+        local aY = self.screenSpaceVertices[t][1][2];
+        local bX = self.screenSpaceVertices[t][2][1];
+        local bY = self.screenSpaceVertices[t][2][2];
+
+        if (aX and aY and bX and bY) then
+            local dist = Math.manhattanDistance2D(aX, aY, bX, bY);
+            self.axisVisibility[t] = dist > 10;
         end
     end
     
@@ -218,16 +238,18 @@ function MoveGizmo:SelectionCheck(mouseX, mouseY)
     if (not self.isHighlighted) then
         local minDists = { 10000, 10000, 10000 };
         for t = 1, 3, 1 do
-            local aX = self.screenSpaceVertices[t][1][1];
-            local aY = self.screenSpaceVertices[t][1][2];
-            local bX = self.screenSpaceVertices[t][2][1];
-            local bY = self.screenSpaceVertices[t][2][2];
+            if (self.axisVisibility[t]) then
+                local aX = self.screenSpaceVertices[t][1][1];
+                local aY = self.screenSpaceVertices[t][1][2];
+                local bX = self.screenSpaceVertices[t][2][1];
+                local bY = self.screenSpaceVertices[t][2][2];
 
-            if (mouseX and mouseY and aX and aY and bX and bY) then
-                local dist = Math.distToSegment({mouseX, mouseY}, {aX, aY}, {bX, bY});
-                if (dist < 10) then
-                    if (minDists[t] > dist) then
-                        minDists[t] = dist;
+                if (mouseX and mouseY and aX and aY and bX and bY) then
+                    local dist = Math.distToSegment({mouseX, mouseY}, {aX, aY}, {bX, bY});
+                    if (dist < 10) then
+                        if (minDists[t] > dist) then
+                            minDists[t] = dist;
+                        end
                     end
                 end
             end
@@ -246,6 +268,9 @@ end
 
 --- Shades the move gizmo based on the highlighted axis.
 function MoveGizmo:Shade()
+    local normalAlpha;
+    local mouseOverAlpha;
+
     for t = 1, 3, 1 do
         if (self.lines[t].axis == self.highlightedAxis) then
             self.faceColors[t][4] = 1.0;
@@ -267,6 +292,20 @@ function MoveGizmo:Shade()
             self.faceColors[t][4] = 0.3;
         end
     end
+
+    for t = 1, self.lineCount, 1 do
+        if (not self.axisVisibility[self.lines[t].axis]) then
+            self.faceColors[t][4] = 0;
+        end
+    end
+end
+
+function MoveGizmo:HideAxis(axis)
+    self.axisVisibility[axis] = false;
+end
+
+function MoveGizmo:ShowAxis(axis)
+    self.axisVisibility[axis] = true;
 end
 
 --- Returns a string representation of the Gizmo object.

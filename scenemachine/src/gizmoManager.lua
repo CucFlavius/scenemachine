@@ -312,6 +312,10 @@ function GM.SelectionCheck(mouseX, mouseY)
         -- Position --
         if (GM.activeTransformGizmo == Gizmo.TransformType.Move) then
             GM.isHighlighted, GM.selectedAxis, GM.highlightedAxis = GM.moveGizmo:SelectionCheck(mouseX, mouseY);
+            if (not GM.moveGizmo.axisVisibility[GM.highlightedAxis]) then
+                GM.isHighlighted = false;
+                GM.selectedAxis = -1;
+            end
         -- Rotation --
         elseif (GM.activeTransformGizmo == Gizmo.TransformType.Rotate) then
             GM.isHighlighted, GM.selectedAxis, GM.highlightedAxis = GM.rotateGizmo:SelectionCheck(mouseX, mouseY);
@@ -319,6 +323,48 @@ function GM.SelectionCheck(mouseX, mouseY)
         elseif(GM.activeTransformGizmo == Gizmo.TransformType.Scale) then
             GM.isHighlighted, GM.selectedAxis, GM.highlightedAxis = GM.scaleGizmo:SelectionCheck(mouseX, mouseY);
         end
+    end
+end
+
+function GM.CalculateAngleBetweenPlanes(planeA, planeB)
+    local dot = SceneMachine.Vector3.DotProduct(planeA, planeB);
+    local magA = SceneMachine.Vector3.Magnitude(planeA);
+    local magB = SceneMachine.Vector3.Magnitude(planeB);
+    return math.acos(dot / (magA * magB));
+end
+
+function GM.MoveGizmoParalelAxesCheck()
+    local x, y = Renderer.projectionFrame:Project3DPointTo2D(SM.selectedWorldPosition.x, SM.selectedWorldPosition.y, SM.selectedWorldPosition.z);
+    local ray = Camera.ScreenPointToRay(x, y);
+
+    -- xy
+    local direction = GM.axisToDirectionVector[Gizmo.Axis.Z];
+    local angle = GM.CalculateAngleBetweenPlanes(direction, ray.direction);
+
+    if (angle > 1.5 and angle < 1.7) then
+        GM.moveGizmo:HideAxis(Gizmo.Axis.XY);
+    else
+        GM.moveGizmo:ShowAxis(Gizmo.Axis.XY);
+    end
+
+    -- xz
+    direction = GM.axisToDirectionVector[Gizmo.Axis.Y];
+    angle = GM.CalculateAngleBetweenPlanes(direction, ray.direction);
+
+    if (angle > 1.5 and angle < 1.7) then
+        GM.moveGizmo:HideAxis(Gizmo.Axis.XZ);
+    else
+        GM.moveGizmo:ShowAxis(Gizmo.Axis.XZ);
+    end
+
+    -- yz
+    direction = GM.axisToDirectionVector[Gizmo.Axis.X];
+    angle = GM.CalculateAngleBetweenPlanes(direction, ray.direction);
+
+    if (angle > 1.5 and angle < 1.7) then
+        GM.moveGizmo:HideAxis(Gizmo.Axis.YZ);
+    else
+        GM.moveGizmo:ShowAxis(Gizmo.Axis.YZ);
     end
 end
 
@@ -340,6 +386,7 @@ function GM.VisibilityCheck()
             GM.moveGizmo:Show();
             GM.rotateGizmo:Hide();
             GM.scaleGizmo:Hide();
+            GM.MoveGizmoParalelAxesCheck();
         elseif (GM.activeTransformGizmo == Gizmo.TransformType.Rotate) then
             GM.moveGizmo:Hide();
             GM.rotateGizmo:Show();
