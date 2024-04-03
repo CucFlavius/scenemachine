@@ -6,74 +6,12 @@ local PooledScrollList = UI.PooledScrollList;
 PooledScrollList.__index = PooledScrollList;
 setmetatable(PooledScrollList, UI.Element)
 
---- Creates a new instance of the PooledScrollList class.
---- @param x number? The x-coordinate of the scroll list's position.
---- @param y number? The y-coordinate of the scroll list's position.
---- @param w number? The width of the scroll list.
---- @param h number? The height of the scroll list.
---- @param parent table? The parent element of the scroll list.
---- @param point string? The anchor point of the scroll list relative to its parent.
---- @param parentPoint string? The anchor point of the parent element relative to the scroll list.
---- @return PooledScrollList: The newly created PooledScrollList instance.
-function PooledScrollList:New(x, y, w, h, parent, point, parentPoint)
-    --- @class PooledScrollList : Element
-    local v =
-    {
-        x = x or 0,
-        y = y or 0,
-        w = w or 20,
-        h = h or 20,
-        parent = parent or nil,
-        point = point or "TOPLEFT",
-        parentPoint = parentPoint or "TOPLEFT",
-        viewportHeight = 0;
-        visible = true,
-        currentDif = 0,
-        currentPos = 0,
-    };
-
-    setmetatable(v, PooledScrollList);
-
-    v.frame = CreateFrame("Frame", "SceneMachine.UI.PooledScrollList.frame", v.parent);
-    v.frame:SetPoint(v.point, v.parent, v.parentPoint, v.x, v.y);
-    v.frame:SetSize(v.w, v.h);
-
-    v:Build();
-
-    return v;
-end
-
---- Creates a new instance of the PooledScrollList class.
---- @param xA number The x-coordinate of the top-left corner of the scroll list.
---- @param yA number The y-coordinate of the top-left corner of the scroll list.
---- @param xB number The x-coordinate of the bottom-right corner of the scroll list.
---- @param yB number The y-coordinate of the bottom-right corner of the scroll list.
---- @param parent table? The parent frame of the scroll list.
---- @return PooledScrollList: The newly created PooledScrollList instance.
-function PooledScrollList:NewTLBR(xA, yA, xB, yB, parent)
-    --- @class PooledScrollList : Element
-    local v =
-    {
-        parent = parent or nil,
-        viewportHeight = 0;
-        visible = true,
-        currentDif = 0,
-        currentPos = 0,
-    };
-
-    setmetatable(v, PooledScrollList);
-
-    v.frame = CreateFrame("Frame", "SceneMachine.UI.PooledScrollList.frame", v.parent);
-    v.frame:SetPoint("TOPLEFT", parent, "TOPLEFT", xA, yA);
-    v.frame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", xB, yB);
-
-    v:Build();
-
-    return v;
-end
-
 --- Builds the PooledScrollList.
 function PooledScrollList:Build()
+    self.viewportHeight = 0;
+    self.currentDif = 0;
+    self.currentPos = 0;
+
     -- Set the OnMouseWheel script for the frame
     self.frame:SetScript("OnMouseWheel",
         function(_, delta)

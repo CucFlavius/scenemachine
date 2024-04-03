@@ -16,109 +16,16 @@ Button.State = {
     Pressed = 2
 }
 
---- Creates a new Button object.
---- @param x number? The x-coordinate of the button's position.
---- @param y number? The y-coordinate of the button's position.
---- @param w number? The width of the button.
---- @param h number? The height of the button.
---- @param parent table? The parent frame of the button.
---- @param point string? The anchor point of the button relative to its parent.
---- @param parentPoint string? The anchor point of the parent object.
---- @param text string? The text to be displayed on the button.
---- @param iconTexture string? The path to the icon texture for the button.
---- @param texcoords table? The texture coordinates for the button's icon.
---- @return Button: The newly created Button object.
-function Button:New(x, y, w, h, parent, point, parentPoint, text, iconTexture, texcoords)
-    --- @class Button : Element
-    local v = 
-    {
-        x = x or 0,
-        y = y or 0,
-        w = w or 20,
-        h = h or 20,
-        parent = parent or nil,
-        point = point or "TOPLEFT",
-        parentPoint = parentPoint or "TOPLEFT",
-        text = text or nil,
-        iconTexture = iconTexture or nil,
-        texcoords = texcoords or {0, 1, 0, 1},
-        visible = true,
-        tooltip = nil,
-    };
-
-    setmetatable(v, Button);
-
-	v.frame = CreateFrame("Button", "SceneMachine.UI.Button.frame", v.parent);
-	v.frame:SetPoint(v.point, v.parent, v.parentPoint, v.x, v.y);
-	v.frame:SetSize(v.w, v.h);
-
-    v:Build();
-    return v;
-end
-
---- Creates a new Button object with top-left to top-right positioning.
---- @param xA number The x-coordinate of the top-left corner of the button.
---- @param yA number The y-coordinate of the top-left corner of the button.
---- @param xB number The x-coordinate of the top-right corner of the button.
---- @param yB number The y-coordinate of the top-right corner of the button.
---- @param h number The height of the button.
---- @param parent table The parent frame of the button.
---- @param text string? The text to display on the button.
---- @param iconTexture string? The texture path for the button's icon.
---- @param texcoords table? The texture coordinates for the button's icon.
---- @return Button: The newly created Button object.
-function Button:NewTLTR(xA, yA, xB, yB, h, parent, text, iconTexture, texcoords)
-    --- @class Button : Element
-    local v =
-    {
-        parent = parent or nil,
-        text = text or nil,
-        iconTexture = iconTexture or nil,
-        texcoords = texcoords or {0, 1, 0, 1},
-        visible = true,
-        tooltip = nil,
-    };
-
-    setmetatable(v, Button);
-
-    v.frame = CreateFrame("Button", "SceneMachine.UI.Button.frame", v.parent);
-    v.frame:SetPoint("TOPLEFT", v.parent, "TOPLEFT", xA, yA);
-    v.frame:SetPoint("TOPRIGHT", v.parent, "TOPRIGHT", xB, yB);
-    v.frame:SetHeight(h);
-
-    v:Build();
-    return v;
-end
-
---- Creates a new Button object with all points anchored to the parent.
---- @param parent table The parent object to anchor the button to.
---- @param text string? The text to display on the button.
---- @param iconTexture string? The path to the icon texture to display on the button.
---- @param texcoords table? The texture coordinates for the icon texture.
---- @return Button: The newly created Button object.
-function Button:NewAP(parent, text, iconTexture, texcoords)
-    --- @class Button : Element
-    local v =
-    {
-        parent = parent or nil,
-        text = text or nil,
-        iconTexture = iconTexture or nil,
-        texcoords = texcoords or {0, 1, 0, 1},
-        visible = true,
-        tooltip = nil,
-    };
-
-    setmetatable(v, Button);
-
-    v.frame = CreateFrame("Button", "SceneMachine.UI.Button.frame", parent);
-    v.frame:SetAllPoints(v.parent);
-
-    v:Build();
-    return v;
+function Button:GetFrameType()
+    return "Button";
 end
 
 --- Builds the button by creating and configuring its textures, icon, and text.
 function Button:Build()
+    self.text = self.values[1] or nil;
+    self.iconTexture = self.values[2] or nil;
+    self.texcoords = self.values[3] or {0, 1, 0, 1};
+
     -- normal texture
     self.ntex = self.frame:CreateTexture();
     self.ntex:SetColorTexture(0.1757, 0.1757, 0.1875, 1);

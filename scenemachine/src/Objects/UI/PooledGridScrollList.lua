@@ -7,84 +7,10 @@ local PooledGridScrollList = UI.PooledGridScrollList;
 PooledGridScrollList.__index = PooledGridScrollList;
 setmetatable(PooledGridScrollList, UI.Element)
 
---- Creates a new instance of PooledGridScrollList.
---- @param x number? The x-coordinate of the list's position.
---- @param y number? The y-coordinate of the list's position.
---- @param w number? The width of the list.
---- @param h number? The height of the list.
---- @param parent table? The parent element of the list.
---- @param point string? The anchor point of the list relative to its parent.
---- @param parentPoint string? The anchor point of the parent element.
---- @return PooledGridScrollList: The newly created PooledGridScrollList instance.
-function PooledGridScrollList:New(x, y, w, h, parent, point, parentPoint)
-    --- @class PooledGridScrollList : Element
-	local v =
-    {
-        x = x or 0,
-        y = y or 0,
-        w = w or 20,
-        h = h or 20,
-        parent = parent or nil,
-        point = point or "TOPLEFT",
-        parentPoint = parentPoint or "TOPLEFT",
-        viewportHeight = 0;
-        visible = true,
-    };
-
-	setmetatable(v, PooledGridScrollList);
-
-	v.frame = CreateFrame("Frame", "SceneMachine.UI.PooledGridScrollList.frame", v.parent);
-	v.frame:SetPoint(v.point, v.parent, v.parentPoint, v.x, v.y);
-	v.frame:SetSize(v.w, v.h);
-
-    v:Build();
-
-	return v;
-end
-
---- Creates a new instance of the PooledGridScrollList class.
---- @param xA number The x-coordinate of the top-left corner of the scroll list.
---- @param yA number The y-coordinate of the top-left corner of the scroll list.
---- @param xB number The x-coordinate of the bottom-right corner of the scroll list.
---- @param yB number The y-coordinate of the bottom-right corner of the scroll list.
---- @param parent table? The parent frame to attach the scroll list to.
---- @return PooledGridScrollList: The newly created PooledGridScrollList instance.
-function PooledGridScrollList:NewTLBR(xA, yA, xB, yB, parent)
-    --- @class PooledGridScrollList : Element
-    local v =
-    {
-        parent = parent or nil,
-        viewportHeight = 0;
-        visible = true,
-    };
-
-    setmetatable(v, PooledGridScrollList);
-
-    v.frame = CreateFrame("Frame", "SceneMachine.UI.PooledGridScrollList.frame", parent);
-    v.frame:SetPoint("TOPLEFT", parent, "TOPLEFT", xA, yA);
-    v.frame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", xB, yB);
-
-    v:Build();
-
-    return v;
-end
-
---- Sets the frame level of the PooledGridScrollList and its components.
---- @param level number The new frame level to set.
-function PooledGridScrollList:SetFrameLevel(level)
-    self.frame:SetFrameLevel(level);
-    self.viewport:SetFrameLevel(level + 1);
-
-    for i = 1, #self.itemPool, 1 do
-        self.itemPool[i]:SetFrameLevel(level + 2 + i);
-        for c = 1, #self.itemPool[i].components, 1 do
-            self.itemPool[i].components[c]:SetFrameLevel(level + 2 + i + c);
-        end
-    end
-end
-
 --- Builds the PooledGridScrollList.
 function PooledGridScrollList:Build()
+    self.viewportHeight = 0;
+
     -- Set the OnMouseWheel script for the frame
     self.frame:SetScript("OnMouseWheel",
         function(_, delta)
@@ -121,6 +47,20 @@ function PooledGridScrollList:Build()
     self.itemPool = {};
     self.dataStartIdx = 1;
     self.rowStartIdx = 1;
+end
+
+--- Sets the frame level of the PooledGridScrollList and its components.
+--- @param level number The new frame level to set.
+function PooledGridScrollList:SetFrameLevel(level)
+    self.frame:SetFrameLevel(level);
+    self.viewport:SetFrameLevel(level + 1);
+
+    for i = 1, #self.itemPool, 1 do
+        self.itemPool[i]:SetFrameLevel(level + 2 + i);
+        for c = 1, #self.itemPool[i].components, 1 do
+            self.itemPool[i].components[c]:SetFrameLevel(level + 2 + i + c);
+        end
+    end
 end
 
 --- Sets the item template for the PooledGridScrollList.

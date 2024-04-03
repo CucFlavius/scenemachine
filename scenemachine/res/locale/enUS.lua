@@ -77,6 +77,7 @@ L["MM_SCENE_EXPORT"] = "Export";
 L["MM_SCENE_IMPORT"] = "Import";
 L["MM_TITLE_SCENE_NAME"] = "Scene Name";
 L["MM_TITLE_SCENE_RENAME"] = "Scene Rename";
+L["MM_SETTINGS"] = "Settings";
 
 -- Context Menu --
 L["CM_SELECT"] = "Select";
@@ -246,6 +247,9 @@ L["ABOUT_DESCRIPTION"] = "Scene Machine is a tool for creating and editing 3d sc
 L["ABOUT_LICENSE"] = "Licensed under the MIT License";
 L["ABOUT_AUTHOR"] = "Author: %s";
 L["ABOUT_CONTACT"] = "Contact: %s";
+
+-- Settings window --
+L["SETTINGS_WINDOW_TITLE"] = "Settings";
 
 -- Error Messages --
 L["DECODE_FAILED"] = "Failed to decode data.";

@@ -4,6 +4,7 @@ local UI = SceneMachine.UI;
 local Resources = SceneMachine.Resources;
 local L = Editor.localization;
 local SM = Editor.SceneManager;
+local Settings = SceneMachine.Settings;
 
 function MainMenu.OpenKeyboardShortcuts()
     if (not Editor.KeyboardShortcutsWindow) then
@@ -69,6 +70,7 @@ function MainMenu.Create()
         {
             ["Name"] = L["MM_OPTIONS"],
             ["Options"] = {
+                { ["Name"] = L["MM_SETTINGS"], ["Action"] = function() Settings.OpenSettingsWindow(); end },
                 { ["Name"] = string.format(L["MM_SET_SCALE"], "80%"), ["Action"] = function() Editor.SetScale(80); end },
                 { ["Name"] = string.format(L["MM_SET_SCALE"], "90%"), ["Action"] = function() Editor.SetScale(90); end },
                 { ["Name"] = string.format(L["MM_SET_SCALE"], "100%"), ["Action"] = function() Editor.SetScale(100); end },

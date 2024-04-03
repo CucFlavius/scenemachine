@@ -16,47 +16,13 @@ UI.SplitButton.State = {
     Pressed = 2
 }
 
---- Creates a new SplitButton object.
---- @param x number? The x position of the SplitButton. Default is 0.
---- @param y number? The y position of the SplitButton. Default is 0.
---- @param w number? The width of the SplitButton. Default is 20.
---- @param h number? The height of the SplitButton. Default is 20.
---- @param parent table? The parent element of the SplitButton. Default is nil.
---- @param point string? The anchor point of the SplitButton. Default is "TOPLEFT".
---- @param parentPoint string? The anchor point of the parent element. Default is "TOPLEFT".
---- @param iconTextures table? The icon textures for the SplitButton. Default is an empty table.
---- @param texcoords table? The texture coordinates for the SplitButton. Default is an empty table.
---- @param splitaction function The the function to call when the mouse is held down on the button.
---- @param action function The function to call when the button is clicked.
---- @return SplitButton: The newly created SplitButton object.
-function SplitButton:New(x, y, w, h, parent, point, parentPoint, iconTextures, texcoords, splitaction, action)
-    --- @class SplitButton : Element
-    local v =
-    {
-        x = x or 0,
-        y = y or 0,
-        w = w or 20,
-        h = h or 20,
-        parent = parent or nil,
-        point = point or "TOPLEFT",
-        parentPoint = parentPoint or "TOPLEFT",
-        iconTextures = iconTextures or {},
-        texcoords = texcoords or {},
-        visible = true,
-        splitaction = splitaction,
-        action = action,
-        currentOption = 1,
-        tooltip = nil,
-        tooltipDetailed = nil,
-    };
-
-    setmetatable(v, SplitButton);
-    v:Build();
-    return v;
-end
-
 --- Builds the SplitButton UI element.
 function SplitButton:Build()
+    self.iconTextures = self.values[1] or {};
+    self.texcoords = self.values[2] or {};
+    self.splitaction = self.values[3];
+    self.action = self.values[4];
+    self.currentOption = 1;
     -- main SplitButton frame
 
     -- Create the splitButton using the UI.Button class.

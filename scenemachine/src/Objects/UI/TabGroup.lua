@@ -9,43 +9,17 @@ local TabGroup = UI.TabGroup;
 TabGroup.__index = TabGroup;
 setmetatable(TabGroup, UI.Element)
 
---- Creates a new TabGroup object.
---- @param xA number The x-coordinate of the top-left corner of the TabGroup frame.
---- @param yA number The y-coordinate of the top-left corner of the TabGroup frame.
---- @param xB number The x-coordinate of the top-right corner of the TabGroup frame.
---- @param yB number The y-coordinate of the top-right corner of the TabGroup frame.
---- @param h number? The height of the TabGroup frame.
---- @param parent table The parent frame of the TabGroup.
---- @param startLevel number The starting level of the TabGroup.
---- @param editable boolean Indicates whether the TabGroup is editable.
---- @return TabGroup: The newly created TabGroup object.
-function TabGroup:NewTLTR(xA, yA, xB, yB, h, parent, startLevel, editable)
-    --- @class TabGroup : Element
-    local v =
-    {
-        h = h or 20,
-        parent = parent or nil,
-        viewportWidth = 0;
-        visible = true,
-        startLevel = startLevel,
-        position = 0,
-        usedItems = 0,
-        editable = editable,
-        selectedIndex = 0,
-    };
-
-    setmetatable(v, TabGroup);
-
-    v.frame = CreateFrame("Frame", "SceneMachine.UI.Label.frame", parent);
-    v.frame:SetPoint("TOPLEFT", parent, "TOPLEFT", xA, yA);
-    v.frame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", xB, yB);
-    v.frame:SetHeight(h);
-    v:Build();
-    return v;
-end
-
 -- Builds the TabGroup UI element
 function TabGroup:Build()
+    self.viewportWidth = 0;
+    self.position = 0;
+    self.usedItems = 0;
+    self.selectedIndex = 0;
+    self.startLevel = self.values[1];
+    self.editable = self.values[2];
+
+    local h = self:GetHeight();
+
     -- Set the OnMouseWheel script for the frame
     self.frame:SetScript("OnMouseWheel", function(_, delta)
         if (self.scrollbar.enabled) then
@@ -60,7 +34,7 @@ function TabGroup:Build()
     end
 
     -- Create the dropdown button
-    self.dropdownButton = UI.Button:New(0, 0, self.h, self.h, self.frame, "TOPRIGHT", "TOPRIGHT", nil, Resources.textures["ArrowDown"], nil);
+    self.dropdownButton = UI.Button:New(0, 0, h, h, self.frame, "TOPRIGHT", "TOPRIGHT", nil, Resources.textures["ArrowDown"], nil);
     self.dropdownButton.icon:SetSize(7, 7);
     self.dropdownButton:SetColor(UI.Button.State.Normal, 0, 0, 0, 0);
 
@@ -75,18 +49,18 @@ function TabGroup:Build()
                 end
             end };
         end
-        local rx = (self.dropdownButton:GetLeft() - SceneMachine.mainWindow:GetLeft()) - SceneMachine.mainWindow.popup.menu:GetWidth() + self.h;
-        local ry = (self.dropdownButton:GetTop() - SceneMachine.mainWindow:GetTop()) - self.h;
+        local rx = (self.dropdownButton:GetLeft() - SceneMachine.mainWindow:GetLeft()) - SceneMachine.mainWindow.popup.menu:GetWidth() + h;
+        local ry = (self.dropdownButton:GetTop() - SceneMachine.mainWindow:GetTop()) - h;
         local scale =  SceneMachine.mainWindow:GetEffectiveScale();
         SceneMachine.mainWindow:PopupWindowMenu(rx * scale, ry * scale, menuOptions);
     end);
 
     -- Calculate the button space
-    local buttonSpace = self.h;
+    local buttonSpace = h;
     if (self.editable) then
-        buttonSpace = buttonSpace + self.h;
+        buttonSpace = buttonSpace + h;
         -- Create the add button
-        self.addButton = UI.Button:New(-self.h, 0, self.h, self.h, self.frame, "TOPRIGHT", "TOPRIGHT", nil, Resources.textures["Add"], nil);
+        self.addButton = UI.Button:New(-h, 0, h, h, self.frame, "TOPRIGHT", "TOPRIGHT", nil, Resources.textures["Add"], nil);
         self.addButton.icon:SetSize(7, 7);
         self.addButton:SetColor(UI.Button.State.Normal, 0, 0, 0, 0);
 
@@ -99,13 +73,13 @@ function TabGroup:Build()
 
     -- Create the edit box if editable
     if (self.editable) then
-        self.editBox = UI.TextBox:New(0, 0, 100, self.h, self.frame, "TOPLEFT", "TOPLEFT", "Rename");
+        self.editBox = UI.TextBox:New(0, 0, 100, h, self.frame, "TOPLEFT", "TOPLEFT", "Rename");
         self.editBox.frame.texture:SetColorTexture(0,0,0,1);
         self.editBox:Hide();
     end
 
     -- Create the viewport
-    self.viewport = UI.Rectangle:NewTLTR(0, 0, -buttonSpace, 0, self.h - 5, self.frame, 1, 0, 1, 0);
+    self.viewport = UI.Rectangle:NewTLTR(0, 0, -buttonSpace, 0, h - 5, self.frame, 1, 0, 1, 0);
     self.viewport:SetClipsChildren(true);
     self.viewport:GetFrame():SetScript("OnSizeChanged", function(_, width, height)
         self.viewportWidth = width;
@@ -350,5 +324,5 @@ function TabGroup:Refresh(dif)
 end
 
 TabGroup.__tostring = function(self)
-	return string.format("TabGroup( %.3f, %.3f, %.3f, %.3f, %s )", self.x, self.y, self.w, self.h, self.parent);
+	return string.format("TabGroup( %.3f, %.3f, %.3f, %.3f, %s )", self.x, self.y, self.w, h, self.parent);
 end

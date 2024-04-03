@@ -86,7 +86,7 @@ function CreateFrame(frameType) end
 
 ---Creates a new UI frame.
 ---@param frameType string Type of the frame to be created (XML tag name): "Frame", "Button", etc. See UIOBJECT_Frame
----@param frameName string Name of the newly created frame. If nil, no frame name is assigned. The function will also set a global variable of this name to point to the newly created frame.
+---@param frameName string? Name of the newly created frame. If nil, no frame name is assigned. The function will also set a global variable of this name to point to the newly created frame.
 ---@param parentFrame table The frame object that will be used as the created Frame's parent (cannot be a string!) Does not default to UIParent if given nil.
 ---@param inheritsFrame string A comma-delimited list of names of virtual frames to inherit from (the same as in XML). If nil, no frames will be inherited. These frames cannot be frames that were created using this function, they must be created using XML with virtual="true" in the tag.
 ---@return table newFrame Frame - Reference to the newly created frame.
@@ -138,6 +138,7 @@ ObjectiveTrackerFrame = {};
 --------------------
 LibStub = {};
 ZWindowAPI = {};
+C_Timer = {};
 
 --- Returns the system uptime of your computer in seconds, with millisecond precision.
 ---@return number seconds Floating Point Number - The current system uptime in seconds.
