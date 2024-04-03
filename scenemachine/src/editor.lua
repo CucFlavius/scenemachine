@@ -894,3 +894,9 @@ function Editor.ShowFullscreenNotification()
         Editor.fullscreenNotification:Hide();
     end);
 end
+
+--- Slash command
+SLASH_SCENEMACHINE1 = "/scenemachine";
+SlashCmdList["SCENEMACHINE"] = function(msg, editbox) -- 4.
+    Editor.Toggle();
+end
