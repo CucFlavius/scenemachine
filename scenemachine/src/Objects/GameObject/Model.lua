@@ -18,7 +18,7 @@ setmetatable(Model, Actor)
 --- @param rotation Vector3? (optional) The rotation of the model.
 --- @param scale number? (optional) The scale of the model.
 --- @return Model v The newly created Model instance.
-function Model:New(name, fileID, position, rotation, scale, scene)
+function Model:New(scene, name, fileID, position, rotation, scale)
     local v =
     {
         fileID = fileID or 0,

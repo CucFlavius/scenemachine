@@ -220,7 +220,7 @@ end
 --- @param z number The z-coordinate of the object's position.
 --- @return Model: The newly created model object.
 function Scene:CreateObject(fileID, name, x, y, z)
-    local object = SceneMachine.GameObjects.Model:New(name, fileID, Vector3:New(x, y, z), self);
+    local object = SceneMachine.GameObjects.Model:New(self, name, fileID, Vector3:New(x, y, z));
     table.insert(self.objects, object);
 
     -- Create actor
@@ -260,7 +260,7 @@ end
 --- @param z number The z-coordinate of the character's position.
 --- @return Character: The created character object.
 function Scene:CreateCharacter(x, y, z)
-    local object = SceneMachine.GameObjects.Character:New(UnitName("player"), Vector3:New(x, y, z), self);
+    local object = SceneMachine.GameObjects.Character:New(self, UnitName("player"), Vector3:New(x, y, z));
     table.insert(self.objects, object);
 
     -- Create actor
@@ -298,7 +298,7 @@ function Scene:CreateCamera(fov, nearClip, farClip, x, y, z, rx, ry, rz)
     nearClip = nearClip or 0.01;
     farClip = farClip or 1000;
 
-    local object = SceneMachine.GameObjects.Camera:New(name, position, rotation, fov, nearClip, farClip, self);
+    local object = SceneMachine.GameObjects.Camera:New(self, name, position, rotation, fov, nearClip, farClip);
     table.insert(self.objects, object);
 
     self:AddObjectToHierarchy(object.id);

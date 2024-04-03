@@ -17,7 +17,7 @@ setmetatable(Character, Actor)
 --- @param rotation Vector3? (optional) The rotation of the character.
 --- @param scale number? (optional) The scale of the character.
 --- @return Character v The newly created Character object.
-function Character:New(name, position, rotation, scale, scene)
+function Character:New(scene, name, position, rotation, scale)
     local v = 
     {
         fileID = -1,

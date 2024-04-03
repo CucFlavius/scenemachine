@@ -75,7 +75,6 @@ function PM.CreateWindow()
 end
 
 function PM.LoadSavedData()
-    print("PM.LoadSavedData()");
     PM.projects = scenemachine_projects or {};
 
     PM.projectListIDs = {}
@@ -118,7 +117,6 @@ function PM.CreateProject(name)
 end
 
 function PM.CreateDefaultProject()
-    print("PM.CreateDefaultProject()");
     local project = PM.CreateProject("MyNewProject");
     project.lastLoaded = true;
     return project.ID;
@@ -167,7 +165,6 @@ function PM.LoadProject(ID)
 end
 
 function PM.LoadLastProject()
-    print("PM.LoadLastProject()");
     for ID in pairs(PM.projects) do 
         if (PM.projects[ID].lastLoaded == true) then
             PM.LoadProject(ID);
@@ -177,7 +174,6 @@ function PM.LoadLastProject()
 end
 
 function PM.GenerateUniqueProjectID()
-    print("PM.GenerateUniqueProjectID()");
     local ID = "P"..math.random(999999);
     for ID in pairs(PM.projects) do
         if (PM.projects[ID].ID == ID) then

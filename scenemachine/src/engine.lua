@@ -7,8 +7,6 @@ local Editor = SceneMachine.Editor;
 local AM = SceneMachine.Editor.AnimationManager;
 local SH = Editor.SceneHierarchy;
 
-print("Running SceneMachine")
-
 local TimeSinceLastUpdate = 0;
 SceneMachine.time = 0;
 

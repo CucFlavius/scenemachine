@@ -41,8 +41,6 @@ function Renderer.GenerateFrameBuffer(startLevel)
 		Renderer.FrameBufferFrames[t].texture:SetColorTexture(1,1,1,1);
         
         Renderer.FrameBufferFrames[t]:EnableMouse(true);
-        Renderer.FrameBufferFrames[t]:SetScript('OnEnter', function() print("Enter " .. t) end);
-        Renderer.FrameBufferFrames[t]:SetScript('OnLeave', function() print("Exit " .. t) end);
 		Renderer.FrameBufferFrames[t]:Hide();
 	end
 
