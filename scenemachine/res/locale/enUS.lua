@@ -239,6 +239,14 @@ L["COLP_H"] = "H";  -- Hue
 L["COLP_S"] = "S";  -- Saturation
 L["COLP_L"] = "L";  -- Lightness
 
+-- About Screen --
+L["ABOUT_WINDOW_TITLE"] = "Scene Machine";
+L["ABOUT_VERSION"] = "Version %s";
+L["ABOUT_DESCRIPTION"] = "Scene Machine is a tool for creating and editing 3d scenes using available in-game models. It uses the ModelScene API at its base, so some limitations apply.";
+L["ABOUT_LICENSE"] = "Licensed under the MIT License";
+L["ABOUT_AUTHOR"] = "Author: %s";
+L["ABOUT_CONTACT"] = "Contact: %s";
+
 -- Error Messages --
 L["DECODE_FAILED"] = "Failed to decode data.";
 L["DECOMPRESS_FAILED"] = "Failed to decompress data.";

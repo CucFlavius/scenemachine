@@ -18,6 +18,26 @@ function MainMenu.OpenKeyboardShortcuts()
     Editor.KeyboardShortcutsWindow:Show();
 end
 
+function MainMenu.OpenAboutWindow()
+    if (not Editor.AboutWindow) then
+        Editor.AboutWindow = UI.Window:New(0, 0, 400, 200, SceneMachine.mainWindow:GetFrame(), "CENTER", "CENTER", L["ABOUT_WINDOW_TITLE"]);
+        Editor.AboutWindow:MakeWholeWindowDraggable();
+        Editor.AboutWindow:SetFrameStrata(Editor.SUB_FRAME_STRATA);
+        Editor.AboutWindow.resizeFrame:Hide();
+
+        local text = L["ABOUT_WINDOW_TITLE"] .. "\n" ..
+                        string.format(L["ABOUT_VERSION"], Editor.version) .. "\n" ..
+                        L["ABOUT_DESCRIPTION"] .. "\n\n" ..
+                        L["ABOUT_LICENSE"] .. "\n" ..
+                        string.format(L["ABOUT_AUTHOR"], "Zee (Flavius Cuc)") .. "\n" ..
+                        string.format(L["ABOUT_CONTACT"], "Email: cucflavius@gmail.com, InGame: Songzhu/Songzee") .. "\n";
+                        
+        local aboutText = UI.Label:NewTLTR(10, 10, 10, 10, 200, Editor.AboutWindow:GetFrame(), text);
+    end
+
+    Editor.AboutWindow:Show();
+end
+
 function MainMenu.Create()
 	local menu = 
     {
@@ -60,7 +80,7 @@ function MainMenu.Create()
             ["Name"] = L["MM_HELP"],
             ["Options"] = {
                 { ["Name"] = L["MM_KEYBOARD_SHORTCUTS"], ["Action"] = MainMenu.OpenKeyboardShortcuts },
-                --{ ["Name"] = L["MM_ABOUT"], ["Action"] = nil },
+                { ["Name"] = L["MM_ABOUT"], ["Action"] = MainMenu.OpenAboutWindow },
             },
         },
     };

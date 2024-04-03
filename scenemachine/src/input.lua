@@ -197,7 +197,11 @@ function Input.Update()
         if (Editor.messageBox) then
             messageBox = Editor.messageBox:IsVisible();
         end
-        if (animSelectWindow or projectManager or colorPicker or ioWindow or renameWindow or messageBox or keyboardShortcuts) then
+        local aboutWindow = nil;
+        if (Editor.AboutWindow) then
+            aboutWindow = Editor.AboutWindow:IsVisible();
+        end
+        if (animSelectWindow or projectManager or colorPicker or ioWindow or renameWindow or messageBox or keyboardShortcuts or aboutWindow) then
             return;
         end
     end
