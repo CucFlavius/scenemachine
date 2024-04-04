@@ -19,6 +19,7 @@ local ScaleGizmo = SceneMachine.Gizmos.ScaleGizmo;
 local CameraGizmo = SceneMachine.Gizmos.CameraGizmo;
 local Object = SceneMachine.GameObjects.Object;
 local Quaternion = SceneMachine.Quaternion;
+local Settings = SceneMachine.Settings;
 
 GM.isUsed = false;
 GM.isHighlighted = false;
@@ -34,6 +35,7 @@ GM.marqueeOn = false;
 GM.marqueeVisible = false;
 GM.marqueeStartPoint = nil;
 GM.marqueeAABBSSPoints = nil;
+GM.lastSelectedCamera = nil;
 
 GM.space = Gizmo.Space.Local;
 GM.selectedAxis = Gizmo.Axis.X;
@@ -122,6 +124,10 @@ function GM.StartMarqueeSelect()
         return;
     end
 
+    if (Input.IsChildWindowOpen()) then
+        return;
+    end
+
     GM.marqueeOn = true;
     GM.marqueeVisible = false;
 
@@ -148,8 +154,10 @@ function GM.EndMarqueeSelect()
             end
         end
         SM.SelectObjects(selectedObjects);
-        for i = 1, #selectedObjects, 1 do
-            selectedObjects[i]:Select();
+        if (Settings.ShowSelectionHighlight()) then
+            for i = 1, #selectedObjects, 1 do
+                selectedObjects[i]:Select();
+            end
         end
 
         -- ensure all selection effects clear
@@ -297,10 +305,12 @@ function GM.UpdateMarquee(mouseX, mouseY)
                 end
 
                 GM.marqueeAABBSSPoints[i].selected = selected;
-                if (selected) then
-                    GM.marqueeAABBSSPoints[i].object:Select();
-                else
-                    GM.marqueeAABBSSPoints[i].object:Deselect();
+                if (Settings.ShowSelectionHighlight()) then
+                    if (selected) then
+                        GM.marqueeAABBSSPoints[i].object:Select();
+                    else
+                        GM.marqueeAABBSSPoints[i].object:Deselect();
+                    end
                 end
             end
         end
@@ -331,6 +341,15 @@ function GM.CalculateAngleBetweenPlanes(planeA, planeB)
     local magA = SceneMachine.Vector3.Magnitude(planeA);
     local magB = SceneMachine.Vector3.Magnitude(planeB);
     return math.acos(dot / (magA * magB));
+end
+
+function GM.ToggleAllAxesOn()
+    GM.moveGizmo:ShowAxis(Gizmo.Axis.X);
+    GM.moveGizmo:ShowAxis(Gizmo.Axis.Y);
+    GM.moveGizmo:ShowAxis(Gizmo.Axis.Z);
+    GM.moveGizmo:ShowAxis(Gizmo.Axis.XY);
+    GM.moveGizmo:ShowAxis(Gizmo.Axis.XZ);
+    GM.moveGizmo:ShowAxis(Gizmo.Axis.YZ);
 end
 
 function GM.MoveGizmoParalelAxesCheck()
@@ -386,7 +405,9 @@ function GM.VisibilityCheck()
             GM.moveGizmo:Show();
             GM.rotateGizmo:Hide();
             GM.scaleGizmo:Hide();
-            GM.MoveGizmoParalelAxesCheck();
+            if (Settings.HideTranslationGizmosParallelToCamera()) then
+                GM.MoveGizmoParalelAxesCheck();
+            end
         elseif (GM.activeTransformGizmo == Gizmo.TransformType.Rotate) then
             GM.moveGizmo:Hide();
             GM.rotateGizmo:Show();
@@ -407,6 +428,10 @@ function GM.VisibilityCheck()
         GM.scaleGizmo:Hide();
         GM.cameraGizmo:Hide();
     end
+
+    if (Settings.AlwaysShowCameraGizmo()) then
+        GM.cameraGizmo:Show();
+    end
 end
 
 function GM.UpdateGizmoTransform()
@@ -424,6 +449,17 @@ function GM.UpdateGizmoTransform()
     local worldScale = SM.selectedWorldScale;
     local centerH = 0;
 
+    if (Settings.AlwaysShowCameraGizmo()) then
+        if (GM.lastSelectedCamera) then
+            local fov = GM.lastSelectedCamera:GetFoV();
+            local aspect = 1 / Camera.aspectRatio;
+            local near = 1;
+            local far = 20;
+            GM.cameraGizmo:GenerateCameraFrustumVertices(fov, aspect, near, far);
+            GM.cameraGizmo:TransformGizmo(worldPosition, worldRotation, 1, 0, GM.space, 0);
+        end
+    end
+
     if (SM.selectedObjects[1]:GetGizmoType() == Object.GizmoType.Object) then
         local bb = SM.selectedBounds;
         local xMin, yMin, zMin, xMax, yMax, zMax = bb[1], bb[2], bb[3], bb[4], bb[5], bb[6];
@@ -438,11 +474,12 @@ function GM.UpdateGizmoTransform()
         local far = 20;
         GM.cameraGizmo:GenerateCameraFrustumVertices(fov, aspect, near, far);
         GM.cameraGizmo:TransformGizmo(worldPosition, worldRotation, 1, 0, GM.space, 0);
+        GM.lastSelectedCamera = SM.selectedObjects[1];
     end
 
     if (GM.activeTransformGizmo == Gizmo.TransformType.Move) then
         -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
-        GM.moveGizmo:SetScale(Vector3.Distance(worldPosition, Camera.position) / 10);
+        GM.moveGizmo:SetScale(Vector3.Distance(worldPosition, Camera.position) / 10 * Settings.GetGizmoSize());
         -- determine which axes point away from the camera in order to flip the gizmo
         local directionX = GM.axisToDirectionVector[Gizmo.Axis.X];
         local dotX = Vector3.DotProduct(directionX, Camera.forward);
@@ -456,10 +493,10 @@ function GM.UpdateGizmoTransform()
         GM.moveGizmo:TransformGizmo(worldPosition, worldRotation, 1, centerH, GM.space, GM.pivot);
     elseif (GM.activeTransformGizmo == Gizmo.TransformType.Rotate) then
         -- calculate a scale based on the gizmo distance from the camera (to keep it relatively the same size on screen)
-        GM.rotateGizmo:SetScale(Vector3.Distance(worldPosition, Camera.position) / 5);
+        GM.rotateGizmo:SetScale(Vector3.Distance(worldPosition, Camera.position) / 5 * Settings.GetGizmoSize());
         GM.rotateGizmo:TransformGizmo(worldPosition, worldRotation, 1, centerH, GM.space, GM.pivot);
     elseif (GM.activeTransformGizmo == Gizmo.TransformType.Scale) then
-        GM.scaleGizmo:SetScale(Vector3.ManhattanDistance(worldPosition, Camera.position) / 15);
+        GM.scaleGizmo:SetScale(Vector3.ManhattanDistance(worldPosition, Camera.position) / 15 * Settings.GetGizmoSize());
         GM.scaleGizmo:TransformGizmo(worldPosition, worldRotation, 1, centerH, GM.space, GM.pivot);
     end
 end

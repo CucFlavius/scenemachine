@@ -96,7 +96,7 @@ function Editor.Initialize()
         icon = Resources.textures["Icon32"],
         OnClick = function(_, button)
             if button == "LeftButton" then Editor.Toggle() end
-            if button == "RightButton" then Editor.ResetWindow(); Editor.SetScale(90); end
+            if button == "RightButton" then Editor.ResetWindow(); Settings.SetEditorScale(90); end
         end,
         OnTooltipShow = function(tt)
             tt:AddLine("SceneMachine\n- Click to open\n- Right click to reset window")
@@ -206,6 +206,9 @@ function Editor.Initialize()
     end
 
     Editor.RefreshActionToolbar();
+
+    --- debug ---
+    SceneMachine.Settings.OpenSettingsWindow();
 end
 
 function Editor.Update(deltaTime)
@@ -338,7 +341,7 @@ function Editor.Show()
         Editor.ResetWindow();
     end
 
-    --Editor.SetScale(scenemachine_settings.editor_scale);
+    --Settings.SetEditorScale(scenemachine_settings.editor_scale);
     Editor.scale = scenemachine_settings.editor_scale / 100 * (1 / UIParent:GetScale());
     SceneMachine.mainWindow:SetScale(Editor.scale);
 
@@ -413,23 +416,6 @@ function Editor.DeleteLastSelected()
     elseif (Editor.lastSelectedType == Editor.SelectionType.Key) then
         AM.RemoveKeys(AM.selectedTrack, AM.selectedKeys);
     end
-end
-
-function Editor.SetScale(percent)
-    local n = percent / 100;
-    Editor.scale = n * (1 / UIParent:GetScale());
-    SceneMachine.mainWindow:SetScale(Editor.scale);
-    scenemachine_settings.editor_scale = percent;
-
-    --local screenW = GetScreenWidth();
-    --local screenH = GetScreenHeight();
-    --local aspect = screenW / screenH;
-    --local maxW = screenW - 50;
-    --local maxH = screenH - 50;
-    --local w = math.max(math.min(maxW, SceneMachine.mainWindow:GetWidth() / Editor.scale, 1280));
-    --local h = math.max(math.min(maxH, SceneMachine.mainWindow:GetHeight() / Editor.scale, 720));
-    --SceneMachine.mainWindow:SetSize(w, h);
-    Editor.ResetWindow();
 end
 
 function Editor.ResetWindow()

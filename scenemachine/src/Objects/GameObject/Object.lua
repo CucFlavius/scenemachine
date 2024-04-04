@@ -463,7 +463,7 @@ end
 
 --- Gets the file name associated with the object.
 --- Overriden in child classes.
---- @return string|nil The file name, or nil if it is not available.
+--- @return string|nil: The file name, or nil if it is not available.
 function Object:GetFileName(_)
     return nil;
 end
@@ -764,6 +764,8 @@ function Object:Deselect()
     print("Deselect() not implemented for type " .. self:GetTypeName());
 end
 
+--- Sets the scene for the object.
+---@param scene Scene The scene to set.
 function Object:SetScene(scene)
     self.scene = scene;
 end

@@ -12,11 +12,12 @@ Character.__index = Character;
 setmetatable(Character, Actor)
 
 --- Creates a new Character object.
+--- @param scene Scene The scene the character belongs to.
 --- @param name string? (optional) The name of the character.
 --- @param position Vector3? (optional) The position of the character.
 --- @param rotation Vector3? (optional) The rotation of the character.
 --- @param scale number? (optional) The scale of the character.
---- @return Character v The newly created Character object.
+--- @return Character: The newly created Character object.
 function Character:New(scene, name, position, rotation, scale)
     local v = 
     {

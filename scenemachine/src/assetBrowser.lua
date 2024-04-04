@@ -16,6 +16,7 @@ local Net = SceneMachine.Network;
 local Actions = SceneMachine.Actions;
 local Scene = SceneMachine.Scene;
 local Gizmo = SceneMachine.Gizmos.Gizmo;
+local Settings = SceneMachine.Settings;
 
 local c1 = { 0.1757, 0.1757, 0.1875 };
 local c2 = { 0.242, 0.242, 0.25 };
@@ -55,12 +56,20 @@ function AB.Create(parent, w, h, startLevel)
         end,
     });
 
-    AB.tabGroup:SetData({
-        { name = "Models" },
-        { name = "Creatures" },
-        { name = "Collections" },
-        { name = "Debug" },
-     });
+    if (not Settings.ShowDebugTabInAssetBrowser()) then
+        AB.tabGroup:SetData({
+            { name = "Models" },
+            { name = "Creatures" },
+            { name = "Collections" },
+         });
+    else
+        AB.tabGroup:SetData({
+            { name = "Models" },
+            { name = "Creatures" },
+            { name = "Collections" },
+            { name = "Debug" },
+        });
+    end
 
     AB.tabs = {};
     AB.tabs[1] = UI.Rectangle:NewTLBR(0, -20, 0, 0, parent, 0, 0, 0, 0.0);

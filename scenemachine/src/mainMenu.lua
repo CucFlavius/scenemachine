@@ -71,11 +71,11 @@ function MainMenu.Create()
             ["Name"] = L["MM_OPTIONS"],
             ["Options"] = {
                 { ["Name"] = L["MM_SETTINGS"], ["Action"] = function() Settings.OpenSettingsWindow(); end },
-                { ["Name"] = string.format(L["MM_SET_SCALE"], "80%"), ["Action"] = function() Editor.SetScale(80); end },
-                { ["Name"] = string.format(L["MM_SET_SCALE"], "90%"), ["Action"] = function() Editor.SetScale(90); end },
-                { ["Name"] = string.format(L["MM_SET_SCALE"], "100%"), ["Action"] = function() Editor.SetScale(100); end },
-                { ["Name"] = string.format(L["MM_SET_SCALE"], "110%"), ["Action"] = function() Editor.SetScale(110); end },
-                { ["Name"] = string.format(L["MM_SET_SCALE"], "120%"), ["Action"] = function() Editor.SetScale(120); end },
+                { ["Name"] = string.format(L["MM_SET_SCALE"], "80%"), ["Action"] = function() Settings.SetEditorScale(80); end },
+                { ["Name"] = string.format(L["MM_SET_SCALE"], "90%"), ["Action"] = function() Settings.SetEditorScale(90); end },
+                { ["Name"] = string.format(L["MM_SET_SCALE"], "100%"), ["Action"] = function() Settings.SetEditorScale(100); end },
+                { ["Name"] = string.format(L["MM_SET_SCALE"], "110%"), ["Action"] = function() Settings.SetEditorScale(110); end },
+                { ["Name"] = string.format(L["MM_SET_SCALE"], "120%"), ["Action"] = function() Settings.SetEditorScale(120); end },
             },
         },
         {

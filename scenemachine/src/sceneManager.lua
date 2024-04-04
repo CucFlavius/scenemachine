@@ -16,6 +16,7 @@ local CC = SceneMachine.CameraController;
 local Timeline = SceneMachine.Timeline;
 local Scene = SceneMachine.Scene;
 local Object = SceneMachine.GameObjects.Object;
+local Settings = SceneMachine.Settings;
 
 local tabButtonHeight = 20;
 local tabPool = {};
@@ -463,10 +464,12 @@ function SM.ApplySelectionEffects()
     end
 
     -- Select selected
-    for i = 1, #SM.selectedObjects, 1 do
-        local object = SM.loadedScene:GetObjectByID(SM.selectedObjects[i]:GetID());
-        if (object) then
-            object:Select();
+    if (Settings.ShowSelectionHighlight()) then
+        for i = 1, #SM.selectedObjects, 1 do
+            local object = SM.loadedScene:GetObjectByID(SM.selectedObjects[i]:GetID());
+            if (object) then
+                object:Select();
+            end
         end
     end
 end

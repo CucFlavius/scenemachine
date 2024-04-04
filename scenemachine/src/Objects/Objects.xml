@@ -50,6 +50,7 @@ Note: This documentation comment is for illustrative purposes only and may not r
 	<Script file="UI/Element.lua" />
 	<Script file="UI/Scrollbar.lua" />
 	<Script file="UI/ScrollbarHorizontal.lua" />
+	<Script file="UI/SliderHorizontal.lua" />
 	<Script file="UI/RangeScrollbar.lua" />
 	<Script file="UI/Rectangle.lua" />
 	<Script file="UI/Label.lua" />
@@ -68,6 +69,7 @@ Note: This documentation comment is for illustrative purposes only and may not r
 	<Script file="UI/PropertyFieldVector3.lua" />
 	<Script file="UI/PropertyFieldColor.lua" />
 	<Script file="UI/PropertyFieldCheckbox.lua" />
+	<Script file="UI/Checkbox.lua" />
 	<Script file="UI/TabGroup.lua" />
 	<Script file="UI/Toolbar.lua" />
 	<Script file="UI/Window.lua" />

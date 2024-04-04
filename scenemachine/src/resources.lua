@@ -45,6 +45,7 @@ function Resources.Initialize(resourcePath)
     Resources.textures["SceneSprites"] = Resources.texturesPath .. "\\sceneSprites.png";
     Resources.textures["Hierarchy"] = Resources.texturesPath .. "\\hierarchy.png";
     Resources.textures["TimeNeedle"] = Resources.texturesPath .. "\\timeNeedle.png";
+    Resources.textures["Checkbox"] = Resources.texturesPath .. "\\checkbox.png";
 
     -- Icons --
     Resources.iconData = {};

@@ -147,7 +147,7 @@ function Element:NewTRBR(xA, yA, xB, yB, w, parent, ...)
         visible = true,
     };
 
-    setmetatable(v, Element);
+    setmetatable(v, self);
 
     v.frame = CreateFrame(self:GetFrameType(), nil, parent);
     v.frame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", xA, yA);

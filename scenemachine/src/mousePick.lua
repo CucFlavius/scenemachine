@@ -3,16 +3,12 @@ local MousePick = Editor.MousePick;
 local GM = SceneMachine.GizmoManager;
 local SM = Editor.SceneManager;
 local SH = Editor.SceneHierarchy;
-local Renderer = SceneMachine.Renderer;
-local PM = Editor.ProjectManager;
 local OP = Editor.ObjectProperties;
 local Camera = SceneMachine.Camera;
 local BoundingBox = SceneMachine.BoundingBox;
-local Ray = SceneMachine.Ray;
-local Vector3 = SceneMachine.Vector3;
-local Quaternion = SceneMachine.Quaternion;
 local AM = SceneMachine.Editor.AnimationManager;
 local Object = SceneMachine.GameObjects.Object;
+local Input = SceneMachine.Input;
 
 function MousePick.Initialize()
     MousePick.previousSelectionList = {};
@@ -26,6 +22,10 @@ function MousePick.Pick(x, y)
     end
 
     if (not SM.loadedScene) then
+        return;
+    end
+
+    if (Input.IsChildWindowOpen()) then
         return;
     end
 

@@ -73,9 +73,11 @@ end
 --- @param default boolean The default value for the checkbox.
 --- @return table The created CheckButton object.
 function PropertyField:BuildCheckboxField(setValue, default)
-    local myCheckButton = CreateFrame("CheckButton", "PropertyField.Checkbox", self.fieldGroup, "ChatConfigCheckButtonTemplate");
-    myCheckButton:SetChecked(default);
-    myCheckButton:SetScript("OnClick", function(frame) setValue(frame:GetChecked()); end)
+    --local myCheckButton = CreateFrame("CheckButton", "PropertyField.Checkbox", self.fieldGroup, "ChatConfigCheckButtonTemplate");
+    --myCheckButton:SetChecked(default);
+    --myCheckButton:SetScript("OnClick", function(frame) setValue(frame:GetChecked()); end)
 
-    return myCheckButton;
+    local checkbox = UI.Checkbox:New(-10, 0, 16, 16, self.fieldGroup, "RIGHT", "RIGHT", default, setValue);
+
+    return checkbox;
 end

@@ -10,45 +10,18 @@ local Scrollbar = SceneMachine.UI.Scrollbar;
 Scrollbar.__index = Scrollbar;
 setmetatable(Scrollbar, SceneMachine.UI.Element)
 
---- Creates a new Scrollbar object with top-right and bottom-right coordinates, width, parent, and onScroll callback.
---- @param xA number: The x-coordinate of the top-right corner of the scrollbar frame.
---- @param yA number: The y-coordinate of the top-right corner of the scrollbar frame.
---- @param xB number: The x-coordinate of the bottom-right corner of the scrollbar frame.
---- @param yB number: The y-coordinate of the bottom-right corner of the scrollbar frame.
---- @param w number: The width of the scrollbar frame.
---- @param parent table? The parent frame of the scrollbar.
---- @param onScroll function The callback function to be called when the scrollbar is scrolled.
---- @return Scrollbar: The newly created Scrollbar object.
-function Scrollbar:NewTRBR(xA, yA, xB, yB, w, parent, onScroll)
-    --- @class Scrollbar : Element
-	local v = 
-    {
-        parent = parent or nil,
-        inputState = {
-            movingScrollbar = false,
-            mousePosStartY = 0,
-            scrollbarFramePosStart = 0,
-        },
-        visible = true,
-        enabled = true,
-        onScroll = onScroll,
-        height = 100,
-    };
-
-	setmetatable(v, Scrollbar);
-
-    v.frame = CreateFrame("Frame", "SceneMachine.UI.Scrollbar.frame", parent);
-    v.frame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", xA, yA);
-    v.frame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", xB, yB);
-    v.frame:SetWidth(w);
-
-    v:Build();
-    Editor.ui:AddElement(v);
-	return v;
-end
-
 --- Builds the scrollbar UI elements.
 function Scrollbar:Build()
+    self.inputState = {
+        movingScrollbar = false,
+        mousePosStartY = 0,
+        scrollbarFramePosStart = 0,
+    };
+
+    self.enabled = true;
+    self.onScroll = self.values[1];
+    self.height = self.frame:GetHeight();
+
     local w = self.frame:GetWidth();
     local parent = self.parent;
     local inputState = self.inputState;
@@ -60,13 +33,13 @@ function Scrollbar:Build()
         end);
 
     self.frameTop = UI.ImageBox:New(0, 0, w, w / 2, self.frame, "TOP", "TOP", Resources.textures["ScrollBar"], { 0, 1, 0, 0.5 });
-    self.frameTop:SetVertexColor(0.18,0.18,0.18,1);
+    self.frameTop:SetVertexColor(0,0,0,0.2);
     
     self.frameCenter = UI.ImageBox:NewTB(0, -w / 2, 0, w / 2, w, self.frame, Resources.textures["ScrollBar"], { 0, 1, 0.4, 0.6 });
-    self.frameCenter:SetVertexColor(0.18,0.18,0.18,1);
+    self.frameCenter:SetVertexColor(0,0,0,0.2);
     
     self.frameBottom = UI.ImageBox:New(0, 0, w, w / 2, self.frame, "BOTTOM", "BOTTOM", Resources.textures["ScrollBar"], { 0, 1, 0.5, 1 });
-    self.frameBottom:SetVertexColor(0.18,0.18,0.18,1);
+    self.frameBottom:SetVertexColor(0,0,0,0.2);
 
     -- Slider
     self.scrollbarSlider = CreateFrame("Button", "scrollbarSlider", self.frame)
@@ -96,6 +69,8 @@ function Scrollbar:Build()
 
     self.scrollbarSliderBottom = UI.ImageBox:New(0, 0, w, w / 2, self.scrollbarSlider, "BOTTOM", "BOTTOM", Resources.textures["ScrollBar"], { 0, 1, 0.5, 1 });
     self.scrollbarSliderBottom:SetVertexColor(0.3,0.3,0.3,1);
+
+    Editor.ui:AddElement(self);
 end
 
 --- Sets the frame level of the scrollbar and its components.

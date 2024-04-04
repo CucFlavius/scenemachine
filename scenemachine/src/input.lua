@@ -9,6 +9,7 @@ local Camera = SceneMachine.Camera;
 local MousePick = Editor.MousePick;
 local AssetBrowser = SceneMachine.Editor.AssetBrowser;
 local AM = SceneMachine.Editor.AnimationManager;
+local Settings = SceneMachine.Settings;
 
 Input.Keys = {}
 
@@ -79,6 +80,41 @@ function Input.Initialize()
     end);
 end
 
+function Input.IsChildWindowOpen()
+    local animSelectWindow = AM.animSelectWindow:IsVisible();
+    local projectManager = PM.window:IsVisible();
+    local colorPicker = Editor.ColorPicker.window:IsVisible();
+    local keyboardShortcuts = nil;
+    if (Editor.KeyboardShortcutsWindow) then
+        keyboardShortcuts = Editor.KeyboardShortcutsWindow:IsVisible();
+    end
+    local ioWindow = nil;
+    if (Editor.importExportWindow) then
+        ioWindow = Editor.importExportWindow:IsVisible();
+    end
+    local renameWindow = nil;
+    if (Editor.quickTextWindow) then
+        renameWindow = Editor.quickTextWindow:IsVisible();
+    end
+    local messageBox = nil;
+    if (Editor.messageBox) then
+        messageBox = Editor.messageBox:IsVisible();
+    end
+    local aboutWindow = nil;
+    if (Editor.AboutWindow) then
+        aboutWindow = Editor.AboutWindow:IsVisible();
+    end
+    local settingsWindow = nil;
+    if (Settings.settingsWindow) then
+        settingsWindow = Settings.settingsWindow:IsVisible();
+    end
+    if (animSelectWindow or projectManager or colorPicker or ioWindow or renameWindow or messageBox or keyboardShortcuts or aboutWindow or settingsWindow) then
+        return true;
+    end
+
+    return false;
+end
+
 function Input.Update()
     if (Renderer.projectionFrame == nil) then return end
 
@@ -101,7 +137,7 @@ function Input.Update()
     Input.mouseXRaw = x;
     Input.mouseY = relativeY;
     Input.mouseYRaw = y;
-    
+
     -- MOUSE UP --
     -- mouse up state needs to be handled outside of the renderer frame too
     if (Input.mouseState.LMB ~= LMB) then
@@ -178,30 +214,7 @@ function Input.Update()
 
     -- filter mouse down if some windows are open
     if (LMB or RMB or MMB) then
-        local animSelectWindow = AM.animSelectWindow:IsVisible();
-        local projectManager = PM.window:IsVisible();
-        local colorPicker = Editor.ColorPicker.window:IsVisible();
-        local keyboardShortcuts = nil;
-        if (Editor.KeyboardShortcutsWindow) then
-            keyboardShortcuts = Editor.KeyboardShortcutsWindow:IsVisible();
-        end
-        local ioWindow = nil;
-        if (Editor.importExportWindow) then
-            ioWindow = Editor.importExportWindow:IsVisible();
-        end
-        local renameWindow = nil;
-        if (Editor.quickTextWindow) then
-            renameWindow = Editor.quickTextWindow:IsVisible();
-        end
-        local messageBox = nil;
-        if (Editor.messageBox) then
-            messageBox = Editor.messageBox:IsVisible();
-        end
-        local aboutWindow = nil;
-        if (Editor.AboutWindow) then
-            aboutWindow = Editor.AboutWindow:IsVisible();
-        end
-        if (animSelectWindow or projectManager or colorPicker or ioWindow or renameWindow or messageBox or keyboardShortcuts or aboutWindow) then
+        if (Input.IsChildWindowOpen()) then
             return;
         end
     end

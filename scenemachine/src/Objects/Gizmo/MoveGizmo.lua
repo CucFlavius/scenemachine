@@ -6,6 +6,7 @@ local MoveGizmo = SceneMachine.Gizmos.MoveGizmo;
 local Resources = SceneMachine.Resources;
 local Math = SceneMachine.Math;
 local Vector3 = SceneMachine.Vector3;
+local Settings = SceneMachine.Settings;
 
 MoveGizmo.__index = MoveGizmo;
 setmetatable(MoveGizmo, Gizmo)
@@ -224,15 +225,17 @@ function MoveGizmo:SelectionCheck(mouseX, mouseY)
     end
 
     -- check if the lines are points, to hide axes that are parallel to the camera
-    for t = 1, 3, 1 do
-        local aX = self.screenSpaceVertices[t][1][1];
-        local aY = self.screenSpaceVertices[t][1][2];
-        local bX = self.screenSpaceVertices[t][2][1];
-        local bY = self.screenSpaceVertices[t][2][2];
+    if (Settings.HideTranslationGizmosParallelToCamera()) then
+        for t = 1, 3, 1 do
+            local aX = self.screenSpaceVertices[t][1][1];
+            local aY = self.screenSpaceVertices[t][1][2];
+            local bX = self.screenSpaceVertices[t][2][1];
+            local bY = self.screenSpaceVertices[t][2][2];
 
-        if (aX and aY and bX and bY) then
-            local dist = Math.manhattanDistance2D(aX, aY, bX, bY);
-            self.axisVisibility[t] = dist > 10;
+            if (aX and aY and bX and bY) then
+                local dist = Math.manhattanDistance2D(aX, aY, bX, bY);
+                self.axisVisibility[t] = dist > 10;
+            end
         end
     end
     
@@ -330,9 +333,6 @@ end
 
 --- Shades the move gizmo based on the highlighted axis.
 function MoveGizmo:Shade()
-    local normalAlpha;
-    local mouseOverAlpha;
-
     for t = 1, 3, 1 do
         if (self.lines[t].axis == self.highlightedAxis) then
             self.faceColors[t][4] = 1.0;
