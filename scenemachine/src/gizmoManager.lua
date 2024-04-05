@@ -405,6 +405,16 @@ function GM.VisibilityCheck()
             GM.moveGizmo:Show();
             GM.rotateGizmo:Hide();
             GM.scaleGizmo:Hide();
+
+            -- update gizmo vectors
+            local rotation = SM.selectedWorldRotation;
+            local forward = Math.normalizeVector(Math.rotateVector(rotation.x, rotation.y, rotation.z, 1, 0, 0));
+            local right = Math.normalizeVector(Math.rotateVector(rotation.x, rotation.y, rotation.z, 0, 1, 0));
+            local up = Math.normalizeVector(Math.rotateVector(rotation.x, rotation.y, rotation.z, 0, 0, 1));
+            GM.forward:Set(forward[1], forward[2], forward[3]);
+            GM.right:Set(right[1], right[2], right[3]);
+            GM.up:Set(up[1], up[2], up[3]);
+            
             if (Settings.HideTranslationGizmosParallelToCamera()) then
                 GM.MoveGizmoParalelAxesCheck();
             end
