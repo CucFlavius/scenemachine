@@ -6,7 +6,7 @@ Dictionary<string, string> localizations = new Dictionary<string, string>()
     { "esMX", "Spanish (Mexico)" },
     { "ptBR", "Portuguese" },
     { "deDE", "German" },
-    { "enGB", "English (Great Britain)" },
+    //{ "enGB", "English (Great Britain)" },
     { "esES", "Spanish (Spain)" },
     { "frFR", "French" },
     { "itIT", "Italian" },

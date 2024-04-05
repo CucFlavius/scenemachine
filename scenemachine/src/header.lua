@@ -30,4 +30,5 @@ SceneMachine.Editor.AnimationManager = {};
 SceneMachine.Editor.ObjectProperties = {};
 SceneMachine.Editor.MousePick = {};
 
---GAME_LOCALE = "jpJP";
+-- debug: test localization
+--GAME_LOCALE = "koKR";

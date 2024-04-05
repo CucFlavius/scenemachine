@@ -15,7 +15,15 @@
     <Script file="..\res\data\animnames.lua" />
     <Script file="..\res\locale\enUS.lua" />
     <Script file="..\res\locale\deDE.lua" />
-    <Script file="..\res\locale\jpJP.lua" />
+    <Script file="..\res\locale\esES.lua" />
+    <Script file="..\res\locale\esMX.lua" />
+    <Script file="..\res\locale\frFR.lua" />
+    <Script file="..\res\locale\itIT.lua" />
+    <Script file="..\res\locale\koKR.lua" />
+    <Script file="..\res\locale\ptBR.lua" />
+    <Script file="..\res\locale\ruRU.lua" />
+    <Script file="..\res\locale\zhCN.lua" />
+    <Script file="..\res\locale\zhTW.lua" />
 
     <Include file="Objects\Objects.xml" />
 

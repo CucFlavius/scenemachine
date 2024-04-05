@@ -110,48 +110,19 @@ L["AM_TOOLBAR_TRACKS"] = "Tracks";
 L["AM_TOOLBAR_KEYFRAMES"] = "Keyframes";
 L["AM_TOOLBAR_CURVES"] = "Curves (debug only)";
 L["AM_TOOLBAR_TT_UIMODE"] = "Switch Animation Mode";
-L["AM_TOOLBAR_TTD_UIMODE"] = "Switch Animation Mode:\n" ..
-                                 " 1. Tracks View - Manage different object tracks, add model animations, and keyframes\n" ..
-                                 " 2. Keyframes View - Advanced control over keyframes\n" ..
-                                 " 3. Curves View - (Not Yet Implemented - Currently only used for debuging)\n";
+L["AM_TOOLBAR_TTD_UIMODE"] = "Switch Animation Mode:\n 1. Tracks View - Manage different object tracks, add model animations, and keyframes\n 2. Keyframes View - Advanced control over keyframes\n 3. Curves View - (Not Yet Implemented - Currently only used for debuging)\n";
 L["AM_TOOLBAR_TT_ADD_TRACK"] = "Add Track";
-L["AM_TOOLBAR_TTD_ADD_TRACK"] = "Add Track:\n" ..
-                                    " - Create a new animation track, and assign it to the selected scene object\n" ..
-                                    " - An object in the scene requires a track in order to perform\n" ..
-                                    "any animation on it.\n" ..
-                                    " - Any object may only have one track assigned to it";
+L["AM_TOOLBAR_TTD_ADD_TRACK"] = "Add Track:\n - Create a new animation track, and assign it to the selected scene object\n - An object in the scene requires a track in order to perform\nany animation on it.\n - Any object may only have one track assigned to it";
 L["AM_TOOLBAR_TT_REMOVE_TRACK"] = "Delete Track";
 L["AM_TOOLBAR_TT_ADD_ANIMATION"] = "Add Animation";
-L["AM_TOOLBAR_TTD_ADD_ANIMATION"] = "Add Animation:\n" ..
-                                    " - Add an animation clip to the current selected track/object\n" ..
-                                    " - Opens the Animation List window where you can select an available clip";
+L["AM_TOOLBAR_TTD_ADD_ANIMATION"] = "Add Animation:\n - Add an animation clip to the current selected track/object\n - Opens the Animation List window where you can select an available clip";
 L["AM_TOOLBAR_TT_REMOVE_ANIMATION"] = "Delete Animation";
 L["AM_TOOLBAR_TT_ADD_KEYFRAME"] = "Add Keyframe";
-L["AM_TOOLBAR_TTD_ADD_KEYFRAME"] = "Add Keyframe:\n" ..
-                                    " - Add a keyframe at the current time.\n" ..
-                                    " - Hold to switch between:\n" ..
-                                    "    1. Add keyframe to all transforms;\n" ..
-                                    "    2. Add position only keyframe;\n" ..
-                                    "    3. Add rotation only keyframe;\n" ..
-                                    "    4. Add scale only keyframe;";      
+L["AM_TOOLBAR_TTD_ADD_KEYFRAME"] = "Add Keyframe:\n - Add a keyframe at the current time.\n - Hold to switch between:\n    1. Add keyframe to all transforms;\n    2. Add position only keyframe;\n    3. Add rotation only keyframe;\n    4. Add scale only keyframe;";      
 L["AM_TOOLBAR_TT_SET_INTERPOLATION_IN"] = "Set Interpolation In";
-L["AM_TOOLBAR_TTD_SET_INTERPOLATION_IN"] = "Set Interpolation In:\n" ..
-                                               " - Set the current keyframe in(left side) interpolation mode.\n" ..
-                                               " - Hold to switch between:\n" ..
-                                               "    1. Smooth\n" ..
-                                               "    2. Linear\n" ..
-                                               "    3. Step\n" ..
-                                               "    4. Slow\n" ..
-                                               "    5. Fast\n";
+L["AM_TOOLBAR_TTD_SET_INTERPOLATION_IN"] = "Set Interpolation In:\n - Set the current keyframe in(left side) interpolation mode.\n - Hold to switch between:\n    1. Smooth\n    2. Linear\n    3. Step\n    4. Slow\n    5. Fast\n";
 L["AM_TOOLBAR_TT_SET_INTERPOLATION_OUT"] = "Set Interpolation Out";
-L["AM_TOOLBAR_TTD_SET_INTERPOLATION_OUT"] = "Set Interpolation Out:\n" ..
-                                                " - Set the current keyframe out(right side) interpolation mode.\n" ..
-                                                " - Hold to switch between:\n" ..
-                                                "    1. Smooth\n" ..
-                                                "    2. Linear\n" ..
-                                                "    3. Step\n" ..
-                                                "    4. Slow\n" ..
-                                                "    5. Fast\n";
+L["AM_TOOLBAR_TTD_SET_INTERPOLATION_OUT"] = "Set Interpolation Out:\n - Set the current keyframe out(right side) interpolation mode.\n - Hold to switch between:\n    1. Smooth\n    2. Linear\n    3. Step\n    4. Slow\n    5. Fast\n";
 L["AM_TOOLBAR_TT_REMOVE_KEYFRAME"] = "Delete Keyframe";
 L["AM_TOOLBAR_TT_SEEK_TO_START"] = "Seek to Start";
 L["AM_TOOLBAR_TT_SKIP_FRAME_BACK"] = "Jump to previous frame";

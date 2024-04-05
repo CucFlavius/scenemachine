@@ -10,8 +10,17 @@ function Resources.Initialize(resourcePath)
     Resources.fonts = {}
     Resources.fonts["Segoe"] = Resources.fontsPath .. "\\Segoe UI.ttf";
     Resources.fonts["Digital"] = Resources.fontsPath .. "\\digital-7.ttf";
-    Resources.defaultFont = Resources.fonts["Segoe"];
+    Resources.fonts["ARHei"] = "Fonts\\ARHei.ttf";
+    Resources.fonts["2002"] = "Fonts\\2002.ttf";
     
+    if (GAME_LOCALE == "zhTW" or GAME_LOCALE == "zhCN") then
+        Resources.defaultFont = Resources.fonts["ARHei"];
+    elseif (GAME_LOCALE == "koKR") then
+        Resources.defaultFont = Resources.fonts["2002"];
+    else
+        Resources.defaultFont = Resources.fonts["Segoe"];
+    end
+
     -- Textures --
     Resources.texturesPath = Resources.resourcePath .. "\\textures";
     Resources.textures = {}
