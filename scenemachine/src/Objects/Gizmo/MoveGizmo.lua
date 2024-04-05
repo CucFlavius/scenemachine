@@ -278,7 +278,7 @@ end
 --- @param centerH number The center height of the bounding box.
 --- @param space Gizmo.Space The space in which the transformation is applied (0 for world space, 1 for local space).
 --- @param pivot Gizmo.Pivot The pivot point of the Gizmo (0 for center, 1 for base).
-function Gizmo:TransformGizmo(position, rotation, scale, centerH, space, pivot)
+function MoveGizmo:TransformGizmo(position, rotation, scale, centerH, space, pivot)
     local pivotOffset;
     if (pivot == Gizmo.Pivot.Center) then
         pivotOffset = Vector3:New( 0, 0, 0 );

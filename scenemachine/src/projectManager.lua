@@ -128,7 +128,7 @@ function PM.LoadProjectByIndex(index)
 end
 
 function PM.LoadProject(ID)
-    print("PM.LoadProject("..ID..")");
+    --print("PM.LoadProject("..ID..")");
     PM.currentProject = PM.projects[ID];
     
     for ID in pairs(PM.projects) do 

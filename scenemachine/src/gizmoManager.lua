@@ -406,7 +406,7 @@ function GM.VisibilityCheck()
             GM.rotateGizmo:Hide();
             GM.scaleGizmo:Hide();
 
-            -- update gizmo vectors
+            -- update gizmo vectors (needed for flip check)
             local rotation = SM.selectedWorldRotation;
             local forward = Math.normalizeVector(Math.rotateVector(rotation.x, rotation.y, rotation.z, 1, 0, 0));
             local right = Math.normalizeVector(Math.rotateVector(rotation.x, rotation.y, rotation.z, 0, 1, 0));
@@ -414,7 +414,7 @@ function GM.VisibilityCheck()
             GM.forward:Set(forward[1], forward[2], forward[3]);
             GM.right:Set(right[1], right[2], right[3]);
             GM.up:Set(up[1], up[2], up[3]);
-            
+
             if (Settings.HideTranslationGizmosParallelToCamera()) then
                 GM.MoveGizmoParalelAxesCheck();
             end
@@ -522,6 +522,7 @@ function GM.ApplyPositionMotion(object, iPointDiff)
 end
 
 local fullCircle = math.rad(360);
+local threeQuarters = math.rad(270);
 local halfCircle = math.rad(180);
 local quarterCircle = math.rad(90);
 
@@ -531,63 +532,29 @@ function GM.ApplyRotationMotion(object, direction, mouseDiff, axis)
     local oldRx = rotationOld.x;
     local oldRy = rotationOld.y;
     local oldRz = rotationOld.z;
-
-
+    
     local repeatX = math.floor(oldRx / fullCircle);
     local repeatY = math.floor(oldRy / fullCircle);
     local repeatZ = math.floor(oldRz / fullCircle);
-
-    -- Clamp rotation values between -180 and 180
-    --oldRx = mod((oldRx + halfCircle), fullCircle) - halfCircle;
-    --oldRy = mod((oldRy + halfCircle), fullCircle) - halfCircle;
-    --oldRz = mod((oldRz + halfCircle), fullCircle) - halfCircle;
-    --rotationOld:Set(oldRx, oldRy, oldRz);
-
+    
     local rotation = Quaternion:New();
     rotation:SetFromEuler(rotationOld);
     rotation:RotateAroundAxis(direction, mouseDiff);
     local rotationNew = rotation:ToEuler();
-    --[[
-    if (mouseDiff > 0) then
-        if (rotationOld.z > 0 and rotationNew.z < 0) then
-            repeatZ = repeatZ + 1;
-        elseif (rotationOld.z < 0 and rotationNew.z > 0) then
-            repeatZ = repeatZ - 1;
-        end
-    elseif (mouseDiff < 0) then
-        if (rotationOld.z > 0 and rotationNew.z < 0) then
-            repeatZ = repeatZ + 1;
-        elseif (rotationOld.z < 0 and rotationNew.z > 0) then
-            repeatZ = repeatZ - 1;
-        end
-    end
 
-    rotationNew.z = rotationNew.z + (repeatZ * fullCircle);
-    --]]
-    --[[
-    if (rotationOld.x >= 0 and rotationNew.x < 0 and mouseDiff > 0) then
-        -- x flipped from +180 to -180
-        --rotationNew.x = rotationNew.x + fullCircle;
+    if (math.abs(rotationOld.x - (rotationNew.x + (repeatX * fullCircle))) > halfCircle) then
         repeatX = repeatX + 1;
-    elseif (rotationOld.x < 0 and rotationNew.x >= 0 and mouseDiff < 0) then
-        -- x flipped from -180 to +180
-        --rotationNew.x = rotationNew.x - fullCircle;
-        repeatX = repeatX - 1;
     end
-
-    if (rotationOld.y >= 0 and rotationNew.y < 0 and mouseDiff > 0) then
-        -- y flipped from +180 to -180
-        --rotationNew.y = rotationNew.y + fullCircle;
+    if (math.abs(rotationOld.y - (rotationNew.y + (repeatY * fullCircle))) > halfCircle) then
         repeatY = repeatY + 1;
-    elseif (rotationOld.y < 0 and rotationNew.y >= 0 and mouseDiff < 0) then
-        -- y flipped from -180 to +180
-        --rotationNew.y = rotationNew.y - fullCircle;
-        repeatY = repeatY - 1;
     end
-    --]]
+    if (math.abs(rotationOld.z - (rotationNew.z + (repeatZ * fullCircle))) > halfCircle) then
+        repeatZ = repeatZ + 1;
+    end
 
-    --rotationNew.x = rotationNew.x + repeatX * fullCircle;
-    --rotationNew.y = rotationNew.y + repeatY * fullCircle;
+    rotationNew.x = rotationNew.x + (repeatX * fullCircle);
+    rotationNew.y = rotationNew.y + (repeatY * fullCircle);
+    rotationNew.z = rotationNew.z + (repeatZ * fullCircle);
 
     -- handle rotation that affects position
     local position = object:GetPosition();
