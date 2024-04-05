@@ -31,4 +31,4 @@ SceneMachine.Editor.ObjectProperties = {};
 SceneMachine.Editor.MousePick = {};
 
 -- debug: test localization
---GAME_LOCALE = "koKR";
+--GAME_LOCALE = "zhTW";
