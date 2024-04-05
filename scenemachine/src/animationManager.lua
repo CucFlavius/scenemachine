@@ -622,7 +622,7 @@ function AM.CreateAnimationSelectWindow(x, y, w, h)
 				item.components[1] = UI.Button:NewAP(item:GetFrame(), "");
 
 				-- anim name text --
-				item.components[2] = UI.Label:New(10, 0, 200, 18, item.components[1]:GetFrame(), "LEFT", "LEFT", "", 9);
+				item.components[2] = UI.Label:New(10, 0, 200, 18, item.components[1]:GetFrame(), "LEFT", "LEFT", "");
 			end,
 			refreshItem = function(entry, item)
                 -- interpret data --
@@ -679,7 +679,7 @@ function AM.CreateAnimationSelectWindow(x, y, w, h)
         AM.animSelectWindow:Hide();
         AM.SetTime(AM.loadedTimeline:GetTime());
     end);
-    AM.animSelectWindow.filterBox = UI.TextBox:NewBLBR(80, 5, -5, 0, 20, AM.animSelectWindow:GetFrame(), "", 9);
+    AM.animSelectWindow.filterBox = UI.TextBox:NewBLBR(80, 5, -5, 0, 20, AM.animSelectWindow:GetFrame(), "");
     AM.animSelectWindow.filterBox:SetScript("OnTextChanged", function(self, userInput) AM.FilterAnimList(self:GetText()); end );
     AM.animSelectWindow:Hide();
 end
@@ -1243,7 +1243,7 @@ function AM.GenerateTrackElement(index, x, y, w, h, parent, R, G, B, A)
         end
     end)
 
-    element.name = UI.Label:New(2, 0, 200, 10, element, "TOPLEFT", "TOPLEFT", index, 8);
+    element.name = UI.Label:New(2, 0, 200, 10, element, "TOPLEFT", "TOPLEFT", index, Resources.defaultFontSize - 1);
     element:Hide();
 
     return element;
@@ -1376,7 +1376,7 @@ function AM.GenerateAnimationElement(index, x, y, w, h, parent, R, G, B, A)
     end)
 
     -- name
-    element.name = UI.Label:NewLR(10, 0, 0, 0, 10, element, index, 8);
+    element.name = UI.Label:NewLR(10, 0, 0, 0, 10, element, index, Resources.defaultFontSize - 1);
     element.name:SetAlpha(0.7);
     element.name:SetTextColor(0, 0, 0, 1);
     element:Hide();
@@ -1619,7 +1619,7 @@ end
 
 function AM.CreateNewTimelineTab(x, y, w, h, parent, startLevel)
 	local ButtonFont = Resources.defaultFont;
-	local ButtonFontSize = 9;
+	local ButtonFontSize = Resources.defaultFontSize;
 
 	-- main button frame --
 	local item = CreateFrame("Button", "Zee.WindowAPI.Button", parent)

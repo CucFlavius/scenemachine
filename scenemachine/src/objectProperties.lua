@@ -35,7 +35,7 @@ function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
     Editor.horizontalSeparatorL:GetFrame():SetScript('OnEnter', function() SetCursor(Resources.textures["CursorResizeV"]); end)
     Editor.horizontalSeparatorL:GetFrame():SetScript('OnLeave', function() ResetCursor(); end)
 
-    local groupTitleText = UI.Label:NewTLTR(10, 0, 0, 0, 20, groupBG:GetFrame(), L["OP_TITLE"], 9);
+    local groupTitleText = UI.Label:NewTLTR(10, 0, 0, 0, 20, groupBG:GetFrame(), L["OP_TITLE"]);
     groupTitleText:SetPoint("TOPRIGHT", groupBG:GetFrame(), "TOPRIGHT", 0, 0);
     groupTitleText:SetFrameLevel(startLevel + 1);
 

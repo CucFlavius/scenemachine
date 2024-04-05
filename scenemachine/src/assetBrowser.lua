@@ -474,7 +474,7 @@ function AB.CreateCollectionsTab(x, y, parent, startLevel)
 				item.components[1] = UI.Button:NewAP( item:GetFrame(), "");
 
 				-- object name text --
-				item.components[2] = UI.Label:New(10, 0, 200, 18, item.components[1]:GetFrame(), "LEFT", "LEFT", "", 9);
+				item.components[2] = UI.Label:New(10, 0, 200, 18, item.components[1]:GetFrame(), "LEFT", "LEFT", "");
 			end,
 			refreshItem = function(data, item, index)
 				-- main button --
@@ -494,7 +494,7 @@ function AB.CreateCollectionsTab(x, y, parent, startLevel)
 end
 
 function AB.CreateDebugTab(parent, w, h)
-    local fileIDText = UI.Label:New(0, -5, 100, 20, parent, "TOPLEFT", "TOPLEFT", "FileID", 9);
+    local fileIDText = UI.Label:New(0, -5, 100, 20, parent, "TOPLEFT", "TOPLEFT", "FileID");
     local fileIDTextEditBox = UI.TextBox:New(100, -5, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     fileIDTextEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
@@ -512,7 +512,7 @@ function AB.CreateDebugTab(parent, w, h)
         Editor.ui.focused = false;
     end);
 
-    local creatureDisplayIDText = UI.Label:New(0, -27, 100, 20, parent, "TOPLEFT", "TOPLEFT", "CreatureDisplayID", 9);
+    local creatureDisplayIDText = UI.Label:New(0, -27, 100, 20, parent, "TOPLEFT", "TOPLEFT", "CreatureDisplayID");
     local creatureDisplayIDEditBox = UI.TextBox:New(100, -27, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "41918");
     creatureDisplayIDEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
@@ -530,7 +530,7 @@ function AB.CreateDebugTab(parent, w, h)
         Editor.ui.focused = false;
     end);
 
-    local creatureIDText = UI.Label:New(0, -49, 100, 20, parent, "TOPLEFT", "TOPLEFT", "CreatureID", 9);
+    local creatureIDText = UI.Label:New(0, -49, 100, 20, parent, "TOPLEFT", "TOPLEFT", "CreatureID");
     local creatureIDEditBox = UI.TextBox:New(100, -49, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     creatureIDEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
@@ -551,7 +551,7 @@ function AB.CreateDebugTab(parent, w, h)
         Editor.ui.focused = false;
     end);
 
-    local creatureAnimationText = UI.Label:New(0, -71, 100, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimID", 9);
+    local creatureAnimationText = UI.Label:New(0, -71, 100, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimID");
     local creatureAnimationEditBox = UI.TextBox:New(100, -71, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     creatureAnimationEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
@@ -569,7 +569,7 @@ function AB.CreateDebugTab(parent, w, h)
         Editor.ui.focused = false;
     end);
 
-    local creatureAnimationKitText = UI.Label:New(0, -93, 100, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimKitID", 9);
+    local creatureAnimationKitText = UI.Label:New(0, -93, 100, 20, parent, "TOPLEFT", "TOPLEFT", "PlayAnimKitID");
     local creatureAnimationKitEditBox = UI.TextBox:New(100, -93, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     creatureAnimationKitEditBox:SetScript('OnEnterPressed', function(self1)
         -- set value
@@ -635,7 +635,7 @@ function AB.CreateDebugTab(parent, w, h)
         end
     end);
 
-    local spellKitText = UI.Label:New(0, -193, 100, 20, parent, "TOPLEFT", "TOPLEFT", "SetSpellVisualKitID", 9);
+    local spellKitText = UI.Label:New(0, -193, 100, 20, parent, "TOPLEFT", "TOPLEFT", "SetSpellVisualKitID");
     local spellKitEditBox = UI.TextBox:New(100, -193, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     local currentKit = 0;
     spellKitEditBox:SetScript('OnEnterPressed', function(self1)
@@ -669,7 +669,7 @@ function AB.CreateDebugTab(parent, w, h)
         end
     end);
 
-    local dispIDToNameButton = UI.Label:New(0, -213, 100, 20, parent, "TOPLEFT", "TOPLEFT", "DisplayID to Name", 9);
+    local dispIDToNameButton = UI.Label:New(0, -213, 100, 20, parent, "TOPLEFT", "TOPLEFT", "DisplayID to Name");
     local dispIDToNameEditBox = UI.TextBox:New(100, -213, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "0");
     local currentKit = 0;
     dispIDToNameEditBox:SetScript('OnEnterPressed', function(self1)
@@ -863,7 +863,7 @@ function AB.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
                 item.components[1]:SetClipsChildren(true);
 
 				-- name text --
-				item.components[4] = UI.Label:NewBLBR(10, 0, -10, 0, 30, item.components[1]:GetFrame(), "", 9);
+				item.components[4] = UI.Label:NewBLBR(10, 0, -10, 0, 30, item.components[1]:GetFrame(), "");
                 item.components[4]:GetFrame().text:SetMaxLines(2);
                 item.components[4]:GetFrame().text:SetNonSpaceWrap(true);
                 item.components[4]:SetFrameLevel(startLevel + 4);

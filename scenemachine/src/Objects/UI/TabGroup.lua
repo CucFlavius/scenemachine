@@ -232,7 +232,7 @@ function TabGroup:GetItem()
         self.itemPool[i].components[1] = UI.Button:NewAP(self.itemPool[i]:GetFrame(), "");
 
         -- scene name text --
-        self.itemPool[i].components[2] = UI.Label:New(10, 0, 100, self.template.height, self.itemPool[i].components[1]:GetFrame(), "LEFT", "LEFT", "", 9);
+        self.itemPool[i].components[2] = UI.Label:New(10, 0, 100, self.template.height, self.itemPool[i].components[1]:GetFrame(), "LEFT", "LEFT", "");
 
         if (self.startLevel) then
             self.itemPool[i]:SetFrameLevel(self.startLevel + 2 + i);

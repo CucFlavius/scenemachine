@@ -544,7 +544,7 @@ end
 function Editor.CreateGroup(name, groupHeight, groupParent, startLevel)
     local groupBG = UI.Rectangle:NewTLBR(6, -6, -6, 6, groupParent, c1[1], c1[2], c1[3], 1);
     groupBG:SetFrameLevel(startLevel);
-    local groupTitleText = UI.Label:NewTLTR(10, 0, 0, 0, 20, groupBG:GetFrame(), name, 9);
+    local groupTitleText = UI.Label:NewTLTR(10, 0, 0, 0, 20, groupBG:GetFrame(), name);
     groupTitleText:SetFrameLevel(startLevel + 1);
     local groupContent = UI.Rectangle:NewTLBR(0, -20, 0, 0, groupBG:GetFrame(), 0.1445, 0.1445, 0.1445, 1);
     groupContent:SetFrameLevel(startLevel + 2);

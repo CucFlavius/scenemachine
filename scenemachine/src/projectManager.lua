@@ -35,7 +35,7 @@ function PM.CreateWindow()
 				item.components[1] = UI.Button:NewAP(item:GetFrame(), "");
 
 				-- project name text --
-				item.components[2] = UI.Label:New(10, 0, 200, 18, item.components[1]:GetFrame(), "LEFT", "LEFT", "", 9);
+				item.components[2] = UI.Label:New(10, 0, 200, 18, item.components[1]:GetFrame(), "LEFT", "LEFT", "");
 			end,
 			refreshItem = function(entry, item)
                 -- main button --

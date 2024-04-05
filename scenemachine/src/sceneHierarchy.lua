@@ -33,7 +33,7 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 	SH.groupBG = UI.Rectangle:New(6, -6, w, h, leftPanel:GetFrame(), "TOPLEFT", "TOPLEFT",  0.1757, 0.1757, 0.1875, 1);
     SH.groupBG:SetPoint("BOTTOMRIGHT", Editor.horizontalSeparatorL:GetFrame(), "BOTTOMRIGHT", 0, 6);
 	SH.groupBG:SetFrameLevel(startLevel);
-	local groupTitleText = UI.Label:NewTLTR(10, 0, 0, 0, 20, SH.groupBG:GetFrame(), L["SH_TITLE"], 9);
+	local groupTitleText = UI.Label:NewTLTR(10, 0, 0, 0, 20, SH.groupBG:GetFrame(), L["SH_TITLE"]);
     groupTitleText:SetPoint("TOPRIGHT", SH.groupBG:GetFrame(), "TOPRIGHT", 0, 0);
 	groupTitleText:SetFrameLevel(startLevel + 1);
     local groupContent = UI.Rectangle:NewTLBR(0, -20, 0, 0, SH.groupBG:GetFrame(), 0.1445, 0.1445, 0.1445, 1);
@@ -66,7 +66,7 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 				item.components[1]:SetColor(UI.Button.State.Highlight, 0, 0, 0, 0);	-- disable button highlight
 
 				-- object name text --
-				item.components[2] = UI.Label:New(0, 0, 200, 18, item.components[1]:GetFrame(), "LEFT", "LEFT", "", 9);
+				item.components[2] = UI.Label:New(0, 0, 200, 18, item.components[1]:GetFrame(), "LEFT", "LEFT", "");
 
 				-- object icon --
 				item.components[3] = UI.Button:New(-16, 0, 16, 16, item.components[1]:GetFrame(), "LEFT", "LEFT", nil, Resources.textures["Hierarchy"]);
@@ -212,7 +212,7 @@ function SH.CreatePanel(w, h, leftPanel, startLevel)
 	SH.insertMarker:Hide();
 
 	-- object name text --
-	SH.draggableItem.label = UI.Label:New(10, 0, 200, 18, SH.draggableItem:GetFrame(), "LEFT", "LEFT", "", 9);
+	SH.draggableItem.label = UI.Label:New(10, 0, 200, 18, SH.draggableItem:GetFrame(), "LEFT", "LEFT", "");
 
     SH.RefreshHierarchy();
 end
