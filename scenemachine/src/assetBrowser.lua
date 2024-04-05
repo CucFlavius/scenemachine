@@ -58,16 +58,16 @@ function AB.Create(parent, w, h, startLevel)
 
     if (not Settings.ShowDebugTabInAssetBrowser()) then
         AB.tabGroup:SetData({
-            { name = "Models" },
-            { name = "Creatures" },
-            { name = "Collections" },
+            { name = L["AB_TAB_MODELS"] },
+            { name = L["AB_TAB_CREATURES"] },
+            { name = L["AB_TAB_COLLECTIONS"] },
          });
     else
         AB.tabGroup:SetData({
-            { name = "Models" },
-            { name = "Creatures" },
-            { name = "Collections" },
-            { name = "Debug" },
+            { name = L["AB_TAB_MODELS"] },
+            { name = L["AB_TAB_CREATURES"] },
+            { name = L["AB_TAB_COLLECTIONS"] },
+            { name = L["AB_TAB_DEBUG"] },
         });
     end
 

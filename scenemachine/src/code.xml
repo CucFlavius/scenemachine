@@ -14,6 +14,8 @@
     <Script file="..\res\data\animdata.lua" />
     <Script file="..\res\data\animnames.lua" />
     <Script file="..\res\locale\enUS.lua" />
+    <Script file="..\res\locale\deDE.lua" />
+    <Script file="..\res\locale\jpJP.lua" />
 
     <Include file="Objects\Objects.xml" />
 

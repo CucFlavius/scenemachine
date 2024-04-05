@@ -1,5 +1,5 @@
 local AceLocale = LibStub("AceLocale-3.0");
-local L = AceLocale:NewLocale("SceneMachine", "enUS", true);
+local L = AceLocale:NewLocale("SceneMachine", "enGB", false);
 if not L then return end
 
 -- General --
@@ -24,7 +24,7 @@ L["LOAD"] = "Load";
 
 -- Editor --
 L["ADDON_NAME"] = "Scene Machine";
-L["EDITOR_MAIN_WINDOW_TITLE"] = "Scene Machine %s - %s";       -- Scene Machine <version> - <current project name>
+L["EDITOR_MAIN_WINDOW_TITLE"] = "Scene Machine %s - %s";
 L["EDITOR_MSG_DELETE_OBJECT_TITLE"] = "Delete Object";
 L["EDITOR_MSG_DELETE_OBJECT_MESSAGE"] = "The object contains an animation track, are you sure you want to delete?";
 L["EDITOR_MSG_DELETE_TRACK_TITLE"] = "Delete Track";
@@ -110,48 +110,19 @@ L["AM_TOOLBAR_TRACKS"] = "Tracks";
 L["AM_TOOLBAR_KEYFRAMES"] = "Keyframes";
 L["AM_TOOLBAR_CURVES"] = "Curves (debug only)";
 L["AM_TOOLBAR_TT_UIMODE"] = "Switch Animation Mode";
-L["AM_TOOLBAR_TTD_UIMODE"] = "Switch Animation Mode:\n" ..
-                                 " 1. Tracks View - Manage different object tracks, add model animations, and keyframes\n" ..
-                                 " 2. Keyframes View - Advanced control over keyframes\n" ..
-                                 " 3. Curves View - (Not Yet Implemented - Currently only used for debuging)\n";
+L["AM_TOOLBAR_TTD_UIMODE"] = "Switch Animation Mode:\n";
 L["AM_TOOLBAR_TT_ADD_TRACK"] = "Add Track";
-L["AM_TOOLBAR_TTD_ADD_TRACK"] = "Add Track:\n" ..
-                                    " - Create a new animation track, and assign it to the selected scene object\n" ..
-                                    " - An object in the scene requires a track in order to perform\n" ..
-                                    "any animation on it.\n" ..
-                                    " - Any object may only have one track assigned to it";
+L["AM_TOOLBAR_TTD_ADD_TRACK"] = "Add Track:\n";
 L["AM_TOOLBAR_TT_REMOVE_TRACK"] = "Delete Track";
 L["AM_TOOLBAR_TT_ADD_ANIMATION"] = "Add Animation";
-L["AM_TOOLBAR_TTD_ADD_ANIMATION"] = "Add Animation:\n" ..
-                                    " - Add an animation clip to the current selected track/object\n" ..
-                                    " - Opens the Animation List window where you can select an available clip";
+L["AM_TOOLBAR_TTD_ADD_ANIMATION"] = "Add Animation:\n";
 L["AM_TOOLBAR_TT_REMOVE_ANIMATION"] = "Delete Animation";
 L["AM_TOOLBAR_TT_ADD_KEYFRAME"] = "Add Keyframe";
-L["AM_TOOLBAR_TTD_ADD_KEYFRAME"] = "Add Keyframe:\n" ..
-                                    " - Add a keyframe at the current time.\n" ..
-                                    " - Hold to switch between:\n" ..
-                                    "    1. Add keyframe to all transforms;\n" ..
-                                    "    2. Add position only keyframe;\n" ..
-                                    "    3. Add rotation only keyframe;\n" ..
-                                    "    4. Add scale only keyframe;";      
+L["AM_TOOLBAR_TTD_ADD_KEYFRAME"] = "Add Keyframe:\n";
 L["AM_TOOLBAR_TT_SET_INTERPOLATION_IN"] = "Set Interpolation In";
-L["AM_TOOLBAR_TTD_SET_INTERPOLATION_IN"] = "Set Interpolation In:\n" ..
-                                               " - Set the current keyframe in(left side) interpolation mode.\n" ..
-                                               " - Hold to switch between:\n" ..
-                                               "    1. Smooth\n" ..
-                                               "    2. Linear\n" ..
-                                               "    3. Step\n" ..
-                                               "    4. Slow\n" ..
-                                               "    5. Fast\n";
+L["AM_TOOLBAR_TTD_SET_INTERPOLATION_IN"] = "Set Interpolation In:\n";
 L["AM_TOOLBAR_TT_SET_INTERPOLATION_OUT"] = "Set Interpolation Out";
-L["AM_TOOLBAR_TTD_SET_INTERPOLATION_OUT"] = "Set Interpolation Out:\n" ..
-                                                " - Set the current keyframe out(right side) interpolation mode.\n" ..
-                                                " - Hold to switch between:\n" ..
-                                                "    1. Smooth\n" ..
-                                                "    2. Linear\n" ..
-                                                "    3. Step\n" ..
-                                                "    4. Slow\n" ..
-                                                "    5. Fast\n";
+L["AM_TOOLBAR_TTD_SET_INTERPOLATION_OUT"] = "Set Interpolation Out:\n";
 L["AM_TOOLBAR_TT_REMOVE_KEYFRAME"] = "Delete Keyframe";
 L["AM_TOOLBAR_TT_SEEK_TO_START"] = "Seek to Start";
 L["AM_TOOLBAR_TT_SKIP_FRAME_BACK"] = "Jump to previous frame";
@@ -232,10 +203,10 @@ L["NEARCLIP"] = "Near Clip";
 L["FARCLIP"] = "Far Clip";
 
 -- Scene Hierarchy --
-L["SH_TITLE"] = "Scene Hierarchy";
+L["SH_TITLE"] = "Scene Hierarchy"
 
 -- Color Picker --
-L["COLP_WINDOW_TITLE"] = "Color Picker";
+L["COLP_WINDOW_TITLE"] = "Colour Picker";
 L["COLP_RGB_NAME"] = "RGB (Red/Green/Blue):";
 L["COLP_HSL_NAME"] = "HSL (Hue/Saturation/Lightness):";
 L["COLP_R"] = "R";  -- Red
@@ -248,7 +219,7 @@ L["COLP_L"] = "L";  -- Lightness
 -- About Screen --
 L["ABOUT_WINDOW_TITLE"] = "Scene Machine";
 L["ABOUT_VERSION"] = "Version %s";
-L["ABOUT_DESCRIPTION"] = "Scene Machine is a tool for creating and editing 3d scenes using available in-game models. It uses the ModelScene API at its base, so some limitations apply.";
+L["ABOUT_DESCRIPTION"] = "Scene Machine is a tool for creating and editing 3D scenes using available in-game models. It uses the ModelScene API as its foundation, so there are some limitations to consider.";
 L["ABOUT_LICENSE"] = "Licensed under the MIT License";
 L["ABOUT_AUTHOR"] = "Author: %s";
 L["ABOUT_CONTACT"] = "Contact: %s";
@@ -271,4 +242,3 @@ L["DECOMPRESS_FAILED"] = "Failed to decompress data.";
 L["DESERIALIZE_FAILED"] = "Failed to deserialize data.";
 L["DATA_VERSION_TOO_NEW"] = "Newer data version detected, and is unsupported. Please update SceneMachine";
 
-SceneMachine.Editor.localization = AceLocale:GetLocale("SceneMachine", false);

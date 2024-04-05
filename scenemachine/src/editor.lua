@@ -208,7 +208,7 @@ function Editor.Initialize()
     Editor.RefreshActionToolbar();
 
     --- debug ---
-    SceneMachine.Settings.OpenSettingsWindow();
+    --SceneMachine.Settings.OpenSettingsWindow();
 end
 
 function Editor.Update(deltaTime)

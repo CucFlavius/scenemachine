@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DBCD", "Lib\DBCD\DBCD\DBCD.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DBFileReaderLib", "Lib\DBCD\DBFileReaderLib\DBFileReaderLib.csproj", "{46552A52-E52A-4F20-8C92-AE1EAEE83EB3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalizationTool", "LocalizationTool\LocalizationTool.csproj", "{6ACBD5CB-0B51-41D6-9641-737BD5207CF2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{46552A52-E52A-4F20-8C92-AE1EAEE83EB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{46552A52-E52A-4F20-8C92-AE1EAEE83EB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{46552A52-E52A-4F20-8C92-AE1EAEE83EB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6ACBD5CB-0B51-41D6-9641-737BD5207CF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6ACBD5CB-0B51-41D6-9641-737BD5207CF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6ACBD5CB-0B51-41D6-9641-737BD5207CF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6ACBD5CB-0B51-41D6-9641-737BD5207CF2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

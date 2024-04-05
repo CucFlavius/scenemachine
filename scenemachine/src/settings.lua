@@ -59,9 +59,9 @@ function Settings.CreateSettingsWindow()
     });
 
     Settings.tabGroup:SetData({
-        { name = "General" },
-        { name = "Gizmos" },
-        { name = "Debug" },
+        { name = L["SETTINGS_TAB_GENERAL"] },
+        { name = L["SETTINGS_TAB_GIZMOS"] },
+        { name = L["SETTINGS_TAB_DEBUG"] },
     });
 
     Settings.tabs = {};
@@ -96,7 +96,7 @@ function Settings.BuildGeneralTab()
     list.posY = 0;
 
     --- fields ---
-    Settings.AddSlider(list, "Editor Scale", 70, 120, Settings.GetEditorScale(), 1, Settings.SetEditorScale);
+    Settings.AddSlider(list, L["SETTINGS_EDITOR_SCALE"], 70, 120, Settings.GetEditorScale(), 1, Settings.SetEditorScale);
 
     list:SetHeight(list.posY);
 end
@@ -118,20 +118,20 @@ function Settings.BuildGizmosTab()
     list.posY = 0;
 
     --- fields ---
-    Settings.AddCheckbox(list, "Show selection highlight", Settings.ShowSelectionHighlight(), function(value)
+    Settings.AddCheckbox(list, L["SETTINGS_SHOW_SELECTION_HIGHLIGHT"], Settings.ShowSelectionHighlight(), function(value)
         scenemachine_settings.gizmos.showSelectionHighlight = value;
         SM.ApplySelectionEffects();
     end);
-    Settings.AddCheckbox(list, "Hide translation gizmos parallel to the camera", Settings.HideTranslationGizmosParallelToCamera(), function(value)
+    Settings.AddCheckbox(list, L["SETTINGS_HIDE_PARALLEL_GIZMOS"], Settings.HideTranslationGizmosParallelToCamera(), function(value)
         scenemachine_settings.gizmos.hideTranslationGizmosParallelToCamera = value;
         if (not value) then
             GM.ToggleAllAxesOn();
         end
     end);
-    Settings.AddCheckbox(list, "Always show camera gizmo", Settings.AlwaysShowCameraGizmo(), function(value)
+    Settings.AddCheckbox(list, L["SETTINGS_ALWAYS_SHOW_CAM_GIZMO"], Settings.AlwaysShowCameraGizmo(), function(value)
         scenemachine_settings.gizmos.alwaysShowCameraGizmo = value;
     end);
-    Settings.AddSlider(list, "Gizmo size", 0.1, 10, Settings.GetGizmoSize(), 0.4, function(value)
+    Settings.AddSlider(list, L["SETTINGS_GIZMO_SIZE"], 0.1, 10, Settings.GetGizmoSize(), 0.4, function(value)
         scenemachine_settings.gizmos.gizmoSize = value;
     end);
 
@@ -171,20 +171,20 @@ function Settings.BuildDebugTab()
     list.posY = 0;
 
     --- fields ---
-    Settings.AddCheckbox(list, "Show Debug tab in Asset Browser", Settings.ShowDebugTabInAssetBrowser(), function(value)
+    Settings.AddCheckbox(list, L["SETTINGS_SHOW_DEBUG_TAB"], Settings.ShowDebugTabInAssetBrowser(), function(value)
         scenemachine_settings.debug.showDebugTabInAssetBrowser = value;
         if (not value) then
             AB.tabGroup:SetData({
-                { name = "Models" },
-                { name = "Creatures" },
-                { name = "Collections" },
+                { name = L["AB_TAB_MODELS"] },
+                { name = L["AB_TAB_CREATURES"] },
+                { name = L["AB_TAB_COLLECTIONS"] },
              });
         else
             AB.tabGroup:SetData({
-                { name = "Models" },
-                { name = "Creatures" },
-                { name = "Collections" },
-                { name = "Debug" },
+                { name = L["AB_TAB_MODELS"] },
+                { name = L["AB_TAB_CREATURES"] },
+                { name = L["AB_TAB_COLLECTIONS"] },
+                { name = L["AB_TAB_DEBUG"] },
             });
         end
         AB.tabGroup:Refresh(0);

@@ -29,3 +29,5 @@ SceneMachine.Editor.SceneManager = {};
 SceneMachine.Editor.AnimationManager = {};
 SceneMachine.Editor.ObjectProperties = {};
 SceneMachine.Editor.MousePick = {};
+
+--GAME_LOCALE = "jpJP";
