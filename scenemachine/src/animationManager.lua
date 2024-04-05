@@ -887,7 +887,7 @@ function AM.CreateNeedle()
     local needle = UI.ImageBox:New(0, 0, 10, 4, AM.timebarGroup, "TOPLEFT", "TOPLEFT", Resources.textures["TimeNeedle"]);
     needle:SetVertexColor(1,1,1,0.7);
     needle.text = needle:GetFrame():CreateFontString("needle text");
-	needle.text:SetFont(Resources.defaultFont, 8, "NORMAL");
+	needle.text:SetFont(Resources.defaultFont, Resources.defaultFontSize - 1, "NORMAL");
 	needle.text:SetPoint("TOP", needle.frame, "TOP", 0, 12);
     needle.text:SetSize(30, 10);
     needle.text:SetTextColor(1,1,1,0.5);

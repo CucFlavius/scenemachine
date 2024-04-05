@@ -16,7 +16,7 @@ end
 --- Builds the TextBox UI element.
 function TextBox:Build()
     self.text = self.values[1];
-    self.textHeight = self.values[2] or 9;
+    self.textHeight = self.values[2] or Resources.defaultFontSize;
     self.textFont = self.values[3] or Resources.defaultFont;
 
     -- Create the frame

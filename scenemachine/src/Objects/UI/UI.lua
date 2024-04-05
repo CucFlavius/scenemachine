@@ -91,7 +91,7 @@ function UI:BuildTooltip()
 
 	-- Create the text for the tooltip
 	self.tooltiptext = self.tooltip:CreateFontString("Zee.WindowAPI.TextBox text");
-	self.tooltiptext:SetFont(Resources.defaultFont, 9, "NORMAL");
+	self.tooltiptext:SetFont(Resources.defaultFont, Resources.defaultFontSize, "NORMAL");
 	self.tooltiptext:SetPoint("TOPLEFT", self.tooltip, "TOPLEFT", 5, 0);
 	self.tooltiptext:SetPoint("BOTTOMRIGHT", self.tooltip, "BOTTOMRIGHT", 5, 0);
 	self.tooltiptext:SetText("");

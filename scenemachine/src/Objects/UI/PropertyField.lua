@@ -1,5 +1,6 @@
 local UI = SceneMachine.UI;
 local Editor = SceneMachine.Editor;
+local Resources = SceneMachine.Resources;
 UI.PropertyField = {};
 
 --- @class PropertyField : Element
@@ -18,7 +19,7 @@ function PropertyField:BuildBase()
     self.frame:SetPoint("TOPRIGHT", self.parent, "TOPRIGHT", 0, self.y);
     self.frame:SetHeight(self.h);
 
-    self.title = UI.Label:New(sidePad, 0, titleWidth, 20, self.frame, "LEFT", "LEFT", self.title, 9);
+    self.title = UI.Label:New(sidePad, 0, titleWidth, 20, self.frame, "LEFT", "LEFT", self.title, Resources.defaultFontSize);
 
     self.fieldGroup = CreateFrame("Frame", "SceneMachine.UI.PropertyField.fieldGroup", self.frame);
     self.fieldGroup:SetPoint("TOPLEFT", self.frame, "TOPLEFT", titleWidth, 0);

@@ -16,12 +16,16 @@ function Resources.Initialize(resourcePath)
     
     if (GAME_LOCALE == "zhCN") then
         Resources.defaultFont = Resources.fonts["ARHei"];
+        Resources.defaultFontSize = 13;
     elseif(GAME_LOCALE == "zhTW") then
         Resources.defaultFont = Resources.fonts["blei00d"];
+        Resources.defaultFontSize = 13;
     elseif (GAME_LOCALE == "koKR") then
         Resources.defaultFont = Resources.fonts["2002"];
+        Resources.defaultFontSize = 13;
     else
         Resources.defaultFont = Resources.fonts["Segoe"];
+        Resources.defaultFontSize = 9;
     end
 
     -- Textures --

@@ -61,7 +61,7 @@ function Window:Build()
 	self.titleBar_texture:SetColorTexture(0.1757, 0.1757, 0.1875, 1);
 	self.titleBar_texture:SetAllPoints(self.titleBar);
 	self.titleBar_text = self.titleBar:CreateFontString("UI.Window.titleBar_text ".. self.title.. " TitleBar text");
-	self.titleBar_text:SetFont(Resources.defaultFont, 10, "NORMAL");
+	self.titleBar_text:SetFont(Resources.defaultFont, Resources.defaultFontSize, "NORMAL");
 	self.titleBar_text:SetAllPoints(self.titleBar);
 	self.titleBar_text:SetText(self.title);
 	self.titleBar:EnableMouse(true);

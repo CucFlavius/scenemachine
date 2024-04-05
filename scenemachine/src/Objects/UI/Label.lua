@@ -11,7 +11,7 @@ setmetatable(Label, UI.Element)
 --- Builds the label by creating a font string and setting its properties.
 function Label:Build()
     self.text = self.values[1];
-    self.textHeight = self.values[2] or 9;
+    self.textHeight = self.values[2] or Resources.defaultFontSize;
     self.textFont = self.values[3] or Resources.defaultFont;
 
     self.frame.text = self.frame:CreateFontString("Zee.WindowAPI.TextBox text");

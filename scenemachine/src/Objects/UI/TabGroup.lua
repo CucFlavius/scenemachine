@@ -104,7 +104,7 @@ function TabGroup:Build()
 
     -- Create a font string used for calculating all text size
     self.stringCalc = self.frame:CreateFontString("stringCalc");
-    self.stringCalc:SetFont(Resources.defaultFont, 9, "NORMAL");
+    self.stringCalc:SetFont(Resources.defaultFont, Resources.defaultFontSize, "NORMAL");
     self.stringCalc:SetAllPoints(self.frame);
     self.stringCalc:SetJustifyV("CENTER");
     self.stringCalc:SetJustifyH("LEFT");
