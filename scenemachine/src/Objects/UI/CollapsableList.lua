@@ -172,6 +172,8 @@ function CollapsableList:Sort()
             end
         end
     end
+
+    self.scrollbar:Resize(self.viewportHeight or 100, self:GetVisibleHeight());
 end
 
 CollapsableList.__tostring = function(self)

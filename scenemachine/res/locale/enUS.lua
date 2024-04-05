@@ -201,6 +201,9 @@ L["OP_CAMERA_PROPERTIES"] = "Camera Properties";
 L["FOV"] = "Field of View";
 L["NEARCLIP"] = "Near Clip";
 L["FARCLIP"] = "Far Clip";
+L["OP_ENABLE_FOG"] = "Enable Fog";
+L["OP_FOG_COLOR"] = "Fog Color";
+L["OP_FOG_DISTANCE"] = "Fog Distance";
 
 -- Scene Hierarchy --
 L["SH_TITLE"] = "Scene Hierarchy";

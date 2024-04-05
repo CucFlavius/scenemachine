@@ -42,7 +42,7 @@ function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
     local groupContent = UI.Rectangle:NewTLBR(0, -20, 0, 0, groupBG:GetFrame(), 0.1445, 0.1445, 0.1445, 1);
     groupContent:SetFrameLevel(startLevel + 2);
 
-    OP.collapseList = UI.CollapsableList:NewTLBR(0, 0, 0, 0, groupContent:GetFrame(), { 71, 49, 93, 71 },
+    OP.collapseList = UI.CollapsableList:NewTLBR(0, 0, 0, 0, groupContent:GetFrame(), { 71, 49, 159, 71 },
         { L["OP_TRANSFORM"], L["OP_ACTOR_PROPERTIES"], L["OP_SCENE_PROPERTIES"], L["OP_CAMERA_PROPERTIES"], }, c1[1], c1[2], c1[3], 1);
     OP.collapseList:SetFrameLevel(startLevel + 3);
     
@@ -62,6 +62,9 @@ function OP.CreatePanel(w, h, c1, c2, c3, c4, leftPanel, startLevel)
     OP.diffuseColorField = UI.PropertyFieldColor:New(-27, 20, OP.scenePropertyGroup.panel:GetFrame(), L["OP_DIFFUSE_COLOR"], 0, 0, 0, 1, OP.SetDiffuseColor, onPropertyColorStartAction, onPropertyColorFinishAction);
     OP.backgroundColorField = UI.PropertyFieldColor:New(-49, 20, OP.scenePropertyGroup.panel:GetFrame(), L["OP_BACKGROUND_COLOR"], 0.554,0.554,0.554,1, OP.SetBackgroundColor, onPropertyColorStartAction, onPropertyColorFinishAction);
     OP.enableLightingField = UI.PropertyFieldCheckbox:New(-71, 20, OP.scenePropertyGroup.panel:GetFrame(), L["OP_ENABLE_LIGHTING"], true, OP.ToggleLighting);
+    OP.enableFogField = UI.PropertyFieldCheckbox:New(-93, 20, OP.scenePropertyGroup.panel:GetFrame(), L["OP_ENABLE_FOG"], true, OP.ToggleFog);
+    OP.fogColorField = UI.PropertyFieldColor:New(-115, 20, OP.scenePropertyGroup.panel:GetFrame(), L["OP_FOG_COLOR"], 0, 0, 0, 1, OP.SetFogColor, onPropertyColorStartAction, onPropertyColorFinishAction);
+    OP.fogDistanceField = UI.PropertyFieldFloat:New(-137, 20, OP.scenePropertyGroup.panel:GetFrame(), L["OP_FOG_DISTANCE"], 100, OP.SetFogDistance);
 
     OP.cameraPropertyGroup = OP.collapseList.bars[4];
     OP.fieldOfViewField = UI.PropertyFieldFloat:New(-5, 20, OP.cameraPropertyGroup.panel:GetFrame(), L["FOV"], 70, OP.SetFoV);
@@ -91,6 +94,7 @@ function OP.Refresh()
         OP.transformPropertyGroup:Hide();
         OP.actorPropertyGroup:Hide();
         OP.cameraPropertyGroup:Hide();
+        OP.scenePropertyGroup:Show();
         OP.collapseList:Sort();
     elseif (#SM.selectedObjects == 1) then
         OP.ToggleTransformFields(true);
@@ -121,6 +125,7 @@ function OP.Refresh()
         else
             OP.cameraPropertyGroup:Hide();
         end
+        OP.scenePropertyGroup:Hide();
         OP.collapseList:Sort();
     else
         OP.ToggleTransformFields(true);
@@ -147,6 +152,7 @@ function OP.Refresh()
     if (desaturation) then
         OP.saturationField:Set(OP.Truncate(desaturation, 3));
     end
+
     if (Renderer.projectionFrame) then
         local amb = SM.loadedScene:GetAmbientColor();
         OP.ambientColorField:Set(amb[1], amb[2], amb[3], 1);
@@ -156,6 +162,12 @@ function OP.Refresh()
         OP.backgroundColorField:Set(bg[1], bg[2], bg[3], 1);
         local enableLighting = SM.loadedScene:IsLightingEnabled();
         OP.enableLightingField:Set(enableLighting);
+        local enableFog = SM.loadedScene:IsFogEnabled();
+        OP.enableFogField:Set(enableFog);
+        local fogColor = SM.loadedScene:GetFogColor();
+        OP.fogColorField:Set(fogColor[1], fogColor[2], fogColor[3], 1);
+        local fogDistance = SM.loadedScene:GetFogDistance();
+        OP.fogDistanceField:Set(OP.Truncate(fogDistance, 3));
     end
 end
 
@@ -333,11 +345,18 @@ end
 
 function OP.ToggleLighting(on)
     SM.loadedScene:SetLightingEnabled(on);
-    if (on) then
-        --Renderer.projectionFrame:SetLightType(0);
-    else
-        --Renderer.projectionFrame:SetLightType(1);
-    end
+end
+
+function OP.ToggleFog(on)
+    SM.loadedScene:SetFogEnabled(on);
+end
+
+function OP.SetFogColor(R, G, B, A)
+    SM.loadedScene:SetFogColor(R, G, B, A);
+end
+
+function OP.SetFogDistance(value)
+    SM.loadedScene:SetFogDistance(value);
 end
 
 function OP.SetFoV(fovDeg)

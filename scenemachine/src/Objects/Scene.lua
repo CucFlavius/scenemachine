@@ -28,6 +28,9 @@ function Scene:New(sceneName)
             ambientColor = { 181/255, 194/255, 203/255, 1 },
             diffuseColor = { 217/255, 217/255, 190/255, 1 },
             backgroundColor = { 0.554, 0.554, 0.554, 1 },
+            fogColor = { 0.554, 0.554, 0.554, 1 },
+            fogDistance = 100,
+            enableFog = false,
             enableLighting = true,
         },
         lastCameraPosition = {8.8, -8.8, 6.5},
@@ -55,7 +58,10 @@ function Scene:Load()
         ambientColor = { 181/255, 194/255, 203/255, 1 },
         diffuseColor = { 217/255, 217/255, 190/255, 1 },
         backgroundColor = { 0.554, 0.554, 0.554, 1 },
+        fogColor = { 0.554, 0.554, 0.554, 1 },
+        fogDistance = 100,
         enableLighting = true,
+        enableFog = false,
     };
 
     if (self.properties.enableLighting == nil) then
@@ -748,6 +754,40 @@ function Scene:IsLightingEnabled()
     return self.properties.enableLighting;
 end
 
+function Scene:SetFogEnabled(enabled)
+    self.properties.enableFog = enabled;
+    
+    if (enabled) then
+        self.properties.fogColor = self.properties.fogColor or { 0.554, 0.554, 0.554, 1 };
+        self:SetFogColor(unpack(self.properties.fogColor));
+        self:SetFogDistance(self.properties.fogDistance);
+    else
+        Renderer.projectionFrame:ClearFog();
+    end
+end
+
+function Scene:IsFogEnabled()
+    return self.properties.enableFog;
+end
+
+function Scene:SetFogColor(R, G, B, A)
+    self.properties.fogColor = { R, G, B, A };
+    Renderer.projectionFrame:SetFogColor(R, G, B, A);
+end
+
+function Scene:GetFogColor()
+    return self.properties.fogColor or { 0.554, 0.554, 0.554, 1 };
+end
+
+function Scene:SetFogDistance(distance)
+    self.properties.fogDistance = distance;
+    Renderer.projectionFrame:SetFogFar(distance);
+end
+
+function Scene:GetFogDistance()
+    return self.properties.fogDistance or 100;
+end
+
 --- Retrieves the properties of the scene.
 --- @return table: The properties of the scene.
 function Scene:GetProperties()
@@ -1031,9 +1071,15 @@ function Scene:ImportData(data)
     self.properties.ambientColor = data.properties.ambientColor or { 181/255, 194/255, 203/255, 1 };
     self.properties.diffuseColor = data.properties.diffuseColor or { 217/255, 217/255, 190/255, 1 };
     self.properties.backgroundColor = data.properties.backgroundColor or { 0.554, 0.554, 0.554, 1 };
+    self.properties.fogColor = data.properties.fogColor or { 0.554, 0.554, 0.554, 1 };
     self.properties.enableLighting = data.properties.enableLighting;
+    self.properties.enableFog = data.properties.enableFog;
+    self.properties.fogDistance = data.properties.fogDistance or 100;
     if (self.properties.enableLighting == nil) then
         self.properties.enableLighting = true;
+    end
+    if (self.properties.enableFog == nil) then
+        self.properties.enableFog = false;
     end
 
     self.lastCameraPosition = data.lastCameraPosition;

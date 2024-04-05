@@ -186,6 +186,9 @@ function SM.LoadScene(index)
         OP.SetDiffuseColor(scene.properties.diffuseColor[1], scene.properties.diffuseColor[2], scene.properties.diffuseColor[3], 1);
         OP.SetBackgroundColor(scene.properties.backgroundColor[1], scene.properties.backgroundColor[2], scene.properties.backgroundColor[3], 1);
         OP.ToggleLighting(scene.properties.enableLighting);
+        OP.SetFogColor(scene.properties.fogColor[1], scene.properties.fogColor[2], scene.properties.fogColor[3], 1);
+        OP.SetFogDistance(scene.properties.fogDistance);
+        OP.ToggleFog(scene.properties.enableFog);
     end
 
     AM.RefreshTimelineTabs();
