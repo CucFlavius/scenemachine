@@ -20,11 +20,85 @@ setmetatable(ScrollableTextBox, UI.Element);
 --  object:GetEditBox()
 --  object:GetScrollBox()
 
+--- Creates a new instance of ScrollableTextBox.
+--- @param x number? - The x-coordinate of the ScrollableTextBox's position.
+--- @param y number? - The y-coordinate of the ScrollableTextBox's position.
+--- @param w number? - The width of the ScrollableTextBox.
+--- @param h number? - The height of the ScrollableTextBox.
+--- @param parent table? - The parent element of the ScrollableTextBox.
+--- @param point string? - The anchor point of the ScrollableTextBox relative to its parent.
+--- @param parentPoint string? - The anchor point of the parent element relative to the ScrollableTextBox.
+--- @param text string? - The initial text content of the ScrollableTextBox.
+--- @param textHeight number? - The height of the text in the ScrollableTextBox.
+--- @param textFont table? - The font used for the text in the ScrollableTextBox.
+--- @param includeScrollButtons boolean? - Determines whether to include scroll buttons in the ScrollableTextBox.
+--- @return ScrollableTextBox: The newly created ScrollableTextBox instance.
+function ScrollableTextBox:New(x, y, w, h, parent, point, parentPoint, text, textHeight, textFont, includeScrollButtons)
+    --- @class ScrollableTextBox : Element
+	local v =
+    {
+        x = x or 0,
+        y = y or 0,
+        w = w or 20,
+        h = h or 20,
+        parent = parent or nil,
+        point = point or "TOPLEFT",
+        parentPoint = parentPoint or "TOPLEFT",
+        values = {text, textHeight, textFont, includeScrollButtons},
+        visible = true,
+        tooltip = nil,
+        tooltipDetailed = nil,
+    };
+
+	setmetatable(v, ScrollableTextBox);
+
+    v.frame = CreateFrame("Frame", "SceneMachine.UI.ScrollableEditBox.frame", v.parent, "ScrollingEditBoxTemplate");
+	v.frame:SetPoint(v.point, v.parent, v.parentPoint, v.x, v.y);
+	v.frame:SetSize(v.w, v.h);
+
+    v:Build();
+
+	return v;
+end
+
+--- Creates a new instance of the ScrollableTextBox class.
+--- @param xA number The x-coordinate of the top-left corner of the text box.
+--- @param yA number The y-coordinate of the top-left corner of the text box.
+--- @param xB number The x-coordinate of the bottom-right corner of the text box.
+--- @param yB number The y-coordinate of the bottom-right corner of the text box.
+--- @param parent table? The parent element of the text box.
+--- @param text string? The initial text to display in the text box.
+--- @param textHeight number? The height of the text in the text box.
+--- @param textFont string? The font to use for the text in the text box.
+--- @param includeScrollButtons boolean? Whether to include scroll buttons in the text box.
+--- @return ScrollableTextBox: The new instance of the ScrollableTextBox class.
+function ScrollableTextBox:NewTLBR(xA, yA, xB, yB, parent, text, textHeight, textFont, includeScrollButtons)
+    --- @class ScrollableTextBox : Element
+	local v =
+    {
+        parent = parent or nil,
+        values = {text, textHeight, textFont, includeScrollButtons},
+        visible = true,
+        tooltip = nil,
+        tooltipDetailed = nil,
+    };
+
+	setmetatable(v, ScrollableTextBox);
+
+    v.frame = CreateFrame("Frame", "SceneMachine.UI.ScrollableEditBox.frame", v.parent, "ScrollingEditBoxTemplate");
+    v.frame:SetPoint("TOPLEFT", parent, "TOPLEFT", xA, yA);
+    v.frame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", xB, yB);
+    
+    v:Build();
+
+	return v;
+end
+
 --- Builds the scrollable text box.
 function ScrollableTextBox:Build()
-    self.text = self.values[1];
-    self.textHeight = self.values[2];
-    self.textFont = self.values[3];
+    self.text = self.values[1] or "";
+    self.textHeight = self.values[2] or Resources.defaultFontSize;
+    self.textFont = self.values[3] or Resources.defaultFont;
     self.includeScrollButtons = self.values[4];
 
     local editBox = self.frame:GetEditBox();
