@@ -201,6 +201,9 @@ L["OP_CAMERA_PROPERTIES"] = "相机属性";
 L["FOV"] = "视野";
 L["NEARCLIP"] = "近裁剪";
 L["FARCLIP"] = "远裁剪";
+L["OP_ENABLE_FOG"] = "启用雾";
+L["OP_FOG_COLOR"] = "雾颜色";
+L["OP_FOG_DISTANCE"] = "雾距离";
 
 -- Scene Hierarchy --
 L["SH_TITLE"] = "场景层次结构";

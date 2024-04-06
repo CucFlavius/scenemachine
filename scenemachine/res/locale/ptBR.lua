@@ -201,6 +201,9 @@ L["OP_CAMERA_PROPERTIES"] = "Propriedades da Câmera";
 L["FOV"] = "Campo de Visão";
 L["NEARCLIP"] = "Plano Próximo";
 L["FARCLIP"] = "Plano Distante";
+L["OP_ENABLE_FOG"] = "Ativar Neblina";
+L["OP_FOG_COLOR"] = "Cor da Neblina";
+L["OP_FOG_DISTANCE"] = "Distância da Neblina";
 
 -- Scene Hierarchy --
 L["SH_TITLE"] = "Hierarquia da Cena";

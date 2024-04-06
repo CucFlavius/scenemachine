@@ -201,6 +201,9 @@ L["OP_CAMERA_PROPERTIES"] = "攝影機屬性";
 L["FOV"] = "視野範圍";
 L["NEARCLIP"] = "近裁剪";
 L["FARCLIP"] = "遠裁剪";
+L["OP_ENABLE_FOG"] = "啟用霧";
+L["OP_FOG_COLOR"] = "霧的顏色";
+L["OP_FOG_DISTANCE"] = "霧的距離";
 
 -- Scene Hierarchy --
 L["SH_TITLE"] = "場景層級";

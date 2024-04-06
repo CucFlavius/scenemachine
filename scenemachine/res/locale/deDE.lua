@@ -201,6 +201,9 @@ L["OP_CAMERA_PROPERTIES"] = "Kameraeigenschaften";
 L["FOV"] = "Sichtfeld";
 L["NEARCLIP"] = "Nahclip";
 L["FARCLIP"] = "Fernclip";
+L["OP_ENABLE_FOG"] = "Nebel aktivieren";
+L["OP_FOG_COLOR"] = "Nebelfarbe";
+L["OP_FOG_DISTANCE"] = "Nebelentfernung";
 
 -- Scene Hierarchy --
 L["SH_TITLE"] = "Szenenhierarchie";

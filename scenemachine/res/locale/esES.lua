@@ -201,6 +201,9 @@ L["OP_CAMERA_PROPERTIES"] = "Propiedades de la Cámara";
 L["FOV"] = "Campo de Visión";
 L["NEARCLIP"] = "Cercano";
 L["FARCLIP"] = "lejano";
+L["OP_ENABLE_FOG"] = "Activar Niebla";
+L["OP_FOG_COLOR"] = "Color de la Niebla";
+L["OP_FOG_DISTANCE"] = "Distancia de la Niebla";
 
 -- Scene Hierarchy --
 L["SH_TITLE"] = "Jerarquía de Escenas";

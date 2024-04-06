@@ -201,6 +201,9 @@ L["OP_CAMERA_PROPERTIES"] = "Propriétés de la caméra";
 L["FOV"] = "Champ de vision";
 L["NEARCLIP"] = "Clipping proche";
 L["FARCLIP"] = "Clipping lointain";
+L["OP_ENABLE_FOG"] = "Activer le Brouillard";
+L["OP_FOG_COLOR"] = "Couleur du Brouillard";
+L["OP_FOG_DISTANCE"] = "Distance du Brouillard";
 
 -- Scene Hierarchy --
 L["SH_TITLE"] = "Hiérarchie des scènes";

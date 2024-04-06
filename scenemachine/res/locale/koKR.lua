@@ -201,6 +201,9 @@ L["OP_CAMERA_PROPERTIES"] = "카메라 속성";
 L["FOV"] = "시야각";
 L["NEARCLIP"] = "근접 클립";
 L["FARCLIP"] = "원거리 클립";
+L["OP_ENABLE_FOG"] = "안개 활성화";
+L["OP_FOG_COLOR"] = "안개 색상";
+L["OP_FOG_DISTANCE"] = "안개 거리";
 
 -- Scene Hierarchy --
 L["SH_TITLE"] = "씬 계층 구조";

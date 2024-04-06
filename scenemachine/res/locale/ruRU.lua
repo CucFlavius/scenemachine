@@ -201,6 +201,9 @@ L["OP_CAMERA_PROPERTIES"] = "Свойства камеры";
 L["FOV"] = "Угол обзора";
 L["NEARCLIP"] = "Ближняя отсечка";
 L["FARCLIP"] = "Дальняя отсечка";
+L["OP_ENABLE_FOG"] = "Включить Туман";
+L["OP_FOG_COLOR"] = "Цвет Тумана";
+L["OP_FOG_DISTANCE"] = "Дальность Тумана";
 
 -- Scene Hierarchy --
 L["SH_TITLE"] = "Иерархия сцены";
