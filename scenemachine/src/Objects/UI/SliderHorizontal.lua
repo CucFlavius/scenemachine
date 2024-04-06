@@ -181,10 +181,16 @@ function SliderHorizontal:SetValue(value)
     end
 end
 
+--- Normalizes a value within the range of the slider.
+---@param value number The value to normalize.
+---@return number: The normalized value.
 function SliderHorizontal:NormalizeValue(value)
     return (value - self.startValue) / (self.endValue - self.startValue);
 end
 
+--- Denormalizes a value within the range of the slider.
+--- @param value number The normalized value to denormalize.
+--- @return number: The denormalized value.
 function SliderHorizontal:DenormalizeValue(value)
     return value * (self.endValue - self.startValue) + self.startValue;
 end

@@ -75,6 +75,8 @@ function Track:Export()
     return data;
 end
 
+--- ExportPacked function exports the track data in a packed format.
+--- @return table: The packed track data.
 function Track:ExportPacked()
     local packed = {
         self.name,
@@ -163,6 +165,8 @@ function Track:ImportData(data)
     self:ImportKeyframeArray("keysA", data.keysA);
 end
 
+--- Imports packed data into the Track object
+--- @param data table: The packed data to import
 function Track:ImportPacked(data)
     self.name = data[1];
     self.objectID = data[2];
@@ -188,6 +192,8 @@ function Track:ImportPacked(data)
     self:ImportPackedKeyframeArray("keysA", data[11]);
 end
 
+--- Imports animation data into the track.
+--- @param data table - The animation data to import.
 function Track:ImportAnimationData(data)
     if (data and data.animations) then
         --- @type AnimationClip[]
@@ -213,6 +219,9 @@ function Track:ImportKeyframeArray(typeName, data)
     end
 end
 
+--- Imports a packed keyframe array for a specific type.
+--- @param typeName string The name of the type to import.
+--- @param data table The packed keyframe array data to import.
 function Track:ImportPackedKeyframeArray(typeName, data)
     if (data) then
         self[typeName] = {};
@@ -593,6 +602,9 @@ function Track:InterpolateStep(t1, t2, timeMS)
     return 0;
 end
 
+--- Adds an animation to the track.
+--- @param animID number The ID of the animation.
+--- @param variant number The variant of the animation. Defaults to 0.
 function Track:AddAnimation(animID, variant)
     if (not self.animations) then
         self.animations = {};
@@ -650,6 +662,8 @@ function Track:AddAnimation(animID, variant)
     table.insert(self.animations, anim);
 end
 
+--- Removes the specified animation from the track.
+--- @param anim AnimationClip The animation to remove.
 function Track:RemoveAnimation(anim)
     for i in pairs(self.animations) do
         if (self.animations[i] == anim) then
@@ -658,6 +672,10 @@ function Track:RemoveAnimation(anim)
     end
 end
 
+--- Replaces the animation of the current track with a new animation.
+--- @param currentAnim AnimationClip The current animation to replace.
+--- @param newID number The ID of the new animation.
+--- @param newVariant number The variant of the new animation.
 function Track:ReplaceAnimation(currentAnim, newID, newVariant)
     -- get name
     local name = SceneMachine.animationNames[newID];
@@ -687,17 +705,23 @@ function Track:ReplaceAnimation(currentAnim, newID, newVariant)
         end
     end
 
-    currentAnim:SetID(newID);
+    currentAnim:SetId(newID);
     currentAnim:SetVariation(newVariant);
     currentAnim:SetLength(animLength);
     currentAnim:SetName(name);
 end
 
+--- Sets the currently playing animation ID and variation ID for the track.
+---@param animID number The ID of the animation to set.
+---@param variant number The ID of the variation to set.
 function Track:SetCurrentlyPlayingAnim(animID, variant)
     self.currentAnimID = animID;
     self.currentAnimVariationID = variant;
 end
 
+--- Sets the time of the track and updates the object's properties accordingly.
+--- @param timeMS number The time in milliseconds.
+--- @param playback boolean Whether to play the animation or sample a single key.
 function Track:SetTime(timeMS, playback)
     -- also get object
     local obj = self.timeline.scene:GetObjectByID(self.objectID);
@@ -758,6 +782,9 @@ function Track:SetTime(timeMS, playback)
     end
 end
 
+--- Returns the last keyed time of the track.
+--- The last keyed time is determined by finding the maximum end time of all animations and keyframes in the track.
+--- @return number lastKeyedTime - The last keyed time of the track.
 function Track:GetLastKeyedTime()
     local lastKeyedTime = 0;
 
@@ -782,6 +809,10 @@ function Track:GetLastKeyedTime()
     return lastKeyedTime;
 end
 
+--- Retrieves the end time of the last key in the given keys array and compares it with the provided value.
+--- @param keys Keyframe[] The array containing the keys.
+--- @param compareWith number The value to compare the end time with.
+--- @return number: The greater value between the end time of the last key and the compareWith value.
 function Track:GetEndKeyTime(keys, compareWith)
     if (keys and #keys > 0) then
         local keyEnd = keys[#keys].time;
@@ -797,6 +828,7 @@ function Track:GetEndKeyTime(keys, compareWith)
     return compareWith or 0;
 end
 
+--- Clears the runtime data of the Track object.
 function Track:ClearRuntimeData()
     self.timeline = nil;
     self.currentAnimID = nil;
@@ -807,6 +839,8 @@ function Track:ClearRuntimeData()
     end
 end
 
+--- Checks if the track has any animations.
+--- @return boolean: True if the track has animations, false otherwise.
 function Track:HasAnimations()
     if (self.animations and #self.animations > 0) then
         return true;
@@ -815,6 +849,8 @@ function Track:HasAnimations()
     return false;
 end
 
+--- Checks if the track has any keyframes.
+--- @return boolean: True if the track has keyframes, false otherwise.
 function Track:HasKeyframes()
     if (self.keysPx and #self.keysPx > 0) then
         return true;
@@ -851,6 +887,8 @@ function Track:HasKeyframes()
     return false;
 end
 
+--- Removes a key from the track.
+--- @param key Keyframe The key to remove.
 function Track:RemoveKey(key)
     self:RemoveKeyFromList(key, self.keysPx);
     self:RemoveKeyFromList(key, self.keysPy);
@@ -864,6 +902,9 @@ function Track:RemoveKey(key)
     self:RemoveKeyFromList(key, self.keysA);
 end
 
+--- Removes a key from a list.
+--- @param key Keyframe The key to remove.
+--- @param keyList Keyframe[] The list from which to remove the key.
 function Track:RemoveKeyFromList(key, keyList)
     if (keyList) then
         for i in pairs(keyList) do

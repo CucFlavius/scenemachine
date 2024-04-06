@@ -40,6 +40,8 @@ function Camera:New(scene, name, position, rotation, fov, nearClip, farClip)
     return v
 end
 
+--- Exports the camera data as a packed table.
+--- @return table: The packed camera data.
 function Camera:ExportPacked()
     local name = nil;
     if (self.isRenamed) then
@@ -60,6 +62,8 @@ function Camera:ExportPacked()
     }
 end
 
+--- Imports packed data to initialize the Camera object.
+--- @param data table The packed data containing the camera properties.
 function Camera:ImportPacked(data)
     if (data == nil) then
         print("Camera:ImportPacked() data was nil.");

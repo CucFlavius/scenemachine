@@ -353,6 +353,7 @@ function AnimationClip.SwapAnimData(A, B)
     B:SetLength(animLength);
 end
 
+--- Clears the runtime data of the animation clip.
 function AnimationClip:ClearRuntimeData()
     self.track = nil;
 end

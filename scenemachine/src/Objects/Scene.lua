@@ -754,6 +754,8 @@ function Scene:IsLightingEnabled()
     return self.properties.enableLighting;
 end
 
+--- Sets whether fog is enabled for the scene.
+--- @param enabled boolean - True to enable fog, false to disable fog.
 function Scene:SetFogEnabled(enabled)
     self.properties.enableFog = enabled;
     
@@ -766,24 +768,39 @@ function Scene:SetFogEnabled(enabled)
     end
 end
 
+--- Checks if fog is enabled in the scene.
+--- @return boolean: True if fog is enabled, false otherwise.
 function Scene:IsFogEnabled()
     return self.properties.enableFog;
 end
 
+--- Sets the fog color for the scene.
+--- @param R number: The red component of the fog color (0-1).
+--- @param G number: The green component of the fog color (0-1).
+--- @param B number: The blue component of the fog color (0-1).
+--- @param A number: The alpha component of the fog color (0-1).
 function Scene:SetFogColor(R, G, B, A)
     self.properties.fogColor = { R, G, B, A };
     Renderer.projectionFrame:SetFogColor(R, G, B, A);
 end
 
+--- Retrieves the fog color of the scene.
+--- If the fog color is not set, it returns a default color of { 0.554, 0.554, 0.554, 1 }.
+--- @return table The fog color as a table of RGBA values.
 function Scene:GetFogColor()
     return self.properties.fogColor or { 0.554, 0.554, 0.554, 1 };
 end
 
+--- Sets the fog distance for the scene.
+--- @param distance number The distance of the fog.
 function Scene:SetFogDistance(distance)
     self.properties.fogDistance = distance;
     Renderer.projectionFrame:SetFogFar(distance);
 end
 
+--- Retrieves the fog distance of the scene.
+--- If the fog distance is not set, it defaults to 100.
+--- @return number: The fog distance of the scene.
 function Scene:GetFogDistance()
     return self.properties.fogDistance or 100;
 end
@@ -960,6 +977,8 @@ function Scene:ClearRuntimeData()
     end
 end
 
+--- ExportPacked function exports the scene data in a packed format.
+--- @return table: The exported scene data.
 function Scene:ExportPacked()
     local sceneData = {};
     sceneData.objects = {};

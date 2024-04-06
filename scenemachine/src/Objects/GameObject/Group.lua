@@ -65,18 +65,27 @@ function Group:GetGizmoType()
     return Object.GizmoType.Object;
 end
 
+--- Calculates the bounding box and position for a group of objects.
+--- @param objects Object[] The array of objects to fit.
 function Group:FitObjects(objects)
     if (not objects or #objects == 0) then
+        -- If there are no objects, set the default bounding box values.
         self.minX, self.minY, self.minZ, self.maxX, self.maxY, self.maxZ = -0.5, -0.5, -0.5, 0.5, 0.5, 0.5;
     elseif (#objects == 1) then
+        -- If there is only one object, use its bounding box and position.
         self.minX, self.minY, self.minZ, self.maxX, self.maxY, self.maxZ = objects[1]:GetActiveBoundingBox();
         self.position = objects[1]:GetPosition();
         self.rotation = objects[1]:GetRotation();
     else
+        -- Initialize variables to store the minimum and maximum bounds.
         local xMin, yMin, zMin, xMax, yMax, zMax = 100000, 100000, 100000, -100000, -100000, -100000;
+        
+        -- Iterate over each object in the array.
         for i = 1, #objects do
             local object = objects[i];
             local xmin, ymin, zmin, xmax, ymax, zmax = 0, 0, 0, 0, 0, 0;
+            
+            -- Check the type of the object and calculate its bounding box accordingly.
             if (object:GetGizmoType() == Object.GizmoType.Object) then
                 xmin, ymin, zmin, xmax, ymax, zmax = object:GetActiveBoundingBox();
                 xmin = xmin or 0; ymin = ymin or 0; zmin = zmin or 0;
@@ -97,10 +106,12 @@ function Group:FitObjects(objects)
                 zmax = 0;
             end
 
+            -- Get the world position, rotation, and scale of the object.
             local Pos = object:GetWorldPosition();
             local Rot = object:GetWorldRotation();
             local Scale = object:GetWorldScale();
 
+            -- Calculate the corners of the object's bounding box.
             local corners = {
                 Vector3:New(xmin, ymin, zmin),
                 Vector3:New(xmin, ymin, zmax),
@@ -112,6 +123,7 @@ function Group:FitObjects(objects)
                 Vector3:New(xmax, ymax, zmax)
             }
 
+            -- Iterate over each corner and update the minimum and maximum bounds.
             for _, corner in ipairs(corners) do
                 corner:RotateAroundPivot(Vector3.zero, Rot);
                 -- Update minimum bounds
@@ -126,8 +138,10 @@ function Group:FitObjects(objects)
             end
         end
         
+        -- Set the calculated minimum and maximum bounds.
         self.minX, self.minY, self.minZ, self.maxX, self.maxY, self.maxZ = xMin, yMin, zMin, xMax, yMax, zMax;
 
+        -- Calculate the position of the group as the center of the bounding box.
         self.position = Vector3:New(xMin + (xMax - xMin) / 2, yMin + (yMax - yMin) / 2, zMin + (zMax - zMin) / 2);
         self.rotation = Vector3:New(0, 0, 0);
     end

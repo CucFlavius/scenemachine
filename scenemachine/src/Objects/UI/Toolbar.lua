@@ -197,6 +197,10 @@ function Toolbar:CreateGroup(x, y, w, h, components)
     return group;
 end
 
+--- Toggles the visibility of a component within a group.
+--- @param group table The group containing the components.
+--- @param name string The name of the component to toggle.
+--- @param on boolean Whether to show or hide the component.
 function Toolbar:ToggleGroupComponent(group, name, on)
     for c = 1, #group.components, 1 do
         local component = group.components[c];

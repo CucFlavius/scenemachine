@@ -9,6 +9,8 @@ local TextBox = UI.TextBox;
 TextBox.__index = TextBox;
 setmetatable(TextBox, UI.Element);
 
+--- Retrieves the frame type of the TextBox.
+--- @return string: The frame type, which is "EditBox".
 function TextBox:GetFrameType()
     return "EditBox";
 end

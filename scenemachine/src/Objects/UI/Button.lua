@@ -16,6 +16,8 @@ Button.State = {
     Pressed = 2
 }
 
+--- Returns the frame type of the button.
+---@return string: The frame type of the button.
 function Button:GetFrameType()
     return "Button";
 end

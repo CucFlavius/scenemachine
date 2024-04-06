@@ -5,10 +5,13 @@ local Element = SceneMachine.UI.Element;
 
 Element.__index = Element;
 
+--- Retrieves the type of frame for the element.
+--- @return string: The frame type.
 function Element:GetFrameType()
     return "Frame";
 end
 
+--- Builds the element. (Override in derived classes)
 function Element:Build()
 end
 
@@ -258,7 +261,6 @@ function Element:NewAP(parent, ...)
     v:Build();
     return v;
 end
-
 
 --- Shows the UI element
 function Element:Show()

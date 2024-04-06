@@ -9,6 +9,8 @@ local Checkbox = UI.Checkbox;
 Checkbox.__index = Checkbox;
 setmetatable(Checkbox, UI.Element)
 
+--- Retrieves the frame type of the checkbox.
+--- @return string: The frame type of the checkbox.
 function Checkbox:GetFrameType()
     return "Button";
 end

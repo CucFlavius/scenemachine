@@ -362,10 +362,14 @@ function MoveGizmo:Shade()
     end
 end
 
+--- Hides the specified axis of the move gizmo.
+--- @param axis Gizmo.Axis The axis to hide.
 function MoveGizmo:HideAxis(axis)
     self.axisVisibility[axis] = false;
 end
 
+--- Shows the specified axis of the move gizmo.
+--- @param axis Gizmo.Axis The axis to show.
 function MoveGizmo:ShowAxis(axis)
     self.axisVisibility[axis] = true;
 end

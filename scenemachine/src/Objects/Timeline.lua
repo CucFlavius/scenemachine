@@ -52,6 +52,8 @@ function Timeline:Export()
     return data;
 end
 
+--- Exports the timeline data in a packed format.
+--- @return table: The packed timeline data.
 function Timeline:ExportPacked()
     local packed = {
         self.name,
@@ -92,6 +94,8 @@ function Timeline:ImportData(data)
     end
 end
 
+--- Imports packed data into the Timeline object.
+--- @param data table The packed data to import.
 function Timeline:ImportPacked(data)
     self.name = data[1];
     self.duration = data[2];
@@ -196,14 +200,19 @@ function Timeline:ClearRuntimeData()
     end
 end
 
+--- Plays the timeline.
 function Timeline:Play()
     self.playing = true;
 end
 
+--- Pauses the timeline.
 function Timeline:Pause()
     self.playing = false;
 end
 
+--- Sets the current time of the timeline.
+--- @param timeMS number The time in milliseconds.
+--- @param rounded boolean Whether to round the time to the nearest 30 fps tick. Defaults to true.
 function Timeline:SetTime(timeMS, rounded)
     if (rounded == nil) then
         rounded = true;
@@ -211,7 +220,7 @@ function Timeline:SetTime(timeMS, rounded)
 
     -- force time selection to 30 fps ticks
     if (rounded) then
-        timeMS = floor(floor(timeMS / 33.3333) * 33.3333);
+        timeMS = math.floor(math.floor(timeMS / 33.3333) * 33.3333);
     end
 
     self.currentTime = timeMS;
@@ -229,6 +238,10 @@ function Timeline:SetTime(timeMS, rounded)
     end
 end
 
+--- Retrieves the last keyed time in the timeline.
+--- This function iterates through all tracks in the timeline and returns the maximum keyed time found.
+--- If no keyed time is found, it returns the duration of the timeline.
+--- @return number: The last keyed time in the timeline.
 function Timeline:GetLastKeyedTime()
     local lastKeyedTime = 0;
     for t = 1, self:GetTrackCount(), 1 do
@@ -248,18 +261,27 @@ function Timeline:GetLastKeyedTime()
     return lastKeyedTime;
 end
 
+--- Returns a string representation of the duration of the timeline.
+--- @return string: The duration of the timeline as a string.
 function Timeline:GetDurationString()
     return Timeline.TimeValueToString(self:GetDuration());
 end
 
+--- Returns a string representation of the timeline's time value.
+--- @return string: The current time as a string
 function Timeline:GetTimeString()
     return Timeline.TimeValueToString(self:GetTime());
 end
 
+--- Returns the current time normalized by the duration of the timeline.
+--- @return number: The normalized time value.
 function Timeline:GetTimeNormalized()
     return self.currentTime / self.duration;
 end
 
+--- Converts a time value in milliseconds to a formatted string in the format "MM:SS".
+--- @param duration number The time value in milliseconds.
+--- @return string: The formatted time string.
 function Timeline.TimeValueToString(duration)
     duration = duration or 0;
     local durationS = duration / 1000;

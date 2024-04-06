@@ -72,6 +72,8 @@ function Keyframe:Export()
     return data;
 end
 
+--- Exports the keyframe data in a packed format.
+--- @return table: The packed keyframe data.
 function Keyframe:ExportPacked()
     local packed = {
         self.time,
