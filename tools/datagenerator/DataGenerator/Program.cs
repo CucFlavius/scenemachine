@@ -7,7 +7,7 @@ namespace DataGenerator
 {
     internal class Program
     {
-        const string ADDON_DATA_PATH = "..\\..\\..\\..\\..\\scenemachine\\res\\data\\";
+        const string ADDON_DATA_PATH = "..\\..\\..\\..\\..\\..\\scenemachine\\res\\data\\";
         const string DATA_FILE_NAME = "data.lua";
         const string ANIMATION_DATA_FILE_NAME = "animdata.lua";
         const string CREATURE_TO_DISPLAY_DATA_FILE_NAME = "creature2display.lua";

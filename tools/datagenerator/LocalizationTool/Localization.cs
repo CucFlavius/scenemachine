@@ -6,7 +6,7 @@ namespace LocalizationTool
 {
     public class Localization
     {
-        const string ADDON_LOCALIZATION_PATH = "..\\..\\..\\..\\..\\scenemachine\\res\\locale\\";
+        const string ADDON_LOCALIZATION_PATH = "..\\..\\..\\..\\..\\..\\scenemachine\\res\\locale\\";
 
         bool isSourceLocale { get; }
         string languageKey { get; }
