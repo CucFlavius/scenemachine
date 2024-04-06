@@ -75,6 +75,69 @@ function Track:Export()
     return data;
 end
 
+function Track:ExportPacked()
+    local packed = {
+        self.name,
+        self.objectID,
+    }
+
+    local packedAnimations = {};
+    for i = 1, #self.animations, 1 do
+        table.insert(packedAnimations, self.animations[i]:ExportPacked());
+    end
+    packed[3] = packedAnimations;
+
+    local packedKeysPx = {};
+    for i = 1, #self.keysPx, 1 do
+        table.insert(packedKeysPx, self.keysPx[i]:ExportPacked());
+    end
+    packed[4] = packedKeysPx;
+
+    local packedKeysPy = {};
+    for i = 1, #self.keysPy, 1 do
+        table.insert(packedKeysPy, self.keysPy[i]:ExportPacked());
+    end
+    packed[5] = packedKeysPy;
+
+    local packedKeysPz = {};
+    for i = 1, #self.keysPz, 1 do
+        table.insert(packedKeysPz, self.keysPz[i]:ExportPacked());
+    end
+    packed[6] = packedKeysPz;
+
+    local packedKeysRx = {};
+    for i = 1, #self.keysRx, 1 do
+        table.insert(packedKeysRx, self.keysRx[i]:ExportPacked());
+    end
+    packed[7] = packedKeysRx;
+
+    local packedKeysRy = {};
+    for i = 1, #self.keysRy, 1 do
+        table.insert(packedKeysRy, self.keysRy[i]:ExportPacked());
+    end
+    packed[8] = packedKeysRy;
+
+    local packedKeysRz = {};
+    for i = 1, #self.keysRz, 1 do
+        table.insert(packedKeysRz, self.keysRz[i]:ExportPacked());
+    end
+    packed[9] = packedKeysRz;
+
+    local packedKeysS = {};
+    for i = 1, #self.keysS, 1 do
+        table.insert(packedKeysS, self.keysS[i]:ExportPacked());
+    end
+    packed[10] = packedKeysS;
+
+    local packedKeysA = {};
+    for i = 1, #self.keysA, 1 do
+        table.insert(packedKeysA, self.keysA[i]:ExportPacked());
+    end
+    packed[11] = packedKeysA;
+
+    return packed;
+end
+
 --- Imports data into the Track object.
 --- @param data table The data to be imported.
 function Track:ImportData(data)
@@ -100,6 +163,31 @@ function Track:ImportData(data)
     self:ImportKeyframeArray("keysA", data.keysA);
 end
 
+function Track:ImportPacked(data)
+    self.name = data[1];
+    self.objectID = data[2];
+    self.animations = {};
+    if (data[3]) then
+        if (#data[3] > 0) then
+            for j = 1, #data[3], 1 do
+                local anim = AnimationClip:New();
+                anim:ImportPacked(data[3][j]);
+                anim:SetTrack(self);
+                self.animations[j] = anim;
+            end
+        end
+    end
+
+    self:ImportPackedKeyframeArray("keysPx", data[4]);
+    self:ImportPackedKeyframeArray("keysPy", data[5]);
+    self:ImportPackedKeyframeArray("keysPz", data[6]);
+    self:ImportPackedKeyframeArray("keysRx", data[7]);
+    self:ImportPackedKeyframeArray("keysRy", data[8]);
+    self:ImportPackedKeyframeArray("keysRz", data[9]);
+    self:ImportPackedKeyframeArray("keysS", data[10]);
+    self:ImportPackedKeyframeArray("keysA", data[11]);
+end
+
 function Track:ImportAnimationData(data)
     if (data and data.animations) then
         --- @type AnimationClip[]
@@ -121,6 +209,16 @@ function Track:ImportKeyframeArray(typeName, data)
         for k in pairs(data) do
             self[typeName][k] = Keyframe:New();
             self[typeName][k]:ImportData(data[k]);
+        end
+    end
+end
+
+function Track:ImportPackedKeyframeArray(typeName, data)
+    if (data) then
+        self[typeName] = {};
+        for k in pairs(data) do
+            self[typeName][k] = Keyframe:New();
+            self[typeName][k]:ImportPacked(data[k]);
         end
     end
 end

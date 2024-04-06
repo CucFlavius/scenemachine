@@ -72,6 +72,16 @@ function Keyframe:Export()
     return data;
 end
 
+function Keyframe:ExportPacked()
+    local packed = {
+        self.time,
+        self.value,
+        self.interpolationIn,
+        self.interpolationOut,
+    }
+    return packed;
+end
+
 --- Imports data into the Keyframe object.
 --- @param data? table The data to be imported.
 function Keyframe:ImportData(data)
@@ -84,6 +94,20 @@ function Keyframe:ImportData(data)
     self.value = data.value or 0;
     self.interpolationIn = data.interpolationIn or Keyframe.Interpolation.Bezier;
     self.interpolationOut = data.interpolationOut or Keyframe.Interpolation.Bezier;
+end
+
+--- Imports packed data into the Keyframe object.
+--- @param packed? table The packed data to be imported.
+function Keyframe:ImportPacked(packed)
+    if (packed == nil) then
+        print("Keyframe:ImportPacked() packed was nil.");
+        return;
+    end
+
+    self.time = packed[1] or 0;
+    self.value = packed[2] or 0;
+    self.interpolationIn = packed[3] or Keyframe.Interpolation.Bezier;
+    self.interpolationOut = packed[4] or Keyframe.Interpolation.Bezier;
 end
 
 --- Sets the time of the keyframe.

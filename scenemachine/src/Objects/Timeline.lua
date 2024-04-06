@@ -52,6 +52,22 @@ function Timeline:Export()
     return data;
 end
 
+function Timeline:ExportPacked()
+    local packed = {
+        self.name,
+        self.duration,
+        self.currentTime,
+    }
+
+    local packedTracks = {};
+    for i = 1, #self.tracks, 1 do
+        table.insert(packedTracks, self.tracks[i]:ExportPacked());
+    end
+    packed[4] = packedTracks;
+
+    return packed;
+end
+
 --- Imports data into the Timeline object.
 --- @param data? table The data to be imported.
 function Timeline:ImportData(data)
@@ -69,6 +85,23 @@ function Timeline:ImportData(data)
             for j = 1, #data.tracks, 1 do
                 local track = SceneMachine.Track:New();
                 track:ImportData(data.tracks[j]);
+                track:SetTimeline(self);
+                self.tracks[j] = track;
+            end
+        end
+    end
+end
+
+function Timeline:ImportPacked(data)
+    self.name = data[1];
+    self.duration = data[2];
+    self.currentTime = data[3];
+    self.tracks = {};
+    if (data[4]) then
+        if (#data[4] > 0) then
+            for j = 1, #data[4], 1 do
+                local track = SceneMachine.Track:New();
+                track:ImportPacked(data[4][j]);
                 track:SetTimeline(self);
                 self.tracks[j] = track;
             end

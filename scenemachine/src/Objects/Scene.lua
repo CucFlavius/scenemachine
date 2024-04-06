@@ -2,7 +2,7 @@ SceneMachine.Scene = {}
 
 --- @class Scene
 local Scene = SceneMachine.Scene;
-Scene.SCENE_DATA_VERSION = 2;
+Scene.SCENE_DATA_VERSION = 3;
 
 local Renderer = SceneMachine.Renderer;
 local Timeline = SceneMachine.Timeline;
@@ -984,7 +984,7 @@ function Scene:ExportPacked()
     if (#self.timelines > 0) then
         for i = 1, #self.timelines, 1 do
             local timeline = self.timelines[i];
-            sceneData.timelines[i] = timeline:Export();
+            sceneData.timelines[i] = timeline:ExportPacked();
         end
     end
 
@@ -1140,6 +1140,8 @@ function Scene:ImportSceneFromPrint(chatEncoded)
             self:ImportVersion1Scene(sceneData);
         elseif (sceneData.version == 2) then
             self:ImportVersion2Scene(sceneData);
+        elseif (sceneData.version == 3) then
+            self:ImportVersion3Scene(sceneData);
         end
     end
 end
@@ -1223,6 +1225,54 @@ function Scene:ImportVersion2Scene(sceneData)
             local timelineData = sceneData.timelines[i];
             local timeline = Timeline:New();
             timeline:ImportData(timelineData);
+            timeline.scene = self;
+            self.timelines[i] = timeline;
+        end
+    end
+
+    -- Sets the scene properties.
+    self.properties = sceneData.properties;
+
+    -- Sets the camera position and rotation.
+    self.lastCameraPosition = sceneData.lastCameraPosition;
+    self.lastCameraEuler = sceneData.lastCameraEuler;
+end
+
+function Scene:ImportVersion3Scene(sceneData)
+    self.name = sceneData.name;
+
+    if (#sceneData.objects > 0) then
+        for i = 1, #sceneData.objects, 1 do
+            local type = sceneData.objects[i][1];
+            local object;
+            if (type == SceneMachine.GameObjects.Object.Type.Model) then
+                object = SceneMachine.GameObjects.Model:New();
+            elseif(type == SceneMachine.GameObjects.Object.Type.Creature) then
+                object = SceneMachine.GameObjects.Creature:New();
+            elseif(type == SceneMachine.GameObjects.Object.Type.Character) then
+                object = SceneMachine.GameObjects.Character:New();
+            elseif(type == SceneMachine.GameObjects.Object.Type.Camera) then
+                object = SceneMachine.GameObjects.Camera:New();
+            elseif(type == SceneMachine.GameObjects.Object.Type.Group) then
+                object = SceneMachine.GameObjects.Group:New();
+            end
+
+            if (object) then
+                object:ImportPacked(sceneData.objects[i]);
+                self.objects[i] = object;
+            end
+        end
+    end
+
+    if (sceneData.hierarchy) then
+        self.objectHierarchy = sceneData.hierarchy;
+    end
+
+    if (#sceneData.timelines > 0) then
+        for i = 1, #sceneData.timelines, 1 do
+            local timelineData = sceneData.timelines[i];
+            local timeline = Timeline:New();
+            timeline:ImportPacked(timelineData);
             timeline.scene = self;
             self.timelines[i] = timeline;
         end

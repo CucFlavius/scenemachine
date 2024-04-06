@@ -111,6 +111,23 @@ function AnimationClip:Export()
     return data;
 end
 
+--- Export the AnimationClip data in a packed format.
+--- @return table packed The packed AnimationClip data.
+function AnimationClip:ExportPacked()
+    local packed = {
+        self.id,
+        self.variation,
+        self.animLength,
+        self.colorId,
+        self.startT,
+        self.endT,
+        self.name,
+        self.speed,
+    };
+
+    return packed;
+end
+
 --- Imports data into the AnimationClip object.
 --- @param data? table The data to be imported.
 function AnimationClip:ImportData(data)
@@ -127,6 +144,24 @@ function AnimationClip:ImportData(data)
     self.endT = data.endT;
     self.name = data.name;
     self.speed = data.speed;
+end
+
+--- Imports packed data into the AnimationClip object.
+--- @param packed? table The packed data to be imported.
+function AnimationClip:ImportPacked(packed)
+    if (packed == nil) then
+        print("AnimationClip:ImportPacked() packed was nil.");
+        return;
+    end
+
+    self.id = packed[1];
+    self.variation = packed[2];
+    self.animLength = packed[3];
+    self.colorId = packed[4];
+    self.startT = packed[5];
+    self.endT = packed[6];
+    self.name = packed[7];
+    self.speed = packed[8];
 end
 
 --- Sets the ID of the animation clip.
