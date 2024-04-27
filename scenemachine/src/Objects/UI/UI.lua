@@ -95,7 +95,7 @@ function UI:BuildTooltip()
 	self.tooltiptext:SetPoint("TOPLEFT", self.tooltip, "TOPLEFT", 5, 0);
 	self.tooltiptext:SetPoint("BOTTOMRIGHT", self.tooltip, "BOTTOMRIGHT", 5, 0);
 	self.tooltiptext:SetText("");
-	self.tooltiptext:SetJustifyV("CENTER");
+	self.tooltiptext:SetJustifyV("MIDDLE");
 	self.tooltiptext:SetJustifyH("LEFT");
 
 	-- Create the loading bar for the tooltip

@@ -138,6 +138,12 @@ end
 function ScrollbarHorizontal:Resize(viewportW, listW)
     -- Check if listW is nil
     if (not listW) then
+        self:Disable();
+        return;
+    end
+
+    if (listW == 0) then
+        self:Disable();
         return;
     end
 

@@ -131,6 +131,8 @@ end
 --- Sets the position of the PooledGridScrollList.
 --- @param value number The position value to set (between 0 and 1)
 function PooledGridScrollList:SetPosition(value)
+    value = value or 0;
+
     if (self.data) then
         self.totalRows = math.ceil(#self.data / self.visibleColumns);
     else

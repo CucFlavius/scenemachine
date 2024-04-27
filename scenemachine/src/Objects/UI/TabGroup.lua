@@ -106,7 +106,7 @@ function TabGroup:Build()
     self.stringCalc = self.frame:CreateFontString("stringCalc");
     self.stringCalc:SetFont(Resources.defaultFont, Resources.defaultFontSize, "NORMAL");
     self.stringCalc:SetAllPoints(self.frame);
-    self.stringCalc:SetJustifyV("CENTER");
+    self.stringCalc:SetJustifyV("MIDDLE");
     self.stringCalc:SetJustifyH("LEFT");
     self.stringCalc:Hide();
 end

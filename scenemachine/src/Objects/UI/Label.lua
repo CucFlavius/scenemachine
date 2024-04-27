@@ -18,7 +18,7 @@ function Label:Build()
     self.frame.text:SetFont(self.textFont, self.textHeight, "NORMAL");
     self.frame.text:SetAllPoints(self.frame);
     self.frame.text:SetText(self.text);
-    self.frame.text:SetJustifyV("CENTER");
+    self.frame.text:SetJustifyV("MIDDLE");
     self.frame.text:SetJustifyH("LEFT");
 end
 

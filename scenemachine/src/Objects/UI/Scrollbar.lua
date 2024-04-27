@@ -130,6 +130,17 @@ end
 --- @param viewportH number The height of the viewport.
 --- @param listH number The height of the list.
 function Scrollbar:Resize(viewportH, listH)
+    -- Check if listH is nil
+    if (not listH) then
+        self:Disable();
+        return;
+    end
+
+    if (listH == 0) then
+        self:Disable();
+        return;
+    end
+
     local minScrollbar = 20;
     local maxScrollbar = viewportH;
     local desiredScrollbar = (viewportH / listH) * viewportH;

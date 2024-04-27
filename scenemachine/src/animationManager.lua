@@ -891,7 +891,7 @@ function AM.CreateNeedle()
 	needle.text:SetPoint("TOP", needle.frame, "TOP", 0, 12);
     needle.text:SetSize(30, 10);
     needle.text:SetTextColor(1,1,1,0.5);
-	needle.text:SetJustifyV("CENTER");
+	needle.text:SetJustifyV("MIDDLE");
 	needle.text:SetJustifyH("CENTER");
     needle:Hide();
     needle:SetFrameLevel(AM.timebarGroup:GetFrameLevel() + 1);
