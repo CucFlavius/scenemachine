@@ -50,7 +50,7 @@ Editor.SelectionType = {
 };
 
 function Editor.Initialize()
-    Editor.version = GetAddOnMetadata("scenemachine", "Version");
+    Editor.version = C_AddOns.GetAddOnMetadata("scenemachine", "Version");
     
     SceneMachine.Settings.Initialize();
     
