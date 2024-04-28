@@ -19,7 +19,7 @@ function PooledGridScrollList:Build()
 
     -- Create the viewport rectangle
     self.viewport = UI.Rectangle:NewAP(self.frame, 1, 0, 1, 0);
-    self.viewport:SetClipsChildren(true);
+    --self.viewport:SetClipsChildren(true);
 
     -- Set the OnSizeChanged script for the viewport frame
     self.viewport:GetFrame():SetScript("OnSizeChanged",

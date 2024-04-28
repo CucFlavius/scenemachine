@@ -66,6 +66,7 @@ function Gizmo:CreateLineProjectionFrame()
     self.lineProjectionFrame.texture:SetAllPoints(Renderer.lineProjectionFrame);
     self.lineProjectionFrame:SetFrameLevel(101);
     self.lineProjectionFrame:Hide();
+    self.lineProjectionFrame:SetClipsChildren(true);
 end
 
 --- Shows the Gizmo by displaying the line projection frame.

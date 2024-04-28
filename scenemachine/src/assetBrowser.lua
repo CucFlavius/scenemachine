@@ -860,7 +860,7 @@ function AB.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
                 item.components[1]:SetFrameLevel(startLevel + 3);
                 item.components[1]:GetFrame():RegisterForDrag("LeftButton");
                 item.components[1]:GetFrame():RegisterForClicks("LeftButtonUp", "RightButtonUp");
-                item.components[1]:SetClipsChildren(true);
+                --item.components[1]:SetClipsChildren(true);
 
 				-- name text --
 				item.components[4] = UI.Label:NewBLBR(10, 0, -10, 0, 30, item.components[1]:GetFrame(), "");

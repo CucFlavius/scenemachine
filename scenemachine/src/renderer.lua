@@ -95,7 +95,7 @@ function Renderer.CreateRenderer(x, y, w, h, parent, startLevel)
 
 	Renderer.projectionFrame = CreateFrame("ModelScene", "Renderer.projectionFrame", Renderer.backgroundFrame);
     Renderer.projectionFrame:SetAllPoints(Renderer.backgroundFrame);
-	Renderer.projectionFrame:SetClipsChildren(true);
+	--Renderer.projectionFrame:SetClipsChildren(true);
 	Renderer.projectionFrame:SetCameraPosition(4,0,0);
 	Renderer.projectionFrame:SetCameraOrientationByYawPitchRoll(0, 0, 0);
     Renderer.projectionFrame:SetFrameLevel(startLevel + 2);
