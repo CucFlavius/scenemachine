@@ -18,6 +18,7 @@ local Actions = SceneMachine.Actions;
 local Camera = SceneMachine.Camera;
 local Gizmo = SceneMachine.Gizmos.Gizmo;
 local AssetBrowser = Editor.AssetBrowser;
+local Settings = SceneMachine.Settings;
 
 Editor.MODE_LOCAL = 1;
 Editor.MODE_NETWORK = 2;
