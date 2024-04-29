@@ -360,8 +360,11 @@ function Scene:DeleteObject(object)
     if (self.timelines) then
         for t = 1, #self.timelines, 1 do
             for i = 1, self.timelines[t]:GetTrackCount(), 1 do
-                if (self.timelines[t]:GetTrack(i).objectID == object.id) then
-                    self.timelines[t]:RemoveTrack(self.timelines[t]:GetTrack(i));
+                local track = self.timelines[t]:GetTrack(i);
+                if (track) then
+                    if (track.objectID == object.id) then
+                        self.timelines[t]:RemoveTrack(self.timelines[t]:GetTrack(i));
+                    end
                 end
             end
         end
