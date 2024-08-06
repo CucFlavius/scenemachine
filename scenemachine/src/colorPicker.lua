@@ -177,8 +177,19 @@ end
 
 local function calculateIntersection(x1, y1, x2, y2, x3, y3, x4, y4)
     -- Calculate slopes of both lines
-    local slope1 = (y2 - y1) / (x2 - x1)
-    local slope2 = (y4 - y3) / (x4 - x3)
+    local a1 = y2 - y1;
+    local b1 = x1 - x2;
+    if (b1 == 0) then
+        b1 = 1;
+    end
+    local slope1 = a1 / b1;
+
+    local a2 = y4 - y3;
+    local b2 = x3 - x4;
+    if (b2 == 0) then
+        b2 = 1;
+    end
+    local slope2 = a2 / b2;
     
     -- Check if the lines are parallel
     if slope1 == slope2 then
@@ -587,7 +598,13 @@ function ColorPicker.Update()
         end
 
         local ix, iy = calculateIntersection(x1, y1, x2, y2, x3, y3, x4, y4);
-        ColorPicker.saturation = (closestX - saturationMin) / (ix - saturationMin);
+        
+        local a = closestX - saturationMin;
+        local b = ix - saturationMin;
+        if (b == 0) then
+            b = 1;
+        end
+        ColorPicker.saturation = a / b;
 
         -- calculate a point on the mid ---- line of the triangle
         x1 = saturationMin;

@@ -28,7 +28,7 @@ function SceneMachine.Start()
 end
 
 function SceneMachine.End()
-	SceneMachine.Editor.PreprocessSavedVars();
+	Editor.PreprocessSavedVars();
 end
 
 SceneMachine.prefix = "sceneMachine123";
