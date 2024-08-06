@@ -352,8 +352,20 @@ function GM.ToggleAllAxesOn()
     GM.moveGizmo:ShowAxis(Gizmo.Axis.YZ);
 end
 
+local function isnan(value)
+    return (value < 0) == (value >= 0)
+end
+
 function GM.MoveGizmoParalelAxesCheck()
     local x, y = Renderer.projectionFrame:Project3DPointTo2D(SM.selectedWorldPosition.x, SM.selectedWorldPosition.y, SM.selectedWorldPosition.z);
+    if (not x or not y) then
+        return;
+    end
+
+    if (isnan(x)) then
+        return;
+    end
+
     local ray = Camera.ScreenPointToRay(x, y);
 
     -- xy
