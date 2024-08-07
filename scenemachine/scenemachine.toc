@@ -9,6 +9,6 @@
 ## X-Website: none
 ## X-License: MIT
 ## IconTexture: Interface\AddOns\scenemachine\res\textures\icon32.png
-## Version: 0.8.1 Beta TWW
+## Version: 0.8.2
 
 src\code.xml
