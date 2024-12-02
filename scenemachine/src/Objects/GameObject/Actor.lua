@@ -126,6 +126,9 @@ end
 function Actor:Deselect()
     if (self.selected) then
         self:ClearSpellVisualKits();
+        if (self.desaturation > 0) then
+            self:SetDesaturation(self.desaturation);
+        end
         self.selected = false;
     end
 end
