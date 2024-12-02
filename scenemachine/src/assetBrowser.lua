@@ -105,10 +105,10 @@ function AB.Create(parent, w, h, startLevel)
 	AB.draggableItem:Hide();
 
     -- DEBUG --
-    AB.OnThumbnailDoubleClick(nil, "World");
-    AB.OnThumbnailDoubleClick(nil, "Expansion10");
-    AB.OnThumbnailDoubleClick(nil, "Doodads");
-    AB.OnThumbnailDoubleClick(nil, "Rootlands");
+    --AB.OnThumbnailDoubleClick(nil, "World");
+    --AB.OnThumbnailDoubleClick(nil, "Expansion10");
+    --AB.OnThumbnailDoubleClick(nil, "Doodads");
+    --AB.OnThumbnailDoubleClick(nil, "Rootlands");
     --AB.OnChangeTab(3);
 end
 
