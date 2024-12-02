@@ -6,6 +6,8 @@ local Input = SceneMachine.Input;
 local Editor = SceneMachine.Editor;
 local AM = SceneMachine.Editor.AnimationManager;
 local SH = Editor.SceneHierarchy;
+local Resources = SceneMachine.Resources;
+local Network = SceneMachine.Network;
 
 local TimeSinceLastUpdate = 0;
 SceneMachine.time = 0;
@@ -19,12 +21,21 @@ function SceneMachine.Start()
 	SceneMachine.Libs.LibSerialize = LibStub("LibSerialize", true);
 	SceneMachine.Libs.LibDeflate = LibStub("LibDeflate", true);
 
-	SceneMachine.Resources.Initialize("Interface\\AddOns\\scenemachine\\res");
-    SceneMachine.Editor.Initialize();
+	Resources.Initialize("Interface\\AddOns\\scenemachine\\res");
+    Editor.Initialize();
     CameraController.Initialize();
 	GM.Create();
-	SceneMachine.Network.Initialize();
+	Network.Initialize();
 	if (Debug) then Debug.Init(); end
+end
+
+--- Using this function to start the editor after the player has logged in.
+--- This is in order to get a correct UIParent scale, which is usually not available in the ADDON_LOADED event.
+function SceneMachine.LateStart()
+	-- open if it was left open
+	if (scenemachine_settings.editor_is_open) then
+		Editor.Show();
+	end
 end
 
 function SceneMachine.End()
@@ -41,6 +52,9 @@ local function onevent(self, event, ...)
         f:UnregisterEvent("ADDON_LOADED");
 		C_ChatInfo.RegisterAddonMessagePrefix(SceneMachine.prefix);
 		SceneMachine.Start();
+	elseif (event == "PLAYER_LOGIN") then
+		f:UnregisterEvent("PLAYER_LOGIN");
+		SceneMachine.LateStart();
 	elseif (event == "ADDONS_UNLOADING") then
 		f:UnregisterEvent("ADDONS_UNLOADING");
 		SceneMachine.End();
@@ -54,6 +68,7 @@ end
 
 f:RegisterEvent("ADDON_LOADED");
 f:RegisterEvent("ADDONS_UNLOADING");
+f:RegisterEvent("PLAYER_LOGIN");
 f:RegisterEvent("CHAT_MSG_ADDON");
 f:SetScript("OnEvent", onevent);
 
@@ -76,7 +91,7 @@ local function SG_UpdateLoop ()
 		Renderer.Update();
 		AM.Update(SceneMachine.deltaTime);
 		SH.Update(SceneMachine.deltaTime);
-		SceneMachine.Network.Update(SceneMachine.deltaTime);
+		Network.Update(SceneMachine.deltaTime);
 		if (Debug) then Debug.FlushLinePool(); end
 	end
 end

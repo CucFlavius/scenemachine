@@ -201,11 +201,6 @@ function Editor.Initialize()
     SceneMachine.mainWindow:Hide();
     Editor.isInitialized = true;
 
-    -- open if it was left open
-    if (scenemachine_settings.editor_is_open) then
-        Editor.Show();
-    end
-
     Editor.RefreshActionToolbar();
 
     --- debug ---
