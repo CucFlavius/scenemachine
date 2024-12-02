@@ -119,7 +119,7 @@ function Scrollbar:Update()
         
         -- Scroll the items list --
         local newPointNormalized = math.abs(newPoint) / (groupBgH - sliderSize);
-        if (self.onScroll) then
+        if (self.onScroll and self.currentValue ~= newPointNormalized) then
             self.currentValue = newPointNormalized;
             self.onScroll(newPointNormalized);
         end
