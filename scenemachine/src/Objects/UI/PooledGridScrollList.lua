@@ -185,8 +185,10 @@ function PooledGridScrollList:Refresh(dif)
         for c = 1, self.visibleColumns, 1 do
             local item = self.itemPool[pidx];
 
+            local x = (c - 1) * self.itemWidth;
+            local y = -((r - 1) + dif) * self.itemHeight;
             item:Show();
-            item:SetSinglePoint("TOPLEFT", (c - 1) * self.itemWidth, -((r - 1) + dif) * self.itemHeight);
+            item:SetSinglePoint("TOPLEFT", x, y);
             item:SetSize(self.itemWidth, self.itemHeight);
 
             if (self.data) then
@@ -202,11 +204,36 @@ function PooledGridScrollList:Refresh(dif)
                 item:Hide();
             end
 
+            self:ClipFix(item, x, y);
+
             pidx = pidx + 1;
             dIdx = dIdx + 1;
         end
     end
 end
+
+function PooledGridScrollList:ClipFix(item, x, y)
+    if (-y > self.viewportHeight) then
+        item:Hide();
+    else
+        local bottomDiff = (-y + self.itemHeight) - self.viewportHeight;
+        if (bottomDiff > 0) then
+            --if (self.template.cellClipFix) then
+                self.template.cellClipFix(item, bottomDiff, x, y);
+            --end
+            item:SetSize(self.itemWidth, self.itemHeight - bottomDiff);
+        end
+        local topDiff = y;
+        if (topDiff > 0) then
+            --if (self.template.cellClipFix) then
+                self.template.cellClipFix(item, topDiff, x, y);
+            --end
+            item:SetSize(self.itemWidth, self.itemHeight - topDiff);
+            item:ClearAllPoints();
+            item:SetPoint("TOPLEFT", x, 0);
+        end
+    end
+    end
 
 --- Refreshes the static content of the PooledGridScrollList.
 function PooledGridScrollList:RefreshStatic()

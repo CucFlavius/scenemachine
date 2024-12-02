@@ -105,10 +105,10 @@ function AB.Create(parent, w, h, startLevel)
 	AB.draggableItem:Hide();
 
     -- DEBUG --
-    --AB.OnThumbnailDoubleClick(nil, "World");
-    --AB.OnThumbnailDoubleClick(nil, "Expansion07");
-    --AB.OnThumbnailDoubleClick(nil, "Doodads");
-    --AB.OnThumbnailDoubleClick(nil, "Kultiraszone");
+    AB.OnThumbnailDoubleClick(nil, "World");
+    AB.OnThumbnailDoubleClick(nil, "Expansion10");
+    AB.OnThumbnailDoubleClick(nil, "Doodads");
+    AB.OnThumbnailDoubleClick(nil, "Rootlands");
     --AB.OnChangeTab(3);
 end
 
@@ -888,6 +888,26 @@ function AB.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
                 item.components[2]:SetAllPoints(item.components[1]:GetFrame());
                 item.components[2]:SetCustomCamera(1);
 			end,
+            cellClipFix = function(item, diff, x, y)
+                -- Have to implement hacks because blizzard broke SetClipsChildren()
+                --item.components[4]:SetText(diff .. " ");
+                if (y > AB.gridList.itemHeight - 30 or y + AB.gridList.viewportHeight < AB.gridList.itemHeight - 45) then
+                    item.components[4]:SetText("");
+                end
+                if (y > 0) then
+                    local diffN = diff / (AB.gridList.itemHeight - 15);
+                    if (y > AB.gridList.itemHeight - 45) then
+                        item.components[3]:Hide();
+                    end
+                    item.components[3]:SetTexCoords({0, 1, diffN, 1});
+                else
+                    local diffN = diff / (AB.gridList.itemHeight - 15);
+                    if (y + AB.gridList.viewportHeight < AB.gridList.itemHeight - 60) then
+                        item.components[3]:Hide();
+                    end
+                    item.components[3]:SetTexCoords({0, 1, 0, 1 - diffN});
+                end
+            end,
 			refreshItem = function(entry, item, index)
                 -- on click --
                 item.components[1]:GetFrame():SetScript("OnClick", function (self, button, down)
@@ -951,6 +971,7 @@ function AB.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
                 else
                     item.components[3]:Show();
                     item.components[2]:Hide();
+                    item.components[3]:SetTexCoords({0, 1, 0, 1});
                     item.components[2].displayID = nil;
                     item.components[2].fileID = nil;
                 end
