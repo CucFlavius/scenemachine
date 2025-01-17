@@ -1,0 +1,5 @@
+<Ui>
+    <!-- Scene Player -->
+    <Script file="player.lua" />
+   
+</Ui>

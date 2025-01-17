@@ -80,13 +80,14 @@ function Renderer.CreateRenderer(x, y, w, h, parent, startLevel)
 	Renderer.w = w;
 	Renderer.h = h;
     Renderer.parent = parent;
+    startLevel = startLevel or 0;
 
     Renderer.backgroundFrame = CreateFrame("Frame", "Renderer.backgroundFrame", parent)
 	Renderer.backgroundFrame:SetFrameStrata(Editor.MAIN_FRAME_STRATA);
 	Renderer.backgroundFrame:SetWidth(Renderer.w);
 	Renderer.backgroundFrame:SetHeight(Renderer.h);
-	Renderer.backgroundFrame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, -21);
-    Renderer.backgroundFrame:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 0, 0);
+	Renderer.backgroundFrame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, y);
+    Renderer.backgroundFrame:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", x, 0);
 
 	Renderer.backgroundFrame.texture = Renderer.backgroundFrame:CreateTexture("Renderer.backgroundFrame.texture", "ARTWORK")
 	Renderer.backgroundFrame.texture:SetColorTexture(0.554,0.554,0.554,1);

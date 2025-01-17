@@ -37,7 +37,7 @@ function SM.Create(x, y, w, h, parent, startLevel)
     SM.groupBG:SetPoint("BOTTOMRIGHT", Editor.horizontalSeparator:GetFrame(), "BOTTOMRIGHT", 0, 6);
     SM.groupBG:SetFrameLevel(startLevel);
     --SM.groupBG:SetClipsChildren(true);
-    SceneMachine.Renderer.CreateRenderer(0, 0, w, h - tabButtonHeight, SM.groupBG:GetFrame(), startLevel + 1);
+    SceneMachine.Renderer.CreateRenderer(0, -21, w, h - tabButtonHeight, SM.groupBG:GetFrame(), startLevel + 1);
     
     SM.exitCameraButton = UI.Button:New(0, 0, 100, 20, SceneMachine.Renderer.projectionFrame, "TOPLEFT", "TOPLEFT", L["SM_EXIT_CAMERA"]);
     SM.exitCameraButton:SetFrameLevel(SceneMachine.Renderer.projectionFrame:GetFrameLevel() + 100);

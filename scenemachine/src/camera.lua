@@ -2,7 +2,6 @@ local Editor = SceneMachine.Editor;
 local Renderer = SceneMachine.Renderer;
 local Camera = SceneMachine.Camera;
 local SM = Editor.SceneManager;
-local Renderer = SceneMachine.Renderer;
 local PM = Editor.ProjectManager;
 local Input = SceneMachine.Input;
 

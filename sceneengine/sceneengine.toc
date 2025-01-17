@@ -1,0 +1,13 @@
+## Interface: 110005, 110007
+## Title: Scene Engine
+## Notes:  An engine designed to be used with scene-machine projects.
+## Author: Zee (Songzee/Songzhu - Argent Dawn EU)
+## DefaultState: enabled
+## LoadOnDemand: 0
+## SavedVariables: sceneengine_settings
+## X-eMail: cucflavius@gmail.com
+## X-Website: none
+## X-License: MIT
+## Version: 0.8.3
+
+src\include.xml

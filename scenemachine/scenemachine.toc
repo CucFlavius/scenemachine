@@ -11,4 +11,4 @@
 ## IconTexture: Interface\AddOns\scenemachine\res\textures\icon32.png
 ## Version: 0.8.3
 
-src\code.xml
+src\include.xml
