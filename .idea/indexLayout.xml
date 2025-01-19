@@ -3,6 +3,13 @@
   <component name="UserContentModel">
     <attachedFolders />
     <explicitIncludes />
-    <explicitExcludes />
+    <explicitExcludes>
+      <Path>scenemachine/res/data/animdata.lua</Path>
+      <Path>scenemachine/res/data/animnames.lua</Path>
+      <Path>scenemachine/res/data/creature.lua</Path>
+      <Path>scenemachine/res/data/creature2display.lua</Path>
+      <Path>scenemachine/res/data/data.lua</Path>
+      <Path>scenemachine/res/data/lightdata.lua</Path>
+    </explicitExcludes>
   </component>
 </project>
