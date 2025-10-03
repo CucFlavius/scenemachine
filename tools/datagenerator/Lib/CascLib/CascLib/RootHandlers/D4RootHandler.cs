@@ -486,13 +486,32 @@ namespace CASCLib
         Preset = 153,
         PreviewComposition = 154,
         SpawnPool = 155,
-        Unknown_156 = 156, // .rdx
-        MAX_SNO_GROUPS = 157,
+        Raid = 156,
+        BattlePassTier = 157,
+        Zone = 158,
+        Unknown_159 = 159, // .ggu
+        DeathKit = 160,
+        Snippet = 161,
+        CommunityModifier = 162,
+        GenericNodeGraph = 163,
+        UserDefinedData = 164,
+        DataStore = 165,
+        BehaviorContainer = 166,
+        ActorService = 167,
+        DamageRemap = 168,
+        Vendor = 169,
+        GenericSkillTree = 170,
+        Unknown_171 = 171, // .dem
+        Crowd = 172,
+        Unknown_173 = 173, // .crt
+        Unknown_174 = 174, // .crp
+        VisualRemap = 175,
+        MAX_SNO_GROUPS = 176,
     }
 
     public class CoreTOCParserD4
     {
-        private const int MAX_SNO_GROUPS = 157;
+        private const int MAX_SNO_GROUPS = 169;
 
         public unsafe struct TOCHeader
         {
@@ -669,13 +688,44 @@ namespace CASCLib
             [(SNOGroupD4)154] = ".pvc",
             [(SNOGroupD4)155] = ".spn",
             [(SNOGroupD4)156] = ".rdx",
+            [(SNOGroupD4)157] = ".bpt",
+            [(SNOGroupD4)158] = ".zon",
+            [(SNOGroupD4)159] = ".ggu",
+            [(SNOGroupD4)160] = ".dtk",
+            [(SNOGroupD4)161] = ".snp",
+            [(SNOGroupD4)162] = ".cmo",
+            [(SNOGroupD4)163] = ".gng",
+            [(SNOGroupD4)164] = ".udd",
+            [(SNOGroupD4)165] = ".fds",
+            [(SNOGroupD4)166] = ".bvr",
+            [(SNOGroupD4)167] = ".asv",
+            [(SNOGroupD4)168] = ".dmg",
+            [(SNOGroupD4)169] = ".vnd",
+            [(SNOGroupD4)170] = ".gst",
+            [(SNOGroupD4)171] = ".dem",
+            [(SNOGroupD4)172] = ".crd",
+            [(SNOGroupD4)173] = ".crt",
+            [(SNOGroupD4)174] = ".crp",
+            [(SNOGroupD4)175] = ".vrm",
         };
 
         public unsafe CoreTOCParserD4(Stream stream)
         {
             using (var br = new BinaryReader(stream))
             {
-                int numSnoGroups = br.ReadInt32();
+                uint magic = br.ReadUInt32();
+
+                int numSnoGroups;
+
+                if (magic == 0xBCDE6611)
+                {
+                    numSnoGroups = br.ReadInt32();
+                }
+                else
+                {
+                    br.BaseStream.Position = 0;
+                    numSnoGroups = br.ReadInt32();
+                }
 
                 //if (numSnoGroups != NUM_SNO_GROUPS)
                 //    return;
@@ -701,9 +751,30 @@ namespace CASCLib
                     entryUnkCounts[i] = br.ReadInt32();
                 }
 
+                int[] entryHashes = new int[numSnoGroups];
+
+                if (magic == 0xBCDE6611)
+                {
+                    entryHashes = new int[numSnoGroups];
+
+                    for (int i = 0; i < entryHashes.Length; i++)
+                    {
+                        entryHashes[i] = br.ReadInt32();
+                    }
+                }
+
                 int unk1 = br.ReadInt32();
 
-                int headerSize = 4 + numSnoGroups * (4 + 4 + 4) + 4;
+                int headerSize;
+
+                if (magic == 0xBCDE6611)
+                {
+                    headerSize = 4 + 4 + numSnoGroups * (4 + 4 + 4 + 4) + 4;
+                }
+                else
+                {
+                    headerSize = 4 + numSnoGroups * (4 + 4 + 4) + 4;
+                }
 
                 for (int i = 0; i < numSnoGroups; i++)
                 {

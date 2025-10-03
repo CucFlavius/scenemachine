@@ -232,12 +232,16 @@ namespace CASCLib
 
                 byte IVSize = br.ReadByte();
 
-                if (IVSize != 4 || IVSize > 0x10)
-                    throw new BLTEDecoderException(2, "IVSize != 4 || IVSize > 0x10");
+                if ((IVSize != 4 && IVSize != 8) || IVSize > 0x10)
+                    throw new BLTEDecoderException(2, "(IVSize != 4 && IVSize != 8) || IVSize > 0x10");
 
                 byte[] IV = br.ReadBytes(IVSize);
-                // expand to 8 bytes
-                Array.Resize(ref IV, 8);
+
+                if (IVSize == 4)
+                {
+                    // expand to 8 bytes
+                    Array.Resize(ref IV, 8);
+                }
 
                 if (data.Length < keyNameSize + IVSize + 4)
                     throw new BLTEDecoderException(2, "data.Length < IVSize + keyNameSize + 4");
@@ -254,11 +258,9 @@ namespace CASCLib
                 }
 
                 byte[] key = KeyService.GetKey(keyName);
-                bool hasKey = key != null;
 
                 if (key == null)
                 {
-                    key = new byte[16];
                     if (CASCConfig.ThrowOnMissingDecryptionKey && index == 0)
                         throw new BLTEDecoderException(3, $"unknown keyname {keyName:X16}");
                     //return null;
@@ -266,11 +268,18 @@ namespace CASCLib
 
                 if (encType == ENCRYPTION_SALSA20)
                 {
-                    using (ICryptoTransform decryptor = KeyService.SalsaInstance.CreateDecryptor(key, IV))
-                    using (CryptoStream cs = new CryptoStream(data, decryptor, CryptoStreamMode.Read))
+                    if (key != null)
                     {
-                        MemoryStream ms = cs.CopyToMemoryStream();
-                        return hasKey ? ms : null;
+                        using (ICryptoTransform decryptor = KeyService.SalsaInstance.CreateDecryptor(key, IV))
+                        using (CryptoStream cs = new CryptoStream(data, decryptor, CryptoStreamMode.Read))
+                        {
+                            MemoryStream ms = cs.CopyToMemoryStream();
+                            return ms;
+                        }
+                    }
+                    else
+                    {
+                        return null;
                     }
                 }
                 else

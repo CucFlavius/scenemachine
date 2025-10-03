@@ -151,17 +151,17 @@ namespace CASCLib
                     throw new InvalidDataException($"unable to validate file {file}");
 
                 bool sizeOk = fi.Length == meta.Size;
-                bool dateOk = ValidateFast || fi.CreationTime == meta.LastModified;
+                bool dateOk = fi.CreationTime == meta.LastModified;
 
                 if (sizeOk && dateOk)
                 {
-                    Logger.WriteLine($"CDNCache: {file} validated, sizeOk {sizeOk}, dateOk {dateOk}, size {fi.Length}, expected size {meta.Size}");
+                    Logger.WriteLine($"CDNCache: {file} validated: sizeOk {sizeOk}, dateOk {dateOk}, size {fi.Length}, expected size {meta.Size}");
 
                     return true;
                 }
                 else
                 {
-                    Logger.WriteLine($"CDNCache: {file} not validated, sizeOk {sizeOk}, dateOk {dateOk}, size {fi.Length}, expected size {meta.Size}");
+                    Logger.WriteLine($"CDNCache: {file} not validated: sizeOk {sizeOk}, dateOk {dateOk}, size {fi.Length}, expected size {meta.Size}");
 
                     _metaData.Remove(fileName);
                     fi.Delete();
@@ -199,7 +199,10 @@ namespace CASCLib
 
             string file = Utils.MakeCDNPath(_config.CDNPath, "data", fileName);
 
-            File.Delete(Path.Combine(CachePath, file));
+            string filePath = Path.Combine(CachePath, file);
+
+            if (File.Exists(filePath))
+                File.Delete(filePath);
 
             using (var sw = File.AppendText(Path.Combine(CachePath, "cache.meta")))
             {

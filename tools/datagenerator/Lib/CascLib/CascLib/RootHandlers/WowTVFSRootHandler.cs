@@ -16,6 +16,22 @@ namespace CASCLib
         public int CftOffset; // only used once and not need to be stored
     }
 
+    public class ContentFlagsFilterVfs : ContentFlagsFilter
+    {
+        public static IEnumerable<WowVfsRootEntry> Filter(IEnumerable<WowVfsRootEntry> entries, bool alternate, bool highResTexture)
+        {
+            IEnumerable<WowVfsRootEntry> temp = entries;
+
+            if (temp.Any(e => Check(e.ContentFlags, ContentFlags.Alternate, true)))
+                temp = temp.Where(e => Check(e.ContentFlags, ContentFlags.Alternate, alternate));
+
+            if (temp.Any(e => Check(e.ContentFlags, ContentFlags.HighResTexture, true)))
+                temp = temp.Where(e => Check(e.ContentFlags, ContentFlags.HighResTexture, highResTexture));
+
+            return temp;
+        }
+    }
+
     public sealed class WowTVFSRootHandler : TVFSRootHandler
     {
         private readonly MultiDictionary<int, WowVfsRootEntry> RootData = new MultiDictionary<int, WowVfsRootEntry>();
@@ -36,6 +52,9 @@ namespace CASCLib
             {
                 if (tvfsEntry.Value.Orig.Length == 53)
                 {
+                    if (tvfsEntry.Value.Orig[12] != '/')
+                        continue;
+
 #if NET6_0_OR_GREATER
                     ReadOnlySpan<char> entryData = tvfsEntry.Value.Orig.AsSpan();
                     LocaleFlags locale = (LocaleFlags)int.Parse(entryData.Slice(0, 8), System.Globalization.NumberStyles.HexNumber);
@@ -127,12 +146,7 @@ namespace CASCLib
 
             if (rootInfosLocale.Count() > 1)
             {
-                IEnumerable<RootEntry> rootInfosLocaleOverride;
-
-                if (OverrideArchive)
-                    rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) != ContentFlags.None);
-                else
-                    rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) == ContentFlags.None);
+                IEnumerable<RootEntry> rootInfosLocaleOverride = ContentFlagsFilter.Filter(rootInfosLocale, OverrideArchive, PreferHighResTextures);
 
                 if (rootInfosLocaleOverride.Any())
                     rootInfosLocale = rootInfosLocaleOverride;
@@ -167,12 +181,7 @@ namespace CASCLib
 
             if (rootInfosLocale.Count() > 1)
             {
-                IEnumerable<WowVfsRootEntry> rootInfosLocaleOverride;
-
-                if (OverrideArchive)
-                    rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) != ContentFlags.None);
-                else
-                    rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) == ContentFlags.None);
+                IEnumerable<WowVfsRootEntry> rootInfosLocaleOverride = ContentFlagsFilterVfs.Filter(rootInfosLocale, OverrideArchive, PreferHighResTextures);
 
                 if (rootInfosLocaleOverride.Any())
                     rootInfosLocale = rootInfosLocaleOverride;
@@ -269,12 +278,7 @@ namespace CASCLib
 
                 if (rootInfosLocale.Count() > 1)
                 {
-                    IEnumerable<WowVfsRootEntry> rootInfosLocaleOverride;
-
-                    if (OverrideArchive)
-                        rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) != ContentFlags.None);
-                    else
-                        rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) == ContentFlags.None);
+                    IEnumerable<WowVfsRootEntry> rootInfosLocaleOverride = ContentFlagsFilterVfs.Filter(rootInfosLocale, OverrideArchive, PreferHighResTextures);
 
                     if (rootInfosLocaleOverride.Any())
                         rootInfosLocale = rootInfosLocaleOverride;

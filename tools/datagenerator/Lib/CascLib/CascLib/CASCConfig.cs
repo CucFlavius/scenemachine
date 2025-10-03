@@ -133,7 +133,13 @@ namespace CASCLib
         public static bool ThrowOnFileNotFound { get; set; } = true;
         public static bool ThrowOnMissingDecryptionKey { get; set; } = true;
         public static bool UseWowTVFS { get; set; } = false;
+        public static bool UseOnlineFallbackForMissingFiles { get; set; } = true;
         public static LoadFlags LoadFlags { get; set; } = LoadFlags.FileIndex;
+        public static string BuildConfigOverride { get; set; } // path to file
+        public static string BuildConfigKeyOverride { get; set; }
+        public static string CDNConfigOverride { get; set; } // path to file
+        public static string CDNConfigKeyOverride { get; set; }
+        public static string CDNHostOverride { get; set; }
 
         private CASCConfig() { }
 
@@ -166,17 +172,16 @@ namespace CASCLib
 
             config.GameType = CASCGame.DetectGameByUid(product);
 
-            if (File.Exists("fakecdnconfig"))
+            if (File.Exists(CDNConfigOverride))
             {
-                using (Stream stream = new FileStream("fakecdnconfig", FileMode.Open))
+                using (Stream stream = new FileStream(CDNConfigOverride, FileMode.Open))
                 {
                     config._CDNConfig = KeyValueConfig.ReadKeyValueConfig(stream);
                 }
             }
-            else if (File.Exists("fakecdnconfighash"))
+            else if (!string.IsNullOrWhiteSpace(CDNConfigKeyOverride))
             {
-                string cdnKey = File.ReadAllText("fakecdnconfighash");
-                using (Stream stream = CDNIndexHandler.OpenConfigFileDirect(config, cdnKey))
+                using (Stream stream = CDNIndexHandler.OpenConfigFileDirect(config, CDNConfigKeyOverride))
                 {
                     config._CDNConfig = KeyValueConfig.ReadKeyValueConfig(stream);
                 }
@@ -184,7 +189,6 @@ namespace CASCLib
             else
             {
                 string cdnKey = config.GetVersionsVariable("CDNConfig").ToLower();
-                //string cdnKey = "da4896ce91922122bc0a2371ee114423";
                 using (Stream stream = CDNIndexHandler.OpenConfigFileDirect(config, cdnKey))
                 {
                     config._CDNConfig = KeyValueConfig.ReadKeyValueConfig(stream);
@@ -209,7 +213,7 @@ namespace CASCLib
                     }
                     catch
                     {
-
+                        Console.WriteLine("Failed to load build {0}", config._CDNConfig["builds"][i]);
                     }
                 }
 
@@ -224,18 +228,17 @@ namespace CASCLib
                 }
             }
 
-            if (File.Exists("fakebuildconfig"))
+            if (File.Exists(BuildConfigOverride))
             {
-                using (Stream stream = new FileStream("fakebuildconfig", FileMode.Open))
+                using (Stream stream = new FileStream(BuildConfigOverride, FileMode.Open))
                 {
                     var cfg = KeyValueConfig.ReadKeyValueConfig(stream);
                     config._Builds.Add(cfg);
                 }
             }
-            else if (File.Exists("fakebuildconfighash"))
+            else if (File.Exists(BuildConfigKeyOverride))
             {
-                string buildKey = File.ReadAllText("fakebuildconfighash");
-                using (Stream stream = CDNIndexHandler.OpenConfigFileDirect(config, buildKey))
+                using (Stream stream = CDNIndexHandler.OpenConfigFileDirect(config, BuildConfigKeyOverride))
                 {
                     var cfg = KeyValueConfig.ReadKeyValueConfig(stream);
                     config._Builds.Add(cfg);
@@ -244,7 +247,6 @@ namespace CASCLib
             else
             {
                 string buildKey = config.GetVersionsVariable("BuildConfig").ToLower();
-                //string buildKey = "3b0517b51edbe0b96f6ac5ea7eaaed38";
                 using (Stream stream = CDNIndexHandler.OpenConfigFileDirect(config, buildKey))
                 {
                     var cfg = KeyValueConfig.ReadKeyValueConfig(stream);
@@ -304,17 +306,17 @@ namespace CASCLib
 
             config._Builds = new List<KeyValueConfig>();
 
-            if (File.Exists("fakebuildconfig"))
+            if (File.Exists(BuildConfigOverride))
             {
-                using (Stream stream = new FileStream("fakebuildconfig", FileMode.Open))
+                using (Stream stream = new FileStream(BuildConfigOverride, FileMode.Open))
                 {
                     var cfg = KeyValueConfig.ReadKeyValueConfig(stream);
                     config._Builds.Add(cfg);
                 }
             }
-            else if (File.Exists("fakebuildconfighash"))
+            else if (!string.IsNullOrWhiteSpace(BuildConfigKeyOverride))
             {
-                string buildKey = File.ReadAllText("fakebuildconfighash");
+                string buildKey = BuildConfigKeyOverride;
                 string buildCfgPath = Path.Combine(basePath, dataFolder, "config", buildKey.Substring(0, 2), buildKey.Substring(2, 2), buildKey);
                 using (Stream stream = new FileStream(buildCfgPath, FileMode.Open))
                 {
@@ -324,7 +326,6 @@ namespace CASCLib
             else
             {
                 string buildKey = config.GetBuildInfoVariable("BuildKey");
-                //string buildKey = "5a05c58e28d0b2c3245954b6f4e2ae66";
                 string buildCfgPath = Path.Combine(basePath, dataFolder, "config", buildKey.Substring(0, 2), buildKey.Substring(2, 2), buildKey);
                 using (Stream stream = new FileStream(buildCfgPath, FileMode.Open))
                 {
@@ -332,16 +333,16 @@ namespace CASCLib
                 }
             }
 
-            if (File.Exists("fakecdnconfig"))
+            if (File.Exists(CDNConfigOverride))
             {
-                using (Stream stream = new FileStream("fakecdnconfig", FileMode.Open))
+                using (Stream stream = new FileStream(CDNConfigOverride, FileMode.Open))
                 {
                     config._CDNConfig = KeyValueConfig.ReadKeyValueConfig(stream);
                 }
             }
-            else if (File.Exists("fakecdnconfighash"))
+            else if (!string.IsNullOrWhiteSpace(CDNConfigKeyOverride))
             {
-                string cdnKey = File.ReadAllText("fakecdnconfighash");
+                string cdnKey = CDNConfigKeyOverride;
                 string cdnCfgPath = Path.Combine(basePath, dataFolder, "config", cdnKey.Substring(0, 2), cdnKey.Substring(2, 2), cdnKey);
                 using (Stream stream = new FileStream(cdnCfgPath, FileMode.Open))
                 {
@@ -351,7 +352,6 @@ namespace CASCLib
             else
             {
                 string cdnKey = config.GetBuildInfoVariable("CDNKey");
-                //string cdnKey = "23d301e8633baaa063189ca9442b3088";
                 string cdnCfgPath = Path.Combine(basePath, dataFolder, "config", cdnKey.Substring(0, 2), cdnKey.Substring(2, 2), cdnKey);
                 using (Stream stream = new FileStream(cdnCfgPath, FileMode.Open))
                 {
@@ -441,6 +441,9 @@ namespace CASCLib
         {
             get
             {
+                if (!string.IsNullOrWhiteSpace(CDNHostOverride))
+                    return CDNHostOverride;
+
                 if (OnlineMode)
                 {
                     var hosts = GetCdnsVariable("Hosts").Split(' ');
@@ -480,6 +483,9 @@ namespace CASCLib
 
         private static string GetConfigVariable(VerBarConfig config, string filterParamName, string filterParamValue, string varName)
         {
+            if (config == null)
+                return null;
+
             if (config.Count == 1 || !HasConfigVariable(config, filterParamName))
             {
                 if (config[0].TryGetValue(varName, out string varValue))
