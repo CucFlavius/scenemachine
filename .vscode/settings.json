@@ -4,7 +4,6 @@
         "AddonCompartmentFrame",
         "MainStatusTrackingBarContainer",
         "CreateRectangle",
-        "FillLocalizedClassList",
         "STRING_SCHOOL_PHYSICAL",
         "STRING_SCHOOL_HOLY",
         "STRING_SCHOOL_FIRE",
@@ -77,6 +76,23 @@
         "enabled",
         "MouseIsOver",
         "ADD",
-        "GameTooltip_SetDefaultAnchor"
+        "GameTooltip_SetDefaultAnchor",
+        "BaseScrollBoxEvents",
+        "SlashCmdList"
+    ],
+    "Lua.runtime.version": "Lua 5.1",
+    "Lua.runtime.builtin": {
+        "basic": "disable",
+        "debug": "disable",
+        "io": "disable",
+        "math": "disable",
+        "os": "disable",
+        "package": "disable",
+        "string": "disable",
+        "table": "disable",
+        "utf8": "disable"
+    },
+    "Lua.workspace.library": [
+        "~\\.vscode\\extensions\\ketho.wow-api-0.21.0\\Annotations\\Core"
     ]
 }

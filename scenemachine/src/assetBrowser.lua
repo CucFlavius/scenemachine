@@ -700,10 +700,53 @@ function AB.CreateDebugTab(parent, w, h)
             --SM.selectedObjects[1].actor:SetModelByPath(path);
             --SM.selectedObjects[1].actor:TryOn(167988);
             --SM.selectedObjects[1].actor:SetFrontEndLobbyModelFromDefaultCharacterDisplay(1);
-            SM.selectedObjects[1].actor:SetPlayerModelFromGlues();
+            --print(SM.selectedObjects[1].actor:GetSpellVisualKit());
         end
         --SM.loadedScene:ExportSceneForPrint();
     end);
+
+    
+    -- Create 4 inputs for SetGradientMask (4 integers)
+    local setGradientMaskLabel = UI.Label:New(0, -253, 100, 20, parent, "TOPLEFT", "TOPLEFT", "SetGradientMask");
+    local setGradientMaskEditBox = UI.TextBox:New(100, -253, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "0,0,0,0");
+    setGradientMaskEditBox:SetScript('OnEnterPressed', function(self1)
+        -- set value
+        local valText = self1:GetText();
+        if (valText == nil or valText == "") then
+            return;
+        end
+        local vals = {};
+        for str in string.gmatch(valText, '([^,]+)') do
+            table.insert(vals, tonumber(str));
+        end
+        if (#vals == 4) then
+            if (#SM.selectedObjects > 0) then
+                print ("Setting Gradient Mask to:", vals[1], vals[2], vals[3], vals[4]);
+                SM.selectedObjects[1].actor:SetGradientMask(vals[1], vals[2], vals[3], vals[4]);
+                print(SM.selectedObjects[1].actor:GetSpellVisualKit());
+            end
+        end
+        self1:ClearFocus();
+        Editor.ui.focused = false;
+    end);
+    -- local setGradientMaskEditBox = UI.TextBox:New(100, -253, w * 0.3, 20, parent, "TOPLEFT", "TOPLEFT", "0");
+    -- setGradientMaskEditBox:SetScript('OnEnterPressed', function(self1)
+    --     -- set value
+    --     local valText = self1:GetText();
+    --     if (valText == nil or valText == "") then
+    --         return;
+    --     end
+    --     local val = tonumber(valText);
+    --     if (val ~= nil) then
+    --         if (#SM.selectedObjects > 0) then
+    --             SM.selectedObjects[1]:SetGradientMask(val);
+    --         end
+    --     end
+    --     self1:ClearFocus();
+    --     Editor.ui.focused = false;
+    -- end);
+
+
     
 --[[
     local testButtonB = UI.Button:New(0, -193, 100, 20, parent, "TOPLEFT", "TOPLEFT", "Connect");
