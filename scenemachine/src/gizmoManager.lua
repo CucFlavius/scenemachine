@@ -275,14 +275,22 @@ function GM.UpdateMarquee(mouseX, mouseY)
         end
 
         if (GM.marqueeVisible and GM.marqueeBox) then
-            GM.marqueeBox:SetWidth(mouseX - GM.marqueeStartPoint[1]);
-            GM.marqueeBox:SetHeight(mouseY - GM.marqueeStartPoint[2]);
+            local sx, sy = GM.marqueeStartPoint[1], GM.marqueeStartPoint[2];
+            local minX = math.min(mouseX, sx);
+            local minY = math.min(mouseY, sy);
+            local absW = math.abs(w);
+            local absH = math.abs(h);
+
+            GM.marqueeBox:ClearAllPoints();
+            GM.marqueeBox:SetPoint("BOTTOMLEFT", Renderer.projectionFrame, "BOTTOMLEFT", minX, minY);
+            GM.marqueeBox:SetWidth(absW);
+            GM.marqueeBox:SetHeight(absH);
             GM.marqueeBox:Show();
 
-            GM.marqueeBox.lineTop:SetTexCoord(0, w / 10, 0, 1);
-            GM.marqueeBox.lineBottom:SetTexCoord(0, w / 10, 0, 1);
-            GM.marqueeBox.lineLeft:SetTexCoord(0, h / 10, 0, 1);
-            GM.marqueeBox.lineRight:SetTexCoord(0, h / 10, 0, 1);
+            GM.marqueeBox.lineTop:SetTexCoord(0, absW / 10, 0, 1);
+            GM.marqueeBox.lineBottom:SetTexCoord(0, absW / 10, 0, 1);
+            GM.marqueeBox.lineLeft:SetTexCoord(0, absH / 10, 0, 1);
+            GM.marqueeBox.lineRight:SetTexCoord(0, absH / 10, 0, 1);
 
             for i = 1, #GM.marqueeAABBSSPoints, 1 do
                 local selected = false;

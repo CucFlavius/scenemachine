@@ -1,5 +1,5 @@
 local AceLocale = LibStub("AceLocale-3.0");
-local L = AceLocale:NewLocale("SceneMachine", "enUS", true);
+local L = AceLocale:NewLocale("SceneMachine", "enUS", true, true);
 if not L then return end
 
 -- General --

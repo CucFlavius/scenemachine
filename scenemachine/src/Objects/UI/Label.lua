@@ -15,7 +15,7 @@ function Label:Build()
     self.textFont = self.values[3] or Resources.defaultFont;
 
     self.frame.text = self.frame:CreateFontString("Zee.WindowAPI.TextBox text");
-    self.frame.text:SetFont(self.textFont, self.textHeight, "NORMAL");
+    self.frame.text:SetFont(self.textFont, self.textHeight, "");
     self.frame.text:SetAllPoints(self.frame);
     self.frame.text:SetText(self.text);
     self.frame.text:SetJustifyV("MIDDLE");

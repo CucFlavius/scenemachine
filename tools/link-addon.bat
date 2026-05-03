@@ -3,7 +3,7 @@ REM Create symlinks/junctions for Scenemachine addon to multiple WoW clients
 setlocal EnableExtensions
 
 REM Source addon folder (where your addon lives)
-set "TARGET=E:\[Addons]\scenemachine\scenemachine"
+set "TARGET=E:\Personal\wowAddon_Scenemachine\scenemachine"
 
 REM Detect admin: use directory symlink (/D) if admin, else junction (/J)
 net session >nul 2>&1

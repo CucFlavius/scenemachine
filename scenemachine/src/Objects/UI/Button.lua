@@ -55,7 +55,7 @@ function Button:Build()
     -- text
     if (self.text) then
         self.textField = self.frame:CreateFontString("Zee.WindowAPI.Button.textField");
-        self.textField:SetFont(Resources.defaultFont, Resources.defaultFontSize, "NORMAL");
+        self.textField:SetFont(Resources.defaultFont, Resources.defaultFontSize, "");
         self.textField:SetAllPoints(self.frame);
         self.textField:SetText(self.text);
     end
@@ -83,7 +83,7 @@ function Button:SetText(text)
 
         if (not self.textField) then
 		self.textField = self.frame:CreateFontString("Zee.WindowAPI.Button.textField");
-		self.textField:SetFont(Resources.defaultFont, Resources.defaultFontSize, "NORMAL");
+		self.textField:SetFont(Resources.defaultFont, Resources.defaultFontSize, "");
 		self.textField:SetAllPoints(self.frame);
         end
         
@@ -94,7 +94,7 @@ end
 --- @param font string The font to set.
 --- @param size number The size of the font.
 function Button:SetFont(font, size)
-    self.textField:SetFont(font, size, "NORMAL");
+    self.textField:SetFont(font, size, "");
 end
 
 --- Sets the color of the button based on its state.
