@@ -63,10 +63,18 @@ function Editor.Initialize()
 
     -- pixel perfect multiplier
     Editor.pmult = 1.0;
-    local res = GetCVar("gxWindowedResolution")
-    if res then
-        local w,h = string.match(res, "(%d+)x(%d+)")
-        Editor.pmult = (768 / h)
+    local _, physicalH = GetPhysicalScreenSize();
+    if (physicalH and physicalH > 0) then
+        Editor.pmult = (768 / physicalH);
+    else
+        -- fallback; the CVar can hold non-numeric values like "auto" since 12.0
+        local res = GetCVar("gxWindowedResolution");
+        if (res) then
+            local w, h = string.match(res, "(%d+)x(%d+)");
+            if (h) then
+                Editor.pmult = (768 / tonumber(h));
+            end
+        end
     end
 
     -- Create all of the UI --
