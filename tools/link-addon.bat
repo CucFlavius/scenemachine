@@ -21,6 +21,7 @@ for %%L in (
   "D:\Games\World of Warcraft\_retail_\Interface\AddOns\scenemachine"
   "D:\Games\World of Warcraft\_beta_\Interface\AddOns\scenemachine"
   "D:\Games\World of Warcraft\_ptr_\Interface\AddOns\scenemachine"
+  "D:\Games\World of Warcraft\_xptr_\Interface\AddOns\scenemachine"
 ) do (
     echo Linking "%%~L" -> "%TARGET%"
 

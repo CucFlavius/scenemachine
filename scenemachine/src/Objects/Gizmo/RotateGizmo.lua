@@ -119,7 +119,7 @@ function RotateGizmo:SelectionCheck(mouseX, mouseY)
         if (mouseX and mouseY and aX and aY and bX and bY) then
             local dist = Math.distToSegment({mouseX, mouseY}, {aX, aY}, {bX, bY});
             local line = self.lines[t];
-            if (dist < 10 and line.alpha > 0.2) then
+            if (dist < 10 and (line.alpha or 0) > 0.2) then
                 local ax = line.axis;
                 if (minDists[ax] > dist) then
                     minDists[ax] = dist;
@@ -143,35 +143,40 @@ function RotateGizmo:Shade()
     local minD = 10000000;
     local maxD = -10000000;
 
-    -- find min max depth
-    for i = 1, #self.lineDepths do
-        if (self.lineDepths[i] > maxD) then
-            maxD = self.lineDepths[i];
-        end
-        if (self.lineDepths[i] < minD) then
-            minD = self.lineDepths[i];
+    -- find min max depth (lineDepths is sparse: culled lines never get a depth)
+    for i = 1, self.lineCount do
+        local d = self.lineDepths[i];
+        if (d ~= nil) then
+            if (d > maxD) then
+                maxD = d;
+            end
+            if (d < minD) then
+                minD = d;
+            end
         end
     end
 
     -- fade alpha
-    for i = 1, #self.lineDepths do
-        -- get an alpha value between 0 and 1
-        local alpha = Math.normalize(self.lineDepths[i], minD, maxD);
+    for i = 1, self.lineCount do
+        if (self.lineDepths[i] ~= nil) then
+            -- get an alpha value between 0 and 1
+            local alpha = Math.normalize(self.lineDepths[i], minD, maxD);
 
-        -- make non linear
-        alpha = alpha ^ 2.2;
+            -- make non linear
+            alpha = alpha ^ 2.2;
 
-        self.lines[i].alpha = alpha;
+            self.lines[i].alpha = alpha;
 
-        -- clamp
-        if (self.lines[i].axis == self.highlightedAxis) then
-            alpha = Math.clamp(alpha, 0.5, 1);
-        else
-            alpha = Math.clamp(alpha, 0, 0.3);
+            -- clamp
+            if (self.lines[i].axis == self.highlightedAxis) then
+                alpha = Math.clamp(alpha, 0.5, 1);
+            else
+                alpha = Math.clamp(alpha, 0, 0.3);
+            end
+
+            local faceColor = self.faceColors[i];
+            self.lines[i]:SetVertexColor(faceColor[1], faceColor[2], faceColor[3], alpha);
         end
-
-        local faceColor = self.faceColors[i];
-        self.lines[i]:SetVertexColor(faceColor[1], faceColor[2], faceColor[3], alpha);
     end
 end
 

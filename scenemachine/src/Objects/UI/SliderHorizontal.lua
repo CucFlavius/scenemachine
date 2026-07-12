@@ -56,7 +56,7 @@ function SliderHorizontal:Build()
     if (totalSteps < 100) then
         self.stepFrames = {};
         local level = self.frameCenter:GetFrameLevel();
-        local w = self.frameCenter:GetWidth() + (h * 2);
+        local w = self.frameCenter:GetWidth() - (h * 2);
         for i = 1, totalSteps + 1, 1 do
             local x = ((i - 1) * self.step) * w + h/2 + 1;
             local stepFrame = UI.ImageBox:New(x, 0, 3, h * 2, self.frameCenter:GetFrame(), "LEFT", "LEFT", Resources.textures["TimeNeedle"], { 0.4, 0.6, 0, 1 });
@@ -124,7 +124,8 @@ function SliderHorizontal:Update()
         local groupBgH = self.width;
         local sliderSize = self.scrollbarSlider:GetWidth();
         local mouseXRaw, mouseYRaw = GetCursorPosition();
-        local mouseDiff = (self.inputState.mousePosStartX - mouseXRaw);
+        -- GetCursorPosition is in root-scale pixels; convert to this frame's local units
+        local mouseDiff = (self.inputState.mousePosStartX - mouseXRaw) / self.frame:GetEffectiveScale();
         local nextPoint = self.inputState.SliderHorizontalFramePosStart - mouseDiff;
         local newPoint = 0;
 

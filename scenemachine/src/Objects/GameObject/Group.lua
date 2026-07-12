@@ -72,10 +72,11 @@ function Group:FitObjects(objects)
         -- If there are no objects, set the default bounding box values.
         self.minX, self.minY, self.minZ, self.maxX, self.maxY, self.maxZ = -0.5, -0.5, -0.5, 0.5, 0.5, 0.5;
     elseif (#objects == 1) then
-        -- If there is only one object, use its bounding box and position.
+        -- If there is only one object, use its bounding box and WORLD transform
+        -- (the group is created at scene root, and the object may be a nested child).
         self.minX, self.minY, self.minZ, self.maxX, self.maxY, self.maxZ = objects[1]:GetActiveBoundingBox();
-        self.position = objects[1]:GetPosition();
-        self.rotation = objects[1]:GetRotation();
+        self.position = objects[1]:GetWorldPosition();
+        self.rotation = objects[1]:GetWorldRotation();
     else
         -- Initialize variables to store the minimum and maximum bounds.
         local xMin, yMin, zMin, xMax, yMax, zMax = 100000, 100000, 100000, -100000, -100000, -100000;
@@ -138,11 +139,11 @@ function Group:FitObjects(objects)
             end
         end
         
-        -- Set the calculated minimum and maximum bounds.
-        self.minX, self.minY, self.minZ, self.maxX, self.maxY, self.maxZ = xMin, yMin, zMin, xMax, yMax, zMax;
-
-        -- Calculate the position of the group as the center of the bounding box.
+        -- Position the group at the center of the bounds, and store the bounds
+        -- relative to it (GetActiveBoundingBox consumers expect object-local bounds).
         self.position = Vector3:New(xMin + (xMax - xMin) / 2, yMin + (yMax - yMin) / 2, zMin + (zMax - zMin) / 2);
+        self.minX, self.minY, self.minZ = xMin - self.position.x, yMin - self.position.y, zMin - self.position.z;
+        self.maxX, self.maxY, self.maxZ = xMax - self.position.x, yMax - self.position.y, zMax - self.position.z;
         self.rotation = Vector3:New(0, 0, 0);
     end
 end

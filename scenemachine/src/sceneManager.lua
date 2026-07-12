@@ -142,6 +142,7 @@ function SM.Button_ExportScene(index)
 
     if (SM.loadedScene ~= scene) then
         SM.LoadScene(index);
+        scene = PM.currentProject.scenes[index];    -- LoadScene replaced the table with a Scene instance
     end
 
     local sceneString = scene:ExportSceneForPrint();
@@ -166,11 +167,11 @@ function SM.LoadScene(index)
         return;
     end
 
+    -- unload current (resets loadedSceneIndex, so assign after) --
+    SM.UnloadScene();
+
     SM.loadedSceneIndex = index;
     SM.tabGroup.selectedIndex = index;
-
-    -- unload current --
-    SM.UnloadScene();
 
     -- load new --
     local sceneData = PM.currentProject.scenes[index];
@@ -247,26 +248,27 @@ function SM.StopControllingCamera()
 end
 
 function SM.DeleteScene(index)
-    -- switch to a different scene because the currently loaded is being deleted
-    -- load first that isn't this one
-    if (SM.loadedScene == PM.currentProject.scenes[index]) then
+    local deletingLoaded = (SM.loadedScene == PM.currentProject.scenes[index]);
+
+    if (deletingLoaded) then
         SM.UnloadScene();
         SH.RefreshHierarchy();
-    end
-
-    for i in pairs(PM.currentProject.scenes) do
-        if (i ~= index) then
-            SM.LoadScene(i);
-            break;
-        end
     end
 
     -- delete it
     table.remove(PM.currentProject.scenes, index);
 
-    -- if this was the only scene then create a new default one
     if (#PM.currentProject.scenes == 0) then
+        -- this was the only scene, create (and load) a new default one
         SM.CreateDefaultScene();
+    elseif (deletingLoaded) then
+        -- switch to the nearest remaining scene
+        SM.LoadScene(math.min(index, #PM.currentProject.scenes));
+    elseif (SM.loadedSceneIndex > index) then
+        -- keep the index pointing at the same loaded scene after the shift
+        SM.loadedSceneIndex = SM.loadedSceneIndex - 1;
+        SM.tabGroup.selectedIndex = SM.loadedSceneIndex;
+        PM.currentProject.lastOpenScene = SM.loadedSceneIndex;
     end
 
     -- refresh ui
@@ -482,13 +484,19 @@ function SM.CloneObjects(objects, selectAfter)
         return;
     end
 
+    -- snapshot the hierarchy before cloning so undo doesn't keep the clones' entries
+    local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
+
+    -- keep the clone list dense: CloneObject returns nil for unclonable types (groups)
     local clones = {};
     for i = 1, #objects, 1 do
         if (objects[i]) then
-            clones[i] = SM.loadedScene:CloneObject(objects[i]);
+            local clone = SM.loadedScene:CloneObject(objects[i]);
+            if (clone) then
+                table.insert(clones, clone);
+            end
         end
     end
-    local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
     Editor.StartAction(Actions.Action.Type.CreateObject, clones, objectHierarchyBefore);
 
     local objectHierarchyAfter = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
@@ -526,14 +534,21 @@ function SM.DeleteObjects(objects)
     -- make a copy of the objectHierarchy, so it can be restored without too much complication
     local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
 
-    -- collect child objects
+    -- collect child objects, deduped: a selected child of a selected parent shows up in both lists
     local allObjects = {};
+    local seenIDs = {};
     for i = 1, #objects, 1 do
-        table.insert(allObjects, objects[i]);
-        local childObjects = SM.loadedScene:GetChildObjectsRecursive(objects[i].id);
+        if (objects[i] and not seenIDs[objects[i].id]) then
+            seenIDs[objects[i].id] = true;
+            table.insert(allObjects, objects[i]);
+        end
+        local childObjects = objects[i] and SM.loadedScene:GetChildObjectsRecursive(objects[i].id);
         if (childObjects) then
             for j = 1, #childObjects, 1 do
-                table.insert(allObjects, childObjects[j])
+                if (not seenIDs[childObjects[j].id]) then
+                    seenIDs[childObjects[j].id] = true;
+                    table.insert(allObjects, childObjects[j]);
+                end
             end
         end
     end
@@ -619,7 +634,7 @@ function SM.ToggleObjectFreezeState(object)
     SH.RefreshHierarchy();
 end
 
-function SM.LoadNetworkScene(sceneData)
+function SM.LoadNetworkScene(scene)
     SM.loadedSceneIndex = -1;
 
     Editor.SetMode(Editor.MODE_NETWORK);
@@ -627,9 +642,7 @@ function SM.LoadNetworkScene(sceneData)
     -- unload current --
     SM.UnloadScene();
 
-    -- load new --
-    local scene = Scene:New();
-    scene:ImportData(sceneData);
+    -- load new (scene arrives already imported via Scene:ImportNetworkScene) --
     scene:Load();
     SM.loadedScene = scene;
 
@@ -672,13 +685,13 @@ function SM.GroupObjects(objects)
 
     local scene = SM.loadedScene;
     
-    local group = SceneMachine.GameObjects.Group:New("Group");
+    local group = SceneMachine.GameObjects.Group:New(scene, "Group");
     group:FitObjects(objects);
 
     local objectHierarchyBefore = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
     Editor.StartAction(Actions.Action.Type.CreateObject, { group }, objectHierarchyBefore);
-    
-    local group = scene:GroupObjects(group, objects);
+
+    scene:GroupObjects(group, objects);
 
     local objectHierarchyAfter = Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy());
     Editor.FinishAction(objectHierarchyAfter);

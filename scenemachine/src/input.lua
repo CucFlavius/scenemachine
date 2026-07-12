@@ -158,7 +158,8 @@ function Input.Update()
                     Editor.CancelAction();
                     SM.DeleteObject_internal(SM.selectedObjects[1]); -- assuming only 1 object is selected, the one being pulled out
                 else
-                    Editor.FinishAction();  -- record the object creation action
+                    -- record the object creation action (Finish needs the post-creation hierarchy for redo)
+                    Editor.FinishAction(SceneMachine.Scene.RawCopyObjectHierarchy(SM.loadedScene:GetObjectHierarchy()));
                 end
             end
             

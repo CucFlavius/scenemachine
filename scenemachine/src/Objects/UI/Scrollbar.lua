@@ -50,7 +50,8 @@ function Scrollbar:Build()
     self.scrollbarSlider.ntex:SetAllPoints();
     self.scrollbarSlider:SetNormalTexture(self.scrollbarSlider.ntex);
     self.scrollbarSlider:SetScript("OnMouseDown", function()
-        if (math.ceil(self.frame:GetHeight()) == parent:GetHeight()) then
+        -- nothing to scroll when the thumb fills the track
+        if (self.scrollbarSlider:GetHeight() >= self.frame:GetHeight()) then
             return;
         end
         inputState.movingScrollbar = true;
@@ -98,7 +99,8 @@ function Scrollbar:Update()
         local groupBgH = self.height;
         local sliderSize = self.scrollbarSlider:GetHeight();
         local mouseXRaw, mouseYRaw = GetCursorPosition();
-        local mouseDiff = (self.inputState.mousePosStartY - mouseYRaw); --* UI.UI.scale;
+        -- GetCursorPosition is in root-scale pixels; convert to this frame's local units
+        local mouseDiff = (self.inputState.mousePosStartY - mouseYRaw) / self.frame:GetEffectiveScale();
         local nextPoint = self.inputState.scrollbarFramePosStart - mouseDiff;
         local newPoint = 0;
 
@@ -140,6 +142,9 @@ function Scrollbar:Resize(viewportH, listH)
         self:Disable();
         return;
     end
+
+    -- keep the drag-math track height in sync (the frame's OnSizeChanged may never have fired)
+    self.height = self.frame:GetHeight();
 
     local minScrollbar = 20;
     local maxScrollbar = viewportH;

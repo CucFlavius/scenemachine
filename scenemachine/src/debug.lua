@@ -5,6 +5,7 @@
 Debug = {};
 local Renderer = SceneMachine.Renderer;
 local Vector3 = SceneMachine.Vector3;
+local Resources = SceneMachine.Resources;
 
 local linePoolSize = 100;
 
@@ -18,6 +19,7 @@ function Debug.Init()
 		Debug.linePool[t] = lineProjectionFrame:CreateLine(nil, nil, nil);
         Debug.linePool[t]:SetThickness(5.5);
         Debug.linePool[t]:SetTexture(Resources.textures["Line"], "REPEAT", "REPEAT", "NEAREST");
+        Debug.linePool[t].visible = false;
 	end
 end
 
@@ -80,8 +82,8 @@ function Debug.HideGameUI()
 	--);
 end
 
-function Debug.TablePrint(table)
-	local indent = 4;
+function Debug.TableToString(tbl, indent)
+	indent = indent or 4;
 	local toprint = string.rep(" ", indent) .. "{\r\n"
 	indent = indent + 2
 	for k, v in pairs(tbl) do
@@ -89,20 +91,24 @@ function Debug.TablePrint(table)
 		if (type(k) == "number") then
 			toprint = toprint .. "[" .. k .. "] = "
 		elseif (type(k) == "string") then
-			toprint = toprint  .. k ..  "= "   
+			toprint = toprint  .. k ..  "= "
 		end
 		if (type(v) == "number") then
 			toprint = toprint .. v .. ",\r\n"
 		elseif (type(v) == "string") then
 			toprint = toprint .. "\"" .. v .. "\",\r\n"
 		elseif (type(v) == "table") then
-			toprint = toprint .. tprint(v, indent + 2) .. ",\r\n"
+			toprint = toprint .. Debug.TableToString(v, indent + 2) .. ",\r\n"
 		else
 			toprint = toprint .. "\"" .. tostring(v) .. "\",\r\n"
 		end
 	end
 	toprint = toprint .. string.rep(" ", indent-2) .. "}"
-	print(toprint)
+	return toprint
+end
+
+function Debug.TablePrint(tbl)
+	print(Debug.TableToString(tbl))
 end
 
 function Debug.DrawRay(ray, length, R, G, B, A)

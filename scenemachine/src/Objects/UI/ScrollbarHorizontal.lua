@@ -102,7 +102,8 @@ function ScrollbarHorizontal:Update()
         local groupBgH = self.width;
         local sliderSize = self.scrollbarSlider:GetWidth();
         local mouseXRaw, mouseYRaw = GetCursorPosition();
-        local mouseDiff = (self.inputState.mousePosStartX - mouseXRaw);
+        -- GetCursorPosition is in root-scale pixels; convert to this frame's local units
+        local mouseDiff = (self.inputState.mousePosStartX - mouseXRaw) / self.frame:GetEffectiveScale();
         local nextPoint = self.inputState.ScrollbarHorizontalFramePosStart - mouseDiff;
         local newPoint = 0;
 

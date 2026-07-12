@@ -86,8 +86,8 @@ function Settings.BuildGeneralTab()
     local onScroll = function(value)
         local parent = list:GetParent();
         local y = value * (list:GetHeight() - viewport:GetHeight());
-        list:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, y);
-        list:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -16, y);
+        list:SetPoint("TOPLEFT", parent, "TOPLEFT", 5, y);
+        list:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -21, y);
     end
     local scrollbar = UI.Scrollbar:NewTRBR(0, 0, 0, 0, 16, viewport:GetFrame(), onScroll);
     viewport:GetFrame():SetScript("OnSizeChanged", function(_, width, height)
@@ -99,6 +99,8 @@ function Settings.BuildGeneralTab()
     Settings.AddSlider(list, L["SETTINGS_EDITOR_SCALE"], 70, 120, Settings.GetEditorScale(), 1, Settings.SetEditorScale);
 
     list:SetHeight(list.posY);
+    -- initial state: OnSizeChanged doesn't fire until the window is actually resized
+    scrollbar:Resize(viewport:GetHeight(), list:GetHeight());
 end
 
 function Settings.BuildGizmosTab()
@@ -108,8 +110,8 @@ function Settings.BuildGizmosTab()
     local onScroll = function(value)
         local parent = list:GetParent();
         local y = value * (list:GetHeight() - viewport:GetHeight());
-        list:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, y);
-        list:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -16, y);
+        list:SetPoint("TOPLEFT", parent, "TOPLEFT", 5, y);
+        list:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -21, y);
     end
     local scrollbar = UI.Scrollbar:NewTRBR(0, 0, 0, 0, 16, viewport:GetFrame(), onScroll);
     viewport:GetFrame():SetScript("OnSizeChanged", function(_, width, height)
@@ -136,6 +138,8 @@ function Settings.BuildGizmosTab()
     end);
 
     list:SetHeight(list.posY);
+    -- initial state: OnSizeChanged doesn't fire until the window is actually resized
+    scrollbar:Resize(viewport:GetHeight(), list:GetHeight());
 end
 
 function Settings.GetGizmoSize()
@@ -161,8 +165,8 @@ function Settings.BuildDebugTab()
     local onScroll = function(value)
         local parent = list:GetParent();
         local y = value * (list:GetHeight() - viewport:GetHeight());
-        list:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, y);
-        list:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -16, y);
+        list:SetPoint("TOPLEFT", parent, "TOPLEFT", 5, y);
+        list:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -21, y);
     end
     local scrollbar = UI.Scrollbar:NewTRBR(0, 0, 0, 0, 16, viewport:GetFrame(), onScroll);
     viewport:GetFrame():SetScript("OnSizeChanged", function(_, width, height)
@@ -191,6 +195,8 @@ function Settings.BuildDebugTab()
     end);
 
     list:SetHeight(list.posY);
+    -- initial state: OnSizeChanged doesn't fire until the window is actually resized
+    scrollbar:Resize(viewport:GetHeight(), list:GetHeight());
 end
 
 function Settings.ShowDebugTabInAssetBrowser()

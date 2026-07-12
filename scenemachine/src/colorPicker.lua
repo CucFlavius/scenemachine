@@ -434,6 +434,7 @@ function ColorPicker.Initialize(r, g, b)
         ColorPicker.lightnessScroll.onValueChange(valueNorm);
     end);
     ColorPicker.lightnessScroll_C = UI.Rectangle:New(0, 0, width, 10, ColorPicker.lightnessScroll, "LEFT", "LEFT", 1, 1, 1, 1);
+    ColorPicker.lightnessScroll_C:SetFrameLevel(8);     -- base track below the overlays (9/10/11)
     ColorPicker.lightnessScroll_L = UI.ImageBox:New(width / 2, 0, width / 2, 10, ColorPicker.lightnessScroll, "LEFT", "LEFT",
                                     Resources.textures["ColorPicker"], { 1, 0.5, 0.5 + 0.09375, 0.5 + 0.125 });
     ColorPicker.lightnessScroll_L:SetFrameLevel(10);

@@ -179,7 +179,7 @@ function PooledScrollList:Refresh(dif)
         pidx = pidx + 1;
     end
 
-    if (pidx < #self.itemPool) then
+    if (pidx <= #self.itemPool) then
         for p = pidx, #self.itemPool, 1 do
             self.itemPool[p]:Hide();
         end

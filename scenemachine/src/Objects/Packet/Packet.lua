@@ -20,7 +20,7 @@ Packet.Type = {
     PlayerState = 5,
 }
 
-Packet.HeaderSize = 12;
+Packet.HeaderSize = 14;     -- 8 packetID + 3 part + 3 totalParts (2 digits caps at 99 parts)
 Packet.MaxSize = 255 - Packet.HeaderSize;
 
 setmetatable(Packet, Packet)
@@ -60,14 +60,14 @@ function Packet:Send(playerName)
     local packetID = Net.GeneratePacketID();
 
     if (string.len(data) < Packet.MaxSize) then
-        local finalData = string.format("%s%.2d%.2d%s", packetID, 0, 0, data);
+        local finalData = string.format("%s%.3d%.3d%s", packetID, 0, 0, data);
         ChatThrottleLib:SendAddonMessage("NORMAL", SceneMachine.prefix, finalData, "WHISPER", playerName);
     else
         local splitData = Net.SplitPacketDataByChunk(data, Packet.MaxSize);
         for i = 1, #splitData, 1 do
             local part = i;
             local totalParts = #splitData;
-            local finalData = string.format("%s%.2d%.2d%s", packetID, part, totalParts, splitData[i]);
+            local finalData = string.format("%s%.3d%.3d%s", packetID, part, totalParts, splitData[i]);
             ChatThrottleLib:SendAddonMessage("NORMAL", SceneMachine.prefix, finalData, "WHISPER", playerName);
         end
     end

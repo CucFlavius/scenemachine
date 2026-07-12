@@ -103,7 +103,7 @@ end
 --- @param b BoundingBox The second bounding box.
 --- @return boolean True if the bounding boxes are equal, false otherwise.
 BoundingBox.__eq = function(a,b)
-    return a.center == b.center and a.size == a.size
+    return a.center == b.center and a.size == b.size
 end
 
 -- This function is used as the __index metamethod for the BoundingBox table.

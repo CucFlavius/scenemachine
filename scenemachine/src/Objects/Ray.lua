@@ -126,10 +126,13 @@ function Ray:LineIntersection(line_position, line_normal)
     rejectionNorm:Normalize();
 
     local distance_to_line_pos = rejection:Length() / Vector3.DotProduct(line_normal, rejectionNorm);
+    -- work on a copy; callers pass shared axis vectors that must not be rescaled
+    local scaled_normal = Vector3:New();
+    scaled_normal:SetVector3(line_normal);
+    scaled_normal:Scale(distance_to_line_pos);
     local closest_approach = Vector3:New();
     closest_approach:SetVector3(line_position);
-    line_normal:Scale(distance_to_line_pos);
-    closest_approach:Subtract(line_normal);
+    closest_approach:Subtract(scaled_normal);
 
     return closest_approach
 end
@@ -169,7 +172,8 @@ function Ray:IntersectsBoundingBox(bb, position, rotation, scale)
     local tNear = math.max(math.max(t1.x, t1.y), t1.z);
     local tFar = math.min(math.min(t2.x, t2.y), t2.z);
 
-    return tNear, tFar;
+    -- t values were computed in 1/scale space; convert back to world distance
+    return tNear * scale, tFar * scale;
 end
 
 --- Returns a string representation of the Ray object.
@@ -185,8 +189,8 @@ end
 --- @param b Ray The second Ray object.
 --- @return boolean True if the Ray objects are equal, false otherwise.
 Ray.__eq = function(a,b)
-    return a.origin.x == b.origin.x and a.origin.y == b.origin.x and a.origin.z == b.origin.z and
-            a.direction.x == b.direction.x and a.direction.y == b.direction.x and a.direction.z == b.direction.z;
+    return a.origin.x == b.origin.x and a.origin.y == b.origin.y and a.origin.z == b.origin.z and
+            a.direction.x == b.direction.x and a.direction.y == b.direction.y and a.direction.z == b.direction.z;
 end
 
 --- This function is a custom index metamethod for the Ray object.

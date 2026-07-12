@@ -200,7 +200,7 @@ function CC.Update(deltaTime)
 		local distCovered = (SceneMachine.time - CC.Focus.startTime) * speed;
 		local fractionOfJourney = 0;
 		if (CC.Focus.distance ~= 0) then
-			fractionOfJourney = distCovered / CC.Focus.distance;
+			fractionOfJourney = math.min(distCovered / CC.Focus.distance, 1);
 		end
 
 		CC.position:Lerp(CC.Focus.startPos, CC.Focus.endPos, fractionOfJourney);
@@ -258,6 +258,7 @@ function CC.FocusObjects(objects)
 
 	-- Focus multiple objects
 	CC.Focus.focusedObject = objects[1];
+	CC.Focus.gizmoType = Object.GizmoType.Object;
 
 	-- set start position
 	CC.Focus.startPos:SetVector3(Camera.position);

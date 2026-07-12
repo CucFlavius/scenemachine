@@ -131,10 +131,11 @@ function CollapsableList:GetVisibleHeight()
         local ch = childFrame:GetChildren();
         local visible = ch:IsVisible();
         local height = ch:GetHeight();
+        -- 13 = bar height 12 + 1px gap, matching Sort()'s stride
         if (visible) then
-            h = h + height + 12;
+            h = h + height + 13;
         else
-            h = h + 12;
+            h = h + 13;
         end
     end
 

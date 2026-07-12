@@ -220,6 +220,7 @@ end
 function AB.RemoveCollection_internal(collectionIndex)    -- don't use directly
     table.remove(scenemachine_collections, collectionIndex);
     AB.collectionScrollList:SetData(scenemachine_collections);
+    AB.selectedCollection = nil;
     AB.selectedCollectionIndex = -1;
     AB.selectedGridViewItem = nil;
     AB.gridList:SetData(nil);
@@ -989,9 +990,6 @@ function AB.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
                 item.ID = entry.ID;
                 item.dataIndex = index;
 
-                item.components[2].displayID = nil;
-                item.components[2].fileID = nil;
-
                 -- has model (file)
                 if (entry.fileID) then
                     item.components[3]:Hide();
@@ -1027,6 +1025,9 @@ function AB.CreateGridView(xMin, yMin, xMax, yMax, parent, startLevel)
 			end,
             clearItem = function(item)
                 item.components[2]:ClearModel();
+                -- invalidate the model cache so a reused frame reloads
+                item.components[2].fileID = nil;
+                item.components[2].displayID = nil;
             end
 	    }
     );
@@ -1140,7 +1141,7 @@ function AB.BuildSearchDataRecursive(value, dir)
         local fileCount = #dir["FN"];
         for i = 1, fileCount, 1 do
             local fileName = dir["FN"][i];
-            if (string.find(fileName:lower(), value)) then
+            if (string.find(fileName:lower(), value, 1, true)) then
                 local fileID = dir["FI"][i];
                 searchData[#searchData + 1] = { N = dir["FN"][i], fileID = fileID, ID = fileID };
             end
@@ -1160,7 +1161,7 @@ function AB.BuildCreatureSearchData(value)
     for c in pairs(SceneMachine.creatureToDisplayID) do
         local d = SceneMachine.creatureToDisplayID[c];
         local n = SceneMachine.creatureData[c];
-        if (string.find(n:lower(), value)) then
+        if (string.find(n:lower(), value, 1, true)) then
             searchData[#searchData + 1] = { N = n, displayID = d, ID = c };
         end
     end

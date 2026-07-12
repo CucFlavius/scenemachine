@@ -83,9 +83,10 @@ end
 function Net.MessageReceive(prefix, text, channel, sender, target, zoneChannelID, localID, name, instanceID)
 
     local packetID = string.sub(text, 1, 8);
-    local part = tonumber(string.sub(text, 9, 10), 16);
-    local totalParts = tonumber(string.sub(text, 11, 12), 16);
-    local data = string.sub(text, 13);
+    -- header is written with %.3d (decimal) in Packet:Send
+    local part = tonumber(string.sub(text, 9, 11), 10);
+    local totalParts = tonumber(string.sub(text, 12, 14), 10);
+    local data = string.sub(text, 15);
 
     if (totalParts == 0) then
         local decoded = SceneMachine.Libs.LibDeflate:DecodeForWoWAddonChannel(data);
@@ -224,9 +225,10 @@ function Net.HandlePlayerState(sender, data)
         Net.playerAvatars[sender].data = data;
         local actor = Net.playerAvatars[sender].actor;
         actor:SetPosition(data.x, data.y, data.z);
-        actor:SetYaw(data.rx);
+        -- convention: x=roll, y=pitch, z=yaw
+        actor:SetRoll(data.rx);
         actor:SetPitch(data.ry);
-        actor:SetRoll(data.rz);
+        actor:SetYaw(data.rz);
     end
 end
 
@@ -257,14 +259,15 @@ function Net.UpdatePlayer(name)
                 end
             end
 
-            local rotX = actor:GetYaw() + data.vrx / 2; -- fine tuning to only half because rarely someone rotates too crazy
+            -- convention: x=roll, y=pitch, z=yaw; only half because rarely someone rotates too crazy
+            local rotX = actor:GetRoll() + data.vrx / 2;
             local rotY = actor:GetPitch() + data.vry / 2;
-            local rotZ = actor:GetRoll() + data.vrz / 2;
+            local rotZ = actor:GetYaw() + data.vrz / 2;
 
             actor:SetPosition(posX, posY, posZ);
-            actor:SetYaw(rotX);
+            actor:SetRoll(rotX);
             actor:SetPitch(rotY);
-            actor:SetRoll(rotZ);
+            actor:SetYaw(rotZ);
         end
     end
 end

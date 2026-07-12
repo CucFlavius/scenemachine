@@ -252,7 +252,13 @@ function SH.OpenItemContextMenu(object)
 
 	local menuOptions = {};
 
-	table.insert(menuOptions, { ["Name"] = L["CM_DELETE"], ["Action"] = function() SM.DeleteObjects(object); end });
+	table.insert(menuOptions, { ["Name"] = L["CM_DELETE"], ["Action"] = function()
+		if (#SM.selectedObjects > 1) then
+			SM.DeleteObjects(SM.selectedObjects);
+		else
+			SM.DeleteObjects({ object });
+		end
+	end });
 
 	if (object:IsVisible()) then
 		table.insert(menuOptions, { ["Name"] = L["CM_HIDE"], ["Action"] = function()
@@ -485,16 +491,17 @@ function SH.OnDraggingItem(deltaTime)
 		-- determine which item the mouse is over
 		local scale = SH.inputState.viewportScale;
 		local mouseOverItem;
-		local itemBuf;
+		local lastVisibleItem;
 		for i = 1, #SH.scrollList.itemPool, 1 do
-			itemBuf = SH.scrollList.itemPool[i];
+			local itemBuf = SH.scrollList.itemPool[i];
 			if (itemBuf:IsVisible()) then
+				lastVisibleItem = itemBuf;
 				local xmin = itemBuf:GetLeft() * scale;
 				local ymin = itemBuf:GetBottom() * scale;
 				local xmax = xmin + (itemBuf:GetWidth() * scale);
 				local ymax = ymin + (itemBuf:GetHeight() * scale);
 				itemBuf.components[1]:SetColor(UI.Button.State.Highlight, 0, 0, 0, 0);	-- disable button highlight
-				
+
 				if (mx > xmin and mx < xmax and my > ymin and my < ymax) then
 					mouseOverItem = itemBuf;
 				end
@@ -505,13 +512,15 @@ function SH.OnDraggingItem(deltaTime)
 
 		if (not mouseOverItem) then
 			-- use last visible, if mouse is below it
-			mouseOverItem = itemBuf;
-			local xmin = mouseOverItem:GetLeft() * scale;
-			local ymin = mouseOverItem:GetBottom() * scale;
-			if (my < ymin) then
-				SH.ShowInsert(xmin, ymin + SH.scrollList.template.height * SH.inputState.viewportScale);
-				SH.InsertInLinearList(#SH.linearData, true);
-				--SH.InsertSpacing(xmin, ymin + SH.scrollList.template.height, mouseOverItem.dataIndex);
+			mouseOverItem = lastVisibleItem;
+			if (mouseOverItem) then
+				local xmin = mouseOverItem:GetLeft() * scale;
+				local ymin = mouseOverItem:GetBottom() * scale;
+				if (my < ymin) then
+					SH.ShowInsert(xmin, ymin);
+					SH.InsertInLinearList(#SH.linearData, true);
+					--SH.InsertSpacing(xmin, ymin + SH.scrollList.template.height, mouseOverItem.dataIndex);
+				end
 			end
 		else
 			if (mouseOverItem) then
@@ -568,7 +577,8 @@ function SH.OnFinishedDraggingItem()
 
 	if (SH.inputState.insertBelowIndex ~= -1 and SH.inputState.movingObjects) then
 		if (SH.inputState.insertBelowIndex <= #SH.linearData) then
-			for i = 1, #SH.inputState.movingObjects, 1 do
+			-- backwards: each object lands directly below the target, so forward order would reverse them
+			for i = #SH.inputState.movingObjects, 1, -1 do
 				local hobject = SH.inputState.movingObjects[i];
 				if (SH.inputState.insertBelowIndex == 0) then
 					-- this is the only scene object

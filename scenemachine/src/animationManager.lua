@@ -702,7 +702,7 @@ function AM.FilterAnimList(text)
             local animID = anim[1];
             local name = SceneMachine.animationNames[animID];
             if (name) then
-                local startIdx, endIdx = string.find(name:lower(), text:lower());
+                local startIdx, endIdx = string.find(name:lower(), text:lower(), 1, true);
                 if (startIdx) then
                     animDataFiltered[fI] = anim;
                     fI = fI + 1;
@@ -806,52 +806,52 @@ function AM.CloneSelectedKeys()
         local key = AM.selectedKeys[i];
         local newKey = Keyframe:NewClone(key);
 
-        if (AM.keyframeGroups[AM.selectedKeyGroup].px == key) then
+        if (rawequal(AM.keyframeGroups[AM.selectedKeyGroup].px, key)) then
             if (AM.selectedTrack.keysPx) then
                 AM.selectedTrack.keysPx[#AM.selectedTrack.keysPx + 1] = newKey;
                 AM.clonedKeys[i] = newKey;
             end
         end
-        if (AM.keyframeGroups[AM.selectedKeyGroup].py == key) then
+        if (rawequal(AM.keyframeGroups[AM.selectedKeyGroup].py, key)) then
             if (AM.selectedTrack.keysPy) then
                 AM.selectedTrack.keysPy[#AM.selectedTrack.keysPy + 1] = newKey;
                 AM.clonedKeys[i] = newKey;
             end
         end
-        if (AM.keyframeGroups[AM.selectedKeyGroup].pz == key) then
+        if (rawequal(AM.keyframeGroups[AM.selectedKeyGroup].pz, key)) then
             if (AM.selectedTrack.keysPz) then
                 AM.selectedTrack.keysPz[#AM.selectedTrack.keysPz + 1] = newKey;
                 AM.clonedKeys[i] = newKey;
             end
         end
         
-        if (AM.keyframeGroups[AM.selectedKeyGroup].rx == key) then
+        if (rawequal(AM.keyframeGroups[AM.selectedKeyGroup].rx, key)) then
             if (AM.selectedTrack.keysRx) then
                 AM.selectedTrack.keysRx[#AM.selectedTrack.keysRx + 1] = newKey;
                 AM.clonedKeys[i] = newKey;
             end
         end
-        if (AM.keyframeGroups[AM.selectedKeyGroup].ry == key) then
+        if (rawequal(AM.keyframeGroups[AM.selectedKeyGroup].ry, key)) then
             if (AM.selectedTrack.keysRy) then
                 AM.selectedTrack.keysRy[#AM.selectedTrack.keysRy + 1] = newKey;
                 AM.clonedKeys[i] = newKey;
             end
         end
-        if (AM.keyframeGroups[AM.selectedKeyGroup].rz == key) then
+        if (rawequal(AM.keyframeGroups[AM.selectedKeyGroup].rz, key)) then
             if (AM.selectedTrack.keysRz) then
                 AM.selectedTrack.keysRz[#AM.selectedTrack.keysRz + 1] = newKey;
                 AM.clonedKeys[i] = newKey;
             end
         end
 
-        if (AM.keyframeGroups[AM.selectedKeyGroup].s == key) then
+        if (rawequal(AM.keyframeGroups[AM.selectedKeyGroup].s, key)) then
             if (AM.selectedTrack.keysS) then
                 AM.selectedTrack.keysS[#AM.selectedTrack.keysS + 1] = newKey;
                 AM.clonedKeys[i] = newKey;
             end
         end
 
-        if (AM.keyframeGroups[AM.selectedKeyGroup].a == key) then
+        if (rawequal(AM.keyframeGroups[AM.selectedKeyGroup].a, key)) then
             if (AM.selectedTrack.keysA) then
                 AM.selectedTrack.keysA[#AM.selectedTrack.keysA + 1] = newKey;
                 AM.clonedKeys[i] = newKey;
@@ -902,7 +902,7 @@ function AM.GetNeedle()
     local i = AM.usedNeedles + 1;
     AM.usedNeedles = AM.usedNeedles + 1;
 
-    if i < #AM.needles then
+    if i <= #AM.needles then
         local needle = AM.needles[i];
         return needle;
     else
@@ -1437,16 +1437,19 @@ function AM.CreateTimeline_internal(timelineName)
 end
 
 function AM.DeleteTimeline(index)
-    -- switch to a different timeline because the currently loaded is being deleted
-    -- load first that isn't this one
-    for i = 1, SM.loadedScene:GetTimelineCount(), 1 do
-        if (i ~= index) then
-            AM.LoadTimeline(i);
-            break;
+    local timeline = SM.loadedScene:GetTimeline(index);
+    local deletingLoaded = (AM.loadedTimeline == timeline);
+
+    if (deletingLoaded) then
+        -- switch to a different timeline because the currently loaded is being deleted
+        -- load first that isn't this one
+        for i = 1, SM.loadedScene:GetTimelineCount(), 1 do
+            if (i ~= index) then
+                AM.LoadTimeline(i);
+                break;
+            end
         end
     end
-
-    local timeline = SM.loadedScene:GetTimeline(index);
 
     -- delete it
     AM.DeleteTimeline_internal(timeline);
@@ -1454,10 +1457,15 @@ function AM.DeleteTimeline(index)
     Editor.StartAction(Actions.Action.Type.DestroyTimeline, timeline);
     Editor.FinishAction();
 
-    -- if this was the only timeline then create a new default one
     if (SM.loadedScene:GetTimelineCount() == 0) then
-        SM.loadedScene:AddTimeline(AM.CreateDefaultTimeline());
+        -- this was the only timeline, create a new default one (adds itself to the scene)
+        AM.CreateDefaultTimeline();
         AM.LoadTimeline(1);
+    elseif (AM.loadedTimelineIndex > index) then
+        -- keep the index pointing at the same loaded timeline after the shift
+        AM.loadedTimelineIndex = AM.loadedTimelineIndex - 1;
+        AM.tabGroup.selectedIndex = AM.loadedTimelineIndex;
+        AM.RefreshTimelineTabs();
     end
 end
 
@@ -1485,10 +1493,14 @@ function AM.AddTracks(objects)
         return;
     end
 
+    -- keep the track list dense: AddTrack_internal returns nil when it skips an object
     local tracks = {};
     for i = 1, #objects, 1 do
         if (objects[i]) then
-            tracks[i] = AM.AddTrack_internal(objects[i]);
+            local track = AM.AddTrack_internal(objects[i]);
+            if (track) then
+                table.insert(tracks, track);
+            end
         end
     end
 
@@ -1592,8 +1604,8 @@ function AM.LoadTimeline(index)
     AM.tabGroup.selectedIndex = index;
 
     if (SM.loadedScene:GetTimelineCount() == 0) then
-        -- current project has no timelines, create a default one
-        SM.loadedScene:AddTimeline(AM.CreateDefaultTimeline());
+        -- current project has no timelines, create a default one (adds itself to the scene)
+        AM.CreateDefaultTimeline();
         AM.RefreshTimelineTabs();
     end
 
@@ -1615,6 +1627,10 @@ end
 
 function AM.UnloadTimeline()
     SM.selectedObjects = {};
+    -- clear per-timeline selection state so toolbar actions can't cross timelines
+    AM.selectedTrack = nil;
+    AM.selectedAnim = nil;
+    AM.selectedKeys = nil;
 end
 
 function AM.CreateNewTimelineTab(x, y, w, h, parent, startLevel)
@@ -1697,12 +1713,14 @@ function AM.RefreshTimebar()
         end
     end
 
-    local needleSpacing = timeBarW / needlesNeededF;
+    -- same px-per-time scale as the playhead/scrub mappings (width - 26)
+    local needleSpacing = (timeBarW - 26) / needlesNeededF;
     local startDiff = 0;
     if (needleTimeSpacing == 1) then
         startDiff = (math.floor(startTimeS) - startTimeS) * needleSpacing;
     elseif (needleTimeSpacing < 1) then
-        startDiff = (math.floor(startTimeS) - startTimeS) * needleSpacing / needleTimeSpacing;
+        -- anchor to the needle grid, not the whole second
+        startDiff = ((math.floor(startTimeS / needleTimeSpacing) * needleTimeSpacing) - startTimeS) * needleSpacing / needleTimeSpacing;
     elseif (needleTimeSpacing > 1) then
         startDiff = ((math.floor(startTimeS / needleTimeSpacing) * needleTimeSpacing) - (startTimeS)) * needleSpacing / needleTimeSpacing;
     end
@@ -1716,7 +1734,7 @@ function AM.RefreshTimebar()
         if (needleTimeSpacing == 1) then
             text = math.floor(startTimeS) + (i - 1) .. "s";
         elseif (needleTimeSpacing < 1) then
-            text = math.floor(startTimeS) + ((i - 1) * needleTimeSpacing) .. "s";
+            text = (math.floor(startTimeS / needleTimeSpacing) * needleTimeSpacing) + ((i - 1) * needleTimeSpacing) .. "s";
         elseif (needleTimeSpacing > 1) then
             text = (math.floor(startTimeS / needleTimeSpacing) * needleTimeSpacing) + ((i - 1) * needleTimeSpacing) .. "s";
         end
@@ -1798,6 +1816,9 @@ function AM.RefreshUIModeTracks()
                 for a = 1, #track.animations, 1 do
                     local animElement = AM.GetAvailableAnimationElement();
                     usedAnimations = usedAnimations + 1;
+                    -- store lookup info even when cropped out; drag/swap navigates the pool by index
+                    animElement.animIdx = a;
+                    animElement.trackIdx = t;
                     local startMS = AM.currentCrop.min * AM.loadedTimeline:GetDuration();
                     local endMS = AM.currentCrop.max * AM.loadedTimeline:GetDuration();
                     local xMS = track.animations[a]:GetStartTime() or 0;
@@ -1830,10 +1851,6 @@ function AM.RefreshUIModeTracks()
                         animElement:Show();
         
                         animElement.name:SetText(track.animations[a].name);
-
-                        -- store some information for lookup
-                        animElement.animIdx = a;
-                        animElement.trackIdx = t;
 
                         if (track.animations[a] == AM.selectedAnim) then
                             AM.animationSelectionBox.lineTop:SetTexCoord(0, width / 20, 0, 1);
@@ -2320,7 +2337,7 @@ function AM.RemoveAnim(track, anim)
         return;
     end
 
-    if (track == AM.selectedTrack and anim == AM.SelectAnimation) then
+    if (track == AM.selectedTrack and anim == AM.selectedAnim) then
         -- deselect
         AM.SelectAnimation(-1);
     end
@@ -2809,7 +2826,8 @@ end
 
 function AM.SkipFrameBackwardButton_OnClick()
     if (AM.loadedTimeline) then
-        local nextTime = AM.loadedTimeline:GetTime() - 33;
+        -- 30 (not 33) so SetTime's floor-to-33.3333ms grid lands exactly one frame back
+        local nextTime = AM.loadedTimeline:GetTime() - 30;
         if (nextTime < 0) then
             nextTime = 0;
         end
@@ -2819,6 +2837,10 @@ end
 
 function AM.LoopToggle_OnClick(on)
     AM.loopPlay = on;
+    -- refresh the loop end point when toggled mid-playback (Play only computes it if loop was on)
+    if (on and AM.loadedTimeline) then
+        AM.lastKeyedTime = AM.loadedTimeline:GetLastKeyedTime();
+    end
 end
 
 function AM.CameraToggle_OnClick(on)

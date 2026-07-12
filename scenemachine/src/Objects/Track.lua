@@ -445,9 +445,9 @@ function Track:SampleKey(timeMS, keys)
             elseif (i2 == Keyframe.Interpolation.Linear) then
                 B = Track:InterpolateLinear(t1, t2, timeMS);
             elseif (i2 == Keyframe.Interpolation.Slow) then
-                B = Track:InterpolateBezier(t1, t2, timeMS, 0, 1, 2, 0);
-            elseif (i2 == Keyframe.Interpolation.Fast) then
                 B = Track:InterpolateBezier(t1, t2, timeMS, 0, 1, 0, 2);
+            elseif (i2 == Keyframe.Interpolation.Fast) then
+                B = Track:InterpolateBezier(t1, t2, timeMS, 0, 1, 2, 0);
             end
 
             r = (A + (B - A) * alpha);
@@ -665,9 +665,10 @@ end
 --- Removes the specified animation from the track.
 --- @param anim AnimationClip The animation to remove.
 function Track:RemoveAnimation(anim)
-    for i in pairs(self.animations) do
+    for i = 1, #self.animations, 1 do
         if (self.animations[i] == anim) then
             table.remove(self.animations, i);
+            return;
         end
     end
 end
@@ -907,9 +908,11 @@ end
 --- @param keyList Keyframe[] The list from which to remove the key.
 function Track:RemoveKeyFromList(key, keyList)
     if (keyList) then
-        for i in pairs(keyList) do
-            if (keyList[i] == key) then
+        -- rawequal: == dispatches to Keyframe.__eq (time-only) and would remove any key at that time
+        for i = 1, #keyList, 1 do
+            if (rawequal(keyList[i], key)) then
                 table.remove(keyList, i);
+                return;
             end
         end
     end

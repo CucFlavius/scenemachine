@@ -14,13 +14,15 @@ function Resources.Initialize(resourcePath)
     Resources.fonts["blei00d"] = "Fonts\\blei00d.TTF";
     Resources.fonts["2002"] = "Fonts\\2002.ttf";
     
-    if (GAME_LOCALE == "zhCN") then
+    -- GAME_LOCALE is only the AceLocale debug override; the client locale comes from GetLocale()
+    local locale = GAME_LOCALE or GetLocale();
+    if (locale == "zhCN") then
         Resources.defaultFont = Resources.fonts["ARHei"];
         Resources.defaultFontSize = 13;
-    elseif(GAME_LOCALE == "zhTW") then
+    elseif(locale == "zhTW") then
         Resources.defaultFont = Resources.fonts["blei00d"];
         Resources.defaultFontSize = 13;
-    elseif (GAME_LOCALE == "koKR") then
+    elseif (locale == "koKR") then
         Resources.defaultFont = Resources.fonts["2002"];
         Resources.defaultFontSize = 13;
     else

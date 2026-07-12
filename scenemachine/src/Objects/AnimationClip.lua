@@ -339,18 +339,21 @@ function AnimationClip.SwapAnimData(A, B)
     local colorId = A.colorId;
     local variation = A.variation;
     local animLength = A.animLength
+    local speed = A.speed;
 
     A:SetId(B:GetId());
     A:SetName(B:GetName());
     A:SetColorId(B:GetColorId());
     A:SetVariation(B:GetVariation());
     A:SetLength(B:GetLength());
+    A:SetSpeed(B:GetSpeed());
 
     B:SetId(id);
     B:SetName(name);
     B:SetColorId(colorId);
     B:SetVariation(variation);
     B:SetLength(animLength);
+    B:SetSpeed(speed);
 end
 
 --- Clears the runtime data of the animation clip.
@@ -363,7 +366,7 @@ end
 --- @param b AnimationClip The second AnimationClip object.
 --- @return boolean equal if the AnimationClip objects are equal, false otherwise.
 AnimationClip.__eq = function(a,b)
-    return a.id == b.id;
+    return a.id == b.id and a.startT == b.startT and a.endT == b.endT;
 end
 
 --- Returns a string representation of the AnimationClip object.

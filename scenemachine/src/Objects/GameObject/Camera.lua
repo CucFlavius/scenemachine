@@ -73,7 +73,14 @@ function Camera:ImportPacked(data)
     -- verifying all elements upon import because sometimes the saved variables get corrupted --
     self.type = data[1] or Object.Type.Camera;
     self.id = data[2] or math.random(99999999);
-    self.name = data[3] or ("NewCamera");
+
+    if (data[3] ~= nil and data[3] ~= "") then
+        self.name = data[3];
+        self.isRenamed = true;      -- keep the name on the next ExportPacked
+    else
+        self.name = "NewCamera";
+        self.isRenamed = false;
+    end
 
     if (data[4] ~= nil and data[5] ~= nil and data[6] ~= nil) then
         self.position = Vector3:New(data[4], data[5], data[6]);

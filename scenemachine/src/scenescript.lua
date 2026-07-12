@@ -4,10 +4,11 @@ local SM = Editor.SceneManager;
 function SceneMachine.ImportScenescript(s)
     -- perform some changes to convert globals to SceneMachine locals
     s = string.gsub(s, "SceneTimelineAddFileData", "SceneMachine.SceneTimelineAddFileData");
-    s = string.gsub(s, "cid", "SceneMachine.cid");
-    s = string.gsub(s, "fid", "SceneMachine.fid");
-    s = string.gsub(s, "gdi", "SceneMachine.gdi");
-    s = string.gsub(s, "iid", "SceneMachine.iid");
+    -- anchor to the call form so substrings inside names/strings (e.g. "Acidmaw") survive
+    s = string.gsub(s, "%f[%w_]cid(%s*%()", "SceneMachine.cid%1");
+    s = string.gsub(s, "%f[%w_]fid(%s*%()", "SceneMachine.fid%1");
+    s = string.gsub(s, "%f[%w_]gdi(%s*%()", "SceneMachine.gdi%1");
+    s = string.gsub(s, "%f[%w_]iid(%s*%()", "SceneMachine.iid%1");
     RunScript(s);
 end
 

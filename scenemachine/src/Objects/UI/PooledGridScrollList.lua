@@ -159,13 +159,17 @@ end
 function PooledGridScrollList:SetData(data)
     self.data = data;
 
+    self:MakePool(self.viewportWidth, self.viewportHeight);
+
+    -- size the scrollbar from the actual pooled cell height, same as the resize path
     if (data == nil) then
+        self.totalRows = 0;
         self.scrollbar:Resize(self.viewportHeight, 0);
     else
-        self.scrollbar:Resize(self.viewportHeight, #self.data * self.template.height / self.visibleColumns);
+        self.totalRows = math.ceil(#self.data / self.visibleColumns);
+        self.scrollbar:Resize(self.viewportHeight, self.itemHeight * self.totalRows);
     end
 
-    self:MakePool(self.viewportWidth, self.viewportHeight);
     self.scrollbar:SetValueWithoutAction(0);
     self:Refresh(0);
     self:SetPosition(0);

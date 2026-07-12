@@ -109,14 +109,13 @@ end
 --- @param objectBuffer table The buffer containing the objects to verify.
 function Scene:VerifyHierarchyIntegrityRecursive(objectBuffer)
     if (objectBuffer) then
-        for i = 1, #objectBuffer, 1 do
+        -- iterate backwards so table.remove doesn't skip the shifted element
+        for i = #objectBuffer, 1, -1 do
             if (objectBuffer[i]) then
                 local object = self:GetObjectByID(objectBuffer[i].id);
                 if (not object) then
                     table.remove(objectBuffer, i);
-                    i = i - 1;
-                end
-                if (i > 0) then
+                else
                     self:VerifyHierarchyIntegrityRecursive(objectBuffer[i].childObjects);
                 end
             end
@@ -344,26 +343,30 @@ end
 --- Deletes an object from the scene.
 --- @param object Object The object to be deleted.
 function Scene:DeleteObject(object)
-    if (#self.objects > 0) then
-        for i in pairs(self.objects) do
-            if (self.objects[i] == object) then
-                table.remove(self.objects, i);
-            end
+    for i = 1, #self.objects, 1 do
+        if (self.objects[i] == object) then
+            table.remove(self.objects, i);
+            break;
         end
+    end
+
+    -- invalidate the id cache so GetObjectByID stops returning the deleted object
+    if (self.objectIDMap) then
+        self.objectIDMap[object.id] = nil;
     end
 
     if (object:HasActor()) then
         Renderer.RemoveActor(object:GetActor());
     end
 
-    -- also delete track if it exists
+    -- also delete track if it exists (backwards: RemoveTrack shifts the list)
     if (self.timelines) then
         for t = 1, #self.timelines, 1 do
-            for i = 1, self.timelines[t]:GetTrackCount(), 1 do
+            for i = self.timelines[t]:GetTrackCount(), 1, -1 do
                 local track = self.timelines[t]:GetTrack(i);
                 if (track) then
                     if (track.objectID == object.id) then
-                        self.timelines[t]:RemoveTrack(self.timelines[t]:GetTrack(i));
+                        self.timelines[t]:RemoveTrack(track);
                     end
                 end
             end
@@ -437,6 +440,8 @@ function Scene:CloneObject(object)
         clone:SetDesaturation(object:GetDesaturation());
     end
     if (clone) then
+        clone.isRenamed = object.isRenamed;    -- keep a custom name through packed round-trips
+
         local hobject = self:GetHierarchyObject(self.objectHierarchy, clone.id);
         
         local parentObj = self:GetParentObject(object.id);
@@ -511,7 +516,9 @@ end
 function Scene:InsertIDAboveInHierarchy(hobject, aboveID, currentList)
     for i = 1, #currentList, 1 do
         if (currentList[i].id == aboveID) then
-            -- insert above current id in id's parent
+            -- insert above = become a sibling of aboveID, so share its parent;
+            -- set parentID before the world restore so SetWorld* resolves the new parent
+            hobject.parentID = currentList[i].parentID;
             table.insert(currentList, i, hobject);
             local object = self:GetObjectByID(hobject.id)
             local wPosition = self.savedWorldPositions[hobject.id];
@@ -522,7 +529,6 @@ function Scene:InsertIDAboveInHierarchy(hobject, aboveID, currentList)
                 object:SetWorldRotation(wRotation.x, wRotation.y, wRotation.z);
                 object:SetWorldScale(wScale);
             end
-            hobject.parentID = aboveID;
             return;
         end
 
@@ -1064,7 +1070,7 @@ function Scene:ImportData(data)
             object:SetScene(self);
         end
 
-        if (object:HasActor()) then
+        if (object and object:HasActor()) then
             local actor = Renderer.AddActor(id, object.position.x, object.position.y, object.position.z, object.type);
             object:SetActor(actor);
 
@@ -1190,6 +1196,9 @@ function Scene:ImportVersion1Scene(sceneData)
                 self.objects[i] = object;
             end
         end
+
+        -- v1 exports predate the hierarchy field; build a flat one
+        self:RebuildObjectHierarchy();
     end
 
     if (#sceneData.timelines > 0) then
@@ -1313,9 +1322,10 @@ end
 function Scene:ImportNetworkScene(sceneData)
     self.name = sceneData.name;
 
+    -- sceneData comes from Scene:ExportPacked(): type is packed at index [1]
     if (#sceneData.objects > 0) then
         for i = 1, #sceneData.objects, 1 do
-            local type = sceneData.objects[i][3];
+            local type = sceneData.objects[i][1];
             local object;
             if (type == SceneMachine.GameObjects.Object.Type.Model) then
                 object = SceneMachine.GameObjects.Model:New();
@@ -1323,20 +1333,46 @@ function Scene:ImportNetworkScene(sceneData)
                 object = SceneMachine.GameObjects.Creature:New();
             elseif(type == SceneMachine.GameObjects.Object.Type.Character) then
                 object = SceneMachine.GameObjects.Character:New();
+            elseif(type == SceneMachine.GameObjects.Object.Type.Camera) then
+                object = SceneMachine.GameObjects.Camera:New();
+            elseif(type == SceneMachine.GameObjects.Object.Type.Group) then
+                object = SceneMachine.GameObjects.Group:New();
             end
 
             if (object) then
                 object:ImportPacked(sceneData.objects[i]);
+                object:SetScene(self);
+
+                -- create the renderer actor, same as Scene:ImportData
+                if (object:HasActor()) then
+                    local id = -1;
+                    if (type == SceneMachine.GameObjects.Object.Type.Model) then
+                        id = object.fileID;
+                    elseif (type == SceneMachine.GameObjects.Object.Type.Creature) then
+                        id = object.displayID;
+                    end
+                    local actor = Renderer.AddActor(id, object.position.x, object.position.y, object.position.z, object.type);
+                    object:SetActor(actor);
+
+                    if (not object.visible) then
+                        actor:SetAlpha(0);
+                    end
+                end
+
                 self.objects[i] = object;
             end
         end
+    end
+
+    if (sceneData.hierarchy) then
+        self.objectHierarchy = sceneData.hierarchy;
     end
 
     if (#sceneData.timelines > 0) then
         for i = 1, #sceneData.timelines, 1 do
             local timelineData = sceneData.timelines[i];
             local timeline = Timeline:New();
-            timeline:ImportData(timelineData);
+            timeline:ImportPacked(timelineData);
             timeline.scene = self;
             self.timelines[i] = timeline;
         end

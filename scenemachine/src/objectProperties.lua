@@ -138,6 +138,7 @@ function OP.Refresh()
         OP.transformPropertyGroup:Show();
         OP.actorPropertyGroup:Hide();
         OP.cameraPropertyGroup:Hide();
+        OP.scenePropertyGroup:Hide();
         OP.collapseList:Sort();
     end
 

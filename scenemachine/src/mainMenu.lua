@@ -33,7 +33,7 @@ function MainMenu.OpenAboutWindow()
                         string.format(L["ABOUT_AUTHOR"], "Zee (Flavius Cuc)") .. "\n" ..
                         string.format(L["ABOUT_CONTACT"], "Email: cucflavius@gmail.com, InGame: Songzhu/Songzee") .. "\n";
                         
-        local aboutText = UI.Label:NewTLTR(10, 10, 10, 10, 200, Editor.AboutWindow:GetFrame(), text);
+        local aboutText = UI.Label:NewTLTR(10, -10, -10, -10, 200, Editor.AboutWindow:GetFrame(), text);
     end
 
     Editor.AboutWindow:Show();

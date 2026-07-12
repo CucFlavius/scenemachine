@@ -333,7 +333,8 @@ function Editor.Show()
     SceneMachine.mainWindow:Show();
     local screenHeight = GetScreenHeight();
 
-    if (SceneMachine.mainWindow:GetTop() + 20 > screenHeight) then
+    -- compare in physical pixels: GetTop() is in window-local units, GetScreenHeight() in UIParent units
+    if ((SceneMachine.mainWindow:GetTop() + 20) * SceneMachine.mainWindow:GetEffectiveScale() > screenHeight * UIParent:GetEffectiveScale()) then
         Editor.ResetWindow();
     end
 
@@ -598,7 +599,7 @@ function Editor.ShowImportExportWindow(action, text)
         end
     end);
 
-    Editor.importExportWindow.editBox:SetText(text);
+    Editor.importExportWindow.editBox:SetText(text or "");    -- SetText(nil) is a no-op, leaving stale content
     Editor.importExportWindow:Show();
 end
 

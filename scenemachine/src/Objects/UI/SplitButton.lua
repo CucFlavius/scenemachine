@@ -100,12 +100,13 @@ end
 --- @param B number The blue component of the color.
 --- @param A number The alpha component of the color.
 function SplitButton:SetColor(state, R, G, B, A)
+    -- the state textures live on the inner button
     if (state == UI.SplitButton.State.Normal) then
-        self.ntex:SetColorTexture(R, G, B, A);
+        self.splitButton.ntex:SetColorTexture(R, G, B, A);
     elseif (state == UI.SplitButton.State.Highlight) then
-        self.htex:SetColorTexture(R, G, B, A);
+        self.splitButton.htex:SetColorTexture(R, G, B, A);
     elseif (state == UI.SplitButton.State.Pressed) then
-        self.ptex:SetColorTexture(R, G, B, A);
+        self.splitButton.ptex:SetColorTexture(R, G, B, A);
     end
 end
 

@@ -129,18 +129,22 @@ end
 
 function PM.LoadProject(ID)
     --print("PM.LoadProject("..ID..")");
+    if (PM.projects[ID] == nil) then
+        print("Exception: PM.projects doesn't contain ID:" .. tostring(ID));
+        return;
+    end
+
     PM.currentProject = PM.projects[ID];
-    
-    for ID in pairs(PM.projects) do 
-        PM.projects[ID].lastLoaded = false
+
+    -- unload the previous project's scene, otherwise LoadScene's same-index
+    -- guard can silently keep (and edit) the old project's scene
+    SM.UnloadScene();
+
+    for pID in pairs(PM.projects) do
+        PM.projects[pID].lastLoaded = false
     end
 
     PM.currentProject.lastLoaded = true;
-
-    if (PM.currentProject == nil) then
-        print("Exception: PM.projects doesn't contain ID:" .. ID);
-        return;
-    end
 
     SceneMachine.mainWindow:SetTitle(string.format(L["EDITOR_MAIN_WINDOW_TITLE"], Editor.version, PM.currentProject.name));
 
@@ -175,10 +179,8 @@ end
 
 function PM.GenerateUniqueProjectID()
     local ID = "P"..math.random(999999);
-    for ID in pairs(PM.projects) do
-        if (PM.projects[ID].ID == ID) then
-            ID = "P"..math.random(999999);
-        end
+    while (PM.projects[ID] ~= nil) do
+        ID = "P"..math.random(999999);
     end
     return ID;
 end

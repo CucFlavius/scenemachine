@@ -410,7 +410,8 @@ end
 --- @return table: The packed table containing the object's properties.
 function Object:ExportPacked()
     local name = nil;
-    if (self.isRenamed) then
+    -- characters have no derivable name on import, so always carry theirs
+    if (self.isRenamed or self.type == Object.Type.Character) then
         name = self.name;
     end
 
@@ -427,6 +428,9 @@ function Object:ExportPacked()
         self.frozen,
         self.alpha,
         self.desaturation,
+        -- bounds matter for groups (FitObjects only runs at group creation)
+        self.minX, self.minY, self.minZ,
+        self.maxX, self.maxY, self.maxZ,
     }
 end
 
@@ -626,6 +630,11 @@ function Object:ImportPacked(data)
         self.desaturation = data[16];
     else
         self.desaturation = 0.0;
+    end
+
+    if (data[17] ~= nil) then
+        self.minX, self.minY, self.minZ = data[17], data[18], data[19];
+        self.maxX, self.maxY, self.maxZ = data[20], data[21], data[22];
     end
 end
 

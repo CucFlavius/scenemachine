@@ -31,6 +31,9 @@ function SceneProperties:New(properties)
 	v.startProperties.diffuseColor = properties.diffuseColor;
 	v.startProperties.backgroundColor = properties.backgroundColor;
 	v.startProperties.enableLighting = properties.enableLighting;
+	v.startProperties.fogColor = properties.fogColor;
+	v.startProperties.enableFog = properties.enableFog;
+	v.startProperties.fogDistance = properties.fogDistance;
 
 	v.memoryUsage = v.memorySize;
 
@@ -45,6 +48,9 @@ function SceneProperties:Finish(properties)
 	self.endProperties.diffuseColor = properties.diffuseColor;
 	self.endProperties.backgroundColor = properties.backgroundColor;
 	self.endProperties.enableLighting = properties.enableLighting;
+	self.endProperties.fogColor = properties.fogColor;
+	self.endProperties.enableFog = properties.enableFog;
+	self.endProperties.fogDistance = properties.fogDistance;
 end
 
 -- Undoes the changes made to the scene properties.
@@ -62,6 +68,14 @@ function SceneProperties:Undo()
 	SM.loadedScene:SetBackgroundColor(R, G, B, A);
 
 	SM.loadedScene:SetLightingEnabled(self.startProperties.enableLighting);
+
+	-- Restore the fog
+	if (self.startProperties.fogColor) then
+		local F = self.startProperties.fogColor;
+		SM.loadedScene:SetFogColor(F[1], F[2], F[3], F[4]);
+	end
+	SM.loadedScene:SetFogDistance(self.startProperties.fogDistance);
+	SM.loadedScene:SetFogEnabled(self.startProperties.enableFog);
 end
 
 --- Redo the scene properties.
@@ -79,4 +93,12 @@ function SceneProperties:Redo()
 	SM.loadedScene:SetBackgroundColor(R, G, B, A);
 	
 	SM.loadedScene:SetLightingEnabled(self.endProperties.enableLighting);
+
+	-- Restore the fog
+	if (self.endProperties.fogColor) then
+		local F = self.endProperties.fogColor;
+		SM.loadedScene:SetFogColor(F[1], F[2], F[3], F[4]);
+	end
+	SM.loadedScene:SetFogDistance(self.endProperties.fogDistance);
+	SM.loadedScene:SetFogEnabled(self.endProperties.enableFog);
 end

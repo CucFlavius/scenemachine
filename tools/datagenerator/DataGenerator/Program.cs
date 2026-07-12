@@ -30,12 +30,12 @@ namespace DataGenerator
         static void Main(string[] args)
         {
             // File-list data
-            //DownloadLatestListfile();
-            //GenerateAddonModelData();
-            
+            DownloadLatestListfile();
+            GenerateAddonModelData();
+
             // Database data
             string installPath = @"D:\Games\World of Warcraft\";
-            string product = "wow_beta"; // wow (release), wowt (ptr)
+            string product = "wow"; // wow (release), wowt (ptr)
             GameData data = new GameData(installPath, product, LISTFILE_PATH);
             data.GenerateAnimationData($"{ADDON_DATA_PATH}\\{ANIMATION_DATA_FILE_NAME}");
             data.GenerateCreatureData($"{ADDON_DATA_PATH}\\{CREATURE_DATA_FILE_NAME}");

@@ -1,4 +1,4 @@
-## Interface: 120005, 120007
+## Interface: 120007, 120100
 ## Title: Scene Machine
 ## Notes:  WoW addon frontend for ModelScene API
 ## Author: Zee (Songzee/Songzhu - Argent Dawn EU)

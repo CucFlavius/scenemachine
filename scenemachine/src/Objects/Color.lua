@@ -107,17 +107,17 @@ end
 --- Clamps the color values to the upper limit.
 --- @param limit number The upper limit to clamp the color values to.
 function Color:ClampUpper(limit)
-	self.r = max(self.r, limit);
-	self.g = max(self.g, limit);
-	self.b = max(self.b, limit);
+	self.r = min(self.r, limit);
+	self.g = min(self.g, limit);
+	self.b = min(self.b, limit);
 end
 
 --- Clamps the color values to a lower limit.
 --- @param limit number The lower limit to clamp the color values to.
 function Color:ClampLower(limit)
-	self.r = min(self.r, limit);
-	self.g = min(self.g, limit);
-	self.b = min(self.b, limit);
+	self.r = max(self.r, limit);
+	self.g = max(self.g, limit);
+	self.b = max(self.b, limit);
 end
 
 --- Inverts the color values.

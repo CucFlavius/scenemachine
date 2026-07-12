@@ -243,7 +243,7 @@ function GM.UpdateMarquee(mouseX, mouseY)
                         vertices[2] = {chX, chY, chZ};
                         vertices[3] = {chX, -chY, -chZ};
                         vertices[4] = {chX, chY, -chZ};
-                        vertices[5] = {chX, -chY, -chZ};
+                        vertices[5] = {-chX, chY, chZ};
                         vertices[6] = {-chX, -chY, chZ};
                         vertices[7] = {-chX, chY, -chZ};
                         vertices[8] = {chX, -chY, chZ};
@@ -262,8 +262,9 @@ function GM.UpdateMarquee(mouseX, mouseY)
 
                             if (not cull) then
                                 local aX, aY, aZ = Renderer.projectionFrame:Project3DPointTo2D(vertices[q][1], vertices[q][2], vertices[q][3]);
-                                GM.marqueeAABBSSPoints[idx].SSvertices[q][1] = aX;
-                                GM.marqueeAABBSSPoints[idx].SSvertices[q][2] = aY;
+                                -- store in frame units, same space as the scaled mouse rect
+                                GM.marqueeAABBSSPoints[idx].SSvertices[q][1] = aX * Renderer.scale;
+                                GM.marqueeAABBSSPoints[idx].SSvertices[q][2] = aY * Renderer.scale;
                             end
                             GM.marqueeAABBSSPoints[idx].SSvertices[q][3] = cull;
                         end
@@ -426,14 +427,20 @@ function GM.VisibilityCheck()
             GM.rotateGizmo:Hide();
             GM.scaleGizmo:Hide();
 
-            -- update gizmo vectors (needed for flip check)
-            local rotation = SM.selectedWorldRotation;
-            local forward = Math.normalizeVector(Math.rotateVector(rotation.x, rotation.y, rotation.z, 1, 0, 0));
-            local right = Math.normalizeVector(Math.rotateVector(rotation.x, rotation.y, rotation.z, 0, 1, 0));
-            local up = Math.normalizeVector(Math.rotateVector(rotation.x, rotation.y, rotation.z, 0, 0, 1));
-            GM.forward:Set(forward[1], forward[2], forward[3]);
-            GM.right:Set(right[1], right[2], right[3]);
-            GM.up:Set(up[1], up[2], up[3]);
+            -- update gizmo vectors (needed for flip check), respecting the active space
+            if (GM.space == Gizmo.Space.Local) then
+                local rotation = SM.selectedWorldRotation;
+                local forward = Math.normalizeVector(Math.rotateVector(rotation.x, rotation.y, rotation.z, 1, 0, 0));
+                local right = Math.normalizeVector(Math.rotateVector(rotation.x, rotation.y, rotation.z, 0, 1, 0));
+                local up = Math.normalizeVector(Math.rotateVector(rotation.x, rotation.y, rotation.z, 0, 0, 1));
+                GM.forward:Set(forward[1], forward[2], forward[3]);
+                GM.right:Set(right[1], right[2], right[3]);
+                GM.up:Set(up[1], up[2], up[3]);
+            else
+                GM.forward:Set(1, 0, 0);
+                GM.right:Set(0, 1, 0);
+                GM.up:Set(0, 0, 1);
+            end
 
             if (Settings.HideTranslationGizmosParallelToCamera()) then
                 GM.MoveGizmoParalelAxesCheck();
@@ -488,7 +495,8 @@ function GM.UpdateGizmoTransform()
             local near = 1;
             local far = 20;
             GM.cameraGizmo:GenerateCameraFrustumVertices(fov, aspect, near, far);
-            GM.cameraGizmo:TransformGizmo(worldPosition, worldRotation, 1, 0, GM.space, 0);
+            -- frustum must always follow the camera's orientation, regardless of editor space
+            GM.cameraGizmo:TransformGizmo(worldPosition, worldRotation, 1, 0, Gizmo.Space.Local, 0);
         end
     end
 
@@ -505,7 +513,7 @@ function GM.UpdateGizmoTransform()
         local near = 1;
         local far = 20;
         GM.cameraGizmo:GenerateCameraFrustumVertices(fov, aspect, near, far);
-        GM.cameraGizmo:TransformGizmo(worldPosition, worldRotation, 1, 0, GM.space, 0);
+        GM.cameraGizmo:TransformGizmo(worldPosition, worldRotation, 1, 0, Gizmo.Space.Local, 0);
         GM.lastSelectedCamera = SM.selectedObjects[1];
     end
 
@@ -641,7 +649,7 @@ function GM.ApplyScaleMotion(object, direction, mouseDiff)
         s = s + mouseDiff;
         s = math.max(0.0001, s);
         object:SetScale(s, s, s);
-        local h1, h2, h3 = px - GM.center[1], py - GM.center[2], pz + GM.center[3];
+        local h1, h2, h3 = px - GM.center[1], py - GM.center[2], pz - GM.center[3];
         h1 = h1 * (s - olds);
         h2 = h2 * (s - olds);
         h3 = h3 * (s - olds);

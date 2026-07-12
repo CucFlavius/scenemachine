@@ -73,18 +73,19 @@ end
 --- @param r Quaternion The rotation quaternion.
 --- @param s Vector3 The scaling vector.
 function Matrix:TRS(t, r, s)
+    -- rotation block matches RotateQuaternion/ExtractRotation layout (row-vector convention)
     self.m00 = (1.0-2.0*(r.y*r.y+r.z*r.z))*s.x;
-    self.m01 = (r.x*r.y-r.z*r.w)*s.y*2.0;
-    self.m02 = (r.x*r.z+r.y*r.w)*s.z*2.0;
+    self.m01 = (r.x*r.y+r.z*r.w)*s.y*2.0;
+    self.m02 = (r.x*r.z-r.y*r.w)*s.z*2.0;
     self.m03 = 0.0;
-    
-    self.m10 = (r.x*r.y+r.z*r.w)*s.x*2.0;
+
+    self.m10 = (r.x*r.y-r.z*r.w)*s.x*2.0;
     self.m11 = (1.0-2.0*(r.x*r.x+r.z*r.z))*s.y;
-    self.m12 = (r.y*r.z-r.x*r.w)*s.z*2.0;
+    self.m12 = (r.y*r.z+r.x*r.w)*s.z*2.0;
     self.m13 = 0.0;
-    
-    self.m20 = (r.x*r.z-r.y*r.w)*s.x*2.0;
-    self.m21 = (r.y*r.z+r.x*r.w)*s.y*2.0;
+
+    self.m20 = (r.x*r.z+r.y*r.w)*s.x*2.0;
+    self.m21 = (r.y*r.z-r.x*r.w)*s.y*2.0;
     self.m22 = (1.0-2.0*(r.x*r.x+r.y*r.y))*s.z;
     self.m23 = 0.0;
     

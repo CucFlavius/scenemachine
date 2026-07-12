@@ -71,6 +71,7 @@ function TrackKeyframes:Finish()
 	self:TransferKeys(self.track.keysRx, self.endKeysRx);
 	self:TransferKeys(self.track.keysRy, self.endKeysRy);
 	self:TransferKeys(self.track.keysRz, self.endKeysRz);
+	self:TransferKeys(self.track.keysS, self.endKeysS);
 	self:TransferKeys(self.track.keysA, self.endKeysA);
 end
 

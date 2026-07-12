@@ -49,7 +49,7 @@ function PropertyField:BuildFloatField(setValue, default)
         if (val ~= nil) then
             self.value = val;
         end
-        setValue(tonumber(self:GetText()));
+        setValue(self.value);
         self:ClearFocus();
         Editor.ui.focused = false;
     end);
@@ -63,7 +63,7 @@ function PropertyField:BuildFloatField(setValue, default)
         if (val ~= nil) then
             self.value = val;
         end
-        setValue(tonumber(self:GetText()));
+        setValue(self.value);
         Editor.ui.focused = false;
     end);
     return transform;

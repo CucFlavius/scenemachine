@@ -54,7 +54,7 @@ function MousePick.Pick(x, y)
 
             local tNear, tFar = ray:IntersectsBoundingBox(bb, object:GetWorldPosition(), object:GetWorldRotation(), object:GetWorldScale())
             
-            if (tNear <= tFar) then
+            if (tNear <= tFar and tFar >= 0) then
                 MousePick.selectionList[idx] = {};
                 MousePick.selectionList[idx].object = object;
                 MousePick.selectionList[idx].tNear = tNear;
@@ -84,7 +84,7 @@ function MousePick.Pick(x, y)
 
             -- if multiple objects are selected, trim the list to the first
             if (#SM.selectedObjects > 1) then
-                SM.selectedObjects = { SM.selectedObjects[1].object }
+                SM.selectedObjects = { SM.selectedObjects[1] }
             end
 
             SM.SelectObject(MousePick.selectionList[1].object);

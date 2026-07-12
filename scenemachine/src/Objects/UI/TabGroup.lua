@@ -201,9 +201,10 @@ function TabGroup:SetData(data)
     self.data = data;
 
     --- Calculates the sizes of the tabs based on the data.
+    -- always cover ALL entries: widths and totalWidth must not depend on scroll position
     local tw = 0;
     self.dataEndIdx = #self.data;
-    for i = self.dataStartIdx, #self.data, 1 do
+    for i = 1, #self.data, 1 do
         self.stringCalc:SetText(self.data[i].name);
         local w = self.stringCalc:GetStringWidth() + 20;
         self.data[i].width = w;
@@ -324,5 +325,5 @@ function TabGroup:Refresh(dif)
 end
 
 TabGroup.__tostring = function(self)
-	return string.format("TabGroup( %.3f, %.3f, %.3f, %.3f, %s )", self.x, self.y, self.w, h, self.parent);
+	return string.format("TabGroup( %.3f, %.3f, %.3f, %.3f, %s )", self.x, self.y, self.w, self.h, self.parent);
 end

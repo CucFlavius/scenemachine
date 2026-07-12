@@ -52,9 +52,10 @@ end
 
 -- Undoes the tracked animations by restoring the initial state of the track.
 function TrackAnimations:Undo()
+	-- re-clone: later in-place clip edits must not rewrite the stored snapshots
 	self.track.animations = {};
 	for i = 1, #self.startAnimations, 1 do
-		self.track.animations[i] = self.startAnimations[i];
+		self.track.animations[i] = AnimationClip:NewClone(self.startAnimations[i]);
 	end
 
 	AM.RefreshWorkspace();
@@ -64,7 +65,7 @@ end
 function TrackAnimations:Redo()
 	self.track.animations = {};
 	for i = 1, #self.endAnimations, 1 do
-		self.track.animations[i] = self.endAnimations[i];
+		self.track.animations[i] = AnimationClip:NewClone(self.endAnimations[i]);
 	end
 
 	AM.RefreshWorkspace();

@@ -168,11 +168,13 @@ function MoveGizmo:SelectionCheck(mouseX, mouseY)
         -- ^
         local dX = self.screenSpaceVertices[1][1][1];
         local dY = self.screenSpaceVertices[1][1][2];
-        local inTriangle = Math.isPointInPolygon(mouseX, mouseY, aX, aY, cX, cY, bX, bY, dX, dY);
-        if (inTriangle) then
-            self.isHighlighted = true;
-            self.selectedAxis = Gizmo.Axis.XY;
-            self.highlightedAxis = Gizmo.Axis.XY;
+        if (mouseX and mouseY and aX and aY and bX and bY) then
+            local inTriangle = Math.isPointInPolygon(mouseX, mouseY, aX, aY, cX, cY, bX, bY, dX, dY);
+            if (inTriangle) then
+                self.isHighlighted = true;
+                self.selectedAxis = Gizmo.Axis.XY;
+                self.highlightedAxis = Gizmo.Axis.XY;
+            end
         end
     end
 
@@ -334,14 +336,15 @@ end
 --- Shades the move gizmo based on the highlighted axis.
 function MoveGizmo:Shade()
     for t = 1, 3, 1 do
+        -- cones start after the 3 axis lines + 6 plane lines (indices 10..9+coneDetail per axis)
         if (self.lines[t].axis == self.highlightedAxis) then
             self.faceColors[t][4] = 1.0;
-            for c = 4 + 2 + (self.coneDetail * (t-1)), 4 + 2 + (self.coneDetail * (t)), 1 do
+            for c = 4 + 6 + (self.coneDetail * (t-1)), 3 + 6 + (self.coneDetail * (t)), 1 do
                 self.faceColors[c][4] = 1.0;
             end
         else
             self.faceColors[t][4] = 0.3;
-            for c = 4 + 2 + (self.coneDetail * (t-1)), 4 + 2 + (self.coneDetail * (t)), 1 do
+            for c = 4 + 6 + (self.coneDetail * (t-1)), 3 + 6 + (self.coneDetail * (t)), 1 do
                 self.faceColors[c][4] = 0.3;
             end
         end

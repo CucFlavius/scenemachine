@@ -58,7 +58,7 @@ function RangeScrollbar:Build()
 
     self.frame = UI.Rectangle:NewBLBR(x, y, x, y, h, parent, 0, 0, 0, 0);
 
-    self.frameCenter = UI.ImageBox:NewLR(h, 0, -h, y, h, self.frame:GetFrame(), Resources.textures["CropBar"], { 0.25 + 0.125, 0.75 - 0.125, 0, 0.5 });
+    self.frameCenter = UI.ImageBox:NewLR(h, 0, -h, 0, h, self.frame:GetFrame(), Resources.textures["CropBar"], { 0.25 + 0.125, 0.75 - 0.125, 0, 0.5 });
     self.frameCenter:SetVertexColor(0.18,0.18,0.18,1);
 
     self.frameLeft = UI.ImageBox:New(0, 0, h, h, self.frame:GetFrame(), "LEFT", "LEFT", Resources.textures["CropBar"], { 0, 0.5, 0, 0.5 });
@@ -151,7 +151,7 @@ function RangeScrollbar:Update()
     -- Update the scrollbar when moving the minimum value
     if (self.inputState.movingMin) then
         local scale = self.parent:GetEffectiveScale();
-        local groupBgW = self.parent:GetWidth() + 6;
+        local groupBgW = self.parent:GetWidth() - 16;
         local mouseDiff = (self.inputState.mousePosStartX - Input.mouseXRaw) * scale;
         local nextPoint = self.inputState.minFramePosStart - mouseDiff;
         local newPoint = 0;
@@ -210,7 +210,7 @@ function RangeScrollbar:Update()
                 newPoint = self.inputState.minFramePosStart + 32;
                 self.rightDrag:SetPoint("LEFT", self.inputState.minFramePosStart + 32, 0);
             end
-            if (nextPoint > groupBgW) then
+            if (nextPoint >= groupBgW) then
                 self.rightDrag:ClearAllPoints();
                 newPoint = groupBgW;
                 self.rightDrag:SetPoint("LEFT", groupBgW, 0);
@@ -249,7 +249,7 @@ function RangeScrollbar:Update()
             if (nextPoint <= 0) then
                 newPoint = 0;
             end
-            if (nextPoint > groupBgW - sliderSize) then
+            if (nextPoint >= groupBgW - sliderSize) then
                 newPoint = groupBgW - sliderSize;
             end
         end

@@ -67,6 +67,7 @@ end
 --- @param forward? Vector3 (optional) The forward vector to rotate.
 --- @return Vector3 rotatedVector The rotated forward vector, normalized.
 function Quaternion:ToDirectionVector(forward)
+    forward = forward or Vector3:New(0, 0, 1);
     local rotatedForward = self:MultiplyVector(forward)
     return rotatedForward:Normalize()
 end
@@ -186,11 +187,10 @@ end
 --- @return Vector3 multipliedVector The resulting vector.
 function Quaternion:MultiplyVector(vector)
     local u = Quaternion:New(vector.x, vector.y, vector.z, 0);
-    local conjugate = self:Conjugate();
-    u:Multiply(conjugate);
-    local result = Quaternion:New();
-    result:SetQuaternion(self);
+    -- Multiply(q) computes q * self, so build q * v * q^-1 inside out
+    local result = self:Conjugate();
     result:Multiply(u);
+    result:Multiply(self);
     return Vector3:New(result.x, result.y, result.z);
 end
 
@@ -258,7 +258,7 @@ end
 --- @param b Quaternion The second Quaternion.
 --- @return boolean True if the Quaternions are equal, false otherwise.
 Quaternion.__eq = function(a,b)
-    return a.x == b.x and a.y == b.x and a.z == b.z and a.w == b.w;
+    return a.x == b.x and a.y == b.y and a.z == b.z and a.w == b.w;
 end
 
 -- This function is used as the __index metamethod for the Quaternion table.
